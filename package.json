@@ -1,17 +1,15 @@
-export default function MaintenancePage({ query }) {
-  const slug =
-    typeof window !== "undefined"
-      ? window.location.pathname.split("/").pop()
-      : "loading";
-
-  return (
-    <main style={{ fontFamily: "system-ui, sans-serif", padding: "40px" }}>
-      <h1>SWIFT Maintenance Portal</h1>
-      <p>You scanned unit: <strong>{slug}</strong></p>
-      <p>
-        The embedded maintenance form will go here (Annual / Depth selector,
-        checklist, etc.).
-      </p>
-    </main>
-  );
+{
+  "name": "zelim-maintenance-portal",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "^14.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
 }
