@@ -1,0 +1,17 @@
+export default function MaintenancePage({ query }) {
+  const slug =
+    typeof window !== "undefined"
+      ? window.location.pathname.split("/").pop()
+      : "loading";
+
+  return (
+    <main style={{ fontFamily: "system-ui, sans-serif", padding: "40px" }}>
+      <h1>SWIFT Maintenance Portal</h1>
+      <p>You scanned unit: <strong>{slug}</strong></p>
+      <p>
+        The embedded maintenance form will go here (Annual / Depth selector,
+        checklist, etc.).
+      </p>
+    </main>
+  );
+}
