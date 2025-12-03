@@ -235,6 +235,8 @@ h1.landing-title {
 
   .landing-main {
     flex: 1;
+    /* FIX: Align content to the top on mobile */
+    justify-content: flex-start;
   }
 }
 
@@ -256,7 +258,6 @@ h1.landing-title {
     margin-top: 24px;
   }
 
-  /* UPDATED MOBILE HEADING STYLES */
   h1.landing-title {
     font-size: 26px; 
     line-height: 32px;
