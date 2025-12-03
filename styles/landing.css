@@ -9,6 +9,7 @@
 }
 
 /* LEFT PANEL – IMAGE */
+
 .landing-hero {
   flex: 1 1 50%;
   display: flex;
@@ -31,6 +32,7 @@
 }
 
 /* RIGHT PANEL – CONTENT */
+
 .landing-content {
   flex: 1 1 50%;
   display: flex;
@@ -39,7 +41,7 @@
   padding: 32px 56px 80px;
 }
 
-/* Main block is vertically centred within the right panel */
+/* Centre this block vertically in the right column */
 .landing-main {
   flex: 1;
   display: flex;
@@ -54,7 +56,11 @@
 
 .landing-header {
   text-align: center;
-  margin-bottom: 32px;
+  margin: 0 0 32px;
+  width: 100%;
+  max-width: 360px;      /* header matches form width */
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .landing-title {
@@ -85,7 +91,10 @@
 
 .form-stack {
   width: 100%;
-  max-width: 360px; /* cap width so it never gets huge */
+  max-width: 360px;      /* field + button column width */
+  margin-left: auto;
+  margin-right: auto;
+
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -100,7 +109,7 @@
   align-items: stretch;
 }
 
-/* Text field itself */
+/* Text field */
 .input-field {
   width: 100%;
   padding: 12px 20px;
@@ -146,7 +155,7 @@
   line-height: 18px;
   font-weight: 400;
   color: #d92d20;
-  text-align: left;
+  text-align: left;     /* left aligned */
   width: 100%;
 }
 
@@ -175,7 +184,7 @@
 
   cursor: pointer;
 
-  /* no skeuomorphic shadow now */
+  /* No shadow now */
   box-shadow: none;
 
   transition:
@@ -205,7 +214,7 @@
   width: 100%;
   display: flex;
   justify-content: center;
-  margin-top: 32px; /* spacing from main block */
+  margin-top: 32px; /* space from main block */
 }
 
 .logo-link {
