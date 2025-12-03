@@ -1,5 +1,6 @@
-/* Load Montserrat from Google Fonts */
-@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap");
+/* ========================
+   styles/globals.css
+   ======================== */
 
 *,
 *::before,
@@ -14,7 +15,7 @@ body {
   height: 100%;
   background: #172f36; /* dark teal */
   color: #ffffff;
-  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont,
+  font-family: var(--font-montserrat), system-ui, -apple-system, BlinkMacSystemFont,
     sans-serif;
 }
 
