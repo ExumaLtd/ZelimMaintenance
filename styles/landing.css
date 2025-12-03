@@ -4,20 +4,19 @@
 
 .landing-root {
   display: flex;
-  width: 100%;
   min-height: 100vh;
-  background: #172f36;
+  height: 100%;
 }
 
 /* =========================================
-   LEFT PANEL – HERO IMAGE
+   LEFT HERO (IMAGE)
 ========================================= */
 
 .landing-hero {
   flex: 1 1 50%;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   padding: 24px;
 }
 
@@ -32,11 +31,10 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
 }
 
 /* =========================================
-   RIGHT PANEL – CONTENT
+   RIGHT PANEL
 ========================================= */
 
 .landing-content {
@@ -44,22 +42,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 32px 56px 80px;        /* bottom 80px = logo offset */
+  justify-content: space-between; /* header+form vs logo */
+  padding: 32px 56px 80px; /* bottom = 80px for logo offset */
 }
 
-/* Main content column (title + subtitle + form) */
+/* Wraps header + form and keeps them vertically centred
+   while footer is pushed down by justify-content: space-between
+*/
 .landing-main {
   width: 100%;
-  max-width: 360px;               /* keep field + button narrow */
-  margin: 0 auto;
-
-  flex: 1;                        /* takes available height above footer */
   display: flex;
   flex-direction: column;
-  justify-content: center;        /* centre header + form vertically */
   align-items: center;
-  gap: 32px;
-  text-align: center;
+  justify-content: center;
+  flex: 1;
 }
 
 /* =========================================
@@ -67,17 +63,15 @@
 ========================================= */
 
 .landing-header {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  text-align: center;
+  margin: 0 0 32px;
 }
 
 .landing-title {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 8px;
   color: #f7f7f7;
   font-family: Montserrat;
   font-size: 30px;
@@ -87,6 +81,7 @@
 
 .landing-subtitle {
   margin: 16px 0 0 0;
+  text-align: center;
   color: #ffffff;
   font-family: Montserrat;
   font-size: 16px;
@@ -95,46 +90,45 @@
 }
 
 /* =========================================
-   FORM STACK
+   FORM STACK (INPUT + BUTTON)
 ========================================= */
 
 .form-stack {
   width: 100%;
+  max-width: 360px; /* locks the content block width */
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 24px; /* space between input + button */
+  gap: 24px;
 }
-
-/* =========================================
-   INPUT FIELD
-========================================= */
 
 .input-wrapper {
-  width: 100%;
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
+
+/* INPUT FIELD */
 
 .input-field {
   width: 100%;
-  padding: 12px 20px;             /* from Figma */
+  padding: 12px 20px; /* Figma */
   border-radius: 8px;
   border: 1px solid #394d54;
   background: #4f6167;
-  box-shadow: 0 1px 2px rgba(255, 255, 255, 0);
-
   font-family: Montserrat;
   font-size: 16px;
-  font-weight: 400;
   line-height: 24px;
+  font-weight: 400;
   color: #e9ebec;
   text-align: center;
 
   transition:
     border-color 150ms ease,
-    box-shadow 150ms ease,
     background-color 150ms ease,
-    color 150ms ease;
+    color 150ms ease,
+    box-shadow 150ms ease;
 }
 
 .input-field::placeholder {
@@ -144,23 +138,23 @@
 
 .input-field:focus {
   outline: none;
-  border-color: #01fff6;
-  box-shadow: 0 0 0 1px rgba(1, 255, 246, 0.35);
+  border-color: #ffffff;
 }
 
-/* Error state – wrapper toggles .has-error in JSX */
+/* Error state: wrapper adds .has-error */
 
 .input-wrapper.has-error .input-field {
   border-color: #d92d20;
 }
 
+/* Error message */
+
 .error-text {
-  margin: 8px 0 0 0;
-  font-family: Montserrat;
-  font-size: 13px;
-  line-height: 18px;
-  font-weight: 400;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
   color: #d92d20;
+  text-align: left;
 }
 
 /* =========================================
@@ -169,65 +163,46 @@
 
 .primary-btn {
   width: 100%;
-  padding: 12px 16px; /* from Figma */
+  padding: 12px 16px; /* Figma */
   border-radius: 8px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-
-  background: #01fff6;
   border: 2px solid rgba(255, 255, 255, 0.12);
-
-  box-shadow:
-    0 0 0 1px rgba(12, 14, 18, 0.18) inset,
-    0 -2px 0 rgba(12, 14, 18, 0.05) inset,
-    0 1px 2px rgba(255, 255, 255, 0);
-
+  background: #01fff6;
   font-family: Montserrat;
   font-size: 16px;
-  font-weight: 600;
   line-height: 24px;
+  font-weight: 600;
   color: #003336;
-  text-align: center;
-
   cursor: pointer;
 
+  /* smooth interaction */
   transition:
     background-color 150ms ease,
-    box-shadow 150ms ease,
-    transform 120ms ease,
+    transform 150ms ease,
     opacity 150ms ease;
 }
 
-.primary-btn:hover:not(:disabled) {
-  background: #01e6dd; /* hover fill */
-}
+/* No box-shadow on button (removed completely) */
 
-.primary-btn:active:not(:disabled) {
-  transform: translateY(1px);
-  box-shadow:
-    0 0 0 1px rgba(12, 14, 18, 0.18) inset,
-    0 0 0 rgba(12, 14, 18, 0.05) inset,
-    0 1px 2px rgba(255, 255, 255, 0);
+.primary-btn:hover:not(:disabled) {
+  background: #01e6dd; /* hover colour */
+  transform: translateY(-1px);
 }
 
 .primary-btn:disabled {
-  opacity: 0.65;
+  opacity: 0.7;
   cursor: default;
+  transform: none;
 }
 
 /* =========================================
-   FOOTER / LOGO
+   LOGO FOOTER
 ========================================= */
 
 .landing-footer {
   width: 100%;
   display: flex;
   justify-content: center;
-  /* no margin-top:auto now – layout handled by flex:1 on .landing-main
-     and 80px bottom padding on .landing-content */
+  margin-top: 32px;
 }
 
 .logo-link {
@@ -238,20 +213,17 @@
   width: 140px;
   opacity: 0.9;
   cursor: pointer;
-  transition:
-    opacity 150ms ease,
-    transform 150ms ease;
-}
-
-.logo-link:hover .zelim-logo {
-  opacity: 1;
-  transform: translateY(-2px);
 }
 
 /* =========================================
-   RESPONSIVE – MOBILE
+   RESPONSIVE BEHAVIOUR
 ========================================= */
 
+/* Mobile / narrow screens:
+   - Hide hero image
+   - Content full-width
+   - Logo still 80px from bottom via padding
+*/
 @media (max-width: 900px) {
   .landing-root {
     flex-direction: column;
@@ -263,11 +235,37 @@
 
   .landing-content {
     flex: 1 1 auto;
-    padding: 32px 24px 80px; /* still 80px bottom padding for logo */
+    padding: 32px 24px 80px;
   }
 
   .landing-main {
-    max-width: 360px;
-    width: 100%;
+    flex: 1;
+  }
+}
+
+/* Shorter viewports:
+   Tighten vertical spacing so everything fits
+   *inside* 100vh without needing to scroll
+*/
+@media (max-height: 780px) {
+  .landing-content {
+    padding: 24px 40px 64px;
+  }
+
+  .landing-header {
+    margin-bottom: 24px;
+  }
+
+  .form-stack {
+    gap: 20px;
+  }
+
+  .landing-footer {
+    margin-top: 24px;
+  }
+
+  .landing-title {
+    font-size: 28px;
+    line-height: 34px;
   }
 }

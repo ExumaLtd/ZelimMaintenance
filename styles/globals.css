@@ -11,14 +11,14 @@ html,
 body {
   margin: 0;
   padding: 0;
+  height: 100%;
   background: #172f36; /* dark teal */
   color: #ffffff;
   font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont,
     sans-serif;
 }
 
-/* Make the app take the full height */
-body,
+/* Next.js root */
 #__next {
-  min-height: 100vh;
+  height: 100%;
 }
