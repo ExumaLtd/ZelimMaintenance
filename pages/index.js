@@ -35,6 +35,7 @@ export default function LandingPage() {
         return;
       }
 
+      // Success – go to that unit’s landing page
       router.push(`/swift/${data.publicToken}`);
     } catch (err) {
       console.error(err);
@@ -55,7 +56,7 @@ export default function LandingPage() {
       </Head>
 
       <div className="landing-root">
-        {/* LEFT PANEL */}
+        {/* LEFT: image */}
         <div className="landing-hero">
           <div className="landing-hero-inner">
             <img
@@ -65,7 +66,7 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* RIGHT PANEL */}
+        {/* RIGHT: content */}
         <div className="landing-content">
           <main className="landing-main">
             <header className="landing-header">
@@ -79,7 +80,7 @@ export default function LandingPage() {
             </header>
 
             <form className="form-stack" onSubmit={handleSubmit}>
-              <div className={`input-wrapper ${error ? "has-error" : ""}`}>
+              <div className="input-wrapper">
                 <input
                   type="text"
                   className="input-field"
