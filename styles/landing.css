@@ -51,7 +51,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: center; /* Ensures content is centered vertically */
   flex: 1;
 }
 
@@ -235,8 +235,7 @@ h1.landing-title {
 
   .landing-main {
     flex: 1;
-    /* FIX: Align content to the top on mobile */
-    justify-content: flex-start;
+    /* REVERTED: Keep content centered vertically as shown in your images */
   }
 }
 
