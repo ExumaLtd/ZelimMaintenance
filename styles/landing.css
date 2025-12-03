@@ -139,7 +139,13 @@ h1.landing-title {
 
 .input-field:focus {
   outline: none;
-  border-color: #ffffff;
+  /* CHANGE: Keep the border color the same as default on focus */
+  border-color: #394d54; 
+}
+
+/* ADDED: Placeholder color on focus */
+.input-field:focus::placeholder {
+  color: #e9ebec;
 }
 
 /* Error state */
@@ -183,7 +189,8 @@ h1.landing-title {
 
 .primary-btn:hover:not(:disabled) {
   background: #01e6dd;
-  transform: translateY(-1px);
+  /* CHANGE: Removed transform: translateY(-1px); */
+  transform: none; 
 }
 
 .primary-btn:disabled {

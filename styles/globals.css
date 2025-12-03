@@ -15,6 +15,7 @@ body {
   height: 100%;
   background: #172f36; /* dark teal */
   color: #ffffff;
+  /* Uses the CSS variable defined in _app.js via next/font */
   font-family: var(--font-montserrat), system-ui, -apple-system, BlinkMacSystemFont,
     sans-serif;
 }
