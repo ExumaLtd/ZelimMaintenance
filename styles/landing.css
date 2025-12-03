@@ -1,207 +1,261 @@
 /* =========================================
-   GLOBALS / RESET
+   ROOT LAYOUT
 ========================================= */
 
 .landing-root {
-    display: flex;
-    width: 100%;
-    height: 100vh; /* TRUE viewport height */
-    overflow: hidden;
+  display: flex;
+  min-height: 100vh;
+  height: 100%;
 }
 
 /* =========================================
-   LEFT HERO IMAGE
+   LEFT HERO (IMAGE)
 ========================================= */
 
 .landing-hero {
-    flex: 1 1 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 24px;
+  flex: 1 1 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
 }
 
 .landing-hero-inner {
-    width: 100%;
-    height: 100%;
-    border-radius: 20px;
-    overflow: hidden;
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  overflow: hidden;
 }
 
 .landing-hero-inner img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-/* Hide image on mobile */
-@media (max-width: 900px) {
-    .landing-hero {
-        display: none;
-    }
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* =========================================
-   RIGHT PANEL / CONTENT
+   RIGHT PANEL
 ========================================= */
 
 .landing-content {
-    flex: 1 1 50%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center; /* vertically centre content block */
-    padding: 32px 56px 80px; /* bottom is for logo offset */
-    position: relative;
+  flex: 1 1 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between; /* main vs logo */
+  padding: 32px 56px 80px;        /* bottom = 80px for logo offset */
 }
 
-/* max width constraint for field/button/title block */
 .landing-main {
-    width: 100%;
-    max-width: 360px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 32px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
 }
 
 /* =========================================
-   HEADERS
+   HEADER TEXT
 ========================================= */
 
 .landing-header {
-    text-align: center;
+  width: 100%;
+  max-width: 360px;          /* match form width */
+  margin: 0 auto 32px;
+  text-align: center;
 }
 
-.landing-title {
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    font-family: Montserrat;
-    font-size: 30px;
-    font-weight: 600;
-    line-height: 38px;
-    color: #F7F7F7;
+/* force override of default h1 margin/font-size */
+h1.landing-title {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;                  /* tighter between SWIFT / maintenance portal */
+  color: #f7f7f7;
+  font-family: Montserrat;
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 38px;         /* 126.667% */
 }
 
 .landing-subtitle {
-    margin-top: 16px;
-    font-family: Montserrat;
-    font-size: 16px;
-    font-weight: 400;
-    line-height: 24px;
-    color: #FFFFFF;
+  margin: 16px 0 0 0;
+  text-align: center;
+  color: #ffffff;
+  font-family: Montserrat;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;         /* 150% */
 }
 
 /* =========================================
-   INPUT FIELD
+   FORM STACK (INPUT + BUTTON)
 ========================================= */
 
-.input-wrapper {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
+.form-stack {
+  width: 100%;
+  max-width: 360px;          /* lock content block */
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 24px;
 }
+
+.input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* INPUT FIELD */
 
 .input-field {
-    width: 100%;
-    padding: 12px 20px;
+  width: 100%;
+  padding: 12px 20px;        /* Figma */
+  border-radius: 8px;
+  border: 1px solid #394d54;
+  background: #4f6167;
+  font-family: Montserrat;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  color: #e9ebec;
+  text-align: center;
 
-    background: #4F6167;
-    border: 1px solid #394D54;
-    border-radius: 8px;
-
-    font-family: Montserrat;
-    font-size: 16px;
-    line-height: 24px;
-    color: #E9EBEC;
-
-    outline: none;
-    transition: 0.2s;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease;
 }
 
-/* Placeholder colour */
 .input-field::placeholder {
-    color: #BDC4C6;
-    opacity: 1;
+  color: #bdc4c6;
+  opacity: 1;
 }
 
-/* ERROR STATE */
+.input-field:focus {
+  outline: none;
+  border-color: #ffffff;
+}
+
+/* Error state */
+
 .input-wrapper.has-error .input-field {
-    border-color: #D92D20;
+  border-color: #d92d20;
 }
 
 .error-text {
-    margin-top: 6px;
-    font-size: 14px;
-    font-family: Montserrat;
-    color: #D92D20;
-    text-align: left;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: #d92d20;
+  text-align: left;
 }
 
 /* =========================================
-   BUTTON
+   PRIMARY BUTTON
 ========================================= */
 
 .primary-btn {
-    width: 100%;
-    padding: 12px 16px;
+  width: 100%;
+  padding: 12px 16px;        /* Figma */
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  background: #01fff6;
+  font-family: Montserrat;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: #003336;
+  cursor: pointer;
 
-    background: #01FFF6;
-    border-radius: 8px;
-    border: 2px solid rgba(255, 255, 255, 0.12);
-
-    font-family: Montserrat;
-    font-size: 16px;
-    font-weight: 600;
-    line-height: 24px;
-    color: #003336;
-
-    cursor: pointer;
-    transition: 0.2s;
-    box-shadow: none; /* remove shadow */
+  transition:
+    background-color 150ms ease,
+    transform 150ms ease,
+    opacity 150ms ease;
 }
 
+/* no box-shadow */
+
 .primary-btn:hover:not(:disabled) {
-    background: #01E6DD;
+  background: #01e6dd;
+  transform: translateY(-1px);
 }
 
 .primary-btn:disabled {
-    opacity: 0.6;
-    cursor: default;
+  opacity: 0.7;
+  cursor: default;
+  transform: none;
 }
 
 /* =========================================
-   FOOTER LOGO
+   LOGO FOOTER
 ========================================= */
 
 .landing-footer {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    position: absolute;
-    bottom: 80px; /* matches Figma */
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+.logo-link {
+  display: inline-flex;
 }
 
 .zelim-logo {
-    width: 140px;
-    opacity: 0.9;
+  width: 140px;
+  opacity: 0.9;
+  cursor: pointer;
 }
 
 /* =========================================
-   MOBILE LAYOUT
+   RESPONSIVE BEHAVIOUR
 ========================================= */
 
 @media (max-width: 900px) {
-    .landing-content {
-        padding: 32px 24px 80px;
-    }
+  .landing-root {
+    flex-direction: column;
+  }
 
-    .landing-main {
-        max-width: 360px;
-    }
+  .landing-hero {
+    display: none;
+  }
 
-    .landing-footer {
-        bottom: 80px;
-    }
+  .landing-content {
+    flex: 1 1 auto;
+    padding: 32px 24px 80px;
+  }
+
+  .landing-main {
+    flex: 1;
+  }
+}
+
+/* tighter spacing on short viewports so content fits inside 100vh */
+@media (max-height: 780px) {
+  .landing-content {
+    padding: 24px 40px 64px;
+  }
+
+  .landing-header {
+    margin-bottom: 24px;
+  }
+
+  .form-stack {
+    gap: 20px;
+  }
+
+  .landing-footer {
+    margin-top: 24px;
+  }
+
+  h1.landing-title {
+    font-size: 28px;
+    line-height: 34px;
+  }
 }
