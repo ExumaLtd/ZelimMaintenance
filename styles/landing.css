@@ -6,18 +6,14 @@
   display: flex;
   width: 100%;
   min-height: 100vh;
-  background: #172f36;
 }
 
-/* =========================================
-   LEFT PANEL – HERO IMAGE
-========================================= */
-
+/* LEFT PANEL – IMAGE */
 .landing-hero {
   flex: 1 1 50%;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   padding: 24px;
 }
 
@@ -32,34 +28,24 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
 }
 
-/* =========================================
-   RIGHT PANEL – CONTENT
-========================================= */
-
+/* RIGHT PANEL – CONTENT */
 .landing-content {
   flex: 1 1 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 32px 56px 80px;        /* bottom 80px = logo offset */
+  padding: 32px 56px 80px;
 }
 
-/* Main content column (title + subtitle + form) */
+/* Main block is vertically centred within the right panel */
 .landing-main {
-  width: 100%;
-  max-width: 360px;               /* keep field + button narrow */
-  margin: 0 auto;
-
-  flex: 1;                        /* takes available height above footer */
+  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;        /* centre header + form vertically */
   align-items: center;
-  gap: 32px;
-  text-align: center;
+  justify-content: center;
 }
 
 /* =========================================
@@ -67,22 +53,21 @@
 ========================================= */
 
 .landing-header {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  text-align: center;
+  margin-bottom: 32px;
 }
 
 .landing-title {
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
   color: #f7f7f7;
   font-family: Montserrat;
-  font-size: 30px;
-  font-weight: 600;
-  line-height: 38px; /* 126.667% */
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 43px;
+}
+
+.landing-title span {
+  display: block;
 }
 
 .landing-subtitle {
@@ -91,45 +76,47 @@
   font-family: Montserrat;
   font-size: 16px;
   font-weight: 400;
-  line-height: 24px; /* 150% */
+  line-height: 24px;
 }
 
 /* =========================================
-   FORM STACK
+   FORM STACK / INPUT
 ========================================= */
 
 .form-stack {
   width: 100%;
+  max-width: 360px; /* cap width so it never gets huge */
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 24px; /* space between input + button */
+  gap: 24px;
 }
 
-/* =========================================
-   INPUT FIELD
-========================================= */
-
+/* Wrapper controls error state + error text */
 .input-wrapper {
   width: 100%;
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
+/* Text field itself */
 .input-field {
   width: 100%;
-  padding: 12px 20px;             /* from Figma */
+  padding: 12px 20px;
   border-radius: 8px;
-  border: 1px solid #394d54;
+
   background: #4f6167;
-  box-shadow: 0 1px 2px rgba(255, 255, 255, 0);
+  border: 1px solid #394d54;
 
   font-family: Montserrat;
   font-size: 16px;
-  font-weight: 400;
   line-height: 24px;
+  font-weight: 400;
   color: #e9ebec;
   text-align: center;
 
+  outline: none;
   transition:
     border-color 150ms ease,
     box-shadow 150ms ease,
@@ -143,17 +130,15 @@
 }
 
 .input-field:focus {
-  outline: none;
   border-color: #01fff6;
-  box-shadow: 0 0 0 1px rgba(1, 255, 246, 0.35);
 }
 
-/* Error state – wrapper toggles .has-error in JSX */
-
+/* Error state – red border */
 .input-wrapper.has-error .input-field {
   border-color: #d92d20;
 }
 
+/* Error copy */
 .error-text {
   margin: 8px 0 0 0;
   font-family: Montserrat;
@@ -161,60 +146,54 @@
   line-height: 18px;
   font-weight: 400;
   color: #d92d20;
+  text-align: left;
+  width: 100%;
 }
 
 /* =========================================
-   PRIMARY BUTTON
+   BUTTON
 ========================================= */
 
 .primary-btn {
   width: 100%;
-  padding: 12px 16px; /* from Figma */
+  padding: 12px 16px;
   border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  background: #01fff6;
 
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
 
-  background: #01fff6;
-  border: 2px solid rgba(255, 255, 255, 0.12);
-
-  box-shadow:
-    0 0 0 1px rgba(12, 14, 18, 0.18) inset,
-    0 -2px 0 rgba(12, 14, 18, 0.05) inset,
-    0 1px 2px rgba(255, 255, 255, 0);
-
   font-family: Montserrat;
   font-size: 16px;
-  font-weight: 600;
   line-height: 24px;
+  font-weight: 600;
   color: #003336;
   text-align: center;
 
   cursor: pointer;
 
+  /* no skeuomorphic shadow now */
+  box-shadow: none;
+
   transition:
     background-color 150ms ease,
-    box-shadow 150ms ease,
     transform 120ms ease,
     opacity 150ms ease;
 }
 
 .primary-btn:hover:not(:disabled) {
-  background: #01e6dd; /* hover fill */
+  background: #01e6dd; /* hover fill colour */
 }
 
 .primary-btn:active:not(:disabled) {
   transform: translateY(1px);
-  box-shadow:
-    0 0 0 1px rgba(12, 14, 18, 0.18) inset,
-    0 0 0 rgba(12, 14, 18, 0.05) inset,
-    0 1px 2px rgba(255, 255, 255, 0);
 }
 
 .primary-btn:disabled {
-  opacity: 0.65;
+  opacity: 0.6;
   cursor: default;
 }
 
@@ -226,8 +205,7 @@
   width: 100%;
   display: flex;
   justify-content: center;
-  /* no margin-top:auto now – layout handled by flex:1 on .landing-main
-     and 80px bottom padding on .landing-content */
+  margin-top: 32px; /* spacing from main block */
 }
 
 .logo-link {
@@ -237,15 +215,6 @@
 .zelim-logo {
   width: 140px;
   opacity: 0.9;
-  cursor: pointer;
-  transition:
-    opacity 150ms ease,
-    transform 150ms ease;
-}
-
-.logo-link:hover .zelim-logo {
-  opacity: 1;
-  transform: translateY(-2px);
 }
 
 /* =========================================
@@ -258,16 +227,16 @@
   }
 
   .landing-hero {
-    display: none;
+    display: none; /* hide image on mobile */
   }
 
   .landing-content {
     flex: 1 1 auto;
-    padding: 32px 24px 80px; /* still 80px bottom padding for logo */
+    width: 100%;
+    padding: 32px 24px 80px;
   }
 
   .landing-main {
-    max-width: 360px;
-    width: 100%;
+    justify-content: center;
   }
 }
