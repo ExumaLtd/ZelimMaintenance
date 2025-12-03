@@ -133,7 +133,7 @@ h1.landing-title {
 }
 
 .input-field::placeholder {
-  color: #bdc4c6; /* Default placeholder color */
+  color: #bdc4c6; /* Placeholder color, remains same on focus */
   opacity: 1;
 }
 
@@ -256,8 +256,9 @@ h1.landing-title {
     margin-top: 24px;
   }
 
+  /* UPDATED MOBILE HEADING STYLES */
   h1.landing-title {
-    font-size: 28px;
-    line-height: 34px;
+    font-size: 26px; 
+    line-height: 32px;
   }
 }
