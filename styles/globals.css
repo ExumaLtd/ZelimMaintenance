@@ -1,13 +1,12 @@
-/* styles/globals.css */
-
+/* ----- GLOBAL RESET ----- */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-html,
-body {
+/* ----- GLOBAL PAGE STYLING ----- */
+html, body {
   margin: 0;
   padding: 0;
   background: #172F36; /* dark teal background */
@@ -15,7 +14,7 @@ body {
   font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* Make the app take the full height */
+/* Make Next.js pages fill the viewport */
 body,
 #__next {
   min-height: 100vh;
