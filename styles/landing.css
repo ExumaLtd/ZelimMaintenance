@@ -6,135 +6,212 @@
   display: flex;
   width: 100%;
   min-height: 100vh;
+  background: #172f36; /* make sure background matches the page */
 }
 
 .landing-hero {
-  width: 50%;
+  flex: 1 1 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 24px;
 }
 
-.landing-hero img {
+/* inner wrapper to control radius and cropping */
+.landing-hero-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.landing-hero-inner img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 24px;
+  display: block;
 }
 
 /* Right-hand panel */
 .landing-content {
-  width: 50%;
+  flex: 1 1 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 32px 32px 80px 32px; /* top, right, bottom, left — matches Figma spacing */
+  padding: 32px 32px 80px 32px; /* top, right, bottom, left */
+}
+
+/* =========================================
+   MAIN CONTENT BLOCK
+========================================= */
+
+.landing-main {
+  flex: 1;
+  width: 100%;
+  max-width: 656px; /* matches Figma width on desktop */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  gap: 32px; /* spacing between title block and input area */
 }
 
 /* =========================================
    HEADER TEXT
 ========================================= */
 
-.landing-header h1 {
+.landing-title {
   margin: 0;
+  display: flex;
+  flex-direction: column;
   text-align: center;
-  color: #F7F7F7;                /* main title colour */
-  font-family: Montserrat;
+  color: #f7f7f7;
+  font-family: Montserrat, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 30px;
   font-weight: 600;
-  line-height: 38px;
+  line-height: 38px; /* 126.667% */
 }
 
-.landing-header p {
+.landing-subtitle {
   margin: 16px 0 0 0;
   text-align: center;
-  color: #FFFFFF;
-  font-family: Montserrat;
+  color: #ffffff;
+  font-family: Montserrat, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 16px;
   font-weight: 400;
-  line-height: 24px;
+  line-height: 24px; /* 150% */
+}
+
+/* =========================================
+   FORM STACK
+========================================= */
+
+.form-stack {
+  margin-top: 32px; /* space between subtitle and field */
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 24px; /* spacing between input and button */
+}
+
+.input-wrapper {
+  width: 100%;
 }
 
 /* =========================================
    INPUT FIELD
 ========================================= */
 
-.landing-input {
+.input-field {
   width: 100%;
-  display: flex;
-  align-items: center;
-  padding: 12px 20px;          /* EXACT from your Figma */
-  gap: 8px;
-  background: #4F6167;
-  border: 1px solid #394D54;
+  padding: 12px 20px; /* from your Figma */
   border-radius: 8px;
-  box-shadow: 0 1px 2px rgba(255, 255, 255, 0); /* zero-depth shadow */
-}
-
-.landing-input input {
-  width: 100%;
-  background: transparent;
-  border: none;
+  border: 1px solid #394d54;
+  background: #4f6167;
+  box-shadow: 0 1px 2px rgba(255, 255, 255, 0); /* zero-depth */
   outline: none;
 
-  font-family: Montserrat;
+  font-family: Montserrat, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 16px;
   line-height: 24px;
   font-weight: 400;
-
-  color: #E9EBEC; /* text colour once typing */
+  color: #e9ebec; /* text when typing */
 }
 
-.landing-input input::placeholder {
-  color: #BDC4C6; /* placeholder grey */
+.input-field::placeholder {
+  color: #bdc4c6; /* placeholder grey */
   opacity: 1;
+}
+
+/* =========================================
+   ERROR TEXT
+========================================= */
+
+.error-text {
+  margin-top: 8px;
+  font-family: Montserrat, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 400;
+  color: #fca5a5; /* soft red */
 }
 
 /* =========================================
    BUTTON
 ========================================= */
 
-.landing-button {
+.primary-btn {
   width: 100%;
+  padding: 12px 16px; /* from Figma */
+  border-radius: 8px;
+
   display: flex;
   justify-content: center;
   align-items: center;
-
-  padding: 12px 16px;          /* EXACT from Figma */
   gap: 6px;
 
-  background: #01FFF6;         /* bright cyan */
-  border-radius: 8px;
-
+  background: #01fff6;
   border: 2px solid rgba(255, 255, 255, 0.12);
 
   box-shadow:
-    0 0 0 1px rgba(12,14,18,0.18) inset,
-    0 -2px 0 rgba(12,14,18,0.05) inset,
-    0 1px 2px rgba(255,255,255,0);
-}
+    0 0 0 1px rgba(12, 14, 18, 0.18) inset,
+    0 -2px 0 rgba(12, 14, 18, 0.05) inset,
+    0 1px 2px rgba(255, 255, 255, 0);
 
-.landing-button span {
-  font-family: Montserrat;
+  font-family: Montserrat, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 16px;
   line-height: 24px;
-  font-weight: 600;
-  color: #003336; /* Figma’s dark teal text colour */
+  font-weight: 600; /* semibold */
+  color: #003336;
+  cursor: pointer;
+}
+
+.primary-btn:disabled {
+  opacity: 0.7;
+  cursor: default;
 }
 
 /* =========================================
-   LOGO AREA
+   FOOTER LOGO
 ========================================= */
 
-.landing-logo {
-  margin-top: auto;           /* pushes it to the bottom */
+.landing-footer {
+  margin-top: auto; /* pushes logo to bottom within 80px padding */
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
-.landing-logo img {
+.logo-link {
+  display: inline-flex;
+}
+
+.zelim-logo {
   width: 140px;
   opacity: 0.9;
   cursor: pointer;
+}
+
+/* =========================================
+   BASIC RESPONSIVE (STACK ON SMALL)
+========================================= */
+
+@media (max-width: 900px) {
+  .landing-root {
+    flex-direction: column;
+  }
+
+  .landing-hero {
+    width: 100%;
+    padding: 24px 24px 16px;
+  }
+
+  .landing-content {
+    width: 100%;
+    padding: 32px 24px 48px 24px;
+  }
+
+  .landing-main {
+    max-width: 360px;
+  }
 }
