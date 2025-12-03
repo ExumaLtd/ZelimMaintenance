@@ -43,7 +43,6 @@
   flex: 1 1 50%;
   display: flex;
   flex-direction: column;
-  justify-content: center;        /* centre main content vertically */
   align-items: center;
   padding: 32px 56px 80px;        /* bottom 80px = logo offset */
 }
@@ -52,8 +51,12 @@
 .landing-main {
   width: 100%;
   max-width: 360px;               /* keep field + button narrow */
+  margin: 0 auto;
+
+  flex: 1;                        /* takes available height above footer */
   display: flex;
   flex-direction: column;
+  justify-content: center;        /* centre header + form vertically */
   align-items: center;
   gap: 32px;
   text-align: center;
@@ -223,7 +226,8 @@
   width: 100%;
   display: flex;
   justify-content: center;
-  margin-top: auto;        /* pushes it to the bottom of the column */
+  /* no margin-top:auto now – layout handled by flex:1 on .landing-main
+     and 80px bottom padding on .landing-content */
 }
 
 .logo-link {
@@ -246,9 +250,6 @@
 
 /* =========================================
    RESPONSIVE – MOBILE
-   - Hide hero image
-   - Keep logo 80px from bottom
-   - Maintain same vertical feel for content
 ========================================= */
 
 @media (max-width: 900px) {
