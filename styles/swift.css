@@ -1,0 +1,141 @@
+/* =========================================
+   SWIFT UNIT SELECTION PAGE
+========================================= */
+
+.swift-unit-container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- HEADER / WELCOME MESSAGE --- */
+
+.unit-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.unit-title {
+  margin: 0 0 16px 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #01fff6; /* Primary accent color */
+  line-height: 40px;
+  font-family: var(--font-montserrat), sans-serif;
+}
+
+.unit-subtitle {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #bdc4c6; /* Lighter gray for secondary text */
+  font-family: var(--font-montserrat), sans-serif;
+}
+
+.unit-instruction {
+  margin: 16px 0 0 0;
+  font-size: 18px;
+  font-weight: 400;
+  color: #e9ebec;
+  line-height: 28px;
+  font-family: var(--font-montserrat), sans-serif;
+}
+
+
+/* --- NAVIGATION CARDS --- */
+
+.checklist-navigation {
+  flex-grow: 1; /* Pushes the footer down */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Center the links vertically */
+}
+
+.checklist-link-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.nav-card {
+  display: block; 
+  padding: 24px;
+  border-radius: 12px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.nav-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.card-content h3 {
+  margin: 0 0 4px 0;
+  font-size: 20px;
+  font-weight: 600;
+  font-family: var(--font-montserrat), sans-serif;
+}
+
+.card-content p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  font-family: var(--font-montserrat), sans-serif;
+}
+
+/* Primary Card (Annual) - Light border/accent */
+.primary-card {
+  background: #394d54; /* Darker teal background */
+  border-left: 6px solid #01fff6; /* Bright accent border */
+  color: #ffffff;
+}
+.primary-card p {
+  color: #bdc4c6;
+}
+
+/* Secondary Card (Depth) - Subtler accent */
+.secondary-card {
+  background: #394d54; 
+  border-left: 6px solid #4f6167; /* Subtler gray/teal accent border */
+  color: #e9ebec;
+}
+.secondary-card p {
+  color: #bdc4c6;
+}
+
+/* --- FOOTER / LOGOUT --- */
+
+.unit-footer {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.logout-link {
+  color: #bdc4c6;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 150ms ease;
+}
+
+.logout-link:hover {
+  color: #ffffff;
+}
+
+/* --- MOBILE ADJUSTMENTS --- */
+@media (max-width: 550px) {
+  .swift-unit-container {
+    padding: 30px 16px;
+  }
+
+  .unit-title {
+    font-size: 28px;
+    line-height: 36px;
+  }
+}

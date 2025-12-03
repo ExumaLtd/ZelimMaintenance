@@ -1,5 +1,6 @@
 import "../styles/globals.css";
 import "../styles/landing.css";
+import "../styles/swift.css";
 import Head from "next/head";
 
 export default function MyApp({ Component, pageProps }) {
