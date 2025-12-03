@@ -1,219 +1,170 @@
-/* ============= GLOBAL LANDING LAYOUT ============= */
+/* ----------------------------------------------------------
+   Global Panel Layout
+---------------------------------------------------------- */
 
 .landing-root {
+  display: flex;
   min-height: 100vh;
-  display: flex;
-  background: #172F36;           /* dark teal */
-  color: #ffffff;
+  width: 100%;
+  background: #172f36;
 }
 
-/* Left: image panel (50%) */
-.landing-hero {
-  flex: 1;
+.landing-container {
   display: flex;
-  padding: 24px;
-  align-items: stretch;
-  justify-content: center;
-}
-
-.landing-hero-inner {
-  border-radius: 20px;
-  overflow: hidden;
   width: 100%;
 }
 
-.landing-hero-inner img {
+/* Left image column */
+.landing-image-wrapper {
+  width: 50%;
+  padding: 24px;
+}
+
+.landing-image-wrapper img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 16px;
 }
 
-/* Right: content panel (50%) */
+/* Right-hand content column */
 .landing-content {
-  flex: 1;
+  width: 50%;
   display: flex;
   flex-direction: column;
-  padding: 24px 24px 56px 32px;  /* 56px bottom = 80 - 24 (outer padding) */
-}
-
-/* This block (title + subtitle + form) should be centred vertically
-   inside the right-hand column. */
-.landing-main {
-  margin: auto 0;                /* pushes it into vertical centre */
-  max-width: 640px;
-  width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-}
-
-/* Header text */
-
-.landing-title {
-  margin: 0 0 16px 0;
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.landing-title span:first-child {
-  display: block;
-  font-size: 40px;               /* SWIFT */
-}
-
-.landing-title span:last-child {
-  display: block;
-  font-size: 36px;               /* maintenance portal */
-}
-
-.landing-subtitle {
-  margin: 0 0 32px 0;            /* 32px before the field */
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 400;
-  font-size: 18px;
-  line-height: 1.5;
-  color: #E9EBEC;
-}
-
-/* Stack for input + button (24px gap) */
-
-.form-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;                     /* spacing between field and button */
-}
-
-/* ============= INPUT FIELD ============= */
-
-/* Wrapper, matches Figma: flex column, gap 6px */
-.input-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  width: 100%;
-}
-
-/* Actual input */
-.input-field {
-  display: flex;
-  padding: 12px 20px;
   align-items: center;
+  padding: 32px 32px 56px; /* 32 top/side padding, 56 bottom (→ 80 total including 24 outer) */
+  position: relative;
+  box-sizing: border-box;
+}
+
+
+/* ----------------------------------------------------------
+   Typography (Figma Spec)
+---------------------------------------------------------- */
+
+/* “SWIFT maintenance portal” */
+.landing-title {
+  margin: 0;
+  margin-bottom: 16px;
+  color: #f7f7f7; /* Figma: text-primary-900 */
+  text-align: center;
+  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont,
+    sans-serif;
+  font-size: 30px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: 38px; /* 126.67% */
+}
+
+/* Subheading */
+.landing-subtitle {
+  margin: 0;
+  margin-bottom: 32px; /* 32px above field in Figma */
+  color: #ffffff;
+  text-align: center;
+  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont,
+    sans-serif;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 24px; /* 150% */
+}
+
+
+/* ----------------------------------------------------------
+   Form layout
+---------------------------------------------------------- */
+
+.landing-form {
   width: 100%;
+  max-width: 656px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px; /* Field → button spacing */
+}
+
+
+/* ----------------------------------------------------------
+   Input Field (Figma Spec)
+---------------------------------------------------------- */
+
+.landing-input {
+  width: 100%;
+  padding: 12px 20px;
+  text-align: center;
+  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont,
+    sans-serif;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 400;
+  color: #e9ebec;
 
   border-radius: 8px;
-  border: 1px solid #394D54;     /* stroke */
-  background: #4F6167;           /* fill */
-  box-shadow: 0 1px 2px rgba(255, 255, 255, 0); /* subtle Figma shadow */
+  border: 1px solid #334e55; /* Figma */
+  background: #4a6268;
 
-  font-family: 'Montserrat', sans-serif;
-  font-size: 24px;
-  line-height: 1.3;
-  text-align: center;
-
-  color: #E9EBEC;                /* active text */
+  box-shadow: 0 1px 2px 0 rgba(255, 255, 255, 0); /* Figma */
 }
 
-.input-field::placeholder {
-  color: #BDC4C6;                /* placeholder colour */
+.landing-input::placeholder {
+  color: #bdc4c6;
   opacity: 1;
 }
 
-.input-field:focus {
-  outline: none;
-  border-color: #00FFF7;
-}
 
-/* Error text under input (if needed) */
+/* ----------------------------------------------------------
+   Button (Figma Spec)
+---------------------------------------------------------- */
 
-.error-text {
-  margin: 0;
-  margin-top: 4px;
-  font-size: 14px;
-  color: #ffb4b4;
-  text-align: left;
-}
-
-/* ============= PRIMARY BUTTON ============= */
-
-.primary-btn {
-  display: flex;
+.landing-button {
+  width: 100%;
   padding: 12px 16px;
+
+  display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
+
+  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont,
+    sans-serif;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600; /* Semibold */
+  color: #233941;
 
   border-radius: 8px;
   border: 2px solid rgba(255, 255, 255, 0.12);
-  background: #00FFF7;
+  background: #00fff7;
 
   box-shadow:
     0 0 0 1px rgba(12, 14, 18, 0.18) inset,
-    0 -2px 0 rgba(12, 14, 18, 0.05) inset,
-    0 1px 2px rgba(255, 255, 255, 0);
-
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 600;              /* semibold */
-  font-size: 24px;
-  line-height: 1.3;
-  color: #0C0E12;
+    0 -2px 0 0 rgba(12, 14, 18, 0.05) inset,
+    0 1px 2px 0 rgba(255, 255, 255, 0);
+  
   cursor: pointer;
 }
 
-.primary-btn:disabled {
-  cursor: default;
-  opacity: 0.7;
+.landing-button:hover {
+  opacity: 0.92;
 }
 
-/* ============= FOOTER / LOGO ============= */
 
-.landing-footer {
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-}
+/* ----------------------------------------------------------
+   Logo (fixed 80px from bottom visually)
+---------------------------------------------------------- */
 
-.logo-link {
-  display: inline-flex;
-}
-
-.zelim-logo {
+.landing-logo {
+  position: absolute;
+  bottom: 24px; /* inside padding 56px → total 80px from bottom */
+  left: 50%;
+  transform: translateX(-50%);
   height: 40px;
   width: auto;
+  opacity: 0.9;
 }
 
-/* ============= RESPONSIVE ============= */
-
-@media (max-width: 900px) {
-  .landing-root {
-    flex-direction: column;
-  }
-
-  .landing-hero {
-    order: 2;
-    padding: 16px;
-    height: 260px;
-  }
-
-  .landing-content {
-    order: 1;
-    padding: 24px 16px 40px;
-  }
-
-  .landing-main {
-    max-width: 100%;
-  }
-
-  .landing-title span:first-child {
-    font-size: 32px;
-  }
-
-  .landing-title span:last-child {
-    font-size: 28px;
-  }
-
-  .primary-btn,
-  .input-field {
-    font-size: 20px;
-  }
+.landing-logo:hover {
+  opacity: 1;
+  cursor: pointer;
 }
