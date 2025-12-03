@@ -122,7 +122,7 @@ h1.landing-title {
   font-size: 16px;
   line-height: 24px;
   font-weight: 400;
-  color: #e9ebec;
+  color: #e9ebec; /* Color for user-typed text */
   text-align: center;
 
   transition:
@@ -133,19 +133,14 @@ h1.landing-title {
 }
 
 .input-field::placeholder {
-  color: #bdc4c6;
+  color: #bdc4c6; /* Default placeholder color */
   opacity: 1;
 }
 
 .input-field:focus {
   outline: none;
-  /* CHANGE: Keep the border color the same as default on focus */
+  /* Keeps the border color the same as default on focus */
   border-color: #394d54; 
-}
-
-/* ADDED: Placeholder color on focus */
-.input-field:focus::placeholder {
-  color: #e9ebec;
 }
 
 /* Error state */
@@ -189,7 +184,7 @@ h1.landing-title {
 
 .primary-btn:hover:not(:disabled) {
   background: #01e6dd;
-  /* CHANGE: Removed transform: translateY(-1px); */
+  /* Removed transform: translateY(-1px); */
   transform: none; 
 }
 
