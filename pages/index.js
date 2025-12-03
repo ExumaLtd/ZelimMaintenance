@@ -83,7 +83,7 @@ export default function LandingPage() {
                 <input
                   type="text"
                   className="input-field"
-                  placeholder="Enter your access code."
+                  placeholder="Enter your access code"
                   value={pin}
                   onChange={(e) => setPin(e.target.value)}
                 />
