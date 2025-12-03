@@ -1,21 +1,23 @@
-/* ----- GLOBAL RESET ----- */
+/* Load Montserrat from Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap");
+
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-/* ----- GLOBAL BASE STYLING ----- */
 html,
 body {
   margin: 0;
   padding: 0;
-  background: #172F36; /* dark teal background */
+  background: #172f36; /* dark teal */
   color: #ffffff;
-  font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont,
+    sans-serif;
 }
 
-/* Make the Next.js app fill the viewport */
+/* Make the app take the full height */
 body,
 #__next {
   min-height: 100vh;
