@@ -38,10 +38,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 32px 56px 80px;
+  justify-content: center;
+  padding: 32px 56px 80px; /* 80px bottom so logo sits correctly */
 }
 
-/* Centre this block vertically in the right column */
+/* This block is vertically centred in the right column */
 .landing-main {
   flex: 1;
   display: flex;
@@ -57,19 +58,15 @@
 .landing-header {
   text-align: center;
   margin: 0 0 32px;
-  width: 100%;
-  max-width: 360px;      /* header matches form width */
-  margin-left: auto;
-  margin-right: auto;
 }
 
 .landing-title {
   margin: 0;
   color: #f7f7f7;
   font-family: Montserrat;
-  font-size: 36px;
-  font-weight: 700;
-  line-height: 43px;
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 38px;
 }
 
 .landing-title span {
@@ -91,17 +88,14 @@
 
 .form-stack {
   width: 100%;
-  max-width: 360px;      /* field + button column width */
-  margin-left: auto;
-  margin-right: auto;
-
+  max-width: 360px;           /* keeps field + button to 360px */
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 24px;
 }
 
-/* Wrapper controls error state + error text */
 .input-wrapper {
   width: 100%;
   display: flex;
@@ -110,6 +104,7 @@
 }
 
 /* Text field */
+
 .input-field {
   width: 100%;
   padding: 12px 20px;
@@ -128,7 +123,6 @@
   outline: none;
   transition:
     border-color 150ms ease,
-    box-shadow 150ms ease,
     background-color 150ms ease,
     color 150ms ease;
 }
@@ -142,12 +136,12 @@
   border-color: #01fff6;
 }
 
-/* Error state – red border */
+/* Error state – red border + message */
+
 .input-wrapper.has-error .input-field {
   border-color: #d92d20;
 }
 
-/* Error copy */
 .error-text {
   margin: 8px 0 0 0;
   font-family: Montserrat;
@@ -155,8 +149,7 @@
   line-height: 18px;
   font-weight: 400;
   color: #d92d20;
-  text-align: left;     /* left aligned */
-  width: 100%;
+  text-align: left;           /* left aligned */
 }
 
 /* =========================================
@@ -183,9 +176,7 @@
   text-align: center;
 
   cursor: pointer;
-
-  /* No shadow now */
-  box-shadow: none;
+  box-shadow: none;           /* removed shadow */
 
   transition:
     background-color 150ms ease,
@@ -194,7 +185,7 @@
 }
 
 .primary-btn:hover:not(:disabled) {
-  background: #01e6dd; /* hover fill colour */
+  background: #01e6dd;        /* hover colour */
 }
 
 .primary-btn:active:not(:disabled) {
@@ -214,7 +205,7 @@
   width: 100%;
   display: flex;
   justify-content: center;
-  margin-top: 32px; /* space from main block */
+  margin-top: 32px;
 }
 
 .logo-link {
@@ -236,7 +227,7 @@
   }
 
   .landing-hero {
-    display: none; /* hide image on mobile */
+    display: none;  /* hide image */
   }
 
   .landing-content {
