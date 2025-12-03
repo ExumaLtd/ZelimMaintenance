@@ -1,158 +1,188 @@
-/* Page layout ---------------------------------------------------- */
+/* ============= GLOBAL LANDING LAYOUT ============= */
 
 .landing-root {
   min-height: 100vh;
   display: flex;
-  background: #172f36; /* dark teal */
-  color: #f7f7f7;
-  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont,
-    sans-serif;
+  background: #172F36;           /* dark teal */
+  color: #ffffff;
 }
 
-/* LEFT COLUMN — hero image (50% width on desktop) */
-
+/* Left: image panel (50%) */
 .landing-hero {
   flex: 1;
-  padding: 24px 0 24px 24px; /* 24px left, top and bottom */
   display: flex;
-}
-
-.hero-image-wrapper {
-  border-radius: 20px;
-  overflow: hidden;
-  position: relative;
-  width: 100%;
-}
-
-.hero-image {
-  object-fit: cover;
-  filter: grayscale(100%) contrast(1.05);
-  mix-blend-mode: luminosity; /* teal tone */
-}
-
-/* RIGHT COLUMN — content */
-
-.landing-content {
-  flex: 1;
-  display: flex;
-  align-items: center;        /* centre content vertically */
-  justify-content: center;    /* centre horizontally */
-  padding: 24px 24px 24px 32px;
-}
-
-.landing-panel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;    /* centre the title / form block */
-  gap: 24px;
-  width: 100%;
-  max-width: 520px;
-}
-
-/* Typography ----------------------------------------------------- */
-
-.landing-header {
-  text-align: center;
-}
-
-.landing-title {
-  margin: 0 0 12px 0;
-  font-weight: 600;
-  font-size: 32px;
-  line-height: 1.2;
-}
-
-.landing-subtitle {
-  margin: 0;
-  font-weight: 400;
-  font-size: 16px;
-  line-height: 24px;
-  color: #e9ebec;
-}
-
-/* Form ----------------------------------------------------------- */
-
-.landing-form {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.input-wrapper {
-  width: 100%;
-}
-
-/* Input: 4F6167 fill, 394D54 stroke, drop shadow */
-
-.pin-input {
-  width: 100%;
-  padding: 18px 24px;
-  border-radius: 8px;
-  border: 1px solid #394d54;
-  background: #4f6167;
-  color: #e9ebec;
-  font-size: 18px;
-  line-height: 24px;
-  text-align: center;
-  outline: none;
-  box-shadow: 0 1px 2px 0 #394d54;
-}
-
-.pin-input::placeholder {
-  color: #bdc4c6; /* placeholder colour */
-}
-
-.pin-input:focus {
-  box-shadow: 0 0 0 1px #394d54, 0 1px 2px 0 #394d54;
-}
-
-/* Button: Montserrat semibold, no extra border */
-
-.submit-button {
-  width: 100%;
-  padding: 18px 24px;
-  border-radius: 8px;
-  border: none;
-  background: #00fff7;
-  color: #172f36;
-  font-size: 20px;
-  line-height: 24px;
-  font-weight: 600; /* semibold */
-  text-align: center;
-  cursor: pointer;
-  box-shadow: 0 0 0 1px rgba(12, 14, 18, 0.18) inset,
-    0 -2px 0 0 rgba(12, 14, 18, 0.05) inset,
-    0 1px 2px 0 rgba(0, 0, 0, 0); /* skeuo inner shadow */
-}
-
-.submit-button:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.error-message {
-  margin: -6px 0 0;
-  text-align: center;
-  font-size: 14px;
-  color: #ffb4b4;
-}
-
-/* Logo ~80px from bottom by margin */
-
-.logo-link {
-  margin-top: 80px;
-  display: inline-flex;
+  padding: 24px;
+  align-items: stretch;
   justify-content: center;
 }
 
-.logo {
+.landing-hero-inner {
+  border-radius: 20px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.landing-hero-inner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Right: content panel (50%) */
+.landing-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 24px 56px 32px;  /* 56px bottom = 80 - 24 (outer padding) */
+}
+
+/* This block (title + subtitle + form) should be centred vertically
+   inside the right-hand column. */
+.landing-main {
+  margin: auto 0;                /* pushes it into vertical centre */
+  max-width: 640px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+/* Header text */
+
+.landing-title {
+  margin: 0 0 16px 0;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.landing-title span:first-child {
+  display: block;
+  font-size: 40px;               /* SWIFT */
+}
+
+.landing-title span:last-child {
+  display: block;
+  font-size: 36px;               /* maintenance portal */
+}
+
+.landing-subtitle {
+  margin: 0 0 32px 0;            /* 32px before the field */
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1.5;
+  color: #E9EBEC;
+}
+
+/* Stack for input + button (24px gap) */
+
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;                     /* spacing between field and button */
+}
+
+/* ============= INPUT FIELD ============= */
+
+/* Wrapper, matches Figma: flex column, gap 6px */
+.input-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  width: 100%;
+}
+
+/* Actual input */
+.input-field {
+  display: flex;
+  padding: 12px 20px;
+  align-items: center;
+  width: 100%;
+
+  border-radius: 8px;
+  border: 1px solid #394D54;     /* stroke */
+  background: #4F6167;           /* fill */
+  box-shadow: 0 1px 2px rgba(255, 255, 255, 0); /* subtle Figma shadow */
+
+  font-family: 'Montserrat', sans-serif;
+  font-size: 24px;
+  line-height: 1.3;
+  text-align: center;
+
+  color: #E9EBEC;                /* active text */
+}
+
+.input-field::placeholder {
+  color: #BDC4C6;                /* placeholder colour */
+  opacity: 1;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #00FFF7;
+}
+
+/* Error text under input (if needed) */
+
+.error-text {
+  margin: 0;
+  margin-top: 4px;
+  font-size: 14px;
+  color: #ffb4b4;
+  text-align: left;
+}
+
+/* ============= PRIMARY BUTTON ============= */
+
+.primary-btn {
+  display: flex;
+  padding: 12px 16px;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  background: #00FFF7;
+
+  box-shadow:
+    0 0 0 1px rgba(12, 14, 18, 0.18) inset,
+    0 -2px 0 rgba(12, 14, 18, 0.05) inset,
+    0 1px 2px rgba(255, 255, 255, 0);
+
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;              /* semibold */
+  font-size: 24px;
+  line-height: 1.3;
+  color: #0C0E12;
+  cursor: pointer;
+}
+
+.primary-btn:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+/* ============= FOOTER / LOGO ============= */
+
+.landing-footer {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.logo-link {
+  display: inline-flex;
+}
+
+.zelim-logo {
   height: 40px;
   width: auto;
 }
 
-/* Mobile: hide hero image, full-width form ----------------------- */
+/* ============= RESPONSIVE ============= */
 
 @media (max-width: 900px) {
   .landing-root {
@@ -160,18 +190,30 @@
   }
 
   .landing-hero {
-    display: none;
+    order: 2;
+    padding: 16px;
+    height: 260px;
   }
 
   .landing-content {
-    padding: 24px;
+    order: 1;
+    padding: 24px 16px 40px;
   }
 
-  .landing-panel {
-    align-items: center;
+  .landing-main {
+    max-width: 100%;
   }
 
-  .logo-link {
-    margin-top: 48px;
+  .landing-title span:first-child {
+    font-size: 32px;
+  }
+
+  .landing-title span:last-child {
+    font-size: 28px;
+  }
+
+  .primary-btn,
+  .input-field {
+    font-size: 20px;
   }
 }

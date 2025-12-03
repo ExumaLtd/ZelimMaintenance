@@ -1,12 +1,11 @@
-import { useState } from "react";
+import Head from "next/head";
 import { useRouter } from "next/router";
-import Image from "next/image";
+import { useState } from "react";
 
-export default function Home() {
+export default function LandingPage() {
   const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [placeholder, setPlaceholder] = useState("Enter your access code");
   const router = useRouter();
 
   async function handleSubmit(e) {
@@ -36,6 +35,7 @@ export default function Home() {
         return;
       }
 
+      // Success – go to that unit’s landing page
       router.push(`/swift/${data.publicToken}`);
     } catch (err) {
       console.error(err);
@@ -46,75 +46,77 @@ export default function Home() {
   }
 
   return (
-    <div className="landing-root">
-      {/* LEFT: HERO IMAGE */}
-      <div className="landing-hero">
-        <div className="hero-image-wrapper">
-          <Image
-            src="/images/swiftmaintenanceportal-hero.png"
-            alt="Engineer using tablet on-site"
-            fill
-            priority
-            className="hero-image"
-          />
-        </div>
-      </div>
+    <>
+      <Head>
+        <title>SWIFT Maintenance Portal</title>
+        <meta
+          name="description"
+          content="For authorised engineers completing inspections and servicing."
+        />
+      </Head>
 
-      {/* RIGHT: PORTAL CONTENT */}
-      <div className="landing-content">
-        <div className="landing-panel">
-          <header className="landing-header">
-            <h1 className="landing-title">SWIFT<br />maintenance portal</h1>
-            <p className="landing-subtitle">
-              For authorised engineers completing<br />
-              inspections and servicing.
-            </p>
-          </header>
-
-          <form className="landing-form" onSubmit={handleSubmit}>
-            <div className="input-wrapper">
-              <input
-                id="pin"
-                type="text"
-                value={pin}
-                onChange={(e) => setPin(e.target.value)}
-                placeholder={placeholder}
-                onFocus={() => setPlaceholder("")}
-                onBlur={() => {
-                  if (!pin) setPlaceholder("Enter your access code");
-                }}
-                className="pin-input"
-                autoComplete="off"
-              />
-            </div>
-
-            {error && <p className="error-message">{error}</p>}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="submit-button"
-            >
-              {loading ? "Checking…" : "Enter portal"}
-            </button>
-          </form>
-
-          <a
-            href="https://www.zelim.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="logo-link"
-          >
-            <Image
-              src="/logo/zelim-logo.svg"
-              alt="Zelim"
-              width={160}
-              height={40}
-              className="logo"
+      <div className="landing-root">
+        {/* LEFT: image */}
+        <div className="landing-hero">
+          <div className="landing-hero-inner">
+            <img
+              src="/images/swiftmaintenanceportal-hero.png"
+              alt="Engineer using tablet at dusk"
             />
-          </a>
+          </div>
+        </div>
+
+        {/* RIGHT: content */}
+        <div className="landing-content">
+          <main className="landing-main">
+            <header className="landing-header">
+              <h1 className="landing-title">
+                <span>SWIFT</span>
+                <span>maintenance portal</span>
+              </h1>
+              <p className="landing-subtitle">
+                For authorised engineers completing inspections and servicing.
+              </p>
+            </header>
+
+            <form className="form-stack" onSubmit={handleSubmit}>
+              <div className="input-wrapper">
+                <input
+                  type="text"
+                  className="input-field"
+                  placeholder="Enter your access code"
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value)}
+                />
+                {error && <p className="error-text">{error}</p>}
+              </div>
+
+              <button
+                type="submit"
+                className="primary-btn"
+                disabled={loading}
+              >
+                {loading ? "Checking…" : "Enter portal"}
+              </button>
+            </form>
+          </main>
+
+          <footer className="landing-footer">
+            <a
+              href="https://www.zelim.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="logo-link"
+            >
+              <img
+                src="/logo/zelim-logo.svg"
+                alt="Zelim"
+                className="zelim-logo"
+              />
+            </a>
+          </footer>
         </div>
       </div>
-    </div>
+    </>
   );
 }
