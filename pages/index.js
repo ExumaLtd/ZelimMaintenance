@@ -1,53 +1,59 @@
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import "../styles/landing.css";
 
-export default function Home() {
+export default function LandingPage() {
   return (
     <div className="landing-container">
-      
-      {/* LEFT SIDE IMAGE */}
-      <div className="landing-image-wrapper">
+
+      {/* LEFT SIDE – HERO IMAGE */}
+      <div className="hero-section">
         <Image
           src="/images/swiftmaintenanceportal-hero.png"
-          alt="Engineer inspecting equipment"
+          alt="Engineer performing maintenance"
           fill
-          className="landing-hero-image"
+          className="hero-image"
+          priority
         />
       </div>
 
-      {/* RIGHT SIDE CONTENT */}
-      <div className="landing-content">
+      {/* RIGHT SIDE – LOGIN PANEL */}
+      <div className="login-section">
 
-        <div className="landing-inner">
-          <h1 className="landing-title">SWIFT<br/>maintenance portal</h1>
+        <div className="login-wrapper">
+          <h1 className="portal-title">SWIFT<br />maintenance portal</h1>
 
-          <p className="landing-subtitle">
-            For authorised engineers completing<br/>
-            inspections and servicing.
+          <p className="portal-subtitle">
+            For authorised engineers completing<br />inspections and servicing.
           </p>
 
-          <input
-            type="text"
-            placeholder="Enter your access code"
-            className="landing-input"
-          />
+          <div className="login-box">
 
-          <button className="landing-button">
-            Enter portal
-          </button>
+            {/* INPUT */}
+            <input
+              type="text"
+              placeholder="Enter your access code"
+              className="access-input"
+            />
+
+            {/* BUTTON */}
+            <button className="portal-button">
+              Enter portal
+            </button>
+          </div>
         </div>
 
-        {/* LOGO */}
-        <Link href="https://www.zelim.com" target="_blank" className="landing-logo-wrapper">
-          <Image
-            src="/logo/zelim-logo.svg"
-            alt="Zelim"
-            width={160}
-            height={48}
-            className="landing-logo"
-          />
-        </Link>
+        {/* BOTTOM LOGO */}
+        <div className="bottom-logo">
+          <Link href="https://www.zelim.com" target="_blank">
+            <Image
+              src="/logo/zelim-logo.svg"
+              alt="Zelim"
+              width={150}
+              height={50}
+            />
+          </Link>
+        </div>
 
       </div>
     </div>
