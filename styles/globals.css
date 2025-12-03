@@ -5,8 +5,9 @@
   box-sizing: border-box;
 }
 
-/* ----- GLOBAL PAGE STYLING ----- */
-html, body {
+/* ----- GLOBAL BASE STYLING ----- */
+html,
+body {
   margin: 0;
   padding: 0;
   background: #172F36; /* dark teal background */
@@ -14,7 +15,7 @@ html, body {
   font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* Make Next.js pages fill the viewport */
+/* Make the Next.js app fill the viewport */
 body,
 #__next {
   min-height: 100vh;
