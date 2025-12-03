@@ -1,60 +1,119 @@
-import React from "react";
+import { useState } from "react";
+import { useRouter } from "next/router";
 import Image from "next/image";
-import Link from "next/link";
 
-export default function LandingPage() {
+export default function Home() {
+  const [pin, setPin] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [placeholder, setPlaceholder] = useState("Enter your access code");
+  const router = useRouter();
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+
+    if (!pin.trim()) {
+      setError("Please enter your SWIFT access code.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const res = await fetch("/api/swift-resolve-pin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin: pin.trim() }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(
+          data.error || "Code not recognised. Please check and try again."
+        );
+        return;
+      }
+
+      router.push(`/swift/${data.publicToken}`);
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
-    <div className="landing-container">
-
-      {/* LEFT SIDE – HERO IMAGE */}
-      <div className="hero-section">
-        <Image
-          src="/images/swiftmaintenanceportal-hero.png"
-          alt="Engineer performing maintenance"
-          fill
-          className="hero-image"
-          priority
-        />
+    <div className="landing-root">
+      {/* LEFT: HERO IMAGE */}
+      <div className="landing-hero">
+        <div className="hero-image-wrapper">
+          <Image
+            src="/images/swiftmaintenanceportal-hero.png"
+            alt="Engineer using tablet on-site"
+            fill
+            priority
+            className="hero-image"
+          />
+        </div>
       </div>
 
-      {/* RIGHT SIDE – LOGIN PANEL */}
-      <div className="login-section">
+      {/* RIGHT: PORTAL CONTENT */}
+      <div className="landing-content">
+        <div className="landing-panel">
+          <header className="landing-header">
+            <h1 className="landing-title">SWIFT<br />maintenance portal</h1>
+            <p className="landing-subtitle">
+              For authorised engineers completing<br />
+              inspections and servicing.
+            </p>
+          </header>
 
-        <div className="login-wrapper">
-          <h1 className="portal-title">SWIFT<br />maintenance portal</h1>
+          <form className="landing-form" onSubmit={handleSubmit}>
+            <div className="input-wrapper">
+              <input
+                id="pin"
+                type="text"
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                placeholder={placeholder}
+                onFocus={() => setPlaceholder("")}
+                onBlur={() => {
+                  if (!pin) setPlaceholder("Enter your access code");
+                }}
+                className="pin-input"
+                autoComplete="off"
+              />
+            </div>
 
-          <p className="portal-subtitle">
-            For authorised engineers completing<br />inspections and servicing.
-          </p>
+            {error && <p className="error-message">{error}</p>}
 
-          <div className="login-box">
-
-            {/* INPUT */}
-            <input
-              type="text"
-              placeholder="Enter your access code"
-              className="access-input"
-            />
-
-            {/* BUTTON */}
-            <button className="portal-button">
-              Enter portal
+            <button
+              type="submit"
+              disabled={loading}
+              className="submit-button"
+            >
+              {loading ? "Checking…" : "Enter portal"}
             </button>
-          </div>
-        </div>
+          </form>
 
-        {/* BOTTOM LOGO */}
-        <div className="bottom-logo">
-          <Link href="https://www.zelim.com" target="_blank">
+          <a
+            href="https://www.zelim.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="logo-link"
+          >
             <Image
               src="/logo/zelim-logo.svg"
               alt="Zelim"
-              width={150}
-              height={50}
+              width={160}
+              height={40}
+              className="logo"
             />
-          </Link>
+          </a>
         </div>
-
       </div>
     </div>
   );

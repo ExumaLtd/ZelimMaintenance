@@ -1,139 +1,177 @@
-/* ====== Base layout for the landing page ====== */
+/* Page layout ---------------------------------------------------- */
 
-.landing-container {
-  display: flex;
+.landing-root {
   min-height: 100vh;
-  background: #172f36; /* dark teal */
+  display: flex;
+  background: #172F36; /* dark teal */
+  color: #f7f7f7;
+  font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont,
+    sans-serif;
 }
 
-/* LEFT SIDE – HERO IMAGE COLUMN */
-.hero-section {
-  position: relative;
-  flex: 1 1 50%;
-  padding: 24px 0 24px 24px; /* 24px top, bottom, left */
-  box-sizing: border-box;
+/* LEFT COLUMN — hero image (50% width on desktop) */
+
+.landing-hero {
+  flex: 1;
+  padding: 24px 0 24px 24px; /* 24px left, top and bottom */
+  display: flex;
+}
+
+.hero-image-wrapper {
+  border-radius: 20px;
   overflow: hidden;
-  border-radius: 20px; /* matches Figma */
+  position: relative;
+  width: 100%;
 }
 
 .hero-image {
   object-fit: cover;
+  filter: grayscale(100%) contrast(1.05);
+  mix-blend-mode: luminosity; /* gives that teal tone */
 }
 
-/* RIGHT SIDE – LOGIN COLUMN */
-.login-section {
-  flex: 1 1 50%;
+/* RIGHT COLUMN — content */
+
+.landing-content {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 24px 24px 24px 32px;
+}
+
+.landing-panel {
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* content in middle, logo at bottom */
   align-items: center;
-  padding: 24px 24px 80px 24px; /* 80px bottom for logo */
-  box-sizing: border-box;
-}
-
-/* Center block with title, subtitle, field, button */
-.login-wrapper {
+  justify-content: center;          /* centre block vertically */
+  gap: 24px;
   width: 100%;
-  max-width: 480px;
-  margin: auto 0; /* vertically centers within the right column */
-  text-align: center;
-  color: #f7f7f7;
+  max-width: 520px;
+  padding-bottom: 80px;             /* space for logo at bottom */
 }
 
-/* Title: “SWIFT maintenance portal” */
-.portal-title {
-  margin: 0 0 16px 0;
-  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont,
-    sans-serif;
-  font-weight: 600; /* semibold */
+/* Typography ----------------------------------------------------- */
+
+.landing-header {
+  text-align: center;
+}
+
+.landing-title {
+  margin: 0 0 12px 0;
+  font-weight: 600;
   font-size: 32px;
   line-height: 1.2;
 }
 
-/* Subtitle line */
-.portal-subtitle {
+.landing-subtitle {
   margin: 0;
-  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont,
-    sans-serif;
   font-weight: 400;
   font-size: 16px;
   line-height: 24px;
-  color: #d0e1e4;
+  color: #e9ebec;
 }
 
-/* Wraps input + button */
-.login-box {
-  margin-top: 32px;
+/* Form ----------------------------------------------------------- */
+
+.landing-form {
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-/* INPUT */
-.access-input {
+.input-wrapper {
   width: 100%;
-  padding: 14px 18px;
+}
+
+/* Input matches Figma: 4F6167 fill, 394D54 stroke, shadow */
+
+.pin-input {
+  width: 100%;
+  padding: 18px 24px;
   border-radius: 8px;
-  border: 1px solid #334e55;
-  background: #4a6268;
-  color: #f7f7f7;
-  text-align: center; /* centre text in the field */
-  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont,
-    sans-serif;
-  font-size: 16px;
+  border: 1px solid #394D54;
+  background: #4F6167;
+  color: #E9EBEC;
+  font-size: 18px;
   line-height: 24px;
+  text-align: center;
   outline: none;
+  box-shadow: 0 1px 2px 0 #394D54;
 }
 
-.access-input::placeholder {
-  color: rgba(247, 247, 247, 0.7);
+.pin-input::placeholder {
+  color: #BDC4C6; /* placeholder colour */
 }
 
-/* BUTTON */
-.portal-button {
+.pin-input:focus {
+  box-shadow: 0 0 0 1px #394D54, 0 1px 2px 0 #394D54;
+}
+
+/* Button: Montserrat semibold, no extra border */
+
+.submit-button {
   width: 100%;
-  padding: 14px 18px;
+  padding: 18px 24px;
   border-radius: 8px;
-  border: 2px solid rgba(255, 255, 255, 0.12);
-  background: #00fff7;
-  color: #04161b;
-  font-family: "Montserrat", system-ui, -apple-system, BlinkMacSystemFont,
-    sans-serif;
-  font-size: 16px;
+  border: none;
+  background: #00FFF7;
+  color: #172F36;
+  font-size: 20px;
   line-height: 24px;
   font-weight: 600; /* semibold */
+  text-align: center;
   cursor: pointer;
-  box-shadow: 0 0 0 1px rgba(12, 14, 18, 0.18) inset,
-    0 -2px 0 0 rgba(12, 14, 18, 0.05) inset;
+
+  /* subtle skeuomorphic inner shadow like Figma */
+  box-shadow:
+    0 0 0 1px rgba(12, 14, 18, 0.18) inset,
+    0 -2px 0 0 rgba(12, 14, 18, 0.05) inset,
+    0 1px 2px 0 rgba(0, 0, 0, 0);
 }
 
-.portal-button:hover {
-  filter: brightness(0.96);
+.submit-button:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
-/* BOTTOM LOGO */
-.bottom-logo {
-  margin-top: 40px;
+.error-message {
+  margin: -6px 0 0;
+  text-align: center;
+  font-size: 14px;
+  color: #ffb4b4;
 }
 
-/* ====== Mobile / narrow screens ====== */
+/* Logo anchored ~80px from the bottom via panel padding */
+
+.logo-link {
+  margin-top: auto;
+  display: inline-flex;
+  justify-content: center;
+}
+
+.logo {
+  height: 40px;
+  width: auto;
+}
+
+/* Mobile: hide hero image, full-width form ----------------------- */
 
 @media (max-width: 900px) {
-  .landing-container {
+  .landing-root {
     flex-direction: column;
   }
 
-  /* Hide the hero image on small screens – matches your mobile Figma */
-  .hero-section {
+  .landing-hero {
     display: none;
   }
 
-  .login-section {
-    flex: 0 0 auto;
-    padding: 80px 24px 80px 24px;
+  .landing-content {
+    padding: 24px;
   }
 
-  .portal-title {
-    font-size: 28px;
+  .landing-panel {
+    padding-bottom: 80px;
   }
 }
