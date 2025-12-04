@@ -2,73 +2,126 @@
 
 import Head from "next/head";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import Airtable from "airtable"; // <--- NEW IMPORT
+
+// --- Data Fetching (Required for Dynamic Title) ---
+export async function getServerSideProps(context) {
+  const publicToken = context.params.id;
+
+  try {
+    // 1. Initialize Airtable connection using environment variables
+    const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
+      process.env.AIRTABLE_BASE_ID
+    );
+    const TABLE_NAME = process.env.AIRTABLE_SWIFT_TABLE;
+    
+    // 2. Fetch data based on the publicToken
+    const records = await base(TABLE_NAME)
+      .select({
+        maxRecords: 1,
+        // Find the unit matching the public_token
+        filterByFormula: `{public_token} = "${publicToken}"`, 
+        // Ensure you fetch the required fields for the titles and future forms
+        fields: ["public_token", "company", "serial_number", "annual_form_id", "depth_form_id"], 
+      })
+      .firstPage();
+
+    if (!records || records.length === 0) {
+      // If the public token is invalid/not found, send them back to login
+      return { 
+        redirect: {
+            destination: '/',
+            permanent: false,
+        }
+      };
+    }
+    
+    const record = records[0];
+    const unitDetails = {
+      public_token: record.get("public_token"),
+      company: record.get("company") || "N/A", // Use 'N/A' if missing
+      serial_number: record.get("serial_number") || "N/A",
+      annual_form_id: record.get("annual_form_id"),
+      depth_form_id: record.get("depth_form_id"),
+    };
+
+    return {
+      props: { unit: unitDetails },
+    };
+  } catch (error) {
+    console.error("Error fetching unit data for selection page:", error);
+    // If the API call fails (network, key, base ID error), send them back
+    return { 
+        redirect: {
+            destination: '/',
+            permanent: false,
+        }
+    };
+  }
+}
+
 
 // --- Component Definition ---
 
-export default function UnitSelectionPage() {
-  const router = useRouter();
-  // The 'id' variable contains the unit's publicToken from the URL
-  const { id } = router.query; 
+export default function UnitSelectionPage({ unit }) {
+  // 'unit' contains the fetched data (public_token, company, serial_number, form IDs)
 
-  // Use a placeholder title until we fetch the actual unit name later
-  const unitName = "SWIFT Unit"; 
+  if (!unit || !unit.public_token) {
+    return (
+      <div className="loading-state">
+        <p>Loading Unit Data...</p>
+      </div>
+    );
+  }
 
-  if (!id) {
-    return (
-      <div className="loading-state">
-        <p>Loading Unit Data...</p>
-      </div>
-    );
-  }
+  // --- JSX Output ---
+  return (
+    <>
+      <Head>
+        {/* DYNAMIC BROWSER TAB TITLE: SWIFT | Company Name Maintenance Portal */}
+        <title>SWIFT | {unit.company} Maintenance Portal</title>
+      </Head>
 
-  // --- JSX Output ---
-  return (
-    <>
-      <Head>
-        <title>{unitName} - Select Checklist</title>
-      </Head>
+      <div className="swift-unit-container">
+        
+        {/* HEADER / WELCOME MESSAGE */}
+        <header className="unit-header">
+          <h1 className="unit-title">Welcome to the Portal</h1>
+          <p className="unit-subtitle">Unit ID: {unit.public_token.toUpperCase()}</p> 
+          <p className="unit-instruction">Please select the type of maintenance you will be completing today.</p>
+        </header>
 
-      <div className="swift-unit-container">
-        
-        {/* 1. HEADER / WELCOME MESSAGE */}
-        <header className="unit-header">
-          <h1 className="unit-title">Welcome to the Portal</h1>
-          <p className="unit-subtitle">Unit ID: {id.toUpperCase()}</p>
-          <p className="unit-instruction">Please select the type of maintenance you will be completing today.</p>
-        </header>
+        {/* NAVIGATION / CHECKLISTS */}
+        <main className="checklist-navigation">
+          
+          <div className="checklist-link-stack">
+            
+            {/* LINK 1: ANNUAL MAINTENANCE */}
+            <Link href={`/swift/${unit.public_token}/annual`} className="nav-card primary-card">
+              <div className="card-content">
+                <h3>Annual Maintenance</h3>
+                <p>Full system inspection and recertification.</p>
+              </div>
+            </Link>
 
-        {/* 2. NAVIGATION / CHECKLISTS */}
-        <main className="checklist-navigation">
-          
-          <div className="checklist-link-stack">
-            
-            {/* LINK 1: ANNUAL MAINTENANCE */}
-            <Link href={`/swift/${id}/annual`} className="nav-card primary-card">
-              <div className="card-content">
-                <h3>Annual Maintenance</h3>
-                <p>Full system inspection and recertification.</p>
-              </div>
-            </Link>
+            {/* LINK 2: DEPTH MAINTENANCE */}
+            <Link href={`/swift/${unit.public_token}/depth`} className="nav-card secondary-card">
+              <div className="card-content">
+                <h3>Depth Maintenance</h3>
+                <p>In-depth component servicing and calibration.</p>
+              </div>
+            </Link>
 
-            {/* LINK 2: DEPTH MAINTENANCE */}
-            <Link href={`/swift/${id}/depth`} className="nav-card secondary-card">
-              <div className="card-content">
-                <h3>Depth Maintenance</h3>
-                <p>In-depth component servicing and calibration.</p>
-              </div>
-            </Link>
+          </div>
+        </main>
 
-          </div>
-        </main>
-
-        {/* 3. LOGOUT / BACK LINK */}
-        <footer className="unit-footer">
-          <Link href="/" className="logout-link">
-            Log Out / Change Unit
-          </Link>
-        </footer>
-      </div>
-    </>
-  );
+        {/* 3. LOGOUT / BACK LINK */}
+        <footer className="unit-footer">
+          <Link href="/" className="logout-link">
+            Log Out / Change Unit
+          </Link>
+        </footer>
+      </div>
+    </>
+  );
 }
