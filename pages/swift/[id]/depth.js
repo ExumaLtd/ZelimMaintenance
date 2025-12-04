@@ -2,67 +2,81 @@
 
 import Head from "next/head";
 import Link from "next/link";
+import Airtable from "airtable";
 
 // --- Data Fetching (Required for Dynamic Title) ---
 export async function getServerSideProps(context) {
   const publicToken = context.params.id;
 
   try {
-    // *** IMPORTANT: REPLACE THIS PLACEHOLDER WITH YOUR ACTUAL API CALL to Airtable ***
-    // This call must use the publicToken to fetch the corresponding SWIFT unit's details.
+    const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
+      process.env.AIRTABLE_BASE_ID
+    );
+    const TABLE_NAME = process.env.AIRTABLE_SWIFT_TABLE;
+    
+    // Fetch data based on the publicToken
+    const records = await base(TABLE_NAME)
+      .select({
+        maxRecords: 1,
+        filterByFormula: `{public_token} = "${publicToken}"`, 
+        // Fetch serial_number for the title
+        fields: ["serial_number"], 
+      })
+      .firstPage();
+
+    if (!records || records.length === 0) {
+      return { redirect: { destination: '/', permanent: false } };
+    }
+    
+    const record = records[0];
     const unitDetails = {
-      swift_serial: "SWI001", // <<< MUST BE FETCHED
-      public_token: publicToken,
+      serial_number: record.get("serial_number") || "N/A",
     };
 
-    if (!unitDetails.swift_serial) {
-      return { notFound: true };
-    }
-
     return {
-      props: { unit: unitDetails },
+      props: { unit: unitDetails, publicToken },
     };
   } catch (error) {
-    console.error("Error fetching unit data for depth checklist:", error);
-    return {
-      redirect: {
-        destination: '/',
-        permanent: false,
-      },
-    }
+    console.error("Error fetching unit data for depth page:", error);
+    return { redirect: { destination: '/', permanent: false } };
   }
 }
 
+
 // --- Component Definition ---
 
-export default function DepthMaintenancePage({ unit }) {
+export default function DepthMaintenancePage({ unit, publicToken }) {
+  const serialNumber = unit.serial_number;
 
-  if (!unit) {
-    return <p className="loading-state">Loading...</p>;
-  }
-  
+  // Placeholder content for now - will be replaced with Fillout iFrame later
   return (
     <>
       <Head>
-        {/* DYNAMIC BROWSER TAB TITLE: SWIFT | Serial Number Depth Maintenance */}
-        <title>SWIFT | {unit.swift_serial} Depth Maintenance</title>
+        {/* DYNAMIC BROWSER TAB TITLE: SWIFT Depth Checklist | Serial Number */}
+        <title>SWIFT Depth Checklist | {serialNumber}</title>
       </Head>
 
       <div className="swift-checklist-container">
         
+        {/* HEADER */}
         <header className="checklist-header">
-          <h1 className="unit-title">{unit.swift_serial}</h1>
-          <h2 className="checklist-type">Depth Maintenance Checklist</h2>
+          <h1 className="unit-title">SWIFT Unit: {serialNumber}</h1>
+          <p className="checklist-type">Depth Maintenance Checklist</p>
+          <p className="checklist-info">Public Token: {publicToken.toUpperCase()}</p>
         </header>
 
+        {/* EMBED AREA (Currently Placeholder) */}
         <main className="form-embed-area">
-            {/* The form embed will go here later */}
-            <p>Depth Maintenance Content Placeholder.</p>
+            <div style={{ padding: '20px', textAlign: 'center' }}>
+                <p>--- Placeholder for Depth Fillout Form iFrame ---</p>
+                <p>The form will appear here soon.</p>
+            </div>
         </main>
 
+        {/* FOOTER */}
         <footer className="checklist-footer">
-          <Link href={`/swift/${unit.public_token}`} className="back-link">
-            &larr; Back to Checklist Selection
+          <Link href={`/swift/${publicToken}`} className="back-link">
+            &larr; Back to Unit Selection
           </Link>
         </footer>
       </div>
