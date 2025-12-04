@@ -1,213 +1,211 @@
-/* =========================================
-   SWIFT UNIT SELECTION PAGE
-========================================= */
+/* swift.css */
 
-.swift-unit-container {
-  max-width: 500px;
-  margin: 0 auto;
-  padding: 40px 24px;
-  min-height: 100vh;
+/* ------------------------------------- */
+/* --- LANDING PAGE (pages/index.js) --- */
+/* ------------------------------------- */
+
+.landing-root {
   display: flex;
-  flex-direction: column;
+  min-height: 100vh;
 }
 
-/* --- HEADER / WELCOME MESSAGE --- */
+/* LEFT HERO PANEL (Large Image) */
+.landing-hero {
+  flex: 2;
+  position: relative;
+  background-color: #1a2930;
+  overflow: hidden;
+  display: none; /* Hidden on small screens */
+}
 
-.unit-header {
+.landing-hero-inner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.landing-hero-inner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    opacity: 0.7;
+}
+
+/* RIGHT CONTENT PANEL (Login Form) */
+.landing-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 40px;
+  background-color: #0b1a1f;
+  min-width: 350px;
+}
+
+.landing-main {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  max-width: 400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.landing-header {
   text-align: center;
   margin-bottom: 40px;
 }
 
-.unit-title {
-  margin: 0 0 16px 0;
-  font-size: 32px;
+.landing-title {
+  font-size: 2rem;
   font-weight: 700;
-  color: #01fff6; /* Primary accent color */
-  line-height: 40px;
-  font-family: 'Montserrat', sans-serif;
+  text-transform: uppercase;
+  color: #ffffff;
+  margin-bottom: 5px;
 }
 
-.unit-subtitle {
-  margin: 0 0 8px 0;
-  font-size: 16px;
-  font-weight: 500;
-  color: #bdc4c6; /* Lighter gray for secondary text */
-  font-family: 'Montserrat', sans-serif;
+.landing-title span:first-child {
+  color: #2196f3; /* Blue SWIFT text */
 }
 
-.unit-instruction {
-  margin: 16px 0 0 0;
-  font-size: 18px;
-  font-weight: 400;
-  color: #e9ebec;
-  line-height: 28px;
-  font-family: 'Montserrat', sans-serif;
+.landing-subtitle {
+  color: #78909c;
+  font-size: 1rem;
 }
 
+.landing-footer {
+  text-align: center;
+  padding-top: 20px;
+}
 
-/* --- NAVIGATION CARDS --- */
+/* Responsive adjustments for Landing Page */
+@media (min-width: 900px) {
+  .landing-hero {
+    display: block;
+  }
+  .landing-content {
+    flex: 1;
+  }
+}
 
+/* ------------------------------------------- */
+/* --- UNIT SELECTION & CHECKLIST PAGES --- */
+/* ------------------------------------------- */
+
+.swift-unit-container,
+.swift-checklist-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+/* --- HEADER STYLES --- */
+.unit-header,
+.checklist-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #172a32;
+}
+
+.unit-title {
+  color: #ffffff;
+  font-size: 2.2rem;
+  margin: 0 0 5px 0;
+}
+
+.unit-subtitle, .checklist-type {
+  color: #78909c;
+  font-size: 1.1rem;
+  margin: 0 0 15px 0;
+}
+
+.checklist-info {
+    color: #4a6572;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* --- SELECTION NAVIGATION --- */
 .checklist-navigation {
-  flex-grow: 1; /* Pushes the footer down */
-  display: flex;
-  flex-direction: column;
-  justify-content: center; /* Center the links vertically */
+  margin-bottom: 40px;
 }
 
 .checklist-link-stack {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  width: 100%;
 }
 
 .nav-card {
-  display: block; 
-  padding: 24px;
+  display: block;
+  padding: 30px;
   border-radius: 12px;
-  text-decoration: none;
+  text-align: center;
+  transition: transform 0.3s, box-shadow 0.3s;
   cursor: pointer;
-  transition: transform 150ms ease, box-shadow 150ms ease;
 }
 
 .nav-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
 }
 
-.card-content h3 {
-  margin: 0 0 4px 0;
-  font-size: 20px;
-  font-weight: 600;
-  font-family: 'Montserrat', sans-serif;
+.nav-card h3 {
+  margin-top: 0;
+  font-size: 1.5rem;
+  color: #ffffff;
 }
 
-.card-content p {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
-  font-family: 'Montserrat', sans-serif;
+.nav-card p {
+  margin-bottom: 0;
+  color: #bdc4c6;
 }
 
-/* Primary Card (Annual) - Light border/accent */
 .primary-card {
-  background: #394d54; /* Darker teal background */
-  border-left: 6px solid #01fff6; /* Bright accent border */
-  color: #ffffff;
-}
-.primary-card p {
-  color: #bdc4c6;
+  background-color: #2196f3; /* Main Blue */
 }
 
-/* Secondary Card (Depth) - Subtler accent */
+.primary-card:hover {
+  background-color: #0d83e3;
+}
+
 .secondary-card {
-  background: #394d54; 
-  border-left: 6px solid #4f6167; /* Subtler gray/teal accent border */
-  color: #e9ebec;
-}
-.secondary-card p {
-  color: #bdc4c6;
+  background-color: #37474f; /* Dark Gray */
 }
 
-/* --- FOOTER / LOGOUT --- */
-
-.unit-footer {
-  text-align: center;
-  margin-top: 40px;
+.secondary-card:hover {
+  background-color: #4a5d66;
 }
 
-.logout-link {
-  color: #bdc4c6;
-  text-decoration: none;
-  font-size: 14px;
-  transition: color 150ms ease;
-}
-
-.logout-link:hover {
-  color: #ffffff;
-}
-
-/* =========================================
-   SWIFT CHECKLIST PAGES (Annual / Depth)
-========================================= */
-
-/* The container needs to manage the layout of header, iframe, and footer */
-.swift-checklist-container {
-  max-width: 1000px; /* Wider max-width for forms */
-  margin: 0 auto;
-  padding: 20px 24px;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.checklist-header {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.unit-title {
-  /* Inherits styles from unit-title above */
-  margin: 0 0 4px 0;
-  font-size: 32px;
-}
-
-.checklist-type {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 500;
-  color: #e9ebec;
-}
-
-.checklist-info {
-  margin: 8px 0 0 0;
-  font-size: 14px;
-  color: #bdc4c6;
-}
-
-/* Embed Area for Fillout Form */
+/* --- FORM EMBED AREA --- */
 .form-embed-area {
-  flex-grow: 1; /* Allows the iframe area to fill all available vertical space */
-  min-height: 70vh; /* Ensure a minimum height for the form */
-  width: 100%;
+  min-height: 80vh; /* Ensure the iframe has vertical space */
+  border: 1px solid #172a32;
   border-radius: 8px;
-  overflow: hidden; /* Important for containing the iframe visual */
-  background: #253d45; /* Slightly lighter background to suggest content area */
+  overflow: hidden;
 }
 
-/* Footer style */
+/* --- FOOTER/BACK LINK --- */
+.unit-footer,
 .checklist-footer {
   text-align: center;
-  margin-top: 20px;
-  margin-bottom: 10px;
+  padding-top: 30px;
 }
 
+.logout-link,
 .back-link {
-  color: #bdc4c6;
-  text-decoration: none;
-  font-size: 14px;
-  transition: color 150ms ease;
+  color: #78909c;
+  font-size: 0.95rem;
+  transition: color 0.2s;
 }
 
+.logout-link:hover,
 .back-link:hover {
   color: #ffffff;
-}
-
-/* --- MOBILE ADJUSTMENTS (Applies to both Selection and Checklist) --- */
-@media (max-width: 550px) {
-  .swift-unit-container,
-  .swift-checklist-container {
-    padding: 30px 16px;
-  }
-  .unit-title {
-    font-size: 28px;
-    line-height: 36px;
-  }
-  .swift-checklist-container {
-    padding: 15px 10px;
-  }
-  .checklist-type {
-    font-size: 20px;
-  }
 }

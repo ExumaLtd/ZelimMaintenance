@@ -1,4 +1,4 @@
-// pages/swift/[id]/annual.js - ANNUAL CHECKLIST PAGE (FINAL)
+// pages/swift/[id]/annual.js - ANNUAL CHECKLIST PAGE (FINAL CORRECT VERSION)
 
 import Head from "next/head";
 import Link from "next/link";
@@ -49,9 +49,9 @@ export default function AnnualMaintenancePage({ unit, publicToken }) {
   const serialNumber = unit.serial_number;
   const formId = unit.formId;
 
-  // Construct the Fillout URL with the publicToken for prefill
+  // 🚨 This line uses the corrected Fillout URL structure which is most stable
   const filloutUrl = formId 
-    ? `https://fillout.com/embed/v1/${formId}?unit_public_token=${publicToken}`
+    ? `https://forms.fillout.com/${formId}?unit_public_token=${publicToken}&embed=true`
     : null;
 
   return (

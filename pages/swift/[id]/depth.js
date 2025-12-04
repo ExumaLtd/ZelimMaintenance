@@ -50,9 +50,9 @@ export default function DepthMaintenancePage({ unit, publicToken }) {
   const serialNumber = unit.serial_number;
   const formId = unit.formId;
 
-  // Construct the Fillout URL with the publicToken for prefill
+  // 🚨 CORRECTED URL STRUCTURE for robust embedding and prefill
   const filloutUrl = formId 
-    ? `https://fillout.com/embed/v1/${formId}?unit_public_token=${publicToken}`
+    ? `https://forms.fillout.com/${formId}?unit_public_token=${publicToken}&embed=true`
     : null;
 
   return (
