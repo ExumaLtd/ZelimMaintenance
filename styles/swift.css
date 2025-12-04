@@ -24,7 +24,7 @@
   font-weight: 700;
   color: #01fff6; /* Primary accent color */
   line-height: 40px;
-  font-family: var(--font-montserrat), sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .unit-subtitle {
@@ -32,7 +32,7 @@
   font-size: 16px;
   font-weight: 500;
   color: #bdc4c6; /* Lighter gray for secondary text */
-  font-family: var(--font-montserrat), sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .unit-instruction {
@@ -41,7 +41,7 @@
   font-weight: 400;
   color: #e9ebec;
   line-height: 28px;
-  font-family: var(--font-montserrat), sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 
@@ -79,7 +79,7 @@
   margin: 0 0 4px 0;
   font-size: 20px;
   font-weight: 600;
-  font-family: var(--font-montserrat), sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .card-content p {
@@ -87,7 +87,7 @@
   font-size: 14px;
   font-weight: 400;
   line-height: 20px;
-  font-family: var(--font-montserrat), sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 /* Primary Card (Annual) - Light border/accent */
@@ -128,14 +128,86 @@
   color: #ffffff;
 }
 
-/* --- MOBILE ADJUSTMENTS --- */
+/* =========================================
+   SWIFT CHECKLIST PAGES (Annual / Depth)
+========================================= */
+
+/* The container needs to manage the layout of header, iframe, and footer */
+.swift-checklist-container {
+  max-width: 1000px; /* Wider max-width for forms */
+  margin: 0 auto;
+  padding: 20px 24px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.checklist-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.unit-title {
+  /* Inherits styles from unit-title above */
+  margin: 0 0 4px 0;
+  font-size: 32px;
+}
+
+.checklist-type {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 500;
+  color: #e9ebec;
+}
+
+.checklist-info {
+  margin: 8px 0 0 0;
+  font-size: 14px;
+  color: #bdc4c6;
+}
+
+/* Embed Area for Fillout Form */
+.form-embed-area {
+  flex-grow: 1; /* Allows the iframe area to fill all available vertical space */
+  min-height: 70vh; /* Ensure a minimum height for the form */
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden; /* Important for containing the iframe visual */
+  background: #253d45; /* Slightly lighter background to suggest content area */
+}
+
+/* Footer style */
+.checklist-footer {
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.back-link {
+  color: #bdc4c6;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 150ms ease;
+}
+
+.back-link:hover {
+  color: #ffffff;
+}
+
+/* --- MOBILE ADJUSTMENTS (Applies to both Selection and Checklist) --- */
 @media (max-width: 550px) {
-  .swift-unit-container {
+  .swift-unit-container,
+  .swift-checklist-container {
     padding: 30px 16px;
   }
-
   .unit-title {
     font-size: 28px;
     line-height: 36px;
+  }
+  .swift-checklist-container {
+    padding: 15px 10px;
+  }
+  .checklist-type {
+    font-size: 20px;
   }
 }

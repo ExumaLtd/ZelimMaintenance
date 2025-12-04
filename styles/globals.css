@@ -15,8 +15,8 @@ body {
   height: 100%;
   background: #172f36; /* dark teal */
   color: #ffffff;
-  /* Uses the CSS variable defined in _app.js via next/font */
-  font-family: var(--font-montserrat), system-ui, -apple-system, BlinkMacSystemFont,
+  /* Assumes Montserrat font is loaded in _app.js */
+  font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont,
     sans-serif;
 }
 
