@@ -1,4 +1,4 @@
-// pages/api/swift-resolve-pin.js - ORIGINAL WORKING VERSION
+// pages/api/swift-resolve-pin.js - SAFELY UPDATED VERSION
 
 import Airtable from "airtable";
 
@@ -25,7 +25,9 @@ export default async function handler(req, res) {
     const records = await base(TABLE_NAME)
       .select({
         maxRecords: 1,
-        filterByFormula: `{access_pin} = "${pin}"`
+        filterByFormula: `{access_pin} = "${pin}"`,
+        // 🚨 Fetching all necessary fields. This is safe now that the fields exist.
+        fields: ["public_token", "company", "serial_number", "annual_form_id", "depth_form_id"],
       })
       .firstPage();
 
@@ -35,7 +37,13 @@ export default async function handler(req, res) {
 
     const record = records[0];
 
-    const publicToken = record.get("public_token");
+    // Extract all fields, using || null to safely handle missing/empty data
+    const publicToken = record.get("public_token") || null;
+    const company = record.get("company") || null;
+    const serialNumber = record.get("serial_number") || null;
+    const annualFormId = record.get("annual_form_id") || null;
+    const depthFormId = record.get("depth_form_id") || null;
+
 
     if (!publicToken) {
       return res.status(500).json({
@@ -43,8 +51,15 @@ export default async function handler(req, res) {
       });
     }
 
-    // ORIGINAL: Only returns publicToken
-    return res.status(200).json({ publicToken });
+    // Return ALL relevant data
+    return res.status(200).json({ 
+      publicToken,
+      company,
+      serialNumber,
+      annualFormId,
+      depthFormId,
+    });
+
   } catch (err) {
     console.error("Error resolving pin:", err);
     return res.status(500).json({ error: "Something went wrong" });
