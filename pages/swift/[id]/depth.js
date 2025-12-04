@@ -1,10 +1,10 @@
-// pages/swift/[id]/depth.js - DEPTH CHECKLIST PAGE
+// pages/swift/[id]/depth.js - DEPTH CHECKLIST PAGE (FINAL)
 
 import Head from "next/head";
 import Link from "next/link";
 import Airtable from "airtable";
 
-// --- Data Fetching (Required for Dynamic Title) ---
+// --- Data Fetching ---
 export async function getServerSideProps(context) {
   const publicToken = context.params.id;
 
@@ -14,13 +14,12 @@ export async function getServerSideProps(context) {
     );
     const TABLE_NAME = process.env.AIRTABLE_SWIFT_TABLE;
     
-    // Fetch data based on the publicToken
     const records = await base(TABLE_NAME)
       .select({
         maxRecords: 1,
         filterByFormula: `{public_token} = "${publicToken}"`, 
-        // Fetch serial_number for the title
-        fields: ["serial_number"], 
+        // Fetch serial_number and form ID
+        fields: ["serial_number", "depth_form_id"], 
       })
       .firstPage();
 
@@ -31,6 +30,8 @@ export async function getServerSideProps(context) {
     const record = records[0];
     const unitDetails = {
       serial_number: record.get("serial_number") || "N/A",
+      // Pass the form ID to the component
+      formId: record.get("depth_form_id") || null,
     };
 
     return {
@@ -47,8 +48,13 @@ export async function getServerSideProps(context) {
 
 export default function DepthMaintenancePage({ unit, publicToken }) {
   const serialNumber = unit.serial_number;
+  const formId = unit.formId;
 
-  // Placeholder content for now - will be replaced with Fillout iFrame later
+  // Construct the Fillout URL with the publicToken for prefill
+  const filloutUrl = formId 
+    ? `https://fillout.com/embed/v1/${formId}?unit_public_token=${publicToken}`
+    : null;
+
   return (
     <>
       <Head>
@@ -65,12 +71,25 @@ export default function DepthMaintenancePage({ unit, publicToken }) {
           <p className="checklist-info">Public Token: {publicToken.toUpperCase()}</p>
         </header>
 
-        {/* EMBED AREA (Currently Placeholder) */}
+        {/* EMBED AREA - Now using iFrame */}
         <main className="form-embed-area">
-            <div style={{ padding: '20px', textAlign: 'center' }}>
-                <p>--- Placeholder for Depth Fillout Form iFrame ---</p>
-                <p>The form will appear here soon.</p>
+          {formId ? (
+            <iframe
+              title="Depth Maintenance Form"
+              src={filloutUrl}
+              style={{
+                width: '100%',
+                height: '100%',
+                border: 'none',
+                backgroundColor: 'white' 
+              }}
+              allowFullScreen
+            />
+          ) : (
+            <div style={{ padding: '20px', textAlign: 'center', color: '#bdc4c6' }}>
+                <p>Form Not Available. Please ensure the form ID is configured in Airtable.</p>
             </div>
+          )}
         </main>
 
         {/* FOOTER */}
