@@ -1,4 +1,4 @@
-// pages/api/swift-resolve-pin.js
+// pages/api/swift-resolve-pin.js - ORIGINAL WORKING VERSION
 
 import Airtable from "airtable";
 
@@ -25,9 +25,7 @@ export default async function handler(req, res) {
     const records = await base(TABLE_NAME)
       .select({
         maxRecords: 1,
-        filterByFormula: `{access_pin} = "${pin}"`,
-        // --- ADD THESE FIELDS TO ENSURE THEY ARE RETURNED ---
-        fields: ["public_token", "company", "serial_number", "annual_form_id", "depth_form_id"],
+        filterByFormula: `{access_pin} = "${pin}"`
       })
       .firstPage();
 
@@ -37,13 +35,7 @@ export default async function handler(req, res) {
 
     const record = records[0];
 
-    // 1. Extract all necessary fields (including new ones)
     const publicToken = record.get("public_token");
-    const company = record.get("company");
-    const serialNumber = record.get("serial_number");
-    const annualFormId = record.get("annual_form_id");
-    const depthFormId = record.get("depth_form_id");
-
 
     if (!publicToken) {
       return res.status(500).json({
@@ -51,15 +43,8 @@ export default async function handler(req, res) {
       });
     }
 
-    // 2. Return ALL relevant data
-    return res.status(200).json({ 
-      publicToken,
-      company,
-      serialNumber,
-      annualFormId,
-      depthFormId,
-    });
-
+    // ORIGINAL: Only returns publicToken
+    return res.status(200).json({ publicToken });
   } catch (err) {
     console.error("Error resolving pin:", err);
     return res.status(500).json({ error: "Something went wrong" });
