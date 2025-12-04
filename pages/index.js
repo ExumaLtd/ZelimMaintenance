@@ -1,8 +1,10 @@
+// pages/index.js
+
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
-export default function LandingPage() {
+export default function IndexPage() {
   const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -35,7 +37,9 @@ export default function LandingPage() {
         return;
       }
 
+      // Success – go to that unit’s selection page using the publicToken
       router.push(`/swift/${data.publicToken}`);
+
     } catch (err) {
       console.error(err);
       setError("Something went wrong. Please try again.");
@@ -47,7 +51,8 @@ export default function LandingPage() {
   return (
     <>
       <Head>
-        <title>SWIFT Maintenance Portal</title>
+        {/* CORRECTED BROWSER TAB TITLE */}
+        <title>Zelim | SWIFT Maintenance Portal</title> 
         <meta
           name="description"
           content="For authorised engineers completing inspections and servicing."
@@ -58,6 +63,7 @@ export default function LandingPage() {
         {/* LEFT PANEL */}
         <div className="landing-hero">
           <div className="landing-hero-inner">
+            {/* The image tag below points to your local asset */}
             <img
               src="/images/swiftmaintenanceportal-hero.png"
               alt="Engineer using tablet at dusk"
@@ -119,4 +125,3 @@ export default function LandingPage() {
     </>
   );
 }
-
