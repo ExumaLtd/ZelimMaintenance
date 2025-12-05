@@ -115,8 +115,8 @@ html, body {
 
 /* === ONE LARGE RECTANGLE (NEW WRAPPER) === */
 .maintenance-group-wrapper {
-    /* **UPDATED:** New background color, padding, and border-radius */
-    background: #0D3037; 
+    /* **UPDATED:** New background color and gap */
+    background: #172F36; 
     padding: 20px;
     border-radius: 20px; 
     
@@ -124,20 +124,22 @@ html, body {
 
     /* Layout: keeps the two inner cards side-by-side */
     display: flex;
-    gap: 30px; /* Gap between the two internal cards */
+    /* **UPDATED:** Gap changed to 20px */
+    gap: 20px; 
 }
 
 
 /* === TWO #036274 CONTAINERS (The inner cards) === */
 .maintenance-card {
-    flex: 1; 
+    /* **UPDATED:** Changed flex to 1 1 */
+    flex: 1 1; 
     
-    /* NEW: Apply the specific background color and internal padding/radius */
-    background: #036274; /* The specific color for the inner cards */
-    border-radius: 8px; /* Slightly smaller radius for the inner card */
-    padding: 24px; /* Internal padding */
+    /* **UPDATED:** New gradient background and radius */
+    background: linear-gradient(39deg, rgba(74, 98, 104, 0.20) 12.44%, rgba(74, 98, 104, 0.00) 87.56%);
+    border-radius: 10px; 
     
-    /* Ensure no residual outer border/shadow */
+    /* Internal padding and border reset */
+    padding: 24px; 
     border: none;
     box-shadow: none;
 }
