@@ -2,7 +2,7 @@
    GLOBAL LAYOUT + BACKGROUND
 =============================== */
 html, body {
-    /* Assuming Montserrat is desired, we define it here and rely on it being loaded elsewhere */
+    /* Set Montserrat as the primary font for this page */
     font-family: 'Montserrat', sans-serif; 
     margin: 0;
     padding: 0;
@@ -56,6 +56,7 @@ html, body {
 }
 
 .portal-title {
+    /* Title typography */
     color: #FFF; 
     font-size: 30px;
     font-weight: 600;
@@ -72,7 +73,7 @@ html, body {
     margin-top: 20px;
 }
 
-/* New wrapper for each label/value pair (Serial Number, Due Date) */
+/* Wrapper for each label/value pair */
 .detail-item {
     display: flex;
     padding-bottom: 12px;
@@ -80,10 +81,12 @@ html, body {
     align-items: flex-start;
     gap: 4px;
     align-self: stretch;
+    /* Separator line */
     border-bottom: 1px solid rgba(160, 172, 175, 0.20);
 }
 
 .detail-label {
+    /* Label typography */
     color: #A0ACAF;
     font-size: 14px; 
     font-weight: 500; 
@@ -92,6 +95,7 @@ html, body {
 }
 
 .detail-value {
+    /* Value typography */
     color: #F7F7F7; 
     font-size: 22px; 
     font-weight: 600; 
@@ -109,7 +113,7 @@ html, body {
     gap: 30px;
 }
 
-/* New class to arrange the two main maintenance cards horizontally */
+/* Horizontal card arrangement */
 .maintenance-card-group {
     display: flex;
     gap: 30px; 
@@ -117,6 +121,7 @@ html, body {
 
 .maintenance-card {
     flex: 1; 
+    /* Card visual styles */
     border: 1px solid rgba(255, 255, 255, 0.1); 
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
     background: rgba(255,255,255,0.03);
@@ -125,6 +130,7 @@ html, body {
 }
 
 .downloads-card {
+    /* Card visual styles */
     border: 1px solid rgba(255, 255, 255, 0.1); 
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
     background: rgba(255,255,255,0.03);
@@ -149,10 +155,10 @@ html, body {
 }
 
 /* ===============================
-   START BUTTON STYLES (FINAL HIGH SPECIFICITY FIX)
+   START BUTTON STYLES (FINAL DEFINITIVE FIX)
 =============================== */
 
-/* Combining selectors for high specificity without !important */
+/* Combining selectors for high specificity to override global .primary-btn styles */
 .maintenance-card .start-btn, 
 .maintenance-card .primary-btn {
     /* Layout */
@@ -166,17 +172,18 @@ html, body {
     /* Appearance & Colors */
     border: 2px solid rgba(255, 255, 255, 0.12); 
     border-radius: 8px; 
-    background-color: #00EADE; 
+    background-color: #00EADE; /* Bright Cyan */
 
     /* Typography */
-    color: #0D3037; 
+    color: #0D3037; /* Dark Teal text */
     font-size: 14px;
     font-weight: 600;
     line-height: 20px; 
     text-align: center;
     text-decoration: none; 
-    /* FIX: Force no capitalization */
-    text-transform: none; 
+    
+    /* DEFINITIVE FIX: Force no capitalization over any global rule */
+    text-transform: none !important; 
     
     transition: background-color 0.2s, border-color 0.2s;
 }
@@ -209,7 +216,7 @@ html, body {
     gap: 6px; 
 
     border-radius: 8px; 
-    background: #27454B; 
+    background: #27454B; /* Dark Teal background color */
     text-decoration: none;
     transition: background-color 0.2s;
 }

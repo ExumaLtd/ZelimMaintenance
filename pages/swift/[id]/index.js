@@ -156,7 +156,7 @@ export default function SwiftUnitPage({ unit, publicToken }) {
                     href={`/swift/${publicToken}/annual`}
                     className="start-btn primary-btn"
                   >
-                    START MAINTENANCE
+                    Start maintenance
                   </Link>
                 </div>
 
@@ -172,7 +172,7 @@ export default function SwiftUnitPage({ unit, publicToken }) {
                     href={`/swift/${publicToken}/depth`}
                     className="start-btn primary-btn"
                   >
-                    START MAINTENANCE
+                    Start maintenance
                   </Link>
                 </div>
               </div> 
