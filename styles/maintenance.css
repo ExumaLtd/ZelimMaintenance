@@ -153,7 +153,7 @@ html, body {
 }
 
 /* ===============================
-   START BUTTON STYLES (FIXED)
+   START BUTTON STYLES (FINAL FIX)
 =============================== */
 
 /* Base button properties that may be inherited from globals.css */
@@ -185,6 +185,8 @@ html, body {
     font-weight: 600;
     line-height: 20px; 
     text-align: center;
+    /* FIX: Ensure button text is NOT capitalized */
+    text-transform: none; 
 }
 
 /* Hover effect */
@@ -196,7 +198,7 @@ html, body {
 
 
 /* ===============================
-   DOWNLOAD LINKS (FIXED)
+   DOWNLOAD LINKS (FINAL FIX)
 =============================== */
 .download-list {
     display: flex; 
@@ -307,7 +309,7 @@ html, body {
         flex-direction: row; 
         align-items: center;
         gap: 15px;
-        padding: 16px; /* Restore original padding for better touch targets */
+        padding: 16px; 
     }
     .download-link img {
         margin-bottom: 0;
