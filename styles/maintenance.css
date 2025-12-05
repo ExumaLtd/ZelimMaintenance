@@ -133,11 +133,8 @@ html, body {
     background: linear-gradient(39deg, rgba(74, 98, 104, 0.20) 12.44%, rgba(74, 98, 104, 0.00) 87.56%);
     border-radius: 10px; 
     
-    /* Explicit padding to reduce top space */
-    padding-top: 16px; 
-    padding-right: 24px;
-    padding-bottom: 24px;
-    padding-left: 24px;
+    /* FINAL CORRECTED PADDING SHORTHAND: 25px top, 30px right/bottom/left */
+    padding: 25px 30px 30px; 
     
     border: none;
     box-shadow: none;
@@ -149,8 +146,9 @@ html, body {
     font-size: 22px;
     font-weight: 600;
     line-height: 28px;
-    /* CORRECTED: Reset all margins to zero and reapply only the required bottom margin */
+    /* Reset all margins to zero and reapply only the required bottom margin */
     margin: 0; 
+    /* Margin below heading (22px) */
     margin-bottom: 22px; 
 }
 
@@ -158,9 +156,10 @@ html, body {
     color: #A0ACAF; 
     font-size: 14px; 
     line-height: 20px;
-    /* CORRECTED: Reset all margins to zero and reapply only the required bottom margin */
+    /* Reset all margins to zero and reapply only the required bottom margin */
     margin: 0; 
-    margin-bottom: 24px;
+    /* Margin below description before the button (20px) */
+    margin-bottom: 20px;
 }
 
 .downloads-card {
