@@ -42,8 +42,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between; /* main vs logo */
-  padding: 32px 56px 80px;        /* bottom = 80px for logo offset */
+  justify-content: space-between;
+  padding: 32px 56px 80px;
 }
 
 .landing-main {
@@ -61,33 +61,32 @@
 
 .landing-header {
   width: 100%;
-  max-width: 360px;          /* match form width */
+  max-width: 360px;
   margin: 0 auto 32px;
   text-align: center;
 }
 
-/* force override of default h1 margin/font-size */
 h1.landing-title {
   margin: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;                  /* tighter between SWIFT / maintenance portal */
+  gap: 4px;
   color: #f7f7f7;
   font-family: Montserrat;
   font-size: 30px;
   font-weight: 600;
-  line-height: 38px;         /* 126.667% */
+  line-height: 38px;
 }
 
 .landing-subtitle {
-  margin: 16px 0 0 0;
+  margin: 16px 0 0;
   text-align: center;
   color: #ffffff;
   font-family: Montserrat;
   font-size: 16px;
   font-weight: 400;
-  line-height: 24px;         /* 150% */
+  line-height: 24px;
 }
 
 /* =========================================
@@ -96,8 +95,7 @@ h1.landing-title {
 
 .form-stack {
   width: 100%;
-  max-width: 360px;          /* lock content block */
-  margin: 0 auto;
+  max-width: 360px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -114,7 +112,7 @@ h1.landing-title {
 
 .input-field {
   width: 100%;
-  padding: 12px 20px;        /* Figma */
+  padding: 12px 20px;
   border-radius: 8px;
   border: 1px solid #394d54;
   background: #4f6167;
@@ -122,7 +120,7 @@ h1.landing-title {
   font-size: 16px;
   line-height: 24px;
   font-weight: 400;
-  color: #e9ebec; /* Color for user-typed text */
+  color: #e9ebec;
   text-align: center;
 
   transition:
@@ -133,17 +131,15 @@ h1.landing-title {
 }
 
 .input-field::placeholder {
-  color: #bdc4c6; /* Placeholder color, remains same on focus */
-  opacity: 1;
+  color: #bdc4c6;
 }
 
 .input-field:focus {
   outline: none;
-  /* Keeps the border color the same as default on focus */
-  border-color: #394d54; 
+  border-color: #394d54;
 }
 
-/* Error state */
+/* ERROR STATE */
 
 .input-wrapper.has-error .input-field {
   border-color: #d92d20;
@@ -163,7 +159,7 @@ h1.landing-title {
 
 .primary-btn {
   width: 100%;
-  padding: 12px 16px;        /* Figma */
+  padding: 12px 16px;
   border-radius: 8px;
   border: 2px solid rgba(255, 255, 255, 0.12);
   background: #01fff6;
@@ -176,26 +172,19 @@ h1.landing-title {
 
   transition:
     background-color 150ms ease,
-    transform 150ms ease,
     opacity 150ms ease;
 }
 
-/* no box-shadow */
-
 .primary-btn:hover:not(:disabled) {
   background: #01e6dd;
-  /* Removed transform: translateY(-1px); */
-  transform: none; 
 }
 
 .primary-btn:disabled {
   opacity: 0.7;
-  cursor: default;
-  transform: none;
 }
 
 /* =========================================
-   LOGO FOOTER
+   FOOTER LOGO
 ========================================= */
 
 .landing-footer {
@@ -212,11 +201,14 @@ h1.landing-title {
 .zelim-logo {
   width: 140px;
   opacity: 0.9;
-  cursor: pointer;
+}
+
+.zelim-logo:hover {
+  opacity: 1;
 }
 
 /* =========================================
-   RESPONSIVE BEHAVIOUR
+   RESPONSIVE (≤900px)
 ========================================= */
 
 @media (max-width: 900px) {
@@ -229,17 +221,14 @@ h1.landing-title {
   }
 
   .landing-content {
-    flex: 1 1 auto;
     padding: 32px 24px 80px;
-  }
-
-  .landing-main {
-    flex: 1;
-    /* Keeps content centered vertically as per your requirement */
   }
 }
 
-/* tighter spacing on short viewports so content fits inside 100vh */
+/* =========================================
+   SHORT VIEWPORT HEIGHT
+========================================= */
+
 @media (max-height: 780px) {
   .landing-content {
     padding: 24px 40px 64px;
@@ -258,7 +247,7 @@ h1.landing-title {
   }
 
   h1.landing-title {
-    font-size: 26px; 
+    font-size: 26px;
     line-height: 32px;
   }
 }

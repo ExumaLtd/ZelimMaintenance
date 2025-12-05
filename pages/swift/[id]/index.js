@@ -1,11 +1,13 @@
-// pages/swift/[id]/index.js - FINAL HTML STRUCTURE FOR LOGO POSITIONING & CHY_LOGO
+// pages/swift/[id]/index.js
 
 import Head from "next/head";
 import Link from "next/link";
 import Airtable from "airtable";
-import Image from "next/image"; 
+import Image from "next/image";
 
-// --- Data Fetching ---
+// -----------------------------------------------------
+// FETCH UNIT DATA FROM AIRTABLE
+// -----------------------------------------------------
 export async function getServerSideProps(context) {
   const publicToken = context.params.id;
 
@@ -13,166 +15,176 @@ export async function getServerSideProps(context) {
     const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
       process.env.AIRTABLE_BASE_ID
     );
+
     const TABLE_NAME = process.env.AIRTABLE_SWIFT_TABLE;
 
     const records = await base(TABLE_NAME)
       .select({
         maxRecords: 1,
         filterByFormula: `{public_token} = "${publicToken}"`,
-        // Fetch required fields
-        fields: ["serial_number", "company", "annual_maintenance_due", "depth_maintenance_due"], 
+        fields: [
+          "serial_number",
+          "company",
+          "annual_maintenance_due",
+          "depth_maintenance_due",
+        ],
       })
       .firstPage();
 
     if (!records || records.length === 0) {
-      return { redirect: { destination: '/', permanent: false } };
+      return { redirect: { destination: "/", permanent: false } };
     }
 
     const record = records[0];
-    
+
     const unitDetails = {
       serial_number: record.get("serial_number") || "N/A",
       company: record.get("company") || "Client Unit",
-      annualDue: record.get("annual_maintenance_due") ? new Date(record.get("annual_maintenance_due")).toLocaleDateString('en-GB') : 'N/A',
-      depthDue: record.get("depth_maintenance_due") ? new Date(record.get("depth_maintenance_due")).toLocaleDateString('en-GB') : 'N/A',
+      annualDue: record.get("annual_maintenance_due")
+        ? new Date(record.get("annual_maintenance_due")).toLocaleDateString(
+            "en-GB"
+          )
+        : "N/A",
+      depthDue: record.get("depth_maintenance_due")
+        ? new Date(record.get("depth_maintenance_due")).toLocaleDateString(
+            "en-GB"
+          )
+        : "N/A",
     };
 
     return {
       props: { unit: unitDetails, publicToken },
     };
   } catch (error) {
-    console.error("Error fetching unit data for selection page:", error);
-    return { redirect: { destination: '/', permanent: false } };
+    console.error("Error fetching unit:", error);
+    return { redirect: { destination: "/", permanent: false } };
   }
 }
 
-
-// --- Component Definition ---
-
-// Function to map company name to a logo path (Checking for 'Company A' for the test unit)
+// -----------------------------------------------------
+// CLIENT LOGO SWITCHING
+// -----------------------------------------------------
 const getClientLogo = (companyName) => {
-    // Check for 'Changi' OR the test name 'Company A' pulled from Airtable
-    if (companyName && (companyName.includes('Changi') || companyName.includes('Company A'))) {
-        return {
-            src: '/client_logos/ChangiAirport_Logo(White).svg',
-            alt: `${companyName} Logo`,
-            width: 150,
-            height: 40
-        };
-    }
-    // Default fallback (Uses Zelim logo, but this should ideally never run if logic is correct)
+  if (companyName && (companyName.includes("Changi") || companyName.includes("Company A"))) {
     return {
-        src: '/logo/zelim-logo.svg', 
-        alt: 'Zelim Logo',
-        width: 100,
-        height: 30
+      src: "/client_logos/ChangiAirport_Logo(White).svg",
+      alt: `${companyName} Logo`,
+      width: 150,
+      height: 40,
     };
+  }
+
+  // Fallback
+  return {
+    src: "/logo/zelim-logo.svg",
+    alt: "Zelim Logo",
+    width: 120,
+    height: 30,
+  };
 };
 
-
+// -----------------------------------------------------
+// PAGE COMPONENT
+// -----------------------------------------------------
 export default function SwiftUnitSelectionPage({ unit, publicToken }) {
-  const serialNumber = unit.serial_number;
-  const companyName = unit.company;
-  const logoProps = getClientLogo(companyName);
+  const { serial_number, company, annualDue, depthDue } = unit;
+  const logoProps = getClientLogo(company);
 
   return (
     <>
       <Head>
-        <title>{companyName} SWIFT maintenance portal</title>
+        <title>{company} | Maintenance Portal</title>
       </Head>
 
-      <div className="swift-main-layout-wrapper"> {/* Wrapper for the whole page content */}
-        
+      <div className="swift-main-layout-wrapper">
         <div className="swift-dashboard-container">
 
-          {/* --- LEFT COLUMN / TOP SECTION (Unit Details) --- */}
+          {/* LEFT PANEL */}
           <div className="detail-panel">
-              <div className="logo-section">
-                  {/* Client logo goes at the top */}
-                  <Image
-                      src={logoProps.src}
-                      alt={logoProps.alt}
-                      width={logoProps.width}
-                      height={logoProps.height}
-                      className="client-logo"
-                      priority
-                  />
-              </div>
-              
-              <h1 className="portal-title">{companyName} SWIFT maintenance portal</h1>
-              
-              <div className="maintenance-details">
-                  <p className="detail-label">Serial number</p>
-                  <p className="detail-value">{serialNumber}</p>
+            <div className="logo-section">
+              <Image
+                src={logoProps.src}
+                alt={logoProps.alt}
+                width={logoProps.width}
+                height={logoProps.height}
+                className="client-logo"
+                priority
+              />
+            </div>
 
-                  <p className="detail-label">Annual maintenance due</p>
-                  <p className="detail-value due-date">{unit.annualDue}</p>
-                  
-                  <p className="detail-label">30-month depth maintenance due</p>
-                  <p className="detail-value due-date">{unit.depthDue}</p>
-              </div>
-              
-              {/* NOTE: Zelim logo has been REMOVED from here */}
-              
+            <h1 className="portal-title">{company} maintenance portal</h1>
+
+            <div className="maintenance-details">
+              <p className="detail-label">Serial number</p>
+              <p className="detail-value">{serial_number}</p>
+
+              <p className="detail-label">Annual maintenance due</p>
+              <p className="detail-value">{annualDue}</p>
+
+              <p className="detail-label">30-month depth maintenance due</p>
+              <p className="detail-value">{depthDue}</p>
+            </div>
           </div>
 
-          {/* --- RIGHT COLUMN / BOTTOM SECTION (Maintenance Links and Downloads) --- */}
+          {/* RIGHT PANEL */}
           <div className="action-panel">
-              
-              {/* ANNUAL MAINTENANCE CARD */}
-              <div className="maintenance-card">
-                  <h3>Annual maintenance</h3>
-                  <p className="description">To be completed in accordance with Section 7.1.2 – Annual Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.</p>
-                  <Link href={`/swift/${publicToken}/annual`} className="start-btn primary-btn">
-                      Start maintenance
-                  </Link>
-              </div>
-              
-              {/* DEPTH MAINTENANCE CARD */}
-              <div className="maintenance-card">
-                  <h3>30-month depth maintenance</h3>
-                  <p className="description">To be completed in accordance with Section 7.2.2 – 30-Month Depth Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.</p>
-                  <Link href={`/swift/${publicToken}/depth`} className="start-btn primary-btn">
-                      Start maintenance
-                  </Link>
-              </div>
 
-              {/* DOWNLOADS CARD */}
-              <div className="downloads-card">
-                  <h3>Downloads</h3>
-                  <p className="description">To be used in accordance with both annual and 30-month depth maintenance.</p>
-                  
-                  <div className="download-list">
-                      <a href="/swift-maintenance-manual.pdf" target="_blank" className="download-link">
-                          <Image src="/Icons/PDF_Icon.svg" alt="PDF Icon" width={24} height={24} />
-                          <div>
-                              <p>SWIFT Maintenance manual.pdf</p>
-                              <span>1.2 MB</span>
-                          </div>
-                      </a>
-                      <a href="/swift-installation-guide.pdf" target="_blank" className="download-link">
-                          <Image src="/Icons/PDF_Icon.svg" alt="PDF Icon" width={24} height={24} />
-                          <div>
-                              <p>SWIFT installation guide.pdf</p>
-                              <span>1.6 MB</span>
-                          </div>
-                      </a>
+            {/* Annual Maintenance */}
+            <div className="maintenance-card">
+              <h3>Annual maintenance</h3>
+              <p className="description">
+                To be completed in accordance with Section 7.1.2 – Annual Maintenance
+                Process of the SWIFT Survivor Recovery System Maintenance Manual.
+              </p>
+              <Link href={`/swift/${publicToken}/annual`} className="primary-btn">
+                Start maintenance
+              </Link>
+            </div>
+
+            {/* 30-Month Depth Maintenance */}
+            <div className="maintenance-card">
+              <h3>30-month depth maintenance</h3>
+              <p className="description">
+                To be completed in accordance with Section 7.2.2 – 30-Month Depth
+                Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.
+              </p>
+              <Link href={`/swift/${publicToken}/depth`} className="primary-btn">
+                Start maintenance
+              </Link>
+            </div>
+
+            {/* Downloads */}
+            <div className="downloads-card">
+              <h3>Downloads</h3>
+              <p className="description">
+                To be used in accordance with both annual and 30-month depth maintenance.
+              </p>
+
+              <div className="download-list">
+                <a href="/swift-maintenance-manual.pdf" target="_blank" className="download-link">
+                  <Image src="/Icons/PDF_Icon.svg" alt="PDF Icon" width={24} height={24} />
+                  <div>
+                    <p>SWIFT Maintenance manual.pdf</p>
+                    <span>1.2 MB</span>
                   </div>
+                </a>
+
+                <a href="/swift-installation-guide.pdf" target="_blank" className="download-link">
+                  <Image src="/Icons/PDF_Icon.svg" alt="PDF Icon" width={24} height={24} />
+                  <div>
+                    <p>SWIFT installation guide.pdf</p>
+                    <span>1.6 MB</span>
+                  </div>
+                </a>
               </div>
-              
+            </div>
           </div>
         </div>
 
-        {/* --- ZELIM LOGO (NOW OUTSIDE THE PANEL, FIXED TO VIEWPORT) --- */}
+        {/* FOOTER LOGO */}
         <div className="fixed-zelim-logo">
-            <Image 
-                src="/logo/zelim-logo.svg" 
-                alt="Zelim Logo" 
-                width={80} 
-                height={20} 
-            />
+          <Image src="/logo/zelim-logo.svg" alt="Zelim Logo" width={80} height={20} />
         </div>
-
       </div>
     </>
   );

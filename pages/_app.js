@@ -1,6 +1,8 @@
+// pages/_app.js
+
 import "../styles/globals.css";
-import "../styles/landing.css";
-import "../styles/swift.css";
+import "../styles/landing.css";      // Login portal styles
+import "../styles/maintenance.css"; // Client portal styles (replaces swift.css)
 import Head from "next/head";
 
 export default function MyApp({ Component, pageProps }) {

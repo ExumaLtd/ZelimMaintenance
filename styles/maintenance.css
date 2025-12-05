@@ -1,0 +1,230 @@
+/* =========================================
+   GLOBAL BODY & PAGE WRAPPER
+========================================= */
+
+html, body {
+    font-family: 'Montserrat', sans-serif;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+
+    background: radial-gradient(
+        85.89% 70.71% at 50% 50%,
+        #172F36 0%,
+        #2E444A 100%
+    );
+    color: #ffffff;
+    line-height: 1.6;
+}
+
+.swift-main-layout-wrapper {
+    position: relative;
+    min-height: 100vh;
+}
+
+/* =========================================
+   MAIN DASHBOARD LAYOUT
+========================================= */
+
+.swift-dashboard-container {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    max-width: 1200px;
+    margin: 40px auto;
+    gap: 30px;
+    padding: 0;
+    min-height: calc(100vh - 80px);
+    z-index: 10;
+}
+
+/* =========================================
+   LEFT COLUMN (DETAIL PANEL)
+========================================= */
+
+.detail-panel {
+    background-color: #1a2a32;
+    padding: 40px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    padding-bottom: 40px;
+}
+
+.logo-section {
+    margin-bottom: 25px;
+}
+
+.client-logo {
+    max-width: 150px;
+    height: auto;
+}
+
+.portal-title {
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: #ffffff;
+    margin-top: 0;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #37474f;
+}
+
+.maintenance-details {
+    padding-top: 20px;
+    flex-grow: 1;
+}
+
+.detail-label {
+    font-size: 0.9rem;
+    color: #78909c;
+    font-weight: 500;
+    margin-top: 20px;
+    margin-bottom: 2px;
+}
+
+.detail-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-top: 0;
+}
+
+/* =========================================
+   FIXED ZELIM FOOTER LOGO
+========================================= */
+
+.fixed-zelim-logo {
+    position: fixed;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+}
+
+.fixed-zelim-logo img {
+    height: 30px;
+    width: auto;
+}
+
+/* =========================================
+   RIGHT COLUMN (ACTION PANEL)
+========================================= */
+
+.action-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    padding-right: 20px;
+}
+
+.maintenance-card,
+.downloads-card {
+    background-color: #1a2a32;
+    padding: 30px;
+    border-radius: 12px;
+}
+
+.maintenance-card h3,
+.downloads-card h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 15px 0;
+}
+
+.description {
+    color: #bdc4c6;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    margin-bottom: 20px;
+}
+
+/* =========================================
+   BUTTON STYLE
+========================================= */
+
+.primary-btn {
+    padding: 12px 16px;
+    background: #00EADE;
+    border-radius: 8px;
+    border: 2px solid rgba(255,255,255,0.12);
+    color: #003235;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 150ms ease;
+}
+
+.primary-btn:hover {
+    background: #00d4c9;
+}
+
+/* =========================================
+   DOWNLOADS LIST
+========================================= */
+
+.download-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.download-link {
+    display: flex;
+    align-items: center;
+    background-color: #37474f;
+    padding: 15px;
+    border-radius: 8px;
+    transition: background-color 0.3s;
+}
+
+.download-link:hover {
+    background-color: #4a5d66;
+}
+
+.download-link img {
+    margin-right: 15px;
+}
+
+.download-link p {
+    margin: 0;
+    font-weight: 500;
+    color: #ffffff;
+}
+
+.download-link span {
+    font-size: 0.8rem;
+    color: #78909c;
+}
+
+/* =========================================
+   RESPONSIVE (<=900px)
+========================================= */
+
+@media (max-width: 900px) {
+    .swift-dashboard-container {
+        grid-template-columns: 1fr;
+        padding: 20px;
+        margin: 0;
+        min-height: auto;
+    }
+
+    .action-panel {
+        padding-right: 0;
+    }
+
+    .detail-panel {
+        border-radius: 12px 12px 0 0;
+        padding-bottom: 40px;
+    }
+
+    .fixed-zelim-logo {
+        position: static;
+        transform: none;
+        margin-top: 20px;
+        padding-bottom: 20px;
+        text-align: center;
+    }
+}
