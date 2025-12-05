@@ -81,10 +81,10 @@ html, body {
     flex-grow: 1; 
 }
 
-/* FIX: Transparency for detail fields */
+/* FIX: Ensure background is transparent using !important */
 .detail-label,
 .detail-value {
-    background: none; 
+    background: none !important; 
     padding: 0;
     margin-top: 20px;
     margin-bottom: 2px;
@@ -104,13 +104,19 @@ html, body {
 }
 
 
-/* --- ZELIM LOGO FIXED TO VIEWPORT (FINAL FIX) --- */
+/* --- ZELIM LOGO FIXED TO VIEWPORT (Height and Positioning) --- */
 .fixed-zelim-logo {
-    position: fixed; /* Anchored to viewport */
-    bottom: 60px; /* 60px from the bottom */
-    left: 50%; /* Center the element */
-    transform: translateX(-50%); /* Pull it back by half its width to truly center */
+    position: fixed; 
+    bottom: 60px; 
+    left: 50%; 
+    transform: translateX(-50%); 
     z-index: 100;
+}
+
+/* FIX: Zelim Logo Height */
+.fixed-zelim-logo img {
+    height: 30px; /* Set fixed height */
+    width: auto; /* Allow width to scale proportionally */
 }
 
 /* --- ACTION PANEL (RIGHT COLUMN) STYLES --- */
@@ -200,7 +206,6 @@ html, body {
         height: auto; 
     }
 
-    /* FIX: Mobile positioning for logo (static at the bottom) */
     .fixed-zelim-logo {
         position: static; 
         transform: none;
