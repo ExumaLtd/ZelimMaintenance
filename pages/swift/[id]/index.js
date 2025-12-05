@@ -1,4 +1,4 @@
-// pages/swift/[id]/index.js - FINAL AIRTABLE DATA VERSION
+// pages/swift/[id]/index.js - FINAL HYBRID LOGO VERSION (SHARP LOGOS & DYNAMIC)
 
 import Head from "next/head";
 import Link from "next/link";
@@ -19,8 +19,8 @@ export async function getServerSideProps(context) {
       .select({
         maxRecords: 1,
         filterByFormula: `{public_token} = "${publicToken}"`,
-        // Fetch required fields
-        fields: ["serial_number", "company", "annual_maintenance_due", "depth_maintenance_due"],
+        // Fetch required fields (Only company name is needed for logo determination)
+        fields: ["serial_number", "company", "annual_maintenance_due", "depth_maintenance_due"], 
       })
       .firstPage();
 
@@ -29,6 +29,7 @@ export async function getServerSideProps(context) {
     }
 
     const record = records[0];
+    
     const unitDetails = {
       serial_number: record.get("serial_number") || "N/A",
       company: record.get("company") || "Client Unit",
@@ -49,11 +50,11 @@ export async function getServerSideProps(context) {
 
 // --- Component Definition ---
 
-// Function to map company name to a logo path 
+// FUNCTION TO DYNAMICALLY DETERMINE LOGO PATH (Uses local, sharp SVG files)
 const getClientLogo = (companyName) => {
-    // Check for 'Changi' based on the design screenshot
+    // Check the company name fetched from Airtable
     if (companyName && companyName.includes('Changi')) {
-        // Path starts with / because it's in the public/client_logos folder
+        // Points to the sharp SVG in the public/client_logos folder
         return {
             src: '/client_logos/ChangiAirport_Logo(White).svg',
             alt: `${companyName} Logo`,
@@ -61,9 +62,9 @@ const getClientLogo = (companyName) => {
             height: 40
         };
     }
-    // Default fallback logo 
+    // Default fallback to the Zelim logo
     return {
-        src: '/logo/zelim-logo.svg', // Uses the path based on your file structure: public/logo/zelim-logo.svg
+        src: '/logo/zelim-logo.svg', // Points to the sharp SVG in the public/logo folder
         alt: 'Zelim Logo',
         width: 100,
         height: 30
@@ -74,6 +75,7 @@ const getClientLogo = (companyName) => {
 export default function SwiftUnitSelectionPage({ unit, publicToken }) {
   const serialNumber = unit.serial_number;
   const companyName = unit.company;
+  // USE the dynamic logo determination function
   const logoProps = getClientLogo(companyName);
 
   return (
@@ -87,6 +89,7 @@ export default function SwiftUnitSelectionPage({ unit, publicToken }) {
         {/* --- LEFT COLUMN / TOP SECTION (Unit Details) --- */}
         <div className="detail-panel">
             <div className="logo-section">
+                {/* Use the dynamically determined client logo */}
                 <Image
                     src={logoProps.src}
                     alt={logoProps.alt}
@@ -111,6 +114,7 @@ export default function SwiftUnitSelectionPage({ unit, publicToken }) {
             </div>
             
             <div className="zelim-footer">
+                {/* Zelim logo is hardcoded to be the fallback and the footer logo */}
                 <Image 
                     src="/logo/zelim-logo.svg" 
                     alt="Zelim Logo" 
@@ -164,8 +168,6 @@ export default function SwiftUnitSelectionPage({ unit, publicToken }) {
                 </div>
             </div>
             
-            {/* The Logout Footer has been permanently removed */}
-
         </div>
       </div>
     </>
