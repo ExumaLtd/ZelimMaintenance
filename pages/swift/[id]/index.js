@@ -1,49 +1,24 @@
-// pages/swift/[id]/index.js
+// pages/swift/[id]/index.js - SIMPLIFIED STATIC DATA VERSION
 
 import Head from "next/head";
 import Link from "next/link";
-import Airtable from "airtable";
 import Image from "next/image"; 
 
-// --- Data Fetching ---
+// --- Data Fetching (SIMPLIFIED - NO AIRTABLE CONNECTION) ---
 export async function getServerSideProps(context) {
-  const publicToken = context.params.id;
+    const publicToken = context.params.id;
 
-  try {
-    const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
-      process.env.AIRTABLE_BASE_ID
-    );
-    const TABLE_NAME = process.env.AIRTABLE_SWIFT_TABLE;
-
-    const records = await base(TABLE_NAME)
-      .select({
-        maxRecords: 1,
-        filterByFormula: `{public_token} = "${publicToken}"`,
-        // Fetch fields for company, serial number, and next due dates
-        fields: ["serial_number", "company", "annual_maintenance_due", "depth_maintenance_due"],
-      })
-      .firstPage();
-
-    if (!records || records.length === 0) {
-      return { redirect: { destination: '/', permanent: false } };
-    }
-
-    const record = records[0];
+    // Static data to test the new design without Airtable errors
     const unitDetails = {
-      serial_number: record.get("serial_number") || "N/A",
-      company: record.get("company") || "Client Unit",
-      // Format dates (Airtable returns ISO strings; this formats them to DD/MM/YYYY)
-      annualDue: record.get("annual_maintenance_due") ? new Date(record.get("annual_maintenance_due")).toLocaleDateString('en-GB') : 'N/A',
-      depthDue: record.get("depth_maintenance_due") ? new Date(record.get("depth_maintenance_due")).toLocaleDateString('en-GB') : 'N/A',
+        serial_number: "SWI001",
+        company: "Changi Airport",
+        annualDue: "05 / 12 / 2025", // Dummy Date 1
+        depthDue: "05 / 06 / 2027", // Dummy Date 2
     };
 
     return {
-      props: { unit: unitDetails, publicToken },
+        props: { unit: unitDetails, publicToken },
     };
-  } catch (error) {
-    console.error("Error fetching unit data for selection page:", error);
-    return { redirect: { destination: '/', permanent: false } };
-  }
 }
 
 
