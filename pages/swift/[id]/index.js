@@ -100,114 +100,119 @@ export default function SwiftUnitPage({ unit, publicToken }) {
       </Head>
 
       <div className="swift-main-layout-wrapper">
-        <div className="swift-dashboard-container">
-          {/* LEFT PANEL */}
-          <div className="detail-panel">
-            <div className="logo-section">
-              <Image
-                src={logoProps.src}
-                alt={logoProps.alt}
-                width={logoProps.width}
-                height={logoProps.height}
-                className="client-logo"
-                priority
-              />
+        
+        {/* === START NEW WRAPPER === */}
+        <div className="page-wrapper">
+          <div className="swift-dashboard-container">
+            {/* LEFT PANEL */}
+            <div className="detail-panel">
+              <div className="logo-section">
+                <Image
+                  src={logoProps.src}
+                  alt={logoProps.alt}
+                  width={logoProps.width}
+                  height={logoProps.height}
+                  className="client-logo"
+                  priority
+                />
+              </div>
+
+              <h1 className="portal-title">{companyName} maintenance portal</h1>
+
+              <div className="maintenance-details">
+                <p className="detail-label">Serial number</p>
+                <p className="detail-value">{serialNumber}</p>
+
+                <p className="detail-label">Annual maintenance due</p>
+                <p className="detail-value">{unit.annualDue}</p>
+
+                <p className="detail-label">30-month depth maintenance due</p>
+                <p className="detail-value">{unit.depthDue}</p>
+              </div>
             </div>
 
-            <h1 className="portal-title">{companyName} maintenance portal</h1>
-
-            <div className="maintenance-details">
-              <p className="detail-label">Serial number</p>
-              <p className="detail-value">{serialNumber}</p>
-
-              <p className="detail-label">Annual maintenance due</p>
-              <p className="detail-value">{unit.annualDue}</p>
-
-              <p className="detail-label">30-month depth maintenance due</p>
-              <p className="detail-value">{unit.depthDue}</p>
-            </div>
-          </div>
-
-          {/* RIGHT PANEL */}
-          <div className="action-panel">
-            {/* ANNUAL CARD */}
-            <div className="maintenance-card">
-              <h3>Annual maintenance</h3>
-              <p className="description">
-                To be completed in accordance with Section 7.1.2 – Annual
-                Maintenance Process of the SWIFT Survivor Recovery System
-                Maintenance Manual.
-              </p>
-              <Link
-                href={`/swift/${publicToken}/annual`}
-                className="start-btn primary-btn"
-              >
-                START MAINTENANCE
-              </Link>
-            </div>
-
-            {/* DEPTH CARD */}
-            <div className="maintenance-card">
-              <h3>30-month depth maintenance</h3>
-              <p className="description">
-                To be completed in accordance with Section 7.2.2 – 30-Month
-                Depth Maintenance Process of the SWIFT Survivor Recovery System
-                Maintenance Manual.
-              </p>
-              <Link
-                href={`/swift/${publicToken}/depth`}
-                className="start-btn primary-btn"
-              >
-                START MAINTENANCE
-              </Link>
-            </div>
-
-            {/* DOWNLOADS */}
-            <div className="downloads-card">
-              <h3>Downloads</h3>
-              <p className="description">
-                To be used in accordance with both annual and 30-month depth
-                maintenance.
-              </p>
-
-              <div className="download-list">
-                <a
-                  href="/swift-maintenance-manual.pdf"
-                  target="_blank"
-                  className="download-link"
+            {/* RIGHT PANEL */}
+            <div className="action-panel">
+              {/* ANNUAL CARD */}
+              <div className="maintenance-card">
+                <h3>Annual maintenance</h3>
+                <p className="description">
+                  To be completed in accordance with Section 7.1.2 – Annual
+                  Maintenance Process of the SWIFT Survivor Recovery System
+                  Maintenance Manual.
+                </p>
+                <Link
+                  href={`/swift/${publicToken}/annual`}
+                  className="start-btn primary-btn"
                 >
-                  <Image
-                    src="/Icons/PDF_Icon.svg"
-                    width={24}
-                    height={24}
-                    alt="PDF Icon"
-                  />
-                  <div>
-                    <p>SWIFT Maintenance manual.pdf</p>
-                    <span>1.2 MB</span>
-                  </div>
-                </a>
+                  START MAINTENANCE
+                </Link>
+              </div>
 
-                <a
-                  href="/swift-installation-guide.pdf"
-                  target="_blank"
-                  className="download-link"
+              {/* DEPTH CARD */}
+              <div className="maintenance-card">
+                <h3>30-month depth maintenance</h3>
+                <p className="description">
+                  To be completed in accordance with Section 7.2.2 – 30-Month
+                  Depth Maintenance Process of the SWIFT Survivor Recovery System
+                  Maintenance Manual.
+                </p>
+                <Link
+                  href={`/swift/${publicToken}/depth`}
+                  className="start-btn primary-btn"
                 >
-                  <Image
-                    src="/Icons/PDF_Icon.svg"
-                    width={24}
-                    height={24}
-                    alt="PDF Icon"
-                  />
-                  <div>
-                    <p>SWIFT installation guide.pdf</p>
-                    <span>1.6 MB</span>
-                  </div>
-                </a>
+                  START MAINTENANCE
+                </Link>
+              </div>
+
+              {/* DOWNLOADS */}
+              <div className="downloads-card">
+                <h3>Downloads</h3>
+                <p className="description">
+                  To be used in accordance with both annual and 30-month depth
+                  maintenance.
+                </p>
+
+                <div className="download-list">
+                  <a
+                    href="/swift-maintenance-manual.pdf"
+                    target="_blank"
+                    className="download-link"
+                  >
+                    <Image
+                      src="/Icons/PDF_Icon.svg"
+                      width={24}
+                      height={24}
+                      alt="PDF Icon"
+                    />
+                    <div>
+                      <p>SWIFT Maintenance manual.pdf</p>
+                      <span>1.2 MB</span>
+                    </div>
+                  </a>
+
+                  <a
+                    href="/swift-installation-guide.pdf"
+                    target="_blank"
+                    className="download-link"
+                  >
+                    <Image
+                      src="/Icons/PDF_Icon.svg"
+                      width={24}
+                      height={24}
+                      alt="PDF Icon"
+                    />
+                    <div>
+                      <p>SWIFT installation guide.pdf</p>
+                      <span>1.6 MB</span>
+                    </div>
+                  </a>
+                </div>
               </div>
             </div>
           </div>
         </div>
+        {/* === END NEW WRAPPER === */}
 
         {/* SPACER PREVENTS OVERLAP */}
         <div className="zelim-spacer"></div>
