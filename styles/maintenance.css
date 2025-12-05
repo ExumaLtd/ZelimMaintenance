@@ -1,61 +1,69 @@
-/* --- GLOBAL BODY STYLES (Includes Montserrat Font and Gradient) --- */
+/* =========================================================
+   GLOBAL PAGE STYLING
+   ========================================================= */
+
 html, body {
-    font-family: 'Montserrat', sans-serif; 
+    font-family: 'Montserrat', sans-serif;
     height: 100%;
     margin: 0;
     padding: 0;
 
+    /* Radial background from Figma */
     background: radial-gradient(
-        85.89% 70.71% at 50% 50%, 
-        #172F36 0%, 
+        85.89% 70.71% at 50% 50%,
+        #172F36 0%,
         #2E444A 100%
     );
-    color: #ffffff; 
+
+    color: #ffffff;
     line-height: 1.6;
 }
 
-/* WRAPPER — now includes bottom padding for logo spacing */
+/* MAIN WRAPPER */
 .swift-main-layout-wrapper {
-    position: relative;
     min-height: 100vh;
-    padding-bottom: 150px;  /* 60px logo offset + 90px safe clearance */
+    position: relative;
+    padding-bottom: 150px; /* Ensures content stays 90px above static logo */
 }
 
-/* --- DASHBOARD WRAPPER --- */
+/* =========================================================
+   GRID LAYOUT (LEFT PANEL + RIGHT PANEL)
+   ========================================================= */
+
 .swift-dashboard-container {
     display: grid;
-    grid-template-columns: 350px 1fr; 
+    grid-template-columns: 350px 1fr;
     max-width: 1200px;
     margin: 40px auto;
-    padding: 0;
     gap: 30px;
+    padding: 0;
     z-index: 10;
+    min-height: calc(100vh - 80px);
 }
 
-/* --- LEFT PANEL (NOW TRANSPARENT, NO CARD BACKGROUND) --- */
+/* =========================================================
+   LEFT PANEL — Transparent (matches Figma)
+   ========================================================= */
+
 .detail-panel {
-    padding: 40px;
-    border-radius: 0; /* removed panel feel */
+    background-color: transparent !important;
+    padding: 40px 40px 40px 0;
+    border-radius: 0 !important;
     display: flex;
     flex-direction: column;
-    position: relative;
-    height: auto;
-    padding-bottom: 40px;
-    background: none !important;   /* Fully transparent */
 }
 
-/* LOGO AT TOP LEFT */
 .logo-section {
     margin-bottom: 25px;
 }
 
 .portal-title {
-    font-size: 1.8rem;
-    font-weight: 600;
+    font-size: 1.5rem;
+    font-weight: 400;
     color: #ffffff;
     margin-top: 0;
     padding-bottom: 20px;
-    border-bottom: 1px solid rgba(255,255,255,0.15);
+    border-bottom: 1px solid #37474f;
 }
 
 .maintenance-details {
@@ -65,31 +73,22 @@ html, body {
 
 .detail-label {
     font-size: 0.9rem;
-    color: #A0ACAF;
-    margin-top: 20px;
+    font-weight: 500;
+    margin-bottom: 2px;
+    color: #78909c;
 }
 
 .detail-value {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 700;
+    margin-top: 0;
     color: #ffffff;
 }
 
-/* --- FIXED ZELIM LOGO (60px from bottom always) --- */
-.fixed-zelim-logo {
-    position: fixed;
-    bottom: 60px;                  /* FIXED distance from screen bottom */
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 100;
-}
+/* =========================================================
+   RIGHT PANEL — Cards
+   ========================================================= */
 
-.fixed-zelim-logo img {
-    height: 30px;
-    width: auto;
-}
-
-/* --- RIGHT SIDE PANELS (CARDS) --- */
 .action-panel {
     display: flex;
     flex-direction: column;
@@ -108,15 +107,38 @@ html, body {
 .downloads-card h3 {
     font-size: 1.5rem;
     font-weight: 700;
+    margin-top: 0;
     margin-bottom: 15px;
 }
 
-.maintenance-card .description,
-.downloads-card .description {
-    color: #bdc4c6;
+.description {
     font-size: 0.95rem;
-    line-height: 1.4;
+    color: #bdc4c6;
+    margin-bottom: 20px;
+    line-height: 1.5;
 }
+
+/* Buttons */
+.primary-btn {
+    padding: 15px 30px;
+    border: none;
+    border-radius: 8px;
+    background-color: #00f7ea;
+    color: #003336;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background-color 0.25s ease;
+}
+
+.primary-btn:hover {
+    background-color: #00e0d4;
+}
+
+/* =========================================================
+   DOWNLOAD LIST
+   ========================================================= */
 
 .download-list {
     display: flex;
@@ -127,10 +149,10 @@ html, body {
 .download-link {
     display: flex;
     align-items: center;
-    background-color: #37474f; 
+    background-color: #37474f;
     padding: 15px;
     border-radius: 8px;
-    transition: background-color 0.3s;
+    transition: background 0.25s ease;
 }
 
 .download-link:hover {
@@ -144,6 +166,7 @@ html, body {
 .download-link p {
     margin: 0;
     font-weight: 500;
+    color: #ffffff;
 }
 
 .download-link span {
@@ -151,23 +174,58 @@ html, body {
     color: #78909c;
 }
 
-/* --- MOBILE RESPONSIVE --- */
+/* =========================================================
+   ZELIM LOGO — SAFE / RESPONSIVE BEHAVIOUR
+   ========================================================= */
+
+/* Default — static (never overlaps content) */
+.fixed-zelim-logo {
+    position: static;
+    margin-top: 90px; /* Guaranteed spacing from content */
+    text-align: center;
+}
+
+.fixed-zelim-logo img {
+    height: 30px;
+    width: auto;
+}
+
+/* Fixed to bottom ONLY when viewport height is large */
+@media (min-height: 900px) {
+    .fixed-zelim-logo {
+        position: fixed;
+        bottom: 60px;     /* 60px from viewport bottom */
+        left: 50%;
+        transform: translateX(-50%);
+        margin-top: 0;
+        z-index: 100;
+    }
+}
+
+/* =========================================================
+   MOBILE LAYOUT
+   ========================================================= */
+
 @media (max-width: 900px) {
     .swift-dashboard-container {
         grid-template-columns: 1fr;
-        margin: 0;
         padding: 20px;
+        margin: 0;
+    }
+
+    .action-panel {
+        padding-right: 0;
     }
 
     .detail-panel {
-        padding-bottom: 20px;
-        background: none !important;
+        padding: 20px 0;
     }
 
+    /* Logo static on mobile */
     .fixed-zelim-logo {
-        position: static;  /* becomes inline on mobile */
-        transform: none;
+        position: static;
         margin-top: 40px;
-        text-align: center;
+        margin-bottom: 20px;
+        transform: none;
     }
 }
