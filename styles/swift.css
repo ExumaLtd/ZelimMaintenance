@@ -1,42 +1,20 @@
 /* --- GLOBAL BODY STYLES (New Gradient Background) --- */
 html, body {
-    height: 100%;
+    /* Set height to 100% of viewport to provide a reference for grid children */
+    height: 100%; 
     margin: 0;
     padding: 0;
-    /* Apply the dark radial gradient */
     background: radial-gradient(
         85.89% 70.71% at 50% 50%, 
         #172F36 0%, 
         #2E444A 100% 
     );
-    color: #ffffff; /* Default text color */
+    color: #ffffff; 
     font-family: Arial, sans-serif;
     line-height: 1.6;
 }
 
-/* --- UTILITY & COMPONENT STYLES --- */
-.zelim-logo {
-    max-width: 120px;
-    height: auto;
-    opacity: 0.8;
-}
-.zelim-logo:hover {
-    opacity: 1;
-}
-
-.primary-btn {
-    padding: 15px 30px;
-    border: none;
-    border-radius: 8px;
-    background-color: #2196f3; 
-    color: white;
-    font-size: 1.1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.3s, opacity 0.3s;
-    text-transform: uppercase;
-}
-
+/* --- MAIN DASHBOARD CONTAINER --- */
 .swift-dashboard-container {
     display: grid;
     grid-template-columns: 350px 1fr; 
@@ -44,6 +22,8 @@ html, body {
     margin: 40px auto;
     padding: 0;
     gap: 30px;
+    /* FIX: Make the grid fill the height of the body/viewport */
+    min-height: calc(100vh - 80px); /* 100vh minus top/bottom margin */
 }
 
 /* --- DETAIL PANEL (LEFT COLUMN) STYLES --- */
@@ -54,11 +34,11 @@ html, body {
     display: flex;
     flex-direction: column;
     
-    /* FIX: Crucial for fixing the Zelim logo at the bottom */
+    /* FIX: Absolute positioning reference for the logo */
     position: relative; 
-    /* FIX: Ensures panel takes full height for absolute bottom positioning */
-    height: 100%; 
-    padding-bottom: 100px; /* Make space for the fixed logo */
+    /* FIX: Force panel to take the height of the dashboard container */
+    height: auto; 
+    padding-bottom: 100px; /* Space for the logo */
 }
 
 .logo-section {
@@ -76,8 +56,7 @@ html, body {
 
 .maintenance-details {
     padding-top: 20px;
-    flex-grow: 1; 
-    /* Ensure background is transparent */
+    flex-grow: 1; /* Pushes content away from the logo */
     background: none; 
 }
 
@@ -86,8 +65,7 @@ html, body {
     color: #78909c;
     margin-bottom: 2px;
     margin-top: 20px;
-    /* FIX: Ensure background is transparent */
-    background: none; 
+    background: none; /* FIX: Ensure background is transparent */
 }
 
 .detail-value {
@@ -95,16 +73,14 @@ html, body {
     font-weight: 700;
     color: #ffffff;
     margin-top: 0;
-    /* FIX: Ensure background is transparent */
-    background: none;
+    background: none; /* FIX: Ensure background is transparent */
 }
 
-/* --- FIXED ZELIM LOGO POSITIONING --- */
+/* --- FIXED ZELIM LOGO POSITIONING (Final Fix) --- */
 .fixed-footer-logo {
-    /* FIX: Correct absolute positioning */
     position: absolute;
     bottom: 60px; /* 60px from the bottom edge of the detail panel */
-    left: 40px; /* Align with the left padding of the panel */
+    left: 40px; /* Align with the left padding */
 }
 
 /* --- ACTION PANEL (RIGHT COLUMN) STYLES --- */
@@ -144,7 +120,7 @@ html, body {
     padding: 12px 25px;
     border-radius: 6px;
     background-color: #00bcd4; 
-    color: #0b1a1f !important; 
+    color: #0b1a1f; 
     font-weight: bold;
     text-transform: uppercase;
     text-align: center;
@@ -199,6 +175,7 @@ html, body {
         grid-template-columns: 1fr; 
         margin: 0;
         padding: 20px;
+        min-height: auto;
     }
     
     .action-panel {
@@ -211,7 +188,6 @@ html, body {
         height: auto; 
     }
 
-    /* Reposition the fixed logo for mobile */
     .fixed-footer-logo {
         position: static; 
         margin-top: 20px;
