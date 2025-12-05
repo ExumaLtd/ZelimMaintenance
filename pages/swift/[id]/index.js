@@ -1,10 +1,11 @@
-// pages/swift/[id]/index.js - WELCOME & SELECTION PAGE
+// pages/swift/[id]/index.js - NEW DASHBOARD PAGE (Data & Structure)
 
 import Head from "next/head";
 import Link from "next/link";
 import Airtable from "airtable";
+import Image from "next/image"; // For Logos and Icons
 
-// --- Data Fetching (Required for Dynamic Title) ---
+// --- Data Fetching ---
 export async function getServerSideProps(context) {
   const publicToken = context.params.id;
 
@@ -13,32 +14,31 @@ export async function getServerSideProps(context) {
       process.env.AIRTABLE_BASE_ID
     );
     const TABLE_NAME = process.env.AIRTABLE_SWIFT_TABLE;
-    
-    // Fetch data based on the publicToken
+
     const records = await base(TABLE_NAME)
       .select({
         maxRecords: 1,
-        filterByFormula: `{public_token} = "${publicToken}"`, 
-        // Fetch company name for the title
-        fields: ["public_token", "company", "serial_number", "annual_form_id", "depth_form_id"], 
+        filterByFormula: `{public_token} = "${publicToken}"`,
+        // 🚨 Fetching all required fields, including the new formula fields:
+        fields: ["serial_number", "company", "annual_maintenance_due", "depth_maintenance_due"],
       })
       .firstPage();
 
     if (!records || records.length === 0) {
       return { redirect: { destination: '/', permanent: false } };
     }
-    
+
     const record = records[0];
     const unitDetails = {
-      public_token: record.get("public_token"),
-      company: record.get("company") || "N/A", 
       serial_number: record.get("serial_number") || "N/A",
-      annual_form_id: record.get("annual_form_id"),
-      depth_form_id: record.get("depth_form_id"),
+      company: record.get("company") || "Client Unit",
+      // Format dates (Airtable returns ISO strings; this formats them to DD/MM/YYYY)
+      annualDue: record.get("annual_maintenance_due") ? new Date(record.get("annual_maintenance_due")).toLocaleDateString('en-GB') : 'N/A',
+      depthDue: record.get("depth_maintenance_due") ? new Date(record.get("depth_maintenance_due")).toLocaleDateString('en-GB') : 'N/A',
     };
 
     return {
-      props: { unit: unitDetails },
+      props: { unit: unitDetails, publicToken },
     };
   } catch (error) {
     console.error("Error fetching unit data for selection page:", error);
@@ -49,62 +49,127 @@ export async function getServerSideProps(context) {
 
 // --- Component Definition ---
 
-export default function UnitSelectionPage({ unit }) {
-  // If unit data is missing (should be caught by getServerSideProps, but for safety)
-  if (!unit || !unit.public_token) {
-    return (
-      <div className="loading-state">
-        <p>Redirecting...</p>
-      </div>
-    );
-  }
+// Function to map company name to a logo path (using the Changi logo you uploaded)
+const getClientLogo = (companyName) => {
+    // Check for 'Changi' based on the design screenshot
+    if (companyName && companyName.includes('Changi')) {
+        return {
+            src: '/client_logos/ChangiAirport_Logo(White).svg',
+            alt: `${companyName} Logo`,
+            width: 150,
+            height: 40
+        };
+    }
+    // Default fallback logo 
+    return {
+        src: '/zelim-logo.svg',
+        alt: 'Zelim Logo',
+        width: 100,
+        height: 30
+    };
+};
+
+
+export default function SwiftUnitSelectionPage({ unit, publicToken }) {
+  const serialNumber = unit.serial_number;
+  const companyName = unit.company;
+  const logoProps = getClientLogo(companyName);
 
   return (
     <>
       <Head>
-        {/* DYNAMIC BROWSER TAB TITLE: SWIFT | Company Name Maintenance Portal */}
-        <title>SWIFT | {unit.company} Maintenance Portal</title>
+        <title>{companyName} SWIFT maintenance portal</title>
       </Head>
 
-      <div className="swift-unit-container">
-        
-        {/* HEADER / WELCOME MESSAGE */}
-        <header className="unit-header">
-          <h1 className="unit-title">Welcome to the Portal</h1>
-          <p className="unit-subtitle">Unit ID: {unit.public_token.toUpperCase()}</p> 
-          <p className="unit-instruction">Please select the type of maintenance you will be completing today.</p>
-        </header>
+      <div className="swift-dashboard-container">
 
-        {/* NAVIGATION / CHECKLISTS */}
-        <main className="checklist-navigation">
-          
-          <div className="checklist-link-stack">
+        {/* --- LEFT COLUMN / TOP SECTION (Unit Details) --- */}
+        <div className="detail-panel">
+            <div className="logo-section">
+                <Image
+                    src={logoProps.src}
+                    alt={logoProps.alt}
+                    width={logoProps.width}
+                    height={logoProps.height}
+                    className="client-logo"
+                    priority
+                />
+            </div>
             
-            {/* LINK 1: ANNUAL MAINTENANCE */}
-            <Link href={`/swift/${unit.public_token}/annual`} className="nav-card primary-card">
-              <div className="card-content">
-                <h3>Annual Maintenance</h3>
-                <p>Full system inspection and recertification.</p>
-              </div>
-            </Link>
+            <h1 className="portal-title">{companyName} SWIFT maintenance portal</h1>
+            
+            <div className="maintenance-details">
+                <p className="detail-label">Serial number</p>
+                <p className="detail-value">{serialNumber}</p>
 
-            {/* LINK 2: DEPTH MAINTENANCE */}
-            <Link href={`/swift/${unit.public_token}/depth`} className="nav-card secondary-card">
-              <div className="card-content">
-                <h3>Depth Maintenance</h3>
-                <p>In-depth component servicing and calibration.</p>
-              </div>
-            </Link>
+                <p className="detail-label">Annual maintenance due</p>
+                <p className="detail-value due-date">{unit.annualDue}</p>
+                
+                <p className="detail-label">30-month depth maintenance due</p>
+                <p className="detail-value due-date">{unit.depthDue}</p>
+            </div>
+            
+            <div className="zelim-footer">
+                <Image 
+                    src="/zelim-logo.svg" 
+                    alt="Zelim Logo" 
+                    width={80} 
+                    height={20} 
+                />
+            </div>
+        </div>
 
-          </div>
-        </main>
+        {/* --- RIGHT COLUMN / BOTTOM SECTION (Maintenance Links and Downloads) --- */}
+        <div className="action-panel">
+            
+            {/* ANNUAL MAINTENANCE CARD */}
+            <div className="maintenance-card">
+                <h3>Annual maintenance</h3>
+                <p className="description">To be completed in accordance with Section 7.1.2 – Annual Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.</p>
+                <Link href={`/swift/${publicToken}/annual`} className="start-btn primary-btn">
+                    Start maintenance
+                </Link>
+            </div>
+            
+            {/* DEPTH MAINTENANCE CARD */}
+            <div className="maintenance-card">
+                <h3>30-month depth maintenance</h3>
+                <p className="description">To be completed in accordance with Section 7.2.2 – 30-Month Depth Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.</p>
+                <Link href={`/swift/${publicToken}/depth`} className="start-btn primary-btn">
+                    Start maintenance
+                </Link>
+            </div>
 
-        {/* LOGOUT / BACK LINK */}
-        <footer className="unit-footer">
-          <Link href="/" className="logout-link">
-            Log Out / Change Unit
-          </Link>
-        </footer>
+            {/* DOWNLOADS CARD */}
+            <div className="downloads-card">
+                <h3>Downloads</h3>
+                <p className="description">To be used in accordance with both annual and 30-month depth maintenance.</p>
+                
+                <div className="download-list">
+                    <a href="/swift-maintenance-manual.pdf" target="_blank" className="download-link">
+                        <Image src="/Icons/PDF_Icon.svg" alt="PDF Icon" width={24} height={24} />
+                        <div>
+                            <p>SWIFT Maintenance manual.pdf</p>
+                            <span>1.2 MB</span>
+                        </div>
+                    </a>
+                    <a href="/swift-installation-guide.pdf" target="_blank" className="download-link">
+                        <Image src="/Icons/PDF_Icon.svg" alt="PDF Icon" width={24} height={24} />
+                        <div>
+                            <p>SWIFT installation guide.pdf</p>
+                            <span>1.6 MB</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <footer className="logout-footer">
+                <Link href="/" className="logout-link">
+                    Log Out / Change Unit &larr;
+                </Link>
+            </footer>
+
+        </div>
       </div>
     </>
   );

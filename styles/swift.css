@@ -1,211 +1,186 @@
-/* swift.css */
-
-/* ------------------------------------- */
-/* --- LANDING PAGE (pages/index.js) --- */
-/* ------------------------------------- */
-
-.landing-root {
-  display: flex;
-  min-height: 100vh;
+.zelim-logo {
+    max-width: 120px;
+    height: auto;
+    opacity: 0.8;
+}
+.zelim-logo:hover {
+    opacity: 1;
 }
 
-/* LEFT HERO PANEL (Large Image) */
-.landing-hero {
-  flex: 2;
-  position: relative;
-  background-color: #1a2930;
-  overflow: hidden;
-  display: none; /* Hidden on small screens */
+.primary-btn {
+    padding: 15px 30px;
+    border: none;
+    border-radius: 8px;
+    background-color: #2196f3; 
+    color: white;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, opacity 0.3s;
+    text-transform: uppercase;
 }
 
-.landing-hero-inner {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+.swift-dashboard-container {
+    display: grid;
+    grid-template-columns: 350px 1fr; 
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0;
+    gap: 30px;
 }
 
-.landing-hero-inner img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    opacity: 0.7;
+.detail-panel {
+    background-color: #1a2a32; 
+    padding: 40px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
 }
 
-/* RIGHT CONTENT PANEL (Login Form) */
-.landing-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 40px;
-  background-color: #0b1a1f;
-  min-width: 350px;
+.logo-section {
+    margin-bottom: 25px;
 }
 
-.landing-main {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  max-width: 400px;
-  width: 100%;
-  margin: 0 auto;
+.portal-title {
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: #ffffff;
+    margin-top: 0;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #37474f; 
 }
 
-.landing-header {
-  text-align: center;
-  margin-bottom: 40px;
+.maintenance-details {
+    padding-top: 20px;
+    flex-grow: 1; 
 }
 
-.landing-title {
-  font-size: 2rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: #ffffff;
-  margin-bottom: 5px;
-}
-
-.landing-title span:first-child {
-  color: #2196f3; /* Blue SWIFT text */
-}
-
-.landing-subtitle {
-  color: #78909c;
-  font-size: 1rem;
-}
-
-.landing-footer {
-  text-align: center;
-  padding-top: 20px;
-}
-
-/* Responsive adjustments for Landing Page */
-@media (min-width: 900px) {
-  .landing-hero {
-    display: block;
-  }
-  .landing-content {
-    flex: 1;
-  }
-}
-
-/* ------------------------------------------- */
-/* --- UNIT SELECTION & CHECKLIST PAGES --- */
-/* ------------------------------------------- */
-
-.swift-unit-container,
-.swift-checklist-container {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 40px 20px;
-}
-
-/* --- HEADER STYLES --- */
-.unit-header,
-.checklist-header {
-  text-align: center;
-  margin-bottom: 40px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #172a32;
-}
-
-.unit-title {
-  color: #ffffff;
-  font-size: 2.2rem;
-  margin: 0 0 5px 0;
-}
-
-.unit-subtitle, .checklist-type {
-  color: #78909c;
-  font-size: 1.1rem;
-  margin: 0 0 15px 0;
-}
-
-.checklist-info {
-    color: #4a6572;
+.detail-label {
     font-size: 0.9rem;
+    color: #78909c;
+    margin-bottom: 2px;
+    margin-top: 20px;
+}
+
+.detail-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-top: 0;
+}
+
+.action-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    padding-right: 20px;
+}
+
+.maintenance-card,
+.downloads-card {
+    background-color: #1a2a32;
+    padding: 30px;
+    border-radius: 12px;
+}
+
+.maintenance-card h3,
+.downloads-card h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.maintenance-card .description,
+.downloads-card .description {
+    color: #bdc4c6;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    margin-bottom: 20px;
+}
+
+.start-btn {
+    display: inline-block;
+    padding: 12px 25px;
+    border-radius: 6px;
+    background-color: #00bcd4; 
+    color: #0b1a1f !important; 
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.start-btn:hover {
+    background-color: #00acc1;
+}
+
+.download-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.download-link {
+    display: flex;
+    align-items: center;
+    background-color: #37474f; 
+    padding: 15px;
+    border-radius: 8px;
+    transition: background-color 0.3s;
+}
+
+.download-link:hover {
+    background-color: #4a5d66;
+}
+
+.download-link img {
+    margin-right: 15px;
+}
+
+.download-link p {
     margin: 0;
+    font-weight: 500;
+    color: #ffffff;
 }
 
-/* --- SELECTION NAVIGATION --- */
-.checklist-navigation {
-  margin-bottom: 40px;
+.download-link span {
+    font-size: 0.8rem;
+    color: #78909c;
 }
 
-.checklist-link-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+.zelim-footer {
+    padding-top: 40px;
 }
 
-.nav-card {
-  display: block;
-  padding: 30px;
-  border-radius: 12px;
-  text-align: center;
-  transition: transform 0.3s, box-shadow 0.3s;
-  cursor: pointer;
+.logout-footer {
+    text-align: right;
+    padding-top: 20px;
 }
 
-.nav-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+.logout-link {
+    color: #78909c;
+    transition: color 0.2s;
+    font-size: 0.9rem;
 }
 
-.nav-card h3 {
-  margin-top: 0;
-  font-size: 1.5rem;
-  color: #ffffff;
+.logout-link:hover {
+    color: #ffffff;
 }
 
-.nav-card p {
-  margin-bottom: 0;
-  color: #bdc4c6;
-}
+@media (max-width: 900px) {
+    .swift-dashboard-container {
+        grid-template-columns: 1fr; 
+        margin: 0;
+        padding: 20px;
+    }
+    
+    .action-panel {
+        padding-right: 0;
+    }
 
-.primary-card {
-  background-color: #2196f3; /* Main Blue */
-}
-
-.primary-card:hover {
-  background-color: #0d83e3;
-}
-
-.secondary-card {
-  background-color: #37474f; /* Dark Gray */
-}
-
-.secondary-card:hover {
-  background-color: #4a5d66;
-}
-
-/* --- FORM EMBED AREA --- */
-.form-embed-area {
-  min-height: 80vh; /* Ensure the iframe has vertical space */
-  border: 1px solid #172a32;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-/* --- FOOTER/BACK LINK --- */
-.unit-footer,
-.checklist-footer {
-  text-align: center;
-  padding-top: 30px;
-}
-
-.logout-link,
-.back-link {
-  color: #78909c;
-  font-size: 0.95rem;
-  transition: color 0.2s;
-}
-
-.logout-link:hover,
-.back-link:hover {
-  color: #ffffff;
+    .detail-panel {
+        border-radius: 12px 12px 0 0; 
+    }
 }
