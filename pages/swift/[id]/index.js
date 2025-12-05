@@ -141,37 +141,43 @@ export default function SwiftUnitPage({ unit, publicToken }) {
 
             {/* RIGHT PANEL */}
             <div className="action-panel">
-              {/* ANNUAL CARD */}
-              <div className="maintenance-card">
-                <h3>Annual maintenance</h3>
-                <p className="description">
-                  To be completed in accordance with Section 7.1.2 – Annual
-                  Maintenance Process of the SWIFT Survivor Recovery System
-                  Maintenance Manual.
-                </p>
-                <Link
-                  href={`/swift/${publicToken}/annual`}
-                  className="start-btn primary-btn"
-                >
-                  START MAINTENANCE
-                </Link>
-              </div>
+              
+              {/* === MAINTENANCE CARD GROUP === */}
+              <div className="maintenance-card-group"> 
+                {/* ANNUAL CARD */}
+                <div className="maintenance-card">
+                  <h3>Annual maintenance</h3>
+                  <p className="description">
+                    To be completed in accordance with Section 7.1.2 – Annual
+                    Maintenance Process of the SWIFT Survivor Recovery System
+                    Maintenance Manual.
+                  </p>
+                  <Link
+                    href={`/swift/${publicToken}/annual`}
+                    className="start-btn primary-btn"
+                  >
+                    START MAINTENANCE
+                  </Link>
+                </div>
 
-              {/* DEPTH CARD */}
-              <div className="maintenance-card">
-                <h3>30-month depth maintenance</h3>
-                <p className="description">
-                  To be completed in accordance with Section 7.2.2 – 30-Month
-                  Depth Maintenance Process of the SWIFT Survivor Recovery System
-                  Maintenance Manual.
-                </p>
-                <Link
-                  href={`/swift/${publicToken}/depth`}
-                  className="start-btn primary-btn"
-                >
-                  START MAINTENANCE
-                </Link>
-              </div>
+                {/* DEPTH CARD */}
+                <div className="maintenance-card">
+                  <h3>30-month depth maintenance</h3>
+                  <p className="description">
+                    To be completed in accordance with Section 7.2.2 – 30-Month
+                    Depth Maintenance Process of the SWIFT Survivor Recovery System
+                    Maintenance Manual.
+                  </p>
+                  <Link
+                    href={`/swift/${publicToken}/depth`}
+                    className="start-btn primary-btn"
+                  >
+                    START MAINTENANCE
+                  </Link>
+                </div>
+              </div> 
+              {/* === END MAINTENANCE CARD GROUP === */}
+
 
               {/* DOWNLOADS */}
               <div className="downloads-card">
