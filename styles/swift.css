@@ -79,6 +79,8 @@ html, body {
 .maintenance-details {
     padding-top: 20px;
     flex-grow: 1; 
+    /* FINAL FIX: Ensure the entire details container has no background */
+    background-color: transparent !important; 
 }
 
 /* FIX: Ensure background is transparent using !important */
@@ -115,8 +117,8 @@ html, body {
 
 /* FIX: Zelim Logo Height */
 .fixed-zelim-logo img {
-    height: 30px; /* Set fixed height */
-    width: auto; /* Allow width to scale proportionally */
+    height: 30px; 
+    width: auto; 
 }
 
 /* --- ACTION PANEL (RIGHT COLUMN) STYLES --- */
