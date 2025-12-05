@@ -24,8 +24,8 @@ html, body {
 
 /* New wrapper to handle max-width and desktop margins */
 .page-wrapper {
-    max-width: 1280px; /* New Max Width: 1280px */
-    width: calc(100% - 160px); /* 100% minus 80px left/right margin */
+    max-width: 1280px; 
+    width: calc(100% - 160px); 
     margin: 0 auto;
 }
 
@@ -33,12 +33,9 @@ html, body {
    MAIN GRID LAYOUT (12 COLUMNS, 20px Gutter)
 =============================== */
 .swift-dashboard-container {
-    /* 12 equal columns */
     display: grid;
     grid-template-columns: repeat(12, 1fr);
-    /* 20px gutter between columns */
     gap: 20px; 
-    
     width: 100%;
     margin-top: 40px; 
     margin-bottom: 40px;
@@ -48,7 +45,7 @@ html, body {
    LEFT PANEL (Detail Panel) - Spans 4 columns
 =============================== */
 .detail-panel {
-    grid-column: span 4; /* Spans 4 columns */
+    grid-column: span 4; 
     background: transparent;
     padding: 0;
 }
@@ -69,16 +66,14 @@ html, body {
 /* --- DETAIL ITEMS (Serial Number, Dates, etc.) --- */
 
 .maintenance-details {
-    /* Set up the container to stack the detail items */
     display: flex;
     flex-direction: column;
-    gap: 30px; /* Separates each .detail-item */
+    gap: 30px; 
     margin-top: 20px;
 }
 
 /* New wrapper for each label/value pair (Serial Number, Due Date) */
 .detail-item {
-    /* Styles for the wrapper container */
     display: flex;
     padding-bottom: 12px;
     flex-direction: column;
@@ -112,7 +107,7 @@ html, body {
    ACTION PANEL (Right Panel) - Spans 8 columns
 =============================== */
 .action-panel {
-    grid-column: span 8; /* Spans 8 columns */
+    grid-column: span 8; 
     display: flex;
     flex-direction: column;
     gap: 30px;
@@ -121,28 +116,21 @@ html, body {
 /* New class to arrange the two main maintenance cards horizontally */
 .maintenance-card-group {
     display: flex;
-    gap: 30px; /* Gap between the two cards */
+    gap: 30px; 
 }
 
 .maintenance-card {
-    /* Make each card take up equal space */
     flex: 1; 
-    /* Updated styles for visual definition */
     border: 1px solid rgba(255, 255, 255, 0.1); 
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
-    
-    /* Original styles: */
     background: rgba(255,255,255,0.03);
     padding: 30px;
     border-radius: 12px;
 }
 
 .downloads-card {
-    /* Added border and shadow for consistent look */
     border: 1px solid rgba(255, 255, 255, 0.1); 
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
-    
-    /* Original styles: */
     background: rgba(255,255,255,0.03);
     padding: 30px;
     border-radius: 12px;
@@ -150,121 +138,109 @@ html, body {
 
 .maintenance-card h3,
 .downloads-card h3 {
-    color: #F7F7F7; /* Use near-white for headings */
+    color: #F7F7F7; 
     font-size: 22px;
-    font-weight: 600; /* Bolder look */
+    font-weight: 600;
     line-height: 28px;
     margin-bottom: 10px;
 }
 
 .description {
-    color: #A0ACAF; /* Use the lighter gray for description text */
-    font-size: 14px; /* Slightly smaller for density */
+    color: #A0ACAF; 
+    font-size: 14px; 
     line-height: 20px;
-    margin-bottom: 24px; /* Increased margin for better separation from button */
+    margin-bottom: 24px;
 }
 
 /* ===============================
-   START BUTTON STYLES (Specific to this page only)
+   START BUTTON STYLES (FIXED)
 =============================== */
 
-/* Base styling for the link/button element */
+/* Base button properties that may be inherited from globals.css */
+.primary-btn {
+    /* Ensure the global button base is clean if it exists */
+    display: inline-flex; 
+    text-decoration: none;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+/* --- Specific button styling for THIS PAGE --- */
 .start-btn {
-    /* Set the button to be full width within the card and behave as flex container */
+    /* Layout: full width, padding, gap, centering */
     display: inline-flex; 
     width: 100%;
-    
-    /* Layout: padding and alignment */
     padding: 12px 16px;
     align-items: center;
-    justify-content: center; /* Center text globally */
+    justify-content: center; 
     gap: 6px; 
 
-    /* Appearance: background, border, radius */
-    border: 2px solid rgba(255, 255, 255, 0.12); /* 12% white opacity border */
+    /* Appearance: colors, border, radius */
+    border: 2px solid rgba(255, 255, 255, 0.12); 
     border-radius: 8px; 
     background: #00EADE; /* Bright Cyan background */ 
 
-    /* Typography: color, font-size, font-weight, line-height */
+    /* Typography */
     color: #0D3037; /* Dark text color */
-    text-align: center;
     font-size: 14px;
     font-weight: 600;
     line-height: 20px; 
-    text-decoration: none; /* Remove underline on the link */
-    
-    transition: background-color 0.2s, border-color 0.2s;
+    text-align: center;
 }
 
 /* Hover effect */
 .start-btn:hover {
     background-color: #00D3C9; /* Slightly darker background on hover */
-    border-color: rgba(255, 255, 255, 0.2); /* Slightly more opaque border on hover */
+    border-color: rgba(255, 255, 255, 0.2); 
     cursor: pointer;
 }
 
-/* Fallback if .primary-btn is also present, ensuring the specific styles win */
-.primary-btn {
-    /* Clear out any unwanted inherited styles if global is present */
-    padding: 0;
-    margin: 0; 
-    background-color: transparent;
-    border: none;
-    /* Redefine critical properties from .start-btn */
-    background: #00EADE; 
-    color: #0D3037;
-}
 
 /* ===============================
-   DOWNLOAD LINKS
+   DOWNLOAD LINKS (FIXED)
 =============================== */
 .download-list {
-    display: flex; /* Makes links side-by-side */
+    display: flex; 
     flex-direction: row; 
-    gap: 15px; /* Gap between the two links */
+    gap: 15px; 
 }
 
 .download-link {
-    /* Set flex to 1 for equal width distribution */
     flex: 1; 
-
-    /* New layout styles */
+    /* New layout styles for vertical content stack */
     display: flex;
-    padding: 12px; /* Your specified spacing-lg: 12px */
+    padding: 12px; 
     flex-direction: column;
     justify-content: center;
     align-items: flex-start;
-    gap: 6px; /* Your specified spacing-sm: 6px */
+    gap: 6px; 
 
     border-radius: 8px; 
-    background: #27454B; /* Updated background color */
-    
-    /* Ensure no text decoration for links */
+    background: #27454B; /* Dark Teal background color */
     text-decoration: none;
     transition: background-color 0.2s;
 }
 
 .download-link:hover {
-    /* Slightly lighter hover color for visual feedback */
     background: #305057; 
 }
 
-/* Re-style the inner elements for the vertical icon/text stack */
+/* Image icon inside the link */
 .download-link img {
-    /* Separate icon from text based on 6px gap */
     margin-bottom: 6px; 
 }
 
+/* File name text */
 .download-link p {
-    color: #F7F7F7; /* File name should be near-white */
+    color: #F7F7F7; 
     font-size: 14px;
     font-weight: 600;
     line-height: 20px;
     margin: 0;
 }
 
+/* File size text */
 .download-link span {
-    color: #A0ACAF; /* File size should be light gray */
+    color: #A0ACAF; 
     font-size: 13px;
     line-height: 18px;
     margin-top: 0;
@@ -275,12 +251,10 @@ html, body {
    FIXED LOGO + SPACER
 =============================== */
 
-/* Prevents overlap with the fixed logo */
 .zelim-spacer {
-    height: 160px; /* 90px clearance + 60px bottom + 10px buffer */
+    height: 160px; 
 }
 
-/* Fixed logo stays clean and safe */
 .fixed-zelim-logo {
     position: fixed;
     bottom: 60px;
@@ -301,17 +275,16 @@ html, body {
 @media (max-width: 900px) {
 
     .page-wrapper {
-        width: calc(100% - 40px); /* Smaller margins for mobile (20px left/right) */
+        width: calc(100% - 40px); 
     }
     
     .swift-dashboard-container {
-        grid-template-columns: 1fr; /* Stack columns on mobile */
-        gap: 40px; /* Increase vertical gap on mobile */
+        grid-template-columns: 1fr; 
+        gap: 40px; 
         margin-top: 20px;
         margin-bottom: 20px;
     }
 
-    /* Reset grid spanning for mobile */
     .detail-panel {
         grid-column: span 12; 
     }
@@ -321,27 +294,26 @@ html, body {
     }
     
     .maintenance-card-group {
-        flex-direction: column; /* Stack cards vertically on mobile */
+        flex-direction: column; 
         gap: 30px;
     }
     
     .download-list {
-        flex-direction: column; /* Stack links vertically on mobile */
+        flex-direction: column; 
     }
 
-    /* Reset .download-link to be vertical on mobile */
+    /* Reset .download-link to be horizontal on mobile for better space usage */
     .download-link {
-        /* On mobile, revert to icon and text next to each other */
         flex-direction: row; 
         align-items: center;
         gap: 15px;
+        padding: 16px; /* Restore original padding for better touch targets */
     }
     .download-link img {
         margin-bottom: 0;
     }
 
     .fixed-zelim-logo {
-        /* Move fixed logo into the flow at the bottom of the page */
         position: static;
         transform: none;
         margin-top: 40px;
