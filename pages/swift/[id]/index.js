@@ -1,19 +1,21 @@
 // pages/swift/[id]/index.js
+
 import Head from "next/head";
 import Link from "next/link";
 import Airtable from "airtable";
 import Image from "next/image";
 
-// ------------------------
-// FETCH UNIT DATA
-// ------------------------
+// ===============================
+// FETCH UNIT DETAILS
+// ===============================
 export async function getServerSideProps(context) {
   const publicToken = context.params.id;
 
   try {
-    const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
-      process.env.AIRTABLE_BASE_ID
-    );
+    const base = new Airtable({
+      apiKey: process.env.AIRTABLE_API_KEY,
+    }).base(process.env.AIRTABLE_BASE_ID);
+
     const TABLE_NAME = process.env.AIRTABLE_SWIFT_TABLE;
 
     const records = await base(TABLE_NAME)
@@ -59,9 +61,9 @@ export async function getServerSideProps(context) {
   }
 }
 
-// ------------------------
-// CLIENT LOGO HANDLING
-// ------------------------
+// ===============================
+// LOGO HANDLING
+// ===============================
 const getClientLogo = (companyName) => {
   if (
     companyName &&
@@ -83,18 +85,18 @@ const getClientLogo = (companyName) => {
   };
 };
 
-// ------------------------
+// ===============================
 // PAGE COMPONENT
-// ------------------------
+// ===============================
 export default function SwiftUnitPage({ unit, publicToken }) {
-  const serial = unit.serial_number;
-  const company = unit.company;
-  const logoProps = getClientLogo(company);
+  const serialNumber = unit.serial_number;
+  const companyName = unit.company;
+  const logoProps = getClientLogo(companyName);
 
   return (
     <>
       <Head>
-        <title>{company} Maintenance Portal</title>
+        <title>{companyName} maintenance portal</title>
       </Head>
 
       <div className="swift-main-layout-wrapper">
@@ -112,11 +114,11 @@ export default function SwiftUnitPage({ unit, publicToken }) {
               />
             </div>
 
-            <h1 className="portal-title">{company} maintenance portal</h1>
+            <h1 className="portal-title">{companyName} maintenance portal</h1>
 
             <div className="maintenance-details">
               <p className="detail-label">Serial number</p>
-              <p className="detail-value">{serial}</p>
+              <p className="detail-value">{serialNumber}</p>
 
               <p className="detail-label">Annual maintenance due</p>
               <p className="detail-value">{unit.annualDue}</p>
@@ -136,12 +138,11 @@ export default function SwiftUnitPage({ unit, publicToken }) {
                 Maintenance Process of the SWIFT Survivor Recovery System
                 Maintenance Manual.
               </p>
-
               <Link
                 href={`/swift/${publicToken}/annual`}
                 className="start-btn primary-btn"
               >
-                Start maintenance
+                START MAINTENANCE
               </Link>
             </div>
 
@@ -153,12 +154,11 @@ export default function SwiftUnitPage({ unit, publicToken }) {
                 Depth Maintenance Process of the SWIFT Survivor Recovery System
                 Maintenance Manual.
               </p>
-
               <Link
                 href={`/swift/${publicToken}/depth`}
                 className="start-btn primary-btn"
               >
-                Start maintenance
+                START MAINTENANCE
               </Link>
             </div>
 
@@ -171,7 +171,6 @@ export default function SwiftUnitPage({ unit, publicToken }) {
               </p>
 
               <div className="download-list">
-                {/* File 1 */}
                 <a
                   href="/swift-maintenance-manual.pdf"
                   target="_blank"
@@ -179,9 +178,9 @@ export default function SwiftUnitPage({ unit, publicToken }) {
                 >
                   <Image
                     src="/Icons/PDF_Icon.svg"
-                    alt="PDF Icon"
                     width={24}
                     height={24}
+                    alt="PDF Icon"
                   />
                   <div>
                     <p>SWIFT Maintenance manual.pdf</p>
@@ -189,7 +188,6 @@ export default function SwiftUnitPage({ unit, publicToken }) {
                   </div>
                 </a>
 
-                {/* File 2 */}
                 <a
                   href="/swift-installation-guide.pdf"
                   target="_blank"
@@ -197,9 +195,9 @@ export default function SwiftUnitPage({ unit, publicToken }) {
                 >
                   <Image
                     src="/Icons/PDF_Icon.svg"
-                    alt="PDF Icon"
                     width={24}
                     height={24}
+                    alt="PDF Icon"
                   />
                   <div>
                     <p>SWIFT installation guide.pdf</p>
@@ -211,13 +209,16 @@ export default function SwiftUnitPage({ unit, publicToken }) {
           </div>
         </div>
 
-        {/* FIXED ZELIM LOGO */}
+        {/* SPACER PREVENTS OVERLAP */}
+        <div className="zelim-spacer"></div>
+
+        {/* FIXED LOGO */}
         <div className="fixed-zelim-logo">
           <Image
             src="/logo/zelim-logo.svg"
-            alt="Zelim Logo"
             width={80}
             height={20}
+            alt="Zelim Logo"
           />
         </div>
       </div>
