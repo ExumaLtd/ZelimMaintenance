@@ -1,9 +1,9 @@
-// pages/swift/[id]/index.js - NEW DASHBOARD PAGE (Data & Structure)
+// pages/swift/[id]/index.js
 
 import Head from "next/head";
 import Link from "next/link";
 import Airtable from "airtable";
-import Image from "next/image"; // For Logos and Icons
+import Image from "next/image"; 
 
 // --- Data Fetching ---
 export async function getServerSideProps(context) {
@@ -19,7 +19,7 @@ export async function getServerSideProps(context) {
       .select({
         maxRecords: 1,
         filterByFormula: `{public_token} = "${publicToken}"`,
-        // 🚨 Fetching all required fields, including the new formula fields:
+        // Fetch fields for company, serial number, and next due dates
         fields: ["serial_number", "company", "annual_maintenance_due", "depth_maintenance_due"],
       })
       .firstPage();
@@ -49,7 +49,7 @@ export async function getServerSideProps(context) {
 
 // --- Component Definition ---
 
-// Function to map company name to a logo path (using the Changi logo you uploaded)
+// Function to map company name to a logo path 
 const getClientLogo = (companyName) => {
     // Check for 'Changi' based on the design screenshot
     if (companyName && companyName.includes('Changi')) {
