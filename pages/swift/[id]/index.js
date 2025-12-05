@@ -142,9 +142,10 @@ export default function SwiftUnitPage({ unit, publicToken }) {
             {/* RIGHT PANEL */}
             <div className="action-panel">
               
-              {/* === MAINTENANCE CARD GROUP === */}
-              <div className="maintenance-card-group"> 
-                {/* ANNUAL CARD */}
+              {/* === ONE LARGE RECTANGLE (MAINTENANCE GROUP WRAPPER) === */}
+              <div className="maintenance-group-wrapper"> 
+                
+                {/* ANNUAL CARD (INNER SECTION 1) */}
                 <div className="maintenance-card">
                   <h3>Annual maintenance</h3>
                   <p className="description">
@@ -160,7 +161,7 @@ export default function SwiftUnitPage({ unit, publicToken }) {
                   </Link>
                 </div>
 
-                {/* DEPTH CARD */}
+                {/* DEPTH CARD (INNER SECTION 2) */}
                 <div className="maintenance-card">
                   <h3>30-month depth maintenance</h3>
                   <p className="description">
@@ -176,10 +177,10 @@ export default function SwiftUnitPage({ unit, publicToken }) {
                   </Link>
                 </div>
               </div> 
-              {/* === END MAINTENANCE CARD GROUP === */}
+              {/* === END MAINTENANCE GROUP WRAPPER === */}
 
 
-              {/* DOWNLOADS */}
+              {/* DOWNLOADS (Remains separate) */}
               <div className="downloads-card">
                 <h3>Downloads</h3>
                 <p className="description">

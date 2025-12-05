@@ -110,32 +110,37 @@ html, body {
     grid-column: span 8; 
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    gap: 30px; /* Space between the Maintenance Group and Downloads Card */
 }
 
-/* Horizontal card arrangement */
-.maintenance-card-group {
+/* === ONE LARGE RECTANGLE (NEW WRAPPER) === */
+.maintenance-group-wrapper {
+    /* Apply the main card background and padding here */
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+    background: rgba(255,255,255,0.03); /* Subtle outer background */
+    padding: 30px;
+    border-radius: 12px;
+    width: 100%;
+
+    /* Layout: keeps the two inner cards side-by-side */
     display: flex;
-    gap: 30px; 
+    gap: 30px; /* Gap between the two internal cards */
 }
 
+
+/* === TWO #036274 CONTAINERS (The inner cards) === */
 .maintenance-card {
     flex: 1; 
-    /* Card visual styles */
-    border: 1px solid rgba(255, 255, 255, 0.1); 
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
-    background: rgba(255,255,255,0.03);
-    padding: 30px;
-    border-radius: 12px;
-}
-
-.downloads-card {
-    /* Card visual styles */
-    border: 1px solid rgba(255, 255, 255, 0.1); 
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
-    background: rgba(255,255,255,0.03);
-    padding: 30px;
-    border-radius: 12px;
+    
+    /* NEW: Apply the specific background color and internal padding/radius */
+    background: #036274; /* The specific color for the inner cards */
+    border-radius: 8px; /* Slightly smaller radius for the inner card */
+    padding: 24px; /* Internal padding */
+    
+    /* Ensure no residual outer border/shadow */
+    border: none;
+    box-shadow: none;
 }
 
 .maintenance-card h3,
@@ -152,6 +157,15 @@ html, body {
     font-size: 14px; 
     line-height: 20px;
     margin-bottom: 24px;
+}
+
+.downloads-card {
+    /* This remains a separate card below the maintenance group */
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
+    background: rgba(255,255,255,0.03);
+    padding: 30px;
+    border-radius: 12px;
 }
 
 /* ===============================
@@ -294,9 +308,10 @@ html, body {
         grid-column: span 12; 
     }
     
-    .maintenance-card-group {
-        flex-direction: column; 
-        gap: 30px;
+    .maintenance-group-wrapper {
+        flex-direction: column; /* Stack the two cards vertically on mobile */
+        gap: 20px;
+        padding: 20px;
     }
     
     .download-list {
