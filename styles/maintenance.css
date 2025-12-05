@@ -2,7 +2,8 @@
    GLOBAL LAYOUT + BACKGROUND
 =============================== */
 html, body {
-    font-family: 'Montserrat', sans-serif;
+    /* Assuming Montserrat is desired, we define it here and rely on it being loaded elsewhere */
+    font-family: 'Montserrat', sans-serif; 
     margin: 0;
     padding: 0;
     height: 100%;
@@ -55,7 +56,6 @@ html, body {
 }
 
 .portal-title {
-    /* UPDATED: Pure White, 30px, 600 weight, 38px line height */
     color: #FFF; 
     font-size: 30px;
     font-weight: 600;
@@ -80,13 +80,10 @@ html, body {
     align-items: flex-start;
     gap: 4px;
     align-self: stretch;
-
-    /* Border bottom: #A0ACAF (20% opacity) */
     border-bottom: 1px solid rgba(160, 172, 175, 0.20);
 }
 
 .detail-label {
-    /* UPDATED: #A0ACAF, 14px, 500 weight, 20px line height */
     color: #A0ACAF;
     font-size: 14px; 
     font-weight: 500; 
@@ -95,7 +92,6 @@ html, body {
 }
 
 .detail-value {
-    /* UPDATED: #F7F7F7, 22px, 600 weight, 28px line height */
     color: #F7F7F7; 
     font-size: 22px; 
     font-weight: 600; 
@@ -153,52 +149,48 @@ html, body {
 }
 
 /* ===============================
-   START BUTTON STYLES (FINAL FIX)
+   START BUTTON STYLES (FINAL HIGH SPECIFICITY FIX)
 =============================== */
 
-/* Base button properties that may be inherited from globals.css */
-.primary-btn {
-    /* Ensure the global button base is clean if it exists */
-    display: inline-flex; 
-    text-decoration: none;
-    transition: background-color 0.2s, border-color 0.2s;
-}
-
-/* --- Specific button styling for THIS PAGE --- */
-.start-btn {
-    /* Layout: full width, padding, gap, centering */
+/* Combining selectors for high specificity without !important */
+.maintenance-card .start-btn, 
+.maintenance-card .primary-btn {
+    /* Layout */
     display: inline-flex; 
     width: 100%;
-    padding: 12px 16px;
+    padding: 12px 16px; 
     align-items: center;
     justify-content: center; 
     gap: 6px; 
 
-    /* Appearance: colors, border, radius */
+    /* Appearance & Colors */
     border: 2px solid rgba(255, 255, 255, 0.12); 
     border-radius: 8px; 
-    background: #00EADE; /* Bright Cyan background */ 
+    background-color: #00EADE; 
 
     /* Typography */
-    color: #0D3037; /* Dark text color */
+    color: #0D3037; 
     font-size: 14px;
     font-weight: 600;
     line-height: 20px; 
     text-align: center;
-    /* FIX: Ensure button text is NOT capitalized */
+    text-decoration: none; 
+    /* FIX: Force no capitalization */
     text-transform: none; 
+    
+    transition: background-color 0.2s, border-color 0.2s;
 }
 
-/* Hover effect */
-.start-btn:hover {
-    background-color: #00D3C9; /* Slightly darker background on hover */
-    border-color: rgba(255, 255, 255, 0.2); 
+/* Hover effect for high specificity */
+.maintenance-card .start-btn:hover,
+.maintenance-card .primary-btn:hover {
+    background-color: #00D3C9;
     cursor: pointer;
 }
 
 
 /* ===============================
-   DOWNLOAD LINKS (FINAL FIX)
+   DOWNLOAD LINKS (Final Layout Confirmation)
 =============================== */
 .download-list {
     display: flex; 
@@ -217,7 +209,7 @@ html, body {
     gap: 6px; 
 
     border-radius: 8px; 
-    background: #27454B; /* Dark Teal background color */
+    background: #27454B; 
     text-decoration: none;
     transition: background-color 0.2s;
 }

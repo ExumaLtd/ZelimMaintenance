@@ -1,13 +1,15 @@
 /* globals.css */
 
 /* --- RESET & FONT IMPORT --- */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+/* REMOVED: @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap'); */
 
 html,
 body {
   padding: 0;
   margin: 0;
-  font-family: 'Roboto', sans-serif;
+  /* REMOVED: font-family: 'Roboto', sans-serif; */
+  /* This line should be managed by the page-specific CSS now, e.g., Montserrat in maintenance.css */
+  font-family: sans-serif; /* Set to a generic fallback */
   background-color: #0b1a1f; /* Dark background for the landing page */
   color: #bdc4c6; /* Light text color */
   line-height: 1.6;
