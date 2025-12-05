@@ -115,12 +115,11 @@ html, body {
 
 /* === ONE LARGE RECTANGLE (NEW WRAPPER) === */
 .maintenance-group-wrapper {
-    /* Apply the main card background and padding here */
-    border: 1px solid rgba(255, 255, 255, 0.1); 
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
-    background: rgba(255,255,255,0.03); /* Subtle outer background */
-    padding: 30px;
-    border-radius: 12px;
+    /* **UPDATED:** New background color, padding, and border-radius */
+    background: #0D3037; 
+    padding: 20px;
+    border-radius: 20px; 
+    
     width: 100%;
 
     /* Layout: keeps the two inner cards side-by-side */
