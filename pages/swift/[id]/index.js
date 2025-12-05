@@ -1,4 +1,4 @@
-// pages/swift/[id]/index.js - REMOVE LOGOUT & FIX LOGO PATHS
+// pages/swift/[id]/index.js - FINAL AIRTABLE DATA VERSION
 
 import Head from "next/head";
 import Link from "next/link";
@@ -19,7 +19,7 @@ export async function getServerSideProps(context) {
       .select({
         maxRecords: 1,
         filterByFormula: `{public_token} = "${publicToken}"`,
-        // Fetch fields for company, serial number, and next due dates
+        // Fetch required fields
         fields: ["serial_number", "company", "annual_maintenance_due", "depth_maintenance_due"],
       })
       .firstPage();
@@ -53,7 +53,7 @@ export async function getServerSideProps(context) {
 const getClientLogo = (companyName) => {
     // Check for 'Changi' based on the design screenshot
     if (companyName && companyName.includes('Changi')) {
-        // Path starts with / because it's in the public folder
+        // Path starts with / because it's in the public/client_logos folder
         return {
             src: '/client_logos/ChangiAirport_Logo(White).svg',
             alt: `${companyName} Logo`,
@@ -63,7 +63,7 @@ const getClientLogo = (companyName) => {
     }
     // Default fallback logo 
     return {
-        src: '/zelim-logo.svg',
+        src: '/logo/zelim-logo.svg', // Uses the path based on your file structure: public/logo/zelim-logo.svg
         alt: 'Zelim Logo',
         width: 100,
         height: 30
@@ -112,7 +112,7 @@ export default function SwiftUnitSelectionPage({ unit, publicToken }) {
             
             <div className="zelim-footer">
                 <Image 
-                    src="/zelim-logo.svg" 
+                    src="/logo/zelim-logo.svg" 
                     alt="Zelim Logo" 
                     width={80} 
                     height={20} 
@@ -163,9 +163,8 @@ export default function SwiftUnitSelectionPage({ unit, publicToken }) {
                     </a>
                 </div>
             </div>
-
-            {/* LOGOUT FOOTER REMOVED */}
-            {/* Footer with logout link is now removed from this file. */}
+            
+            {/* The Logout Footer has been permanently removed */}
 
         </div>
       </div>
