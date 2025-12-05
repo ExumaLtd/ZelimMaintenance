@@ -36,10 +36,12 @@ html, body {
 .swift-dashboard-container {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
+    /* Use 'gap' instead of 'grid-gap' for modern compatibility */
     gap: 20px; 
     width: 100%;
-    margin-top: 40px; 
-    margin-bottom: 40px;
+    /* UPDATED: New top and bottom margins */
+    margin-top: 80px; 
+    margin-bottom: 90px;
 }
 
 /* ===============================
