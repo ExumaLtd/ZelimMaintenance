@@ -1,6 +1,5 @@
 /* --- GLOBAL BODY STYLES (Includes Montserrat Font and Gradient) --- */
 html, body {
-    /* Font family pulled from _app.js link */
     font-family: 'Montserrat', sans-serif; 
     height: 100%;
     margin: 0;
@@ -16,15 +15,21 @@ html, body {
     line-height: 1.6;
 }
 
+/* NEW: Wrapper for the whole page content */
+.swift-main-layout-wrapper {
+    position: relative; 
+    min-height: 100vh;
+}
+
 /* --- UTILITY & COMPONENT STYLES --- */
 .primary-btn {
     padding: 15px 30px;
     border: none;
     border-radius: 8px;
-    background-color: #00bcd4; /* Use the lighter teal color for buttons */
+    background-color: #00bcd4; 
     color: #0b1a1f; 
     font-size: 1.1rem;
-    font-weight: 700; /* Use 700 for bold/strong look */
+    font-weight: 700;
     cursor: pointer;
     transition: background-color 0.3s, opacity 0.3s;
     text-transform: uppercase;
@@ -34,6 +39,7 @@ html, body {
     background-color: #00acc1;
 }
 
+/* --- MAIN DASHBOARD CONTAINER --- */
 .swift-dashboard-container {
     display: grid;
     grid-template-columns: 350px 1fr; 
@@ -41,8 +47,8 @@ html, body {
     margin: 40px auto;
     padding: 0;
     gap: 30px;
-    /* FIX: Make the grid fill the height of the body/viewport */
-    min-height: calc(100vh - 80px); /* 100vh minus top/bottom margin */
+    min-height: calc(100vh - 80px); 
+    z-index: 10; 
 }
 
 /* --- DETAIL PANEL (LEFT COLUMN) STYLES --- */
@@ -52,11 +58,9 @@ html, body {
     border-radius: 12px;
     display: flex;
     flex-direction: column;
-    
-    /* FIX: Crucial for fixing the Zelim logo at the bottom */
     position: relative; 
     height: auto; 
-    padding-bottom: 100px; /* Space for the logo (must be > 60px) */
+    padding-bottom: 40px; 
 }
 
 .logo-section {
@@ -74,16 +78,21 @@ html, body {
 
 .maintenance-details {
     padding-top: 20px;
-    flex-grow: 1; /* Pushes the logo down */
+    flex-grow: 1; 
+}
+
+/* FIX: Transparency for detail fields */
+.detail-label,
+.detail-value {
     background: none; 
+    padding: 0;
+    margin-top: 20px;
+    margin-bottom: 2px;
 }
 
 .detail-label {
     font-size: 0.9rem;
     color: #78909c;
-    margin-bottom: 2px;
-    margin-top: 20px;
-    background: none; /* FIX: Ensure background is transparent */
     font-weight: 500;
 }
 
@@ -92,14 +101,16 @@ html, body {
     font-weight: 700;
     color: #ffffff;
     margin-top: 0;
-    background: none; /* FIX: Ensure background is transparent */
 }
 
-/* --- FIXED ZELIM LOGO POSITIONING --- */
-.fixed-footer-logo {
-    position: absolute;
-    bottom: 60px; /* Logo 60px from the bottom of the panel */
-    left: 40px; /* Aligned with panel padding */
+
+/* --- ZELIM LOGO FIXED TO VIEWPORT (FINAL FIX) --- */
+.fixed-zelim-logo {
+    position: fixed; /* Anchored to viewport */
+    bottom: 60px; /* 60px from the bottom */
+    left: 50%; /* Center the element */
+    transform: translateX(-50%); /* Pull it back by half its width to truly center */
+    z-index: 100;
 }
 
 /* --- ACTION PANEL (RIGHT COLUMN) STYLES --- */
@@ -134,21 +145,7 @@ html, body {
     margin-bottom: 20px;
 }
 
-.start-btn {
-    display: inline-block;
-    padding: 12px 25px;
-    border-radius: 6px;
-    background-color: #00bcd4; 
-    color: #0b1a1f; 
-    font-weight: 700;
-    text-transform: uppercase;
-    text-align: center;
-}
-
-.start-btn:hover {
-    background-color: #00acc1;
-}
-
+/* Download links */
 .download-list {
     display: flex;
     flex-direction: column;
@@ -184,13 +181,6 @@ html, body {
     color: #78909c;
 }
 
-/* Cleanup for unused footer styles */
-.zelim-logo, .zelim-footer {
-    max-width: 120px;
-    height: auto;
-    opacity: 0.8;
-}
-
 /* Media query for mobile responsiveness */
 @media (max-width: 900px) {
     .swift-dashboard-container {
@@ -210,10 +200,12 @@ html, body {
         height: auto; 
     }
 
-    .fixed-footer-logo {
+    /* FIX: Mobile positioning for logo (static at the bottom) */
+    .fixed-zelim-logo {
         position: static; 
+        transform: none;
+        text-align: center;
         margin-top: 20px;
-        left: auto;
-        bottom: auto;
+        padding-bottom: 20px;
     }
 }

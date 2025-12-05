@@ -1,4 +1,4 @@
-// pages/swift/[id]/index.js - FINAL LOGO PLACEMENT AND LOGIC FIX
+// pages/swift/[id]/index.js - FINAL HTML STRUCTURE FOR LOGO POSITIONING & CHY_LOGO
 
 import Head from "next/head";
 import Link from "next/link";
@@ -49,11 +49,10 @@ export async function getServerSideProps(context) {
 
 // --- Component Definition ---
 
-// FUNCTION TO DYNAMICALLY DETERMINE LOGO PATH (Updated logic to check for "Company A")
+// Function to map company name to a logo path (Checking for 'Company A' for the test unit)
 const getClientLogo = (companyName) => {
     // Check for 'Changi' OR the test name 'Company A' pulled from Airtable
     if (companyName && (companyName.includes('Changi') || companyName.includes('Company A'))) {
-        // Points to the sharp SVG in the public/client_logos folder
         return {
             src: '/client_logos/ChangiAirport_Logo(White).svg',
             alt: `${companyName} Logo`,
@@ -61,7 +60,7 @@ const getClientLogo = (companyName) => {
             height: 40
         };
     }
-    // Default fallback to the Zelim logo
+    // Default fallback (Uses Zelim logo, but this should ideally never run if logic is correct)
     return {
         src: '/logo/zelim-logo.svg', 
         alt: 'Zelim Logo',
@@ -82,91 +81,98 @@ export default function SwiftUnitSelectionPage({ unit, publicToken }) {
         <title>{companyName} SWIFT maintenance portal</title>
       </Head>
 
-      <div className="swift-dashboard-container">
+      <div className="swift-main-layout-wrapper"> {/* Wrapper for the whole page content */}
+        
+        <div className="swift-dashboard-container">
 
-        {/* --- LEFT COLUMN / TOP SECTION (Unit Details) --- */}
-        <div className="detail-panel">
-            <div className="logo-section">
-                {/* 1. Client logo goes at the top */}
-                <Image
-                    src={logoProps.src}
-                    alt={logoProps.alt}
-                    width={logoProps.width}
-                    height={logoProps.height}
-                    className="client-logo"
-                    priority
-                />
-            </div>
-            
-            <h1 className="portal-title">{companyName} SWIFT maintenance portal</h1>
-            
-            <div className="maintenance-details">
-                <p className="detail-label">Serial number</p>
-                <p className="detail-value">{serialNumber}</p>
+          {/* --- LEFT COLUMN / TOP SECTION (Unit Details) --- */}
+          <div className="detail-panel">
+              <div className="logo-section">
+                  {/* Client logo goes at the top */}
+                  <Image
+                      src={logoProps.src}
+                      alt={logoProps.alt}
+                      width={logoProps.width}
+                      height={logoProps.height}
+                      className="client-logo"
+                      priority
+                  />
+              </div>
+              
+              <h1 className="portal-title">{companyName} SWIFT maintenance portal</h1>
+              
+              <div className="maintenance-details">
+                  <p className="detail-label">Serial number</p>
+                  <p className="detail-value">{serialNumber}</p>
 
-                <p className="detail-label">Annual maintenance due</p>
-                <p className="detail-value due-date">{unit.annualDue}</p>
-                
-                <p className="detail-label">30-month depth maintenance due</p>
-                <p className="detail-value due-date">{unit.depthDue}</p>
-            </div>
-            
-            {/* 2. Zelim logo in a fixed position at the bottom of the panel */}
-            <div className="fixed-footer-logo">
-                <Image 
-                    src="/logo/zelim-logo.svg" 
-                    alt="Zelim Logo" 
-                    width={80} 
-                    height={20} 
-                />
-            </div>
+                  <p className="detail-label">Annual maintenance due</p>
+                  <p className="detail-value due-date">{unit.annualDue}</p>
+                  
+                  <p className="detail-label">30-month depth maintenance due</p>
+                  <p className="detail-value due-date">{unit.depthDue}</p>
+              </div>
+              
+              {/* NOTE: Zelim logo has been REMOVED from here */}
+              
+          </div>
+
+          {/* --- RIGHT COLUMN / BOTTOM SECTION (Maintenance Links and Downloads) --- */}
+          <div className="action-panel">
+              
+              {/* ANNUAL MAINTENANCE CARD */}
+              <div className="maintenance-card">
+                  <h3>Annual maintenance</h3>
+                  <p className="description">To be completed in accordance with Section 7.1.2 – Annual Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.</p>
+                  <Link href={`/swift/${publicToken}/annual`} className="start-btn primary-btn">
+                      Start maintenance
+                  </Link>
+              </div>
+              
+              {/* DEPTH MAINTENANCE CARD */}
+              <div className="maintenance-card">
+                  <h3>30-month depth maintenance</h3>
+                  <p className="description">To be completed in accordance with Section 7.2.2 – 30-Month Depth Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.</p>
+                  <Link href={`/swift/${publicToken}/depth`} className="start-btn primary-btn">
+                      Start maintenance
+                  </Link>
+              </div>
+
+              {/* DOWNLOADS CARD */}
+              <div className="downloads-card">
+                  <h3>Downloads</h3>
+                  <p className="description">To be used in accordance with both annual and 30-month depth maintenance.</p>
+                  
+                  <div className="download-list">
+                      <a href="/swift-maintenance-manual.pdf" target="_blank" className="download-link">
+                          <Image src="/Icons/PDF_Icon.svg" alt="PDF Icon" width={24} height={24} />
+                          <div>
+                              <p>SWIFT Maintenance manual.pdf</p>
+                              <span>1.2 MB</span>
+                          </div>
+                      </a>
+                      <a href="/swift-installation-guide.pdf" target="_blank" className="download-link">
+                          <Image src="/Icons/PDF_Icon.svg" alt="PDF Icon" width={24} height={24} />
+                          <div>
+                              <p>SWIFT installation guide.pdf</p>
+                              <span>1.6 MB</span>
+                          </div>
+                      </a>
+                  </div>
+              </div>
+              
+          </div>
         </div>
 
-        {/* --- RIGHT COLUMN / BOTTOM SECTION (Maintenance Links and Downloads) --- */}
-        <div className="action-panel">
-            
-            {/* ANNUAL MAINTENANCE CARD */}
-            <div className="maintenance-card">
-                <h3>Annual maintenance</h3>
-                <p className="description">To be completed in accordance with Section 7.1.2 – Annual Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.</p>
-                <Link href={`/swift/${publicToken}/annual`} className="start-btn primary-btn">
-                    Start maintenance
-                </Link>
-            </div>
-            
-            {/* DEPTH MAINTENANCE CARD */}
-            <div className="maintenance-card">
-                <h3>30-month depth maintenance</h3>
-                <p className="description">To be completed in accordance with Section 7.2.2 – 30-Month Depth Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.</p>
-                <Link href={`/swift/${publicToken}/depth`} className="start-btn primary-btn">
-                    Start maintenance
-                </Link>
-            </div>
-
-            {/* DOWNLOADS CARD */}
-            <div className="downloads-card">
-                <h3>Downloads</h3>
-                <p className="description">To be used in accordance with both annual and 30-month depth maintenance.</p>
-                
-                <div className="download-list">
-                    <a href="/swift-maintenance-manual.pdf" target="_blank" className="download-link">
-                        <Image src="/Icons/PDF_Icon.svg" alt="PDF Icon" width={24} height={24} />
-                        <div>
-                            <p>SWIFT Maintenance manual.pdf</p>
-                            <span>1.2 MB</span>
-                        </div>
-                    </a>
-                    <a href="/swift-installation-guide.pdf" target="_blank" className="download-link">
-                        <Image src="/Icons/PDF_Icon.svg" alt="PDF Icon" width={24} height={24} />
-                        <div>
-                            <p>SWIFT installation guide.pdf</p>
-                            <span>1.6 MB</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            
+        {/* --- ZELIM LOGO (NOW OUTSIDE THE PANEL, FIXED TO VIEWPORT) --- */}
+        <div className="fixed-zelim-logo">
+            <Image 
+                src="/logo/zelim-logo.svg" 
+                alt="Zelim Logo" 
+                width={80} 
+                height={20} 
+            />
         </div>
+
       </div>
     </>
   );
