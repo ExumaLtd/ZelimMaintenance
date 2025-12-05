@@ -1,4 +1,4 @@
-// pages/swift/[id]/index.js - FINAL HYBRID LOGO VERSION (SHARP LOGOS & DYNAMIC)
+// pages/swift/[id]/index.js - FINAL LOGO PLACEMENT AND LOGIC FIX
 
 import Head from "next/head";
 import Link from "next/link";
@@ -19,7 +19,7 @@ export async function getServerSideProps(context) {
       .select({
         maxRecords: 1,
         filterByFormula: `{public_token} = "${publicToken}"`,
-        // Fetch required fields (Only company name is needed for logo determination)
+        // Fetch required fields
         fields: ["serial_number", "company", "annual_maintenance_due", "depth_maintenance_due"], 
       })
       .firstPage();
@@ -33,7 +33,6 @@ export async function getServerSideProps(context) {
     const unitDetails = {
       serial_number: record.get("serial_number") || "N/A",
       company: record.get("company") || "Client Unit",
-      // Format dates (Airtable returns ISO strings; this formats them to DD/MM/YYYY)
       annualDue: record.get("annual_maintenance_due") ? new Date(record.get("annual_maintenance_due")).toLocaleDateString('en-GB') : 'N/A',
       depthDue: record.get("depth_maintenance_due") ? new Date(record.get("depth_maintenance_due")).toLocaleDateString('en-GB') : 'N/A',
     };
@@ -50,10 +49,10 @@ export async function getServerSideProps(context) {
 
 // --- Component Definition ---
 
-// FUNCTION TO DYNAMICALLY DETERMINE LOGO PATH (Uses local, sharp SVG files)
+// FUNCTION TO DYNAMICALLY DETERMINE LOGO PATH (Updated logic to check for "Company A")
 const getClientLogo = (companyName) => {
-    // Check the company name fetched from Airtable
-    if (companyName && companyName.includes('Changi')) {
+    // Check for 'Changi' OR the test name 'Company A' pulled from Airtable
+    if (companyName && (companyName.includes('Changi') || companyName.includes('Company A'))) {
         // Points to the sharp SVG in the public/client_logos folder
         return {
             src: '/client_logos/ChangiAirport_Logo(White).svg',
@@ -64,7 +63,7 @@ const getClientLogo = (companyName) => {
     }
     // Default fallback to the Zelim logo
     return {
-        src: '/logo/zelim-logo.svg', // Points to the sharp SVG in the public/logo folder
+        src: '/logo/zelim-logo.svg', 
         alt: 'Zelim Logo',
         width: 100,
         height: 30
@@ -75,7 +74,6 @@ const getClientLogo = (companyName) => {
 export default function SwiftUnitSelectionPage({ unit, publicToken }) {
   const serialNumber = unit.serial_number;
   const companyName = unit.company;
-  // USE the dynamic logo determination function
   const logoProps = getClientLogo(companyName);
 
   return (
@@ -89,7 +87,7 @@ export default function SwiftUnitSelectionPage({ unit, publicToken }) {
         {/* --- LEFT COLUMN / TOP SECTION (Unit Details) --- */}
         <div className="detail-panel">
             <div className="logo-section">
-                {/* Use the dynamically determined client logo */}
+                {/* 1. Client logo goes at the top */}
                 <Image
                     src={logoProps.src}
                     alt={logoProps.alt}
@@ -113,8 +111,8 @@ export default function SwiftUnitSelectionPage({ unit, publicToken }) {
                 <p className="detail-value due-date">{unit.depthDue}</p>
             </div>
             
-            <div className="zelim-footer">
-                {/* Zelim logo is hardcoded to be the fallback and the footer logo */}
+            {/* 2. Zelim logo in a fixed position at the bottom of the panel */}
+            <div className="fixed-footer-logo">
                 <Image 
                     src="/logo/zelim-logo.svg" 
                     alt="Zelim Logo" 
