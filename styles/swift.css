@@ -1,20 +1,39 @@
-/* --- GLOBAL BODY STYLES (New Gradient Background) --- */
+/* --- GLOBAL BODY STYLES (Includes Montserrat Font and Gradient) --- */
 html, body {
-    /* Set height to 100% of viewport to provide a reference for grid children */
-    height: 100%; 
+    /* Font family pulled from _app.js link */
+    font-family: 'Montserrat', sans-serif; 
+    height: 100%;
     margin: 0;
     padding: 0;
+    
+    /* Apply the dark radial gradient */
     background: radial-gradient(
         85.89% 70.71% at 50% 50%, 
         #172F36 0%, 
         #2E444A 100% 
     );
     color: #ffffff; 
-    font-family: Arial, sans-serif;
     line-height: 1.6;
 }
 
-/* --- MAIN DASHBOARD CONTAINER --- */
+/* --- UTILITY & COMPONENT STYLES --- */
+.primary-btn {
+    padding: 15px 30px;
+    border: none;
+    border-radius: 8px;
+    background-color: #00bcd4; /* Use the lighter teal color for buttons */
+    color: #0b1a1f; 
+    font-size: 1.1rem;
+    font-weight: 700; /* Use 700 for bold/strong look */
+    cursor: pointer;
+    transition: background-color 0.3s, opacity 0.3s;
+    text-transform: uppercase;
+}
+
+.primary-btn:hover {
+    background-color: #00acc1;
+}
+
 .swift-dashboard-container {
     display: grid;
     grid-template-columns: 350px 1fr; 
@@ -34,11 +53,10 @@ html, body {
     display: flex;
     flex-direction: column;
     
-    /* FIX: Absolute positioning reference for the logo */
+    /* FIX: Crucial for fixing the Zelim logo at the bottom */
     position: relative; 
-    /* FIX: Force panel to take the height of the dashboard container */
     height: auto; 
-    padding-bottom: 100px; /* Space for the logo */
+    padding-bottom: 100px; /* Space for the logo (must be > 60px) */
 }
 
 .logo-section {
@@ -56,7 +74,7 @@ html, body {
 
 .maintenance-details {
     padding-top: 20px;
-    flex-grow: 1; /* Pushes content away from the logo */
+    flex-grow: 1; /* Pushes the logo down */
     background: none; 
 }
 
@@ -66,6 +84,7 @@ html, body {
     margin-bottom: 2px;
     margin-top: 20px;
     background: none; /* FIX: Ensure background is transparent */
+    font-weight: 500;
 }
 
 .detail-value {
@@ -76,11 +95,11 @@ html, body {
     background: none; /* FIX: Ensure background is transparent */
 }
 
-/* --- FIXED ZELIM LOGO POSITIONING (Final Fix) --- */
+/* --- FIXED ZELIM LOGO POSITIONING --- */
 .fixed-footer-logo {
     position: absolute;
-    bottom: 60px; /* 60px from the bottom edge of the detail panel */
-    left: 40px; /* Align with the left padding */
+    bottom: 60px; /* Logo 60px from the bottom of the panel */
+    left: 40px; /* Aligned with panel padding */
 }
 
 /* --- ACTION PANEL (RIGHT COLUMN) STYLES --- */
@@ -121,7 +140,7 @@ html, body {
     border-radius: 6px;
     background-color: #00bcd4; 
     color: #0b1a1f; 
-    font-weight: bold;
+    font-weight: 700;
     text-transform: uppercase;
     text-align: center;
 }
@@ -165,8 +184,11 @@ html, body {
     color: #78909c;
 }
 
-.zelim-footer {
-    padding-top: 0;
+/* Cleanup for unused footer styles */
+.zelim-logo, .zelim-footer {
+    max-width: 120px;
+    height: auto;
+    opacity: 0.8;
 }
 
 /* Media query for mobile responsiveness */
