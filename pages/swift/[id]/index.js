@@ -101,7 +101,6 @@ export default function SwiftUnitPage({ unit, publicToken }) {
 
       <div className="swift-main-layout-wrapper">
         
-        {/* === START NEW WRAPPER === */}
         <div className="page-wrapper">
           <div className="swift-dashboard-container">
             {/* LEFT PANEL */}
@@ -120,14 +119,23 @@ export default function SwiftUnitPage({ unit, publicToken }) {
               <h1 className="portal-title">{companyName} maintenance portal</h1>
 
               <div className="maintenance-details">
-                <p className="detail-label">Serial number</p>
-                <p className="detail-value">{serialNumber}</p>
+                {/* SERIAL NUMBER ITEM */}
+                <div className="detail-item">
+                  <p className="detail-label">Serial number</p>
+                  <p className="detail-value">{serialNumber}</p>
+                </div>
 
-                <p className="detail-label">Annual maintenance due</p>
-                <p className="detail-value">{unit.annualDue}</p>
+                {/* ANNUAL DUE ITEM */}
+                <div className="detail-item">
+                  <p className="detail-label">Annual maintenance due</p>
+                  <p className="detail-value">{unit.annualDue}</p>
+                </div>
 
-                <p className="detail-label">30-month depth maintenance due</p>
-                <p className="detail-value">{unit.depthDue}</p>
+                {/* DEPTH DUE ITEM */}
+                <div className="detail-item">
+                  <p className="detail-label">30-month depth maintenance due</p>
+                  <p className="detail-value">{unit.depthDue}</p>
+                </div>
               </div>
             </div>
 
@@ -212,7 +220,6 @@ export default function SwiftUnitPage({ unit, publicToken }) {
             </div>
           </div>
         </div>
-        {/* === END NEW WRAPPER === */}
 
         {/* SPACER PREVENTS OVERLAP */}
         <div className="zelim-spacer"></div>
