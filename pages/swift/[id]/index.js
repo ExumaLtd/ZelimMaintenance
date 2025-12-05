@@ -1,4 +1,4 @@
-// pages/swift/[id]/index.js - FINAL AIRTABLE DATA VERSION
+// pages/swift/[id]/index.js - REMOVE LOGOUT & FIX LOGO PATHS
 
 import Head from "next/head";
 import Link from "next/link";
@@ -53,6 +53,7 @@ export async function getServerSideProps(context) {
 const getClientLogo = (companyName) => {
     // Check for 'Changi' based on the design screenshot
     if (companyName && companyName.includes('Changi')) {
+        // Path starts with / because it's in the public folder
         return {
             src: '/client_logos/ChangiAirport_Logo(White).svg',
             alt: `${companyName} Logo`,
@@ -163,11 +164,8 @@ export default function SwiftUnitSelectionPage({ unit, publicToken }) {
                 </div>
             </div>
 
-            <footer className="logout-footer">
-                <Link href="/" className="logout-link">
-                    Log Out / Change Unit &larr;
-                </Link>
-            </footer>
+            {/* LOGOUT FOOTER REMOVED */}
+            {/* Footer with logout link is now removed from this file. */}
 
         </div>
       </div>
