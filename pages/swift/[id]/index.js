@@ -231,14 +231,16 @@ export default function SwiftUnitPage({ unit, publicToken }) {
         {/* SPACER PREVENTS OVERLAP */}
         <div className="zelim-spacer"></div>
 
-        {/* FIXED LOGO */}
+        {/* FIXED LOGO - UPDATED WITH LINK */}
         <div className="fixed-zelim-logo">
-          <Image
-            src="/logo/zelim-logo.svg"
-            width={80}
-            height={20}
-            alt="Zelim Logo"
-          />
+          <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
+            <Image
+              src="/logo/zelim-logo.svg"
+              width={80}
+              height={20}
+              alt="Zelim Logo"
+            />
+          </a>
         </div>
       </div>
     </>
