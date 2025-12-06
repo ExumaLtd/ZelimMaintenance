@@ -284,6 +284,12 @@ html, body {
     opacity: 0.8;
 }
 
+/* NEW: Ensures the link wrapper is clean and clickable */
+.fixed-zelim-logo a {
+    text-decoration: none;
+    display: block; 
+}
+
 .fixed-zelim-logo img {
     height: 30px;
     width: auto;
