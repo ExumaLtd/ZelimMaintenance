@@ -39,7 +39,7 @@ html, body {
     /* Use 'gap' instead of 'grid-gap' for modern compatibility */
     gap: 20px; 
     width: 100%;
-    /* UPDATED: New top and bottom margins */
+    /* UPDATED: New top (80px) and bottom (90px) margins */
     margin-top: 80px; 
     margin-bottom: 90px;
 }
