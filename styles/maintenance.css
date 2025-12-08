@@ -19,7 +19,7 @@ html, body {
         #2E444A 100%
     );
     
-    /* NEW: Ensures the background stays put and covers the whole screen */
+    /* Ensures the background stays put and covers the whole screen */
     background-attachment: fixed; 
     background-size: cover; 
     /* -------------------------------------- */
@@ -35,8 +35,7 @@ html, body {
     min-height: 100vh; 
     display: flex;
     flex-direction: column;
-    /* NEW: Safety measure to prevent horizontal scrolling */
-    overflow-x: hidden; 
+    /* REVERTED: Removed overflow-x: hidden */
 }
 
 /* New wrapper to handle max-width and desktop margins */
@@ -45,8 +44,8 @@ html, body {
     width: calc(100% - 160px); /* Desktop: 80px left, 80px right */
     margin: 0 auto;
     padding-bottom: 0; 
-    /* NEW: Safety measure to prevent children from causing spillover */
-    box-sizing: border-box;
+    /* Ensure padding is included in width calculation globally */
+    box-sizing: border-box; 
 }
 
 /* ===============================
@@ -64,7 +63,7 @@ html, body {
     /* ANCHOR: Base bottom margin for content (for when logo is STATIC/mobile) */
     margin-bottom: 40px; 
     
-    /* NEW FIX: Required for the ::after pseudo-element to work correctly */
+    /* NEW FIX: Pseudo-element to reserve FIXED logo space (Desktop only) */
     position: relative;
 }
 
@@ -410,7 +409,7 @@ html, body {
     .page-wrapper {
         /* UPDATED: 20px left and 20px right padding (40px total) */
         width: calc(100% - 40px); 
-        box-sizing: border-box; /* IMPORTANT: Include padding in width calculation */
+        box-sizing: border-box; 
     }
     
     .swift-dashboard-container {
@@ -533,14 +532,14 @@ html, body {
 
 
 /* ===============================
-   RESPONSIVE (≤600px) - SMALL MOBILE VIEW (Fixing Download Link Alignment & Spillover)
+   RESPONSIVE (≤600px) - SMALL MOBILE VIEW (Final Spillover Fix)
 =============================== */
 @media (max-width: 600px) {
     
     /* --- CRITICAL WIDTH FIXES FOR SPILLOVER --- */
     .page-wrapper {
-        /* Ensure minimal side padding: 16px left, 16px right (32px total) */
-        width: calc(100% - 32px); 
+        /* FIXED: Use a simple, small, fixed padding */
+        width: calc(100% - 32px); /* 16px left + 16px right */
     }
     
     .maintenance-group-wrapper {
