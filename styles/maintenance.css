@@ -54,7 +54,7 @@ html, body {
 }
 
 .logo-section {
-    margin-bottom: 25px;
+    margin-bottom: 40px; 
 }
 
 .portal-title {
@@ -63,7 +63,7 @@ html, body {
     font-size: 30px;
     font-weight: 600;
     line-height: 38px; 
-    margin: 0 0 24px;
+    margin: 0 0 34px; 
 }
 
 /* --- DETAIL ITEMS (Serial Number, Dates, etc.) --- */
@@ -71,7 +71,7 @@ html, body {
 .maintenance-details {
     display: flex;
     flex-direction: column;
-    gap: 30px; 
+    gap: 16px; 
     margin-top: 20px;
     /* FIXED WIDTH APPLIED HERE */
     width: 305px; 
@@ -83,13 +83,20 @@ html, body {
     padding-bottom: 12px;
     flex-direction: column;
     align-items: flex-start;
-    gap: 4px; /* <-- 4px space between label and value */
+    gap: 4px; 
     align-self: stretch;
     /* Separator line */
     border-bottom: 1px solid rgba(160, 172, 175, 0.20);
     /* ITEM FILLS PARENT WIDTH */
     width: 100%; 
 }
+
+/* NEW: Remove bottom border and padding from the last item in the details list */
+.maintenance-details .detail-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
 
 .detail-label {
     /* Label typography */
@@ -98,7 +105,7 @@ html, body {
     font-weight: 500; 
     line-height: 20px; 
     margin-top: 0;
-    margin-bottom: 0; /* <-- NEW: Explicitly remove bottom margin */
+    margin-bottom: 0; 
 }
 
 .detail-value {
@@ -108,7 +115,7 @@ html, body {
     font-weight: 600; 
     line-height: 28px; 
     margin-top: 0;
-    margin-bottom: 0; /* <-- NEW: Explicitly remove bottom margin */
+    margin-bottom: 0; 
 }
 
 /* ===============================
@@ -284,7 +291,7 @@ html, body {
 =============================== */
 
 .zelim-spacer {
-    height: 160px; /* RESTORED HEIGHT TO PREVENT OVERLAP */
+    height: 0; /* SPACER REMOVED */
 }
 
 .fixed-zelim-logo {
