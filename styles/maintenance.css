@@ -41,7 +41,7 @@ html, body {
     width: 100%;
     /* Updated top margin to 60px */
     margin-top: 60px; 
-    margin-bottom: 90px;
+    /* margin-bottom: 90px; REMOVED: Use .zelim-spacer instead for fixed logo clearance */
 }
 
 /* ===============================
@@ -291,17 +291,18 @@ html, body {
    SPACER (Controls Desktop Bottom Margin)
 =============================== */
 .zelim-spacer {
-    /* NEW: Height is logo height + logo bottom margin (approx 30px + 60px) */
-    height: 90px; 
+    /* UPDATED: Height is logo height (approx 30px) + NEW bottom margin (50px) = 80px */
+    height: 80px; 
 }
 
 
 /* ===============================
-   FIXED LOGO (POSITIONED AT BOTTOM: 60PX)
+   FIXED LOGO (POSITIONED AT BOTTOM: 50PX)
 =============================== */
 .fixed-zelim-logo {
     position: fixed;
-    bottom: 60px; /* FINAL CONFIRMED BOTTOM POSITION */
+    /* UPDATED: New bottom margin */
+    bottom: 50px; 
     left: 50%;
     transform: translateX(-50%);
     z-index: 50;
@@ -323,8 +324,7 @@ html, body {
 }
 
 /* ===============================
-   FIXED LOGO HEIGHT SAFETY (NEW RULE)
-   Prevents logo overlap when the viewport height is too small.
+   FIXED LOGO HEIGHT SAFETY 
 =============================== */
 @media (max-height: 650px) {
     .fixed-zelim-logo {
