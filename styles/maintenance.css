@@ -164,7 +164,7 @@ html, body {
 }
 
 .downloads-card {
-    /* UPDATED: Background, border-radius, and padding */
+    /* UPDATED: Padding changed to 24px top, 30px right/bottom/left */
     background: #172F36; /* Dark Teal background */
     border: none; /* Removed border */
     box-shadow: none; /* Removed box-shadow */
@@ -217,7 +217,7 @@ html, body {
 
 
 /* ===============================
-   DOWNLOAD LINKS (Updated to align icon left of text)
+   DOWNLOAD LINKS (Final Layout Confirmation)
 =============================== */
 .download-list {
     display: flex; 
@@ -227,13 +227,13 @@ html, body {
 
 .download-link {
     flex: 1; 
-    /* UPDATED: Now displays icon and text side-by-side (row) */
+    /* New layout styles for vertical content stack */
     display: flex;
     padding: 12px; 
-    flex-direction: row; /* Aligns children (icon and text block) horizontally */
-    justify-content: flex-start;
-    align-items: center; /* Vertically centers icon with the text block */
-    gap: 15px; /* Space between icon and text block */
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 6px; 
 
     border-radius: 8px; 
     background: #27454B; /* Dark Teal background color */
@@ -247,15 +247,10 @@ html, body {
 
 /* Image icon inside the link */
 .download-link img {
-    /* Resetting previous column-based margin */
-    margin-bottom: 0; 
-    /* UPDATED: Setting the icon size to 40px */
-    width: 40px;
-    height: 40px;
+    margin-bottom: 6px; 
 }
 
-/* File name text (p) and File size text (span) remain stacked inside the inner div
-   (No change needed for p and span here as they are correctly stacked by default) */
+/* File name text */
 .download-link p {
     color: #F7F7F7; 
     font-size: 14px;
@@ -264,6 +259,7 @@ html, body {
     margin: 0;
 }
 
+/* File size text */
 .download-link span {
     color: #A0ACAF; 
     font-size: 13px;
