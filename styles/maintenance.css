@@ -1,29 +1,42 @@
 /* ===============================
-   GLOBAL LAYOUT + BACKGROUND
+   GLOBAL LAYOUT + BACKGROUND (Definitive Full Screen Coverage)
 =============================== */
 html, body {
     /* Set Montserrat as the primary font for this page */
     font-family: 'Montserrat', sans-serif; 
     margin: 0;
     padding: 0;
+    
+    /* --- DEFINITIVE FIX FOR WHITE SPACE --- */
+    /* Ensure the document height is at least the full viewport height */
     height: 100%;
+    min-height: 100vh;
+    
+    /* Apply the gradient and ensure it covers the whole screen */
     background: radial-gradient(
         85.89% 70.71% at 50% 50%,
         #172F36 0%,
         #2E444A 100%
     );
-    color: #ffffff;
     
-    /* REVERTED: Remove padding-bottom from body */
+    /* NEW: Ensures the background stays put and covers the whole screen */
+    background-attachment: fixed; 
+    background-size: cover; 
+    /* -------------------------------------- */
+    
+    color: #ffffff;
     padding-bottom: 0; 
 }
 
 /* Wrapper so logo behaves correctly */
 .swift-main-layout-wrapper {
     position: relative;
-    min-height: 100vh;
+    /* Keeping min-height: 100vh here as a secondary safeguard */
+    min-height: 100vh; 
     display: flex;
     flex-direction: column;
+    /* NEW: Safety measure to prevent horizontal scrolling */
+    overflow-x: hidden; 
 }
 
 /* New wrapper to handle max-width and desktop margins */
@@ -31,8 +44,9 @@ html, body {
     max-width: 1280px; 
     width: calc(100% - 160px); /* Desktop: 80px left, 80px right */
     margin: 0 auto;
-    /* REVERTED: Remove padding-bottom from here */
     padding-bottom: 0; 
+    /* NEW: Safety measure to prevent children from causing spillover */
+    box-sizing: border-box;
 }
 
 /* ===============================
@@ -173,6 +187,8 @@ html, body {
     flex-direction: column;
     /* Space between the Maintenance Group and Downloads Card */
     gap: 20px; 
+    /* NEW: Ensure the panel fills its grid column */
+    width: 100%;
 }
 
 /* === ONE LARGE RECTANGLE (NEW WRAPPER) === */
@@ -200,6 +216,8 @@ html, body {
     
     border: none;
     box-shadow: none;
+    /* NEW: Ensure the card can shrink correctly */
+    min-width: 0; 
 }
 
 .maintenance-card h3,
@@ -230,6 +248,9 @@ html, body {
     box-shadow: none; /* Removed box-shadow */
     padding: 24px 30px 30px; /* New Padding: 24px top, 30px sides/bottom */
     border-radius: 20px; /* Updated border-radius */
+    /* NEW: Ensure the card fills its space */
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* ===============================
@@ -389,6 +410,7 @@ html, body {
     .page-wrapper {
         /* UPDATED: 20px left and 20px right padding (40px total) */
         width: calc(100% - 40px); 
+        box-sizing: border-box; /* IMPORTANT: Include padding in width calculation */
     }
     
     .swift-dashboard-container {
@@ -511,9 +533,40 @@ html, body {
 
 
 /* ===============================
-   RESPONSIVE (≤600px) - SMALL MOBILE VIEW (Fixing Download Link Alignment)
+   RESPONSIVE (≤600px) - SMALL MOBILE VIEW (Fixing Download Link Alignment & Spillover)
 =============================== */
 @media (max-width: 600px) {
+    
+    /* --- CRITICAL WIDTH FIXES FOR SPILLOVER --- */
+    .page-wrapper {
+        /* Ensure minimal side padding: 16px left, 16px right (32px total) */
+        width: calc(100% - 32px); 
+    }
+    
+    .maintenance-group-wrapper {
+        /* Ensure the wrapper respects its parent's width */
+        width: 100%;
+        /* Reduced padding for smaller screens */
+        padding: 16px; 
+        box-sizing: border-box;
+        /* Cards revert to stacked */
+        flex-direction: column; 
+    }
+
+    .maintenance-card {
+        /* Ensure inner cards are full width */
+        width: 100%;
+        /* Reduced padding for smaller screens */
+        padding: 20px; 
+        box-sizing: border-box;
+    }
+
+    .downloads-card {
+        /* Reduced padding for smaller screens */
+        padding: 20px;
+        box-sizing: border-box;
+    }
+    /* ------------------------------------------ */
     
     /* The .detail-panel and .action-panel inherit text-align: center from the 900px query. */
     
@@ -537,15 +590,6 @@ html, body {
         padding-bottom: 0;
     }
 
-    /* TWEAK 3: Ensure Download Card stacking is clean */
-    .downloads-card {
-        padding: 20px 20px 25px; /* Slightly reduced mobile padding */
-    }
-
-    /* Maintenance cards (Annual/Depth) revert to stacked on small mobile */
-    .maintenance-group-wrapper {
-        flex-direction: column;
-    }
 
     /* DOWNLOAD LIST FIX: Links stack, but should align left, not center. */
     .download-list {
@@ -573,6 +617,7 @@ html, body {
         /* Ensures the link container itself is full width */
         width: 100%;
         max-width: 100%;
+        box-sizing: border-box;
     }
     
     /* Ensure image and text block align correctly */
