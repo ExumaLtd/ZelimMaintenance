@@ -348,13 +348,13 @@ html, body {
         max-width: none; /* Allows it to use full screen width */
         width: 100%; 
         flex-direction: row; /* Horizontal layout */
-        flex-wrap: wrap; /* Allows wrap on smaller screens */
+        flex-wrap: wrap; 
         gap: 20px; /* Gap between columns */
     }
 
-    /* MODIFIED: Individual Serial/Date items for Tablet (Content-aware width) */
+    /* MODIFIED: Individual Serial/Date items for Tablet (EQUAL width) */
     .detail-item {
-        flex: 1 1 auto; /* <-- UPDATED: Allows items to grow/shrink but starts at content width */
+        flex: 1; /* Forces equal width (1/3 each) for guaranteed horizontal alignment */
         padding-bottom: 0; 
         border-bottom: none; 
     }
@@ -425,7 +425,7 @@ html, body {
 
     /* Revert individual items to full width and re-introduce vertical padding/separators */
     .detail-item {
-        flex: none; /* Revert content-aware flex: 1 1 auto */
+        flex: none; /* Revert flex: 1 */
         padding-bottom: 12px; 
         border-bottom: 1px solid rgba(160, 172, 175, 0.20); 
     }
