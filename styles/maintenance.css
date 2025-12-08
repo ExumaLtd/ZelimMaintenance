@@ -379,9 +379,8 @@ html, body {
     .swift-dashboard-container {
         grid-template-columns: 1fr; 
         gap: 40px; 
-        /* --- UPDATE APPLIED HERE --- */
+        /* UPDATED: Increased top margin on tablet view for better spacing */
         margin-top: 40px; 
-        /* --------------------------- */
     }
     
     /* Remove the pseudo-element buffer when the logo is static/on mobile */
