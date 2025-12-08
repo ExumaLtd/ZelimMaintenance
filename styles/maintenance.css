@@ -41,8 +41,9 @@ body {
 /* Wrapper so logo behaves correctly */
 .swift-main-layout-wrapper {
     position: relative;
-    /* --- CRITICAL HEIGHT FIX: This wrapper must span the full view --- */
-    min-height: 100vh; 
+    /* --- CRITICAL HEIGHT FIX: Use DYNAMIC VIEWPORT HEIGHT (dvh) for mobile bars --- */
+    min-height: 100vh; /* Fallback for older browsers */
+    min-height: 100dvh; /* Modern solution for Dynamic Viewport Height */
     display: flex;
     flex-direction: column;
     width: 100%; 
