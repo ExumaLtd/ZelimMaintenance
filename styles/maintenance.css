@@ -56,6 +56,7 @@ body {
     width: calc(100% - 160px); 
     margin: 0 auto;
     padding-bottom: 0; 
+    background: transparent; /* Ensure transparency */
 }
 
 /* ===============================
@@ -393,6 +394,7 @@ body {
     .page-wrapper {
         width: 100%; 
         margin: 0 auto;
+        background: transparent; /* Ensure transparency */
     }
     
     .swift-dashboard-container {
@@ -522,6 +524,13 @@ body {
         width: 100%; 
         max-width: 100%; 
         margin: 0;
+        background: transparent; /* Ensure transparency */
+        /* Forces content area to fill most of the screen minus fixed elements/margins */
+        min-height: calc(100dvh - 80px);
+    }
+    
+    .swift-dashboard-container {
+        min-height: 100%; /* Take up all available height in the page-wrapper */
     }
     
     .maintenance-group-wrapper {
