@@ -352,9 +352,9 @@ html, body {
         gap: 20px; /* Gap between columns */
     }
 
-    /* MODIFIED: Individual Serial/Date items for Tablet (1/3 width, no separators) */
+    /* MODIFIED: Individual Serial/Date items for Tablet (Content-aware width) */
     .detail-item {
-        flex: 1; /* Makes all three items equal width (1/3 each) */
+        flex: 1 1 auto; /* <-- UPDATED: Allows items to grow/shrink but starts at content width */
         padding-bottom: 0; 
         border-bottom: none; 
     }
@@ -425,7 +425,7 @@ html, body {
 
     /* Revert individual items to full width and re-introduce vertical padding/separators */
     .detail-item {
-        flex: none; /* Revert flex: 1 */
+        flex: none; /* Revert content-aware flex: 1 1 auto */
         padding-bottom: 12px; 
         border-bottom: 1px solid rgba(160, 172, 175, 0.20); 
     }
