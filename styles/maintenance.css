@@ -74,8 +74,8 @@ html, body {
     gap: 16px; 
     margin-top: 20px;
     /* RESPONSIVENESS FIX: max-width allows it to shrink */
-    max-width: 305px; /* <-- UPDATED */
-    width: 100%; /* <-- NEW */
+    max-width: 305px; 
+    width: 100%; 
 }
 
 /* Wrapper for each label/value pair */
@@ -338,41 +338,49 @@ html, body {
         grid-column: span 12; 
     }
 
-    /* Important: When .detail-panel is full width on mobile, 
-       this ensures .maintenance-details doesn't stretch beyond its max-width
-       but centers itself neatly. */
+    /* Left-align .maintenance-details on tablet by removing centering margins */
     .maintenance-details {
         max-width: 305px;
         width: 100%; 
-        margin-left: auto;
-        margin-right: auto;
+        /* Removed margin-left/right auto */
     }
 
     .action-panel {
         grid-column: span 12; 
     }
     
+    /* Revert to desktop behavior (2-up) on tablet by removing flex-direction: column */
     .maintenance-group-wrapper {
-        flex-direction: column; /* Stack the two cards vertically on mobile */
+        /* flex-direction: column removed */
         gap: 20px;
         padding: 20px;
     }
     
+    /* Revert to desktop behavior (2-up) on tablet by removing flex-direction: column */
     .download-list {
-        flex-direction: column; 
+        /* flex-direction: column removed */
     }
 
-    /* Reset .download-link to be vertical on mobile for better space usage */
+    /* Keep the two PDF cards horizontal for tablet view */
     .download-link {
-        flex-direction: column; /* Back to vertical stack for mobile */
-        align-items: flex-start; 
-        gap: 6px; 
+        /* Use default flex-direction: row from above */
+        align-items: center; 
+        gap: 15px; 
         padding: 12px;
     }
     
     .download-link img {
-        margin-bottom: 6px; /* Re-apply margin for vertical stack */
+        margin-bottom: 0; 
         flex-shrink: 0; 
+    }
+
+    /* Ensure .download-link p and span still work for 2-up layout on tablet */
+    .download-link p {
+        line-height: 16px; 
+    }
+    
+    .download-link span {
+        line-height: 22px; 
     }
 
     .fixed-zelim-logo {
