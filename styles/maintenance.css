@@ -35,7 +35,8 @@ html, body {
     min-height: 100vh; 
     display: flex;
     flex-direction: column;
-    /* REVERTED: Removed overflow-x: hidden */
+    /* NEW SAFETY: Prevents content from overflowing and causing scrollbars */
+    width: 100%; 
 }
 
 /* New wrapper to handle max-width and desktop margins */
@@ -493,6 +494,8 @@ html, body {
     .maintenance-group-wrapper {
         gap: 20px;
         padding: 20px;
+        max-width: 100%; /* Safety max-width */
+        box-sizing: border-box;
     }
     
     /* Fixed logo moves to static position for mobile */
@@ -513,6 +516,7 @@ html, body {
         justify-content: center;
         margin-left: auto;
         margin-right: auto;
+        max-width: 100%; /* Safety max-width */
     }
 
     /* Download links formatting for 2-up tablet view */
@@ -522,6 +526,7 @@ html, body {
         padding: 12px;
         /* Revert to horizontal content flow */
         flex-direction: row; 
+        max-width: 100%; /* Safety max-width */
     }
     
     .download-link img {
@@ -532,19 +537,22 @@ html, body {
 
 
 /* ===============================
-   RESPONSIVE (≤600px) - SMALL MOBILE VIEW (Final Spillover Fix)
+   RESPONSIVE (≤600px) - SMALL MOBILE VIEW (20px Padding & Final Spillover Fix)
 =============================== */
 @media (max-width: 600px) {
     
     /* --- CRITICAL WIDTH FIXES FOR SPILLOVER --- */
     .page-wrapper {
-        /* FIXED: Use a simple, small, fixed padding */
-        width: calc(100% - 32px); /* 16px left + 16px right */
+        /* FIXED: 20px left + 20px right padding (40px total) */
+        width: calc(100% - 40px); 
+        max-width: 100%;
+        padding: 0; /* Page wrapper uses the width calc, not internal padding here */
     }
     
     .maintenance-group-wrapper {
         /* Ensure the wrapper respects its parent's width */
         width: 100%;
+        max-width: 100%;
         /* Reduced padding for smaller screens */
         padding: 16px; 
         box-sizing: border-box;
@@ -555,6 +563,7 @@ html, body {
     .maintenance-card {
         /* Ensure inner cards are full width */
         width: 100%;
+        max-width: 100%;
         /* Reduced padding for smaller screens */
         padding: 20px; 
         box-sizing: border-box;
@@ -564,6 +573,15 @@ html, body {
         /* Reduced padding for smaller screens */
         padding: 20px;
         box-sizing: border-box;
+        max-width: 100%;
+    }
+    
+    /* Download card title and description must be forced to wrap */
+    .downloads-card h3,
+    .downloads-card .description {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        max-width: 100%;
     }
     /* ------------------------------------------ */
     
@@ -600,11 +618,12 @@ html, body {
         margin-right: 0;
         /* Ensure it takes full width for left alignment */
         width: 100%;
+        max-width: 100%;
         /* Overrides justify-content: center for 2-up view */
         justify-content: flex-start;
     }
 
-    /* DOWNLOAD LINK FIX: Ensure the content within the link aligns left. */
+    /* DOWNLOAD LINK FIX: Ensure the content within the link aligns left and is contained. */
     .download-link {
         flex-direction: row; /* Switch back to row layout (icon beside text) */
         align-items: center; /* Vertically align icon and text */
@@ -625,15 +644,19 @@ html, body {
         flex-shrink: 0; 
     }
     
+    /* Download text wrapper container */
     .download-link div {
-        /* Ensure the text block within the link is left-aligned */
+        /* The crucial fix: ensure the text block can flex/shrink correctly */
+        flex: 1; 
+        min-width: 0; 
         text-align: left;
     }
     
-    /* Reverting the previous incorrect stacking approach for download links on mobile */
+    /* Download text elements must not cause overflow */
     .download-link p, 
     .download-link span {
         text-align: left;
         display: block;
+        word-break: break-all; /* Forces break if file name is too long */
     }
 }
