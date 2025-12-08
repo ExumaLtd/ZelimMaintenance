@@ -4,12 +4,52 @@ import Head from "next/head";
 import Link from "next/link";
 import Airtable from "airtable";
 import Image from "next/image";
+// --- IMPORTS FOR FILE SIZE ---
+import fs from 'fs';
+import path from 'path';
+// -----------------------------
 
 // ===============================
-// FETCH UNIT DETAILS
+// FILE SIZE UTILITY
+// ===============================
+const getFileSize = (filePath) => {
+  try {
+    // filePath starts from the public directory, e.g., '/downloads/file.pdf'
+    const fullPath = path.join(process.cwd(), 'public', filePath);
+    const stats = fs.statSync(fullPath);
+    const bytes = stats.size;
+
+    // Convert bytes to a human-readable format (MB, KB)
+    if (bytes === 0) return '0 Bytes';
+
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  } catch (error) {
+    console.warn(`Could not get size for file: ${filePath}`, error.message);
+    return 'Size N/A';
+  }
+};
+
+
+// ===============================
+// FETCH UNIT DETAILS & FILE SIZES (UPDATED FOR TWO UNIQUE FILES)
 // ===============================
 export async function getServerSideProps(context) {
   const publicToken = context.params.id;
+
+  // --- UNIQUE FILE PATHS ---
+  const maintenanceManualPath = '/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf';
+  const installationGuidePath = '/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf';
+
+  // Calculate sizes for both unique files
+  const fileSizes = {
+    maintenanceManualSize: getFileSize(maintenanceManualPath),
+    installationGuideSize: getFileSize(installationGuidePath),
+  };
+  // ----------------------
 
   try {
     const base = new Airtable({
@@ -53,7 +93,11 @@ export async function getServerSideProps(context) {
     };
 
     return {
-      props: { unit: unitDetails, publicToken },
+      props: { 
+        unit: unitDetails, 
+        publicToken,
+        ...fileSizes, // Pass file sizes to props
+      },
     };
   } catch (error) {
     console.error("Error fetching unit data:", error);
@@ -88,10 +132,23 @@ const getClientLogo = (companyName) => {
 // ===============================
 // PAGE COMPONENT
 // ===============================
-export default function SwiftUnitPage({ unit, publicToken }) {
+export default function SwiftUnitPage({ 
+  unit, 
+  publicToken, 
+  maintenanceManualSize,
+  installationGuideSize
+}) {
   const serialNumber = unit.serial_number;
   const companyName = unit.company;
   const logoProps = getClientLogo(companyName);
+
+  // --- UNIQUE DOWNLOAD CONSTANTS ---
+  const MAINTENANCE_PDF_PATH = "/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf";
+  const INSTALLATION_PDF_PATH = "/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf";
+
+  const MAINTENANCE_TITLE = "SWIFT maintenance manual.pdf";
+  const INSTALLATION_TITLE = "SWIFT installation guide.pdf";
+  // ---------------------------------
 
   return (
     <>
@@ -189,36 +246,36 @@ export default function SwiftUnitPage({ unit, publicToken }) {
 
                 <div className="download-list">
                   <a
-                    href="/swift-maintenance-manual.pdf"
+                    href={MAINTENANCE_PDF_PATH} // <-- CORRECT PATH
                     target="_blank"
                     className="download-link"
                   >
                     <Image
                       src="/Icons/PDF_Icon.svg"
-                      width={40} // <-- CORRECTED SIZE
-                      height={40} // <-- CORRECTED SIZE
+                      width={40} 
+                      height={40}
                       alt="PDF Icon"
                     />
                     <div>
-                      <p>SWIFT maintenance manual.pdf</p> {/* <-- CORRECTED TITLE */}
-                      <span>1.2 MB</span>
+                      <p>{MAINTENANCE_TITLE}</p> 
+                      <span>{maintenanceManualSize}</span> {/* <-- UNIQUE DYNAMIC SIZE */}
                     </div>
                   </a>
 
                   <a
-                    href="/swift-installation-guide.pdf"
+                    href={INSTALLATION_PDF_PATH} // <-- CORRECT PATH
                     target="_blank"
                     className="download-link"
                   >
                     <Image
                       src="/Icons/PDF_Icon.svg"
-                      width={40} // <-- CORRECTED SIZE
-                      height={40} // <-- CORRECTED SIZE
+                      width={40}
+                      height={40}
                       alt="PDF Icon"
                     />
                     <div>
-                      <p>SWIFT installation guide.pdf</p>
-                      <span>1.6 MB</span>
+                      <p>{INSTALLATION_TITLE}</p>
+                      <span>{installationGuideSize}</span> {/* <-- UNIQUE DYNAMIC SIZE */}
                     </div>
                   </a>
                 </div>
