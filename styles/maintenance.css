@@ -324,7 +324,7 @@ html, body {
 @media (max-width: 900px) {
 
     .page-wrapper {
-        width: calc(100% - 64px); /* <-- UPDATED: 32px left and 32px right margin */
+        width: calc(100% - 64px); /* UPDATED: 32px left and 32px right margin */
     }
     
     .swift-dashboard-container {
@@ -334,6 +334,11 @@ html, body {
         margin-bottom: 20px;
     }
 
+    /* NEW: Forces "maintenance portal" onto a new line on tablet/mobile */
+    .portal-title .break-point {
+        display: block; 
+    }
+    
     .detail-panel {
         grid-column: span 12; 
     }
@@ -342,7 +347,6 @@ html, body {
     .maintenance-details {
         max-width: 305px;
         width: 100%; 
-        /* Removed margin-left/right auto */
     }
 
     .action-panel {
@@ -351,19 +355,17 @@ html, body {
     
     /* Revert to desktop behavior (2-up) on tablet by removing flex-direction: column */
     .maintenance-group-wrapper {
-        /* flex-direction: column removed */
         gap: 20px;
         padding: 20px;
     }
     
     /* Revert to desktop behavior (2-up) on tablet by removing flex-direction: column */
     .download-list {
-        /* flex-direction: column removed */
+        /* No change needed here, as it inherits row from above */
     }
 
     /* Keep the two PDF cards horizontal for tablet view */
     .download-link {
-        /* Use default flex-direction: row from above */
         align-items: center; 
         gap: 15px; 
         padding: 12px;
