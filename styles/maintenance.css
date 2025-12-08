@@ -240,6 +240,13 @@ html, body {
     transition: background-color 0.2s;
 }
 
+/* --- HOVER EFFECT ADDED HERE --- */
+.download-link:hover {
+    background: #45595E; /* NEW HOVER BACKGROUND COLOR */
+    cursor: pointer;
+}
+/* ------------------------------- */
+
 /* Image icon inside the link */
 .download-link img {
     /* Reset vertical margin since we are in a row layout */
@@ -259,8 +266,8 @@ html, body {
 /* File size text */
 .download-link span {
     color: #A0ACAF; 
-    font-size: 14px; /* <-- CHANGED from 13px */
-    line-height: 22px; /* <-- CHANGED from 16px */
+    font-size: 14px; 
+    line-height: 22px; 
     margin-top: 0;
     display: block;
 }
