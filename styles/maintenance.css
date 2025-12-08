@@ -14,8 +14,8 @@ html, body {
     );
     color: #ffffff;
     
-    /* DEFINITIVE FIX: ADD PADDING TO THE BODY TO CREATE SCROLL BUFFER (30px logo + 50px margin = 80px) */
-    padding-bottom: 80px; 
+    /* REVERTED: Remove padding-bottom from body */
+    padding-bottom: 0; 
 }
 
 /* Wrapper so logo behaves correctly */
@@ -31,7 +31,8 @@ html, body {
     max-width: 1280px; 
     width: calc(100% - 160px); /* Desktop: 80px left, 80px right */
     margin: 0 auto;
-    /* Padding removed from here - now on <body> */
+    /* REVERTED: Remove padding-bottom from here */
+    padding-bottom: 0; 
 }
 
 /* ===============================
@@ -45,8 +46,36 @@ html, body {
     width: 100%;
     /* Updated top margin to 60px */
     margin-top: 60px; 
-    /* margin-bottom removed previously */
+    
+    /* ANCHOR: Base bottom margin for content (for when logo is STATIC/mobile) */
+    margin-bottom: 40px; 
+    
+    /* NEW FIX: Required for the ::after pseudo-element to work correctly */
+    position: relative;
 }
+
+/* --- THE DEFINITIVE FIX: Pseudo-element to reserve FIXED logo space (Desktop only) --- */
+.swift-dashboard-container::after {
+    /* Required properties for a pseudo-element */
+    content: "";
+    display: block; 
+    
+    /* Position it below the content */
+    position: absolute; 
+    bottom: -80px; /* Position 80px below the container */
+    left: 0;
+    right: 0;
+    
+    /* Set the height of the safe zone (Logo Height 30px + Margin 50px = 80px) */
+    height: 80px; 
+    
+    /* Ensure it doesn't interrupt grid flow */
+    grid-column: 1 / -1; 
+    
+    /* This element forces the container's height to extend, making the scroll appear below the fixed logo */
+}
+/* ---------------------------------------------------------------------------------- */
+
 
 /* ===============================
    LEFT PANEL (Detail Panel) - Spans 4 columns
@@ -292,19 +321,11 @@ html, body {
 
 
 /* ===============================
-   SPACER (REMOVED - Use padding on body instead)
-=============================== */
-.zelim-spacer {
-    height: 0; 
-}
-
-
-/* ===============================
    FIXED LOGO (POSITIONED AT BOTTOM: 50PX)
 =============================== */
 .fixed-zelim-logo {
     position: fixed;
-    /* UPDATED: New bottom margin is 50px */
+    /* Logo bottom margin is 50px */
     bottom: 50px; 
     left: 50%;
     transform: translateX(-50%);
@@ -337,9 +358,10 @@ html, body {
         margin-top: 40px;
         margin-bottom: 40px; 
     }
-    /* IMPORTANT: Remove the padding from <body> when logo is static */
-    body {
-        padding-bottom: 0 !important; 
+    
+    /* Remove the pseudo-element buffer when the logo is static/on short screens */
+    .swift-dashboard-container::after {
+        display: none; 
     }
 }
 
@@ -357,7 +379,12 @@ html, body {
         grid-template-columns: 1fr; 
         gap: 40px; 
         margin-top: 20px;
-        margin-bottom: 0; 
+        /* margin-bottom: 40px is inherited and fine for static logo */
+    }
+    
+    /* Remove the pseudo-element buffer when the logo is static/on mobile */
+    .swift-dashboard-container::after {
+        display: none; 
     }
 
     /* Forces "maintenance portal" onto a new line on tablet/mobile */
@@ -407,16 +434,11 @@ html, body {
         position: static;
         transform: none;
         margin-top: 40px;
-        margin-bottom: 40px; /* RE-ADDED MARGIN FOR STATIC LOGO */
+        margin-bottom: 40px; /* STATIC LOGO MARGIN */
         text-align: center;
         opacity: 1;
         top: auto;
         right: auto;
-    }
-
-    /* IMPORTANT: Remove the padding from <body> when logo is static on mobile */
-    body {
-        padding-bottom: 0 !important; 
     }
     
     /* Download links remain 2-up on tablet */
