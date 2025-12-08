@@ -195,12 +195,12 @@ export default function SwiftUnitPage({ unit, publicToken }) {
                   >
                     <Image
                       src="/Icons/PDF_Icon.svg"
-                      width={24}
-                      height={24}
+                      width={40} // <-- CORRECTED SIZE
+                      height={40} // <-- CORRECTED SIZE
                       alt="PDF Icon"
                     />
                     <div>
-                      <p>SWIFT Maintenance manual.pdf</p>
+                      <p>SWIFT maintenance manual.pdf</p> {/* <-- CORRECTED TITLE */}
                       <span>1.2 MB</span>
                     </div>
                   </a>
@@ -212,8 +212,8 @@ export default function SwiftUnitPage({ unit, publicToken }) {
                   >
                     <Image
                       src="/Icons/PDF_Icon.svg"
-                      width={24}
-                      height={24}
+                      width={40} // <-- CORRECTED SIZE
+                      height={40} // <-- CORRECTED SIZE
                       alt="PDF Icon"
                     />
                     <div>
