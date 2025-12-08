@@ -26,7 +26,7 @@ html, body {
 /* New wrapper to handle max-width and desktop margins */
 .page-wrapper {
     max-width: 1280px; 
-    width: calc(100% - 160px); 
+    width: calc(100% - 160px); /* Desktop: 80px left, 80px right */
     margin: 0 auto;
 }
 
@@ -324,7 +324,7 @@ html, body {
 @media (max-width: 900px) {
 
     .page-wrapper {
-        width: calc(100% - 40px); 
+        width: calc(100% - 64px); /* <-- UPDATED: 32px left and 32px right margin */
     }
     
     .swift-dashboard-container {
