@@ -100,7 +100,6 @@ export default function SwiftUnitPage({ unit, publicToken }) {
       </Head>
 
       <div className="swift-main-layout-wrapper">
-        
         <div className="page-wrapper">
           <div className="swift-dashboard-container">
             {/* LEFT PANEL */}
@@ -147,10 +146,9 @@ export default function SwiftUnitPage({ unit, publicToken }) {
                 
                 {/* ANNUAL CARD (INNER SECTION 1) */}
                 <div className="maintenance-card">
-                  {/* UPDATED: Added <br /> for line break */}
                   <h3>Annual<br />maintenance</h3>
                   <p className="description">
-                    To be completed in accordance with Section 7.1.2 – Annual
+                    To be completed in accordance with Section 7.1.2 - Annual
                     Maintenance Process of the SWIFT Survivor Recovery System
                     Maintenance Manual.
                   </p>
@@ -166,7 +164,7 @@ export default function SwiftUnitPage({ unit, publicToken }) {
                 <div className="maintenance-card">
                   <h3>30-month depth maintenance</h3>
                   <p className="description">
-                    To be completed in accordance with Section 7.2.2 – 30-Month
+                    To be completed in accordance with Section 7.2.2 - 30-Month
                     Depth Maintenance Process of the SWIFT Survivor Recovery System
                     Maintenance Manual.
                   </p>
