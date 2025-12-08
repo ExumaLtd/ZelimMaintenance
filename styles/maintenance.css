@@ -39,8 +39,8 @@ html, body {
     /* Use 'gap' instead of 'grid-gap' for modern compatibility */
     gap: 20px; 
     width: 100%;
-    /* UPDATED: New top (80px) and bottom (90px) margins */
-    margin-top: 80px; 
+    /* UPDATED: Top margin changed to 70px */
+    margin-top: 70px; 
     margin-bottom: 90px;
 }
 
@@ -148,7 +148,7 @@ html, body {
     font-size: 22px;
     font-weight: 600;
     line-height: 28px;
-    /* UPDATED: Margin changed from 22px to 8px bottom */
+    /* UPDATED: Margin changed to 8px bottom */
     margin: 0 0 8px; 
 }
 
@@ -179,10 +179,10 @@ html, body {
 .maintenance-card .start-btn, 
 .maintenance-card .primary-btn {
     /* Layout */
-    /* UPDATED: Changed to flex and removed 100% width */
+    /* UPDATED: Changed to flex and max-width: fit-content */
     display: flex; 
     max-width: fit-content;
-    /* UPDATED: Padding changed from 12px to 8px top/bottom */
+    /* UPDATED: Padding changed to 8px 16px */
     padding: 8px 16px; 
     align-items: center;
     justify-content: center; 
@@ -284,7 +284,7 @@ html, body {
     opacity: 0.8;
 }
 
-/* NEW: Ensures the link wrapper is clean and clickable */
+/* Ensures the link wrapper is clean and clickable */
 .fixed-zelim-logo a {
     text-decoration: none;
     display: block; 

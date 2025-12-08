@@ -147,7 +147,8 @@ export default function SwiftUnitPage({ unit, publicToken }) {
                 
                 {/* ANNUAL CARD (INNER SECTION 1) */}
                 <div className="maintenance-card">
-                  <h3>Annual maintenance</h3>
+                  {/* UPDATED: Added <br /> for line break */}
+                  <h3>Annual<br />maintenance</h3>
                   <p className="description">
                     To be completed in accordance with Section 7.1.2 – Annual
                     Maintenance Process of the SWIFT Survivor Recovery System
