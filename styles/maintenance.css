@@ -44,7 +44,7 @@ html, body {
     /* Use 'gap' instead of 'grid-gap' for modern compatibility */
     gap: 20px; 
     width: 100%;
-    /* Updated top margin to 60px */
+    /* Updated top margin to 60px (Desktop) */
     margin-top: 60px; 
     
     /* ANCHOR: Base bottom margin for content (for when logo is STATIC/mobile) */
@@ -372,14 +372,16 @@ html, body {
 @media (max-width: 900px) {
 
     .page-wrapper {
-        width: calc(100% - 64px); /* 32px left and 32px right margin */
+        /* UPDATED: 20px left and 20px right padding (40px total) */
+        width: calc(100% - 40px); 
     }
     
     .swift-dashboard-container {
         grid-template-columns: 1fr; 
         gap: 40px; 
-        margin-top: 20px;
-        /* margin-bottom: 40px is inherited and fine for static logo */
+        /* --- UPDATE APPLIED HERE --- */
+        margin-top: 40px; 
+        /* --------------------------- */
     }
     
     /* Remove the pseudo-element buffer when the logo is static/on mobile */
@@ -390,6 +392,13 @@ html, body {
     /* Forces "maintenance portal" onto a new line on tablet/mobile */
     .portal-title .break-point {
         display: block; 
+    }
+    
+    /* TWEAK 1: Reduce Portal Title size on mobile */
+    .portal-title {
+        font-size: 28px; 
+        line-height: 36px;
+        margin: 0 0 24px; /* Reduced margin below title */
     }
     
     .detail-panel {
@@ -469,7 +478,8 @@ html, body {
     /* Revert details container to vertical stacking */
     .maintenance-details {
         flex-direction: column; 
-        gap: 16px; 
+        /* TWEAK 2: Increase vertical gap slightly for better separation */
+        gap: 20px; 
     }
 
     /* Revert individual items to full width and re-introduce vertical padding/separators */
@@ -483,6 +493,11 @@ html, body {
     .maintenance-details .detail-item:last-child {
         border-bottom: none;
         padding-bottom: 0;
+    }
+
+    /* TWEAK 3: Ensure Download Card stacking is clean */
+    .downloads-card {
+        padding: 20px 20px 25px; /* Slightly reduced mobile padding */
     }
 
     /* Maintenance cards (Annual/Depth) revert to stacked on small mobile */
