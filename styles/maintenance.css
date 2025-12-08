@@ -19,6 +19,9 @@ body {
     /* --- CRITICAL HEIGHT FIX: Body covers the full HTML height --- */
     height: 100%; 
     
+    /* REINFORCED FONT FAMILY SETTING */
+    font-family: 'Montserrat', sans-serif; 
+    
     /* Apply the gradient and ensure it covers the whole screen */
     background: radial-gradient(
         85.89% 70.71% at 50% 50%,
