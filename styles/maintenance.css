@@ -28,8 +28,8 @@ html, body {
     max-width: 1280px; 
     width: calc(100% - 160px); /* Desktop: 80px left, 80px right */
     margin: 0 auto;
-    /* NEW FIX: ADD BOTTOM PADDING TO RESERVE SPACE FOR THE FIXED LOGO (30px logo + 50px margin = 80px) */
-    padding-bottom: 80px; 
+    /* HIGH SPECIFICITY FIX: ADD !important to force PADDING for fixed logo clearance */
+    padding-bottom: 80px !important; 
 }
 
 /* ===============================
@@ -302,7 +302,7 @@ html, body {
 =============================== */
 .fixed-zelim-logo {
     position: fixed;
-    /* UPDATED: New bottom margin */
+    /* UPDATED: New bottom margin is 50px */
     bottom: 50px; 
     left: 50%;
     transform: translateX(-50%);
@@ -337,7 +337,7 @@ html, body {
     }
     /* IMPORTANT: Remove the padding on the page wrapper so content isn't forced down when logo is static */
     .page-wrapper {
-        padding-bottom: 0;
+        padding-bottom: 0 !important; /* IMPORTANT to override the desktop rule */
     }
 }
 
@@ -349,7 +349,7 @@ html, body {
 
     .page-wrapper {
         width: calc(100% - 64px); /* 32px left and 32px right margin */
-        padding-bottom: 40px; /* Reduce padding for mobile where content is shorter */
+        padding-bottom: 40px !important; /* Use padding for mobile content margin, needs !important here */
     }
     
     .swift-dashboard-container {
@@ -406,7 +406,7 @@ html, body {
         position: static;
         transform: none;
         margin-top: 40px;
-        margin-bottom: 0; /* The bottom margin is now handled by page-wrapper padding */
+        margin-bottom: 40px; /* RE-ADDED MARGIN FOR STATIC LOGO */
         text-align: center;
         opacity: 1;
         top: auto;
