@@ -230,9 +230,9 @@ html, body {
     /* NEW Layout: Changes the content container to a horizontal row */
     display: flex;
     padding: 12px; 
-    flex-direction: row; /* <-- CHANGED: Content flows horizontally */
-    align-items: center; /* <-- ADDED: Vertically center the icon and text block */
-    gap: 15px; /* <-- CHANGED: Increased gap between icon and text block */
+    flex-direction: row; /* Content flows horizontally */
+    align-items: center; /* Vertically center the icon and text block */
+    gap: 15px; /* Gap between icon and text block */
 
     border-radius: 8px; 
     background: #27454B; 
@@ -242,7 +242,7 @@ html, body {
 
 /* Image icon inside the link */
 .download-link img {
-    /* Reset vertical margin since we are now in a row layout */
+    /* Reset vertical margin since we are in a row layout */
     margin-bottom: 0; 
     flex-shrink: 0; /* Prevents icon from shrinking */
 }
@@ -252,7 +252,7 @@ html, body {
     color: #F7F7F7; 
     font-size: 14px;
     font-weight: 600;
-    line-height: 20px;
+    line-height: 16px; /* <-- TIGHTER LINE HEIGHT */
     margin: 0;
 }
 
@@ -260,8 +260,9 @@ html, body {
 .download-link span {
     color: #A0ACAF; 
     font-size: 13px;
-    line-height: 18px;
+    line-height: 16px; /* <-- TIGHTER LINE HEIGHT */
     margin-top: 0;
+    display: block;
 }
 
 
@@ -329,10 +330,10 @@ html, body {
 
     /* Reset .download-link to be vertical on mobile for better space usage */
     .download-link {
-        flex-direction: column; /* <-- CHANGED: Back to vertical stack for mobile */
+        flex-direction: column; /* Back to vertical stack for mobile */
         align-items: flex-start; 
-        gap: 6px; /* Reset to smaller gap */
-        padding: 12px; /* Reset padding */
+        gap: 6px; 
+        padding: 12px;
     }
     
     .download-link img {
