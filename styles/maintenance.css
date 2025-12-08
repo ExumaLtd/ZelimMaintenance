@@ -143,7 +143,7 @@ html, body {
 
 
 .detail-label {
-    /* Label typography */
+    /* Label typography (Desktop Default) */
     color: #A0ACAF;
     font-size: 14px; 
     font-weight: 500; 
@@ -211,6 +211,7 @@ html, body {
 }
 
 .description {
+    /* Description typography (Desktop Default) */
     color: #A0ACAF; 
     font-size: 14px; 
     line-height: 20px;
@@ -313,6 +314,7 @@ html, body {
 
 /* File name text */
 .download-link p {
+    /* File name typography (Desktop Default) */
     color: #F7F7F7; 
     font-size: 14px;
     font-weight: 600;
@@ -322,6 +324,7 @@ html, body {
 
 /* File size text */
 .download-link span {
+    /* File size typography (Desktop Default) */
     color: #A0ACAF; 
     font-size: 14px; 
     line-height: 22px; 
@@ -377,7 +380,7 @@ html, body {
 
 
 /* ===============================
-   RESPONSIVE (≤900px) - TABLET/LARGE PHONE VIEW
+   RESPONSIVE (≤900px) - TABLET/LARGE PHONE VIEW (Tablet Font Update)
 =============================== */
 @media (max-width: 900px) {
 
@@ -436,6 +439,28 @@ html, body {
         padding-bottom: 0;
     }
 
+    /* === FONT SIZE UPDATE (14/20 -> 16/22) for Tablet/Mobile === */
+    .detail-label,
+    .description,
+    .maintenance-card .start-btn, 
+    .maintenance-card .primary-btn,
+    .download-link span {
+        font-size: 16px; 
+        line-height: 22px; 
+    }
+    
+    .download-link p {
+        font-size: 16px;
+        line-height: 18px; /* Maintain slight difference for emphasis */
+    }
+
+    /* Update button padding to account for larger text */
+    .maintenance-card .start-btn, 
+    .maintenance-card .primary-btn {
+        padding: 10px 20px; 
+    }
+    /* ========================================================= */
+
 
     .action-panel {
         grid-column: span 12; 
@@ -479,10 +504,15 @@ html, body {
 
 
 /* ===============================
-   RESPONSIVE (≤600px) - SMALL MOBILE VIEW
-   Reverts the detail items back to vertical stacking with separators.
+   RESPONSIVE (≤600px) - SMALL MOBILE VIEW (Stacking + Padding Fix)
 =============================== */
 @media (max-width: 600px) {
+    
+    /* TWEAK: Reduce padding on the overall wrapper to ensure content fits horizontally */
+    .page-wrapper {
+        /* Mobile: 16px left and 16px right padding (32px total) */
+        width: calc(100% - 32px); 
+    }
     
     /* Revert details container to vertical stacking */
     .maintenance-details {
@@ -512,7 +542,15 @@ html, body {
     /* Maintenance cards (Annual/Depth) revert to stacked on small mobile */
     .maintenance-group-wrapper {
         flex-direction: column;
+        /* TWEAK: Reduce padding slightly for smaller screens */
+        padding: 16px; 
     }
+    
+    /* TWEAK: Reduce padding on inner maintenance cards for smaller screens */
+    .maintenance-card {
+        padding: 20px;
+    }
+
 
     /* Download links revert to stacked on small mobile */
     .download-list {
