@@ -288,13 +288,17 @@ html, body {
 
 
 /* ===============================
-   FIXED LOGO + SPACER (POSITIONED AT BOTTOM: 60PX)
+   SPACER (Controls Desktop Bottom Margin)
 =============================== */
-
 .zelim-spacer {
-    height: 0; /* SPACER REMOVED */
+    /* NEW: Height is logo height + logo bottom margin (approx 30px + 60px) */
+    height: 90px; 
 }
 
+
+/* ===============================
+   FIXED LOGO (POSITIONED AT BOTTOM: 60PX)
+=============================== */
 .fixed-zelim-logo {
     position: fixed;
     bottom: 60px; /* FINAL CONFIRMED BOTTOM POSITION */
@@ -328,6 +332,10 @@ html, body {
         /* Reapply margins when it becomes static/at the bottom of content */
         margin-top: 40px;
         margin-bottom: 40px; 
+    }
+    /* Hide the fixed spacer when the logo is not fixed */
+    .zelim-spacer {
+        height: 0 !important; 
     }
 }
 
@@ -408,7 +416,6 @@ html, body {
     }
     
     /* Fixed logo moves to static position for mobile */
-    /* NOTE: This is also overridden by max-height: 650px rule if viewport is short */
     .fixed-zelim-logo {
         position: static;
         transform: none;
@@ -420,6 +427,7 @@ html, body {
         right: auto;
     }
     
+    /* Hide the fixed spacer when the logo is not fixed */
     .zelim-spacer {
         height: 0;
     }
