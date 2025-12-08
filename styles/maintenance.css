@@ -39,7 +39,7 @@ html, body {
     /* Use 'gap' instead of 'grid-gap' for modern compatibility */
     gap: 20px; 
     width: 100%;
-    /* UPDATED: Top margin changed to 70px */
+    /* Updated top margin to 70px */
     margin-top: 70px; 
     margin-bottom: 90px;
 }
@@ -148,7 +148,7 @@ html, body {
     font-size: 22px;
     font-weight: 600;
     line-height: 28px;
-    /* UPDATED: Margin changed to 8px bottom */
+    /* Margin changed to 8px bottom */
     margin: 0 0 8px; 
 }
 
@@ -163,12 +163,13 @@ html, body {
 }
 
 .downloads-card {
+    /* UPDATED to match .maintenance-group-wrapper visual style */
     /* This remains a separate card below the maintenance group */
-    border: 1px solid rgba(255, 255, 255, 0.1); 
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
-    background: rgba(255,255,255,0.03);
-    padding: 30px;
-    border-radius: 12px;
+    background: #172F36; /* Dark Teal background */
+    border: none; /* Removed border */
+    box-shadow: none; /* Removed box-shadow */
+    padding: 20px; /* Updated padding */
+    border-radius: 20px; /* Updated border-radius */
 }
 
 /* ===============================
@@ -179,10 +180,10 @@ html, body {
 .maintenance-card .start-btn, 
 .maintenance-card .primary-btn {
     /* Layout */
-    /* UPDATED: Changed to flex and max-width: fit-content */
+    /* Changed to flex and max-width: fit-content */
     display: flex; 
     max-width: fit-content;
-    /* UPDATED: Padding changed to 8px 16px */
+    /* Padding changed to 8px 16px */
     padding: 8px 16px; 
     align-items: center;
     justify-content: center; 
