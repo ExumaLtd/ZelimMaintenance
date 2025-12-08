@@ -91,6 +91,8 @@ html, body {
     background: transparent;
     padding: 0;
     text-align: left; 
+    /* Desktop/Tablet setting: ensures no conflicting margin-bottom */
+    margin-bottom: 0; 
 }
 
 .logo-section {
@@ -380,15 +382,14 @@ html, body {
     }
 
     .page-wrapper {
-        /* FIXED: Use 100% width within the new padded body area */
         width: 100%; 
         margin: 0 auto;
     }
     
     .swift-dashboard-container {
         grid-template-columns: 1fr; 
-        /* !!! FIX APPLIED HERE: Removing the problematic grid gap for single column !!! */
-        gap: 20px; /* Revert to a safe small gap, vertical spacing handled by margins */
+        /* CORRECTED: Setting 40px gap for the vertical space between panels */
+        gap: 40px; 
         margin-top: 40px; 
     }
     
@@ -400,8 +401,8 @@ html, body {
     .detail-panel {
         grid-column: span 12;
         text-align: left; 
-        /* !!! FIX APPLIED HERE: Adding 40px margin to create the vertical space !!! */
-        margin-bottom: 20px; /* 20px grid gap + 20px margin = 40px separation */
+        /* Relying on grid gap: 40px for vertical space */
+        margin-bottom: 0; 
     }
 
     /* Centers the overall detail block */
@@ -425,7 +426,7 @@ html, body {
         display: block; 
     }
     
-    /* TWEAK 1: Reduce Portal Title size on mobile */
+    /* TWEAK 1: Reduce Portal Title size on tablet */
     .portal-title {
         font-size: 28px; 
         line-height: 36px;
@@ -547,10 +548,17 @@ html, body {
     
     .detail-panel {
         text-align: center; 
-        /* Reset margin-bottom for 600px query, spacing handled by 40px grid gap */
+        /* Relying on grid gap: 40px for vertical space */
         margin-bottom: 0; 
     }
     
+    /* TYPOGRAPHY FIX: Apply smaller heading size for mobile */
+    .portal-title {
+        font-size: 22px;
+        line-height: 28px; 
+        margin: 0 0 24px;
+    }
+
     .maintenance-details {
         flex-direction: column; 
         gap: 20px; 
