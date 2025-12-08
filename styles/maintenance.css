@@ -70,7 +70,7 @@ html, body {
 
 .maintenance-details {
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Default: Stacked vertically on desktop */
     gap: 16px; 
     margin-top: 20px;
     /* RESPONSIVENESS FIX: max-width allows it to shrink */
@@ -92,7 +92,7 @@ html, body {
     width: 100%; 
 }
 
-/* Remove bottom border and padding from the last item in the details list */
+/* Remove bottom border and padding from the last item in the details list (Desktop default) */
 .maintenance-details .detail-item:last-child {
     border-bottom: none;
     padding-bottom: 0;
@@ -319,12 +319,12 @@ html, body {
 }
 
 /* ===============================
-   RESPONSIVE (≤900px)
+   RESPONSIVE (≤900px) - TABLET/LARGE PHONE VIEW
 =============================== */
 @media (max-width: 900px) {
 
     .page-wrapper {
-        width: calc(100% - 64px); /* UPDATED: 32px left and 32px right margin */
+        width: calc(100% - 64px); /* 32px left and 32px right margin */
     }
     
     .swift-dashboard-container {
@@ -334,7 +334,7 @@ html, body {
         margin-bottom: 20px;
     }
 
-    /* NEW: Forces "maintenance portal" onto a new line on tablet/mobile */
+    /* Forces "maintenance portal" onto a new line on tablet/mobile */
     .portal-title .break-point {
         display: block; 
     }
@@ -343,28 +343,45 @@ html, body {
         grid-column: span 12; 
     }
 
-    /* Left-align .maintenance-details on tablet by removing centering margins */
+    /* MODIFIED: Detail container for Tablet (3-up horizontal) */
     .maintenance-details {
-        max-width: 305px;
+        max-width: none; /* Allows it to use full screen width */
         width: 100%; 
+        flex-direction: row; /* Horizontal layout */
+        flex-wrap: wrap; /* Allows wrap on smaller screens */
+        gap: 20px; /* Gap between columns */
     }
+
+    /* MODIFIED: Individual Serial/Date items for Tablet (1/3 width, no separators) */
+    .detail-item {
+        flex: 1; /* Makes all three items equal width (1/3 each) */
+        padding-bottom: 0; 
+        border-bottom: none; 
+    }
+    
+    /* Last child cleanup is overridden above, but keeping here for future clarity */
+    .maintenance-details .detail-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
 
     .action-panel {
         grid-column: span 12; 
     }
     
-    /* Revert to desktop behavior (2-up) on tablet by removing flex-direction: column */
+    /* Maintenance cards (Annual/Depth) remain 2-up on tablet */
     .maintenance-group-wrapper {
         gap: 20px;
         padding: 20px;
     }
     
-    /* Revert to desktop behavior (2-up) on tablet by removing flex-direction: column */
+    /* Download links remain 2-up on tablet */
     .download-list {
         /* No change needed here, as it inherits row from above */
     }
 
-    /* Keep the two PDF cards horizontal for tablet view */
+    /* Download links formatting for 2-up tablet view */
     .download-link {
         align-items: center; 
         gap: 15px; 
@@ -375,16 +392,8 @@ html, body {
         margin-bottom: 0; 
         flex-shrink: 0; 
     }
-
-    /* Ensure .download-link p and span still work for 2-up layout on tablet */
-    .download-link p {
-        line-height: 16px; 
-    }
     
-    .download-link span {
-        line-height: 22px; 
-    }
-
+    /* Fixed logo moves to static position for mobile */
     .fixed-zelim-logo {
         position: static;
         transform: none;
@@ -392,12 +401,59 @@ html, body {
         margin-bottom: 40px;
         text-align: center;
         opacity: 1;
-        /* Ensure top/right are auto on mobile */
         top: auto;
         right: auto;
     }
-
+    
     .zelim-spacer {
         height: 0;
+    }
+}
+
+
+/* ===============================
+   RESPONSIVE (≤600px) - SMALL MOBILE VIEW
+   Reverts the detail items back to vertical stacking with separators.
+=============================== */
+@media (max-width: 600px) {
+    
+    /* Revert details container to vertical stacking */
+    .maintenance-details {
+        flex-direction: column; 
+        gap: 16px; 
+    }
+
+    /* Revert individual items to full width and re-introduce vertical padding/separators */
+    .detail-item {
+        flex: none; /* Revert flex: 1 */
+        padding-bottom: 12px; 
+        border-bottom: 1px solid rgba(160, 172, 175, 0.20); 
+    }
+
+    /* Re-apply the last-child cleanup rule for the vertical stack */
+    .maintenance-details .detail-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    /* Maintenance cards (Annual/Depth) revert to stacked on small mobile */
+    .maintenance-group-wrapper {
+        flex-direction: column;
+    }
+
+    /* Download links revert to stacked on small mobile */
+    .download-list {
+        flex-direction: column;
+    }
+
+    /* Download links formatting for stacked mobile view */
+    .download-link {
+        flex-direction: column; 
+        align-items: flex-start; 
+        gap: 6px; 
+    }
+    
+    .download-link img {
+        margin-bottom: 6px; 
     }
 }
