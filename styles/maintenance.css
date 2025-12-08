@@ -148,10 +148,8 @@ html, body {
     font-size: 22px;
     font-weight: 600;
     line-height: 28px;
-    /* Reset all margins to zero and reapply only the required bottom margin */
-    margin: 0; 
-    /* Margin below heading (22px) */
-    margin-bottom: 22px; 
+    /* UPDATED: Margin changed from 22px to 8px bottom */
+    margin: 0 0 8px; 
 }
 
 .description {
@@ -181,9 +179,11 @@ html, body {
 .maintenance-card .start-btn, 
 .maintenance-card .primary-btn {
     /* Layout */
-    display: inline-flex; 
-    width: 100%;
-    padding: 12px 16px; 
+    /* UPDATED: Changed to flex and removed 100% width */
+    display: flex; 
+    max-width: fit-content;
+    /* UPDATED: Padding changed from 12px to 8px top/bottom */
+    padding: 8px 16px; 
     align-items: center;
     justify-content: center; 
     gap: 6px; 
