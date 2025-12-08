@@ -15,7 +15,7 @@ html, body {
     color: #ffffff;
 }
 
-/* Wrapper so spacer + logo behave correctly */
+/* Wrapper so logo behaves correctly */
 .swift-main-layout-wrapper {
     position: relative;
     min-height: 100vh;
@@ -28,6 +28,8 @@ html, body {
     max-width: 1280px; 
     width: calc(100% - 160px); /* Desktop: 80px left, 80px right */
     margin: 0 auto;
+    /* NEW FIX: ADD BOTTOM PADDING TO RESERVE SPACE FOR THE FIXED LOGO (30px logo + 50px margin = 80px) */
+    padding-bottom: 80px; 
 }
 
 /* ===============================
@@ -41,7 +43,7 @@ html, body {
     width: 100%;
     /* Updated top margin to 60px */
     margin-top: 60px; 
-    /* margin-bottom: 90px; REMOVED: Use .zelim-spacer instead for fixed logo clearance */
+    /* margin-bottom removed previously */
 }
 
 /* ===============================
@@ -288,11 +290,10 @@ html, body {
 
 
 /* ===============================
-   SPACER (Controls Desktop Bottom Margin)
+   SPACER (REMOVED - Use padding on .page-wrapper instead)
 =============================== */
 .zelim-spacer {
-    /* UPDATED: Height is logo height (approx 30px) + NEW bottom margin (50px) = 80px */
-    height: 80px; 
+    height: 0; 
 }
 
 
@@ -327,15 +328,16 @@ html, body {
    FIXED LOGO HEIGHT SAFETY 
 =============================== */
 @media (max-height: 650px) {
+    /* When viewport is too short, logo becomes static */
     .fixed-zelim-logo {
         position: static !important; 
         /* Reapply margins when it becomes static/at the bottom of content */
         margin-top: 40px;
         margin-bottom: 40px; 
     }
-    /* Hide the fixed spacer when the logo is not fixed */
-    .zelim-spacer {
-        height: 0 !important; 
+    /* IMPORTANT: Remove the padding on the page wrapper so content isn't forced down when logo is static */
+    .page-wrapper {
+        padding-bottom: 0;
     }
 }
 
@@ -347,13 +349,14 @@ html, body {
 
     .page-wrapper {
         width: calc(100% - 64px); /* 32px left and 32px right margin */
+        padding-bottom: 40px; /* Reduce padding for mobile where content is shorter */
     }
     
     .swift-dashboard-container {
         grid-template-columns: 1fr; 
         gap: 40px; 
         margin-top: 20px;
-        margin-bottom: 20px;
+        margin-bottom: 0; /* Margin handled by padding on page-wrapper */
     }
 
     /* Forces "maintenance portal" onto a new line on tablet/mobile */
@@ -398,6 +401,18 @@ html, body {
         padding: 20px;
     }
     
+    /* Fixed logo moves to static position for mobile */
+    .fixed-zelim-logo {
+        position: static;
+        transform: none;
+        margin-top: 40px;
+        margin-bottom: 0; /* The bottom margin is now handled by page-wrapper padding */
+        text-align: center;
+        opacity: 1;
+        top: auto;
+        right: auto;
+    }
+    
     /* Download links remain 2-up on tablet */
     .download-list {
         /* No change needed here, as it inherits row from above */
@@ -413,23 +428,6 @@ html, body {
     .download-link img {
         margin-bottom: 0; 
         flex-shrink: 0; 
-    }
-    
-    /* Fixed logo moves to static position for mobile */
-    .fixed-zelim-logo {
-        position: static;
-        transform: none;
-        margin-top: 40px;
-        margin-bottom: 40px;
-        text-align: center;
-        opacity: 1;
-        top: auto;
-        right: auto;
-    }
-    
-    /* Hide the fixed spacer when the logo is not fixed */
-    .zelim-spacer {
-        height: 0;
     }
 }
 
