@@ -196,6 +196,7 @@ html, body {
     flex: 1 1; 
     background: linear-gradient(39deg, rgba(74, 98, 104, 0.20) 12.44%, rgba(74, 98, 104, 0.00) 87.56%);
     border-radius: 10px; 
+    /* Desktop/Tablet padding */
     padding: 25px 30px 30px; 
     border: none;
     box-shadow: none;
@@ -223,6 +224,7 @@ html, body {
     background: #172F36; 
     border: none; 
     box-shadow: none; 
+    /* Desktop/Tablet padding */
     padding: 24px 30px 30px; 
     border-radius: 20px; 
     width: 100%;
@@ -521,16 +523,11 @@ html, body {
         flex-direction: column; 
     }
 
-    .maintenance-card {
+    .maintenance-card, .downloads-card {
         width: 100%;
         max-width: 100%;
-        padding: 20px; 
-        min-width: 0;
-    }
-
-    .downloads-card {
-        padding: 20px;
-        max-width: 100%;
+        /* UPDATED PADDING: Top 25, Right 30, Bottom 30, Left 30 */
+        padding: 25px 30px 30px; 
         min-width: 0;
     }
     
