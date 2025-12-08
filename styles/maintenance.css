@@ -319,6 +319,20 @@ html, body {
 }
 
 /* ===============================
+   FIXED LOGO HEIGHT SAFETY (NEW RULE)
+   Prevents logo overlap when the viewport height is too small.
+=============================== */
+@media (max-height: 650px) {
+    .fixed-zelim-logo {
+        position: static !important; 
+        /* Reapply margins when it becomes static/at the bottom of content */
+        margin-top: 40px;
+        margin-bottom: 40px; 
+    }
+}
+
+
+/* ===============================
    RESPONSIVE (≤900px) - TABLET/LARGE PHONE VIEW
 =============================== */
 @media (max-width: 900px) {
@@ -394,6 +408,7 @@ html, body {
     }
     
     /* Fixed logo moves to static position for mobile */
+    /* NOTE: This is also overridden by max-height: 650px rule if viewport is short */
     .fixed-zelim-logo {
         position: static;
         transform: none;
