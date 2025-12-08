@@ -457,7 +457,7 @@ html, body {
 
     .action-panel {
         grid-column: span 12; 
-        /* Center-aligns the buttons within the cards */
+        /* Center-aligns the titles/descriptions/buttons within the cards */
         text-align: center; 
     }
     
@@ -488,7 +488,6 @@ html, body {
     
     /* Download links remain 2-up on tablet */
     .download-list {
-        /* No change needed here, as it inherits row from above */
         /* Forces the container of the links to center within action-panel (which has text-align: center) */
         justify-content: center;
         margin-left: auto;
@@ -512,7 +511,7 @@ html, body {
 
 
 /* ===============================
-   RESPONSIVE (≤600px) - SMALL MOBILE VIEW (Center Alignment Applied)
+   RESPONSIVE (≤600px) - SMALL MOBILE VIEW (Fixing Download Link Alignment)
 =============================== */
 @media (max-width: 600px) {
     
@@ -548,23 +547,49 @@ html, body {
         flex-direction: column;
     }
 
-    /* Download links revert to stacked on small mobile */
+    /* DOWNLOAD LIST FIX: Links stack, but should align left, not center. */
     .download-list {
         flex-direction: column;
-        /* Align the stacked list itself in the center of the screen */
-        align-items: center;
+        /* Revert align-items: center from the 900px query to align the list to the left */
+        align-items: flex-start;
+        /* Remove auto margins, rely on align-items: flex-start */
+        margin-left: 0;
+        margin-right: 0;
+        /* Ensure it takes full width for left alignment */
+        width: 100%;
+        /* Overrides justify-content: center for 2-up view */
+        justify-content: flex-start;
     }
 
-    /* Download links formatting for stacked mobile view */
+    /* DOWNLOAD LINK FIX: Ensure the content within the link aligns left. */
     .download-link {
-        /* Center the internal text content */
-        text-align: center;
-        flex-direction: column; 
-        align-items: center; /* Center the image/text block */
-        gap: 6px; 
+        flex-direction: row; /* Switch back to row layout (icon beside text) */
+        align-items: center; /* Vertically align icon and text */
+        gap: 15px; /* Space between icon and text */
+        
+        /* Forces the link content to align left within the link container */
+        text-align: left; 
+        
+        /* Ensures the link container itself is full width */
+        width: 100%;
+        max-width: 100%;
     }
     
+    /* Ensure image and text block align correctly */
     .download-link img {
-        margin-bottom: 6px; 
+        margin-bottom: 0; 
+        flex-shrink: 0; 
+    }
+    
+    .download-link div {
+        /* Ensure the text block within the link is left-aligned */
+        text-align: left;
+    }
+    
+    /* Reverting the previous incorrect stacking approach for download links on mobile */
+    .download-link p, 
+    .download-link span {
+        text-align: left;
+        display: block;
     }
 }
