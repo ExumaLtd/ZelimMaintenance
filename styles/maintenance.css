@@ -523,12 +523,22 @@ body {
     .maintenance-group-wrapper {
         flex-direction: column; 
     }
-
-    .maintenance-card, .downloads-card {
+    
+    /* SEPARATING CARD STYLES FOR MOBILE PADDING CONTROL */
+    
+    .maintenance-card {
         width: 100%;
         max-width: 100%;
-        /* UPDATED PADDING: Top 25, Right 30, Bottom 30, Left 30 */
+        /* REVERTED PADDING for maintenance-card */
         padding: 25px 30px 30px; 
+        min-width: 0;
+    }
+
+    .downloads-card {
+        width: 100%;
+        max-width: 100%;
+        /* NEW PADDING: Top 15px, Right/Left 20px, Bottom 20px */
+        padding: 15px 20px 20px; 
         min-width: 0;
     }
     
