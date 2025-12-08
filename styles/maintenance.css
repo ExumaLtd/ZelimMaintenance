@@ -39,8 +39,8 @@ html, body {
     /* Use 'gap' instead of 'grid-gap' for modern compatibility */
     gap: 20px; 
     width: 100%;
-    /* Updated top margin to 70px */
-    margin-top: 70px; 
+    /* Updated top margin to 60px */
+    margin-top: 60px; /* <-- FINAL CONFIRMED TOP MARGIN */
     margin-bottom: 90px;
 }
 
@@ -274,20 +274,23 @@ html, body {
 
 
 /* ===============================
-   FIXED LOGO + SPACER
+   FIXED LOGO + SPACER (POSITIONED AT BOTTOM: 60PX)
 =============================== */
 
 .zelim-spacer {
-    height: 160px; 
+    height: 160px; /* <-- RESTORED HEIGHT TO PREVENT OVERLAP */
 }
 
 .fixed-zelim-logo {
     position: fixed;
-    bottom: 60px;
+    bottom: 60px; /* <-- FINAL CONFIRMED BOTTOM POSITION */
     left: 50%;
     transform: translateX(-50%);
     z-index: 50;
     opacity: 0.8;
+    /* Reset Top/Right from previous attempt */
+    top: auto;
+    right: auto;
 }
 
 /* Ensures the link wrapper is clean and clickable */
@@ -355,6 +358,9 @@ html, body {
         margin-bottom: 40px;
         text-align: center;
         opacity: 1;
+        /* Ensure top/right are auto on mobile */
+        top: auto;
+        right: auto;
     }
 
     .zelim-spacer {
