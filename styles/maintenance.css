@@ -40,7 +40,7 @@ html, body {
     gap: 20px; 
     width: 100%;
     /* Updated top margin to 60px */
-    margin-top: 60px; /* <-- FINAL CONFIRMED TOP MARGIN */
+    margin-top: 60px; 
     margin-bottom: 90px;
 }
 
@@ -73,6 +73,8 @@ html, body {
     flex-direction: column;
     gap: 30px; 
     margin-top: 20px;
+    /* FIXED WIDTH APPLIED HERE */
+    width: 305px; 
 }
 
 /* Wrapper for each label/value pair */
@@ -85,6 +87,8 @@ html, body {
     align-self: stretch;
     /* Separator line */
     border-bottom: 1px solid rgba(160, 172, 175, 0.20);
+    /* ITEM FILLS PARENT WIDTH */
+    width: 100%; 
 }
 
 .detail-label {
@@ -278,12 +282,12 @@ html, body {
 =============================== */
 
 .zelim-spacer {
-    height: 160px; /* <-- RESTORED HEIGHT TO PREVENT OVERLAP */
+    height: 160px; /* RESTORED HEIGHT TO PREVENT OVERLAP */
 }
 
 .fixed-zelim-logo {
     position: fixed;
-    bottom: 60px; /* <-- FINAL CONFIRMED BOTTOM POSITION */
+    bottom: 60px; /* FINAL CONFIRMED BOTTOM POSITION */
     left: 50%;
     transform: translateX(-50%);
     z-index: 50;
