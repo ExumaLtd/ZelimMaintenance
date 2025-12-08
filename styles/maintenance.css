@@ -25,7 +25,13 @@ html, body {
     /* -------------------------------------- */
     
     color: #ffffff;
-    padding-bottom: 0; 
+    /* Ensure box-sizing is border-box for easier calculation */
+    box-sizing: border-box;
+}
+
+/* Ensure all elements also inherit border-box for consistency */
+*, *::before, *::after {
+    box-sizing: inherit;
 }
 
 /* Wrapper so logo behaves correctly */
@@ -35,18 +41,16 @@ html, body {
     min-height: 100vh; 
     display: flex;
     flex-direction: column;
-    /* NEW SAFETY: Prevents content from overflowing and causing scrollbars */
     width: 100%; 
 }
 
 /* New wrapper to handle max-width and desktop margins */
 .page-wrapper {
     max-width: 1280px; 
-    width: calc(100% - 160px); /* Desktop: 80px left, 80px right */
+    /* Desktop: 80px left, 80px right */
+    width: calc(100% - 160px); 
     margin: 0 auto;
     padding-bottom: 0; 
-    /* Ensure padding is included in width calculation globally */
-    box-sizing: border-box; 
 }
 
 /* ===============================
@@ -85,8 +89,6 @@ html, body {
     
     /* Ensure it doesn't interrupt grid flow */
     grid-column: 1 / -1; 
-    
-    /* This element forces the container's height to extend, making the scroll appear below the fixed logo */
 }
 /* ---------------------------------------------------------------------------------- */
 
@@ -250,7 +252,6 @@ html, body {
     border-radius: 20px; /* Updated border-radius */
     /* NEW: Ensure the card fills its space */
     width: 100%;
-    box-sizing: border-box;
 }
 
 /* ===============================
@@ -406,11 +407,15 @@ html, body {
    RESPONSIVE (≤900px) - TABLET/LARGE PHONE VIEW (Center Alignment Applied)
 =============================== */
 @media (max-width: 900px) {
+    
+    /* TWEAK: Add 20px padding to the body for tablet view (20px left/right) */
+    body {
+        padding: 0 20px; 
+    }
 
     .page-wrapper {
-        /* UPDATED: 20px left and 20px right padding (40px total) */
-        width: calc(100% - 40px); 
-        box-sizing: border-box; 
+        /* FIXED: Use 100% width within the new padded body area */
+        width: 100%; 
     }
     
     .swift-dashboard-container {
@@ -494,8 +499,7 @@ html, body {
     .maintenance-group-wrapper {
         gap: 20px;
         padding: 20px;
-        max-width: 100%; /* Safety max-width */
-        box-sizing: border-box;
+        max-width: 100%; 
     }
     
     /* Fixed logo moves to static position for mobile */
@@ -516,7 +520,7 @@ html, body {
         justify-content: center;
         margin-left: auto;
         margin-right: auto;
-        max-width: 100%; /* Safety max-width */
+        max-width: 100%; 
     }
 
     /* Download links formatting for 2-up tablet view */
@@ -526,7 +530,7 @@ html, body {
         padding: 12px;
         /* Revert to horizontal content flow */
         flex-direction: row; 
-        max-width: 100%; /* Safety max-width */
+        max-width: 100%; 
     }
     
     .download-link img {
@@ -542,20 +546,21 @@ html, body {
 @media (max-width: 600px) {
     
     /* --- CRITICAL WIDTH FIXES FOR SPILLOVER --- */
+    
+    /* FIXED: Enforce 20px padding on the body for small mobile view */
+    body {
+        padding: 0 20px; 
+    }
+    
     .page-wrapper {
-        /* FIXED: 20px left + 20px right padding (40px total) */
-        width: calc(100% - 40px); 
-        max-width: 100%;
-        padding: 0; /* Page wrapper uses the width calc, not internal padding here */
+        /* FIXED: Now takes 100% of the space *inside* the padded body */
+        width: 100%; 
+        max-width: 100%; 
+        /* Remove any horizontal margin/padding calculation here */
+        margin: 0;
     }
     
     .maintenance-group-wrapper {
-        /* Ensure the wrapper respects its parent's width */
-        width: 100%;
-        max-width: 100%;
-        /* Reduced padding for smaller screens */
-        padding: 16px; 
-        box-sizing: border-box;
         /* Cards revert to stacked */
         flex-direction: column; 
     }
@@ -566,13 +571,11 @@ html, body {
         max-width: 100%;
         /* Reduced padding for smaller screens */
         padding: 20px; 
-        box-sizing: border-box;
     }
 
     .downloads-card {
         /* Reduced padding for smaller screens */
         padding: 20px;
-        box-sizing: border-box;
         max-width: 100%;
     }
     
@@ -635,7 +638,6 @@ html, body {
         /* Ensures the link container itself is full width */
         width: 100%;
         max-width: 100%;
-        box-sizing: border-box;
     }
     
     /* Ensure image and text block align correctly */
