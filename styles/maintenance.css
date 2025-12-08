@@ -252,15 +252,15 @@ html, body {
     color: #F7F7F7; 
     font-size: 14px;
     font-weight: 600;
-    line-height: 16px; /* <-- TIGHTER LINE HEIGHT */
+    line-height: 16px; 
     margin: 0;
 }
 
 /* File size text */
 .download-link span {
     color: #A0ACAF; 
-    font-size: 13px;
-    line-height: 16px; /* <-- TIGHTER LINE HEIGHT */
+    font-size: 14px; /* <-- CHANGED from 13px */
+    line-height: 22px; /* <-- CHANGED from 16px */
     margin-top: 0;
     display: block;
 }
