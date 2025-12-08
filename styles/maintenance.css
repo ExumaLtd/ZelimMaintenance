@@ -1,16 +1,23 @@
 /* ===============================
    GLOBAL LAYOUT + BACKGROUND (Definitive Full Screen Coverage)
 =============================== */
-html, body {
+html {
     /* Set Montserrat as the primary font for this page */
     font-family: 'Montserrat', sans-serif; 
+    /* Ensure box-sizing is border-box for easier calculation */
+    box-sizing: border-box;
+    /* --- CRITICAL HEIGHT FIX: Use 100% on HTML --- */
+    height: 100%;
+}
+*, *::before, *::after {
+    box-sizing: inherit;
+}
+
+body {
     margin: 0;
     padding: 0;
-    
-    /* --- DEFINITIVE FIX FOR WHITE SPACE --- */
-    /* Ensure the document height is at least the full viewport height */
-    height: 100%;
-    min-height: 100vh;
+    /* --- CRITICAL HEIGHT FIX: Body covers the full HTML height --- */
+    height: 100%; 
     
     /* Apply the gradient and ensure it covers the whole screen */
     background: radial-gradient(
@@ -19,26 +26,19 @@ html, body {
         #2E444A 100%
     );
     
-    /* Ensures the background stays put and covers the whole screen */
+    /* Ensures the background STAYS PUT and covers the whole screen */
     background-attachment: fixed; 
     background-size: cover; 
-    /* -------------------------------------- */
     
     color: #ffffff;
-    /* Ensure box-sizing is border-box for easier calculation */
-    box-sizing: border-box;
-    /* Add a fallback overflow-x: hidden to the body as a final guardrail */
+    /* Final guardrail */
     overflow-x: hidden;
-}
-
-/* Ensure all elements also inherit border-box for consistency */
-*, *::before, *::after {
-    box-sizing: inherit;
 }
 
 /* Wrapper so logo behaves correctly */
 .swift-main-layout-wrapper {
     position: relative;
+    /* --- CRITICAL HEIGHT FIX: This wrapper must span the full view --- */
     min-height: 100vh; 
     display: flex;
     flex-direction: column;
@@ -64,6 +64,7 @@ html, body {
     gap: 20px; 
     width: 100%;
     margin-top: 60px; 
+    /* Desktop/Tablet: Keep 40px margin at the bottom for content separation */
     margin-bottom: 40px; 
     position: relative;
     flex-shrink: 0; 
@@ -160,7 +161,7 @@ html, body {
 
 .detail-value {
     color: #F7F7F7; 
-    /* UPDATED: New typography styles */
+    /* Updated typography styles */
     font-size: 20px; 
     font-weight: 600; 
     line-height: 26px; 
