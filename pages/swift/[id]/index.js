@@ -194,7 +194,7 @@ export default function SwiftUnitPage({
 
               <h1 className="portal-title">
                 {companyName} <span className="break-point">maintenance portal</span> 
-              </h1> {/* <-- MODIFIED HERE */}
+              </h1>
 
               <div className="maintenance-details">
                 {/* SERIAL NUMBER ITEM */}

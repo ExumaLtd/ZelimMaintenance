@@ -97,6 +97,8 @@ html, body {
     max-width: 100%; 
     height: auto; 
     max-height: 40px; /* Set a maximum height to match Next.js Image component height prop */
+    /* Center the image itself (block element) */
+    margin: 0 auto;
 }
 /* ---------------------------------------------------- */
 
@@ -380,7 +382,7 @@ html, body {
 
 
 /* ===============================
-   RESPONSIVE (≤900px) - TABLET/LARGE PHONE VIEW (Tablet Font Update)
+   RESPONSIVE (≤900px) - TABLET/LARGE PHONE VIEW (Center Alignment Applied)
 =============================== */
 @media (max-width: 900px) {
 
@@ -400,6 +402,32 @@ html, body {
     .swift-dashboard-container::after {
         display: none; 
     }
+    
+    /* === CENTER ALIGNMENT FOR LEFT PANEL CONTENT === */
+    .detail-panel {
+        grid-column: span 12;
+        text-align: center; /* Center-aligns title, labels, and values */
+    }
+
+    /* Centers the overall detail block */
+    .maintenance-details {
+        max-width: none;
+        width: 100%;
+        /* Centers the horizontal flex container within its parent (detail-panel) */
+        margin-left: auto;
+        margin-right: auto;
+        /* Revert to row/horizontal layout for tablet */
+        flex-direction: row; 
+        flex-wrap: wrap; 
+        gap: 20px; 
+    }
+    
+    /* Forces the detail items to center their internal content */
+    .detail-item {
+        /* Overrides flex-start and forces centering */
+        align-items: center;
+    }
+    /* ============================================== */
 
     /* Forces "maintenance portal" onto a new line on tablet/mobile */
     .portal-title .break-point {
@@ -413,19 +441,6 @@ html, body {
         margin: 0 0 24px; /* Reduced margin below title */
     }
     
-    .detail-panel {
-        grid-column: span 12; 
-    }
-
-    /* MODIFIED: Detail container for Tablet (3-up horizontal) */
-    .maintenance-details {
-        max-width: none; /* Allows it to use full screen width */
-        width: 100%; 
-        flex-direction: row; /* Horizontal layout */
-        flex-wrap: wrap; 
-        gap: 20px; /* Gap between columns */
-    }
-
     /* MODIFIED: Individual Serial/Date items for Tablet (EQUAL width) */
     .detail-item {
         flex: 1; /* Forces equal width (1/3 each) for guaranteed horizontal alignment */
@@ -439,33 +454,20 @@ html, body {
         padding-bottom: 0;
     }
 
-    /* === FONT SIZE UPDATE (14/20 -> 16/22) for Tablet/Mobile === */
-    .detail-label,
-    .description,
-    .maintenance-card .start-btn, 
-    .maintenance-card .primary-btn,
-    .download-link span {
-        font-size: 16px; 
-        line-height: 22px; 
-    }
-    
-    .download-link p {
-        font-size: 16px;
-        line-height: 18px; /* Maintain slight difference for emphasis */
-    }
-
-    /* Update button padding to account for larger text */
-    .maintenance-card .start-btn, 
-    .maintenance-card .primary-btn {
-        padding: 10px 20px; 
-    }
-    /* ========================================================= */
-
 
     .action-panel {
         grid-column: span 12; 
+        /* Center-aligns the buttons within the cards */
+        text-align: center; 
     }
     
+    /* Centers the start buttons (which are block/inline-block now via text-align center on action-panel) */
+    .maintenance-card .start-btn, 
+    .maintenance-card .primary-btn {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
     /* Maintenance cards (Annual/Depth) remain 2-up on tablet */
     .maintenance-group-wrapper {
         gap: 20px;
@@ -487,6 +489,10 @@ html, body {
     /* Download links remain 2-up on tablet */
     .download-list {
         /* No change needed here, as it inherits row from above */
+        /* Forces the container of the links to center within action-panel (which has text-align: center) */
+        justify-content: center;
+        margin-left: auto;
+        margin-right: auto;
     }
 
     /* Download links formatting for 2-up tablet view */
@@ -494,6 +500,8 @@ html, body {
         align-items: center; 
         gap: 15px; 
         padding: 12px;
+        /* Revert to horizontal content flow */
+        flex-direction: row; 
     }
     
     .download-link img {
@@ -504,15 +512,11 @@ html, body {
 
 
 /* ===============================
-   RESPONSIVE (≤600px) - SMALL MOBILE VIEW (Stacking + Padding Fix)
+   RESPONSIVE (≤600px) - SMALL MOBILE VIEW (Center Alignment Applied)
 =============================== */
 @media (max-width: 600px) {
     
-    /* TWEAK: Reduce padding on the overall wrapper to ensure content fits horizontally */
-    .page-wrapper {
-        /* Mobile: 16px left and 16px right padding (32px total) */
-        width: calc(100% - 32px); 
-    }
+    /* The .detail-panel and .action-panel inherit text-align: center from the 900px query. */
     
     /* Revert details container to vertical stacking */
     .maintenance-details {
@@ -542,25 +546,21 @@ html, body {
     /* Maintenance cards (Annual/Depth) revert to stacked on small mobile */
     .maintenance-group-wrapper {
         flex-direction: column;
-        /* TWEAK: Reduce padding slightly for smaller screens */
-        padding: 16px; 
     }
-    
-    /* TWEAK: Reduce padding on inner maintenance cards for smaller screens */
-    .maintenance-card {
-        padding: 20px;
-    }
-
 
     /* Download links revert to stacked on small mobile */
     .download-list {
         flex-direction: column;
+        /* Align the stacked list itself in the center of the screen */
+        align-items: center;
     }
 
     /* Download links formatting for stacked mobile view */
     .download-link {
+        /* Center the internal text content */
+        text-align: center;
         flex-direction: column; 
-        align-items: flex-start; 
+        align-items: center; /* Center the image/text block */
         gap: 6px; 
     }
     
