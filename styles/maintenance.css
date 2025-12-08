@@ -27,6 +27,8 @@ html, body {
     color: #ffffff;
     /* Ensure box-sizing is border-box for easier calculation */
     box-sizing: border-box;
+    /* Add a fallback overflow-x: hidden to the body as a final guardrail */
+    overflow-x: hidden;
 }
 
 /* Ensure all elements also inherit border-box for consistency */
@@ -114,7 +116,7 @@ html, body {
     display: block;
     max-width: 100%; 
     height: auto; 
-    max-height: 40px; /* Set a maximum height to match Next.js Image component height prop */
+    max-height: 40px; 
     /* DESKTOP/TABLET: ALIGN LEFT (Resetting margin: 0 auto) */
     margin: 0; 
 }
@@ -559,6 +561,8 @@ html, body {
     /* FIXED: Enforce 20px padding on the body for small mobile view */
     body {
         padding: 0 20px; 
+        /* Remove the final guardrail if it was causing issues, but keeping here as a safeguard */
+        overflow-x: hidden;
     }
     
     .page-wrapper {
@@ -584,6 +588,14 @@ html, body {
     .downloads-card {
         /* Reduced padding for smaller screens */
         padding: 20px;
+        max-width: 100%;
+    }
+    
+    /* Download card title and description must be forced to wrap */
+    .downloads-card h3,
+    .downloads-card .description {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
         max-width: 100%;
     }
     
@@ -645,11 +657,13 @@ html, body {
         max-width: 100%;
     }
 
-    /* Download Link: Text inside should align left for readability, but link container centers */
+    /* Download Link: The final containment fix for spillover */
     .download-link {
         /* Ensures the link container itself is full width/centered */
         width: 100%;
         max-width: 100%;
+        /* Text inside should align left for readability, not centered */
+        text-align: left; 
     }
     
     /* Download text wrapper container */
