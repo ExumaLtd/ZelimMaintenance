@@ -100,6 +100,8 @@ html, body {
     grid-column: span 4; 
     background: transparent;
     padding: 0;
+    /* DESKTOP/TABLET: Force LEFT alignment */
+    text-align: left; 
 }
 
 .logo-section {
@@ -113,8 +115,8 @@ html, body {
     max-width: 100%; 
     height: auto; 
     max-height: 40px; /* Set a maximum height to match Next.js Image component height prop */
-    /* Center the image itself (block element) */
-    margin: 0 auto;
+    /* DESKTOP/TABLET: ALIGN LEFT (Resetting margin: 0 auto) */
+    margin: 0; 
 }
 /* ---------------------------------------------------- */
 
@@ -131,12 +133,16 @@ html, body {
 
 .maintenance-details {
     display: flex;
-    flex-direction: column; /* Default: Stacked vertically on desktop */
+    /* DESKTOP/TABLET: Stacked vertically on desktop/left-aligned */
+    flex-direction: column; 
     gap: 16px; 
     margin-top: 20px;
     /* RESPONSIVENESS FIX: max-width allows it to shrink */
     max-width: 305px; 
     width: 100%; 
+    /* DESKTOP/TABLET: ALIGN LEFT (Resetting auto margins) */
+    margin-left: 0;
+    margin-right: 0;
 }
 
 /* Wrapper for each label/value pair */
@@ -144,6 +150,7 @@ html, body {
     display: flex;
     padding-bottom: 12px;
     flex-direction: column;
+    /* DESKTOP/TABLET: Force LEFT alignment */
     align-items: flex-start;
     gap: 4px; 
     align-self: stretch;
@@ -191,6 +198,8 @@ html, body {
     gap: 20px; 
     /* NEW: Ensure the panel fills its grid column */
     width: 100%;
+    /* DESKTOP/TABLET: Force LEFT alignment for text inside */
+    text-align: left;
 }
 
 /* === ONE LARGE RECTANGLE (NEW WRAPPER) === */
@@ -262,7 +271,6 @@ html, body {
 .maintenance-card .start-btn, 
 .maintenance-card .primary-btn {
     /* Layout */
-    /* Changed to flex and max-width: fit-content */
     display: flex; 
     max-width: fit-content;
     /* Padding changed to 8px 16px */
@@ -288,6 +296,10 @@ html, body {
     text-transform: none !important; 
     
     transition: background-color 0.2s, border-color 0.2s;
+    
+    /* DESKTOP/TABLET: Remove auto margins to force LEFT alignment */
+    margin-left: 0;
+    margin-right: 0;
 }
 
 /* Hover effect for high specificity */
@@ -305,6 +317,8 @@ html, body {
     display: flex; 
     flex-direction: row; 
     gap: 15px; 
+    /* DESKTOP/TABLET: Force LEFT alignment */
+    justify-content: flex-start;
 }
 
 .download-link {
@@ -404,7 +418,7 @@ html, body {
 
 
 /* ===============================
-   RESPONSIVE (≤900px) - TABLET/LARGE PHONE VIEW (Center Alignment Applied)
+   RESPONSIVE (≤900px) - TABLET/LARGE PHONE VIEW (Left Alignment Maintained)
 =============================== */
 @media (max-width: 900px) {
     
@@ -416,6 +430,7 @@ html, body {
     .page-wrapper {
         /* FIXED: Use 100% width within the new padded body area */
         width: 100%; 
+        margin: 0 auto;
     }
     
     .swift-dashboard-container {
@@ -430,31 +445,32 @@ html, body {
         display: none; 
     }
     
-    /* === CENTER ALIGNMENT FOR LEFT PANEL CONTENT === */
+    /* === LEFT PANEL CONTENT (Tablet/900px: LEFT ALIGNMENT) === */
     .detail-panel {
         grid-column: span 12;
-        text-align: center; /* Center-aligns title, labels, and values */
+        /* FIXED: Ensure LEFT alignment is maintained */
+        text-align: left; 
     }
 
     /* Centers the overall detail block */
     .maintenance-details {
         max-width: none;
         width: 100%;
-        /* Centers the horizontal flex container within its parent (detail-panel) */
-        margin-left: auto;
-        margin-right: auto;
+        /* FIXED: Remove auto margins to force LEFT alignment */
+        margin-left: 0;
+        margin-right: 0;
         /* Revert to row/horizontal layout for tablet */
         flex-direction: row; 
         flex-wrap: wrap; 
         gap: 20px; 
     }
     
-    /* Forces the detail items to center their internal content */
+    /* Forces the detail items to LEFT align their internal content */
     .detail-item {
-        /* Overrides flex-start and forces centering */
-        align-items: center;
+        /* FIXED: Ensure LEFT alignment is maintained */
+        align-items: flex-start;
     }
-    /* ============================================== */
+    /* ========================================================= */
 
     /* Forces "maintenance portal" onto a new line on tablet/mobile */
     .portal-title .break-point {
@@ -475,24 +491,17 @@ html, body {
         border-bottom: none; 
     }
     
-    /* Last child cleanup is overridden above, but keeping here for future clarity */
-    .maintenance-details .detail-item:last-child {
-        border-bottom: none;
-        padding-bottom: 0;
-    }
-
-
     .action-panel {
         grid-column: span 12; 
-        /* Center-aligns the titles/descriptions/buttons within the cards */
-        text-align: center; 
+        /* FIXED: Ensure LEFT alignment is maintained */
+        text-align: left; 
     }
     
-    /* Centers the start buttons (which are block/inline-block now via text-align center on action-panel) */
+    /* Buttons should NOT be centered on Tablet view */
     .maintenance-card .start-btn, 
     .maintenance-card .primary-btn {
-        margin-left: auto;
-        margin-right: auto;
+        margin-left: 0;
+        margin-right: 0;
     }
 
     /* Maintenance cards (Annual/Depth) remain 2-up on tablet */
@@ -516,10 +525,10 @@ html, body {
     
     /* Download links remain 2-up on tablet */
     .download-list {
-        /* Forces the container of the links to center within action-panel (which has text-align: center) */
-        justify-content: center;
-        margin-left: auto;
-        margin-right: auto;
+        /* FIXED: Ensure LEFT alignment is maintained */
+        justify-content: flex-start;
+        margin-left: 0;
+        margin-right: 0;
         max-width: 100%; 
     }
 
@@ -541,11 +550,11 @@ html, body {
 
 
 /* ===============================
-   RESPONSIVE (≤600px) - SMALL MOBILE VIEW (20px Padding & Final Spillover Fix)
+   RESPONSIVE (≤600px) - SMALL MOBILE VIEW (20px Padding & CENTER Alignment)
 =============================== */
 @media (max-width: 600px) {
     
-    /* --- CRITICAL WIDTH FIXES FOR SPILLOVER --- */
+    /* --- MOBILE PADDING & CONTAINMENT --- */
     
     /* FIXED: Enforce 20px padding on the body for small mobile view */
     body {
@@ -553,10 +562,9 @@ html, body {
     }
     
     .page-wrapper {
-        /* FIXED: Now takes 100% of the space *inside* the padded body */
+        /* Takes 100% of the space *inside* the padded body */
         width: 100%; 
         max-width: 100%; 
-        /* Remove any horizontal margin/padding calculation here */
         margin: 0;
     }
     
@@ -579,78 +587,76 @@ html, body {
         max-width: 100%;
     }
     
-    /* Download card title and description must be forced to wrap */
-    .downloads-card h3,
-    .downloads-card .description {
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        max-width: 100%;
+    /* --- MOBILE ALIGNMENT: CENTER EVERYTHING --- */
+
+    /* Logo Section (Image): Needs auto margin to center */
+    .logo-section img {
+        margin: 0 auto; 
     }
-    /* ------------------------------------------ */
     
-    /* The .detail-panel and .action-panel inherit text-align: center from the 900px query. */
+    /* Detail Panel: CENTER ALIGNMENT */
+    .detail-panel {
+        text-align: center; 
+    }
     
-    /* Revert details container to vertical stacking */
+    /* Detail Items: CENTER ALIGNMENT */
     .maintenance-details {
         flex-direction: column; 
-        /* TWEAK 2: Increase vertical gap slightly for better separation */
         gap: 20px; 
+        /* Center the flex container */
+        margin-left: auto;
+        margin-right: auto;
     }
 
-    /* Revert individual items to full width and re-introduce vertical padding/separators */
     .detail-item {
-        flex: none; /* Revert flex: 1 */
+        /* Center the contents of each detail item */
+        align-items: center;
+        flex: none; 
         padding-bottom: 12px; 
         border-bottom: 1px solid rgba(160, 172, 175, 0.20); 
     }
 
-    /* Re-apply the last-child cleanup rule for the vertical stack */
     .maintenance-details .detail-item:last-child {
         border-bottom: none;
         padding-bottom: 0;
     }
 
-
-    /* DOWNLOAD LIST FIX: Links stack, but should align left, not center. */
-    .download-list {
-        flex-direction: column;
-        /* Revert align-items: center from the 900px query to align the list to the left */
-        align-items: flex-start;
-        /* Remove auto margins, rely on align-items: flex-start */
-        margin-left: 0;
-        margin-right: 0;
-        /* Ensure it takes full width for left alignment */
-        width: 100%;
-        max-width: 100%;
-        /* Overrides justify-content: center for 2-up view */
-        justify-content: flex-start;
-    }
-
-    /* DOWNLOAD LINK FIX: Ensure the content within the link aligns left and is contained. */
-    .download-link {
-        flex-direction: row; /* Switch back to row layout (icon beside text) */
-        align-items: center; /* Vertically align icon and text */
-        gap: 15px; /* Space between icon and text */
-        
-        /* Forces the link content to align left within the link container */
-        text-align: left; 
-        
-        /* Ensures the link container itself is full width */
-        width: 100%;
-        max-width: 100%;
+    /* Action Panel: CENTER ALIGNMENT */
+    .action-panel {
+        text-align: center;
     }
     
-    /* Ensure image and text block align correctly */
-    .download-link img {
-        margin-bottom: 0; 
-        flex-shrink: 0; 
+    /* Buttons: Needs auto margin to center */
+    .maintenance-card .start-btn, 
+    .maintenance-card .primary-btn {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Download List: CENTER ALIGNMENT */
+    .download-list {
+        flex-direction: column;
+        /* Center the list container itself */
+        align-items: center;
+        justify-content: center;
+        margin-left: auto;
+        margin-right: auto;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    /* Download Link: Text inside should align left for readability, but link container centers */
+    .download-link {
+        /* Ensures the link container itself is full width/centered */
+        width: 100%;
+        max-width: 100%;
     }
     
     /* Download text wrapper container */
     .download-link div {
-        /* The crucial fix: ensure the text block can flex/shrink correctly */
         flex: 1; 
         min-width: 0; 
+        /* FIXED: Force left alignment for the actual text */
         text-align: left;
     }
     
@@ -659,6 +665,6 @@ html, body {
     .download-link span {
         text-align: left;
         display: block;
-        word-break: break-all; /* Forces break if file name is too long */
+        word-break: break-all; 
     }
 }
