@@ -35,7 +35,7 @@ const getFileSize = (filePath) => {
 
 
 // ===============================
-// FETCH UNIT DETAILS & FILE SIZES (UPDATED FOR TWO UNIQUE FILES)
+// FETCH UNIT DETAILS & FILE SIZES
 // ===============================
 export async function getServerSideProps(context) {
   const publicToken = context.params.id;
@@ -106,21 +106,39 @@ export async function getServerSideProps(context) {
 }
 
 // ===============================
-// LOGO HANDLING
+// LOGO HANDLING (FINALIZED LOGIC)
 // ===============================
-const getClientLogo = (companyName) => {
+const getClientLogo = (companyName, serialNumber) => {
+  // 1. Changi Airport (SWI001 & SWI002)
   if (
-    companyName &&
-    (companyName.includes("Changi") || companyName.includes("Company A"))
+    serialNumber === "SWI001" ||
+    serialNumber === "SWI002" ||
+    companyName.includes("Changi")
   ) {
     return {
-      src: "/client_logos/ChangiAirport_Logo(White).svg",
+      // ✅ CORRECTED PATH
+      src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg",
       alt: `${companyName} Logo`,
       width: 150,
       height: 40,
     };
   }
 
+  // 2. Port of Milford Haven (SWI003)
+  if (
+    serialNumber === "SWI003" ||
+    companyName.includes("Milford Haven")
+  ) {
+    return {
+      // ✅ CORRECTED PATH
+      src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg",
+      alt: `${companyName} Logo`,
+      width: 150,
+      height: 40,
+    };
+  }
+
+  // 3. Default (Zelim Logo)
   return {
     src: "/logo/zelim-logo.svg",
     alt: "Zelim Logo",
@@ -140,7 +158,9 @@ export default function SwiftUnitPage({
 }) {
   const serialNumber = unit.serial_number;
   const companyName = unit.company;
-  const logoProps = getClientLogo(companyName);
+  
+  // ⚠️ IMPORTANT: Pass serialNumber to trigger the new logo logic!
+  const logoProps = getClientLogo(companyName, serialNumber);
 
   // --- UNIQUE DOWNLOAD CONSTANTS ---
   const MAINTENANCE_PDF_PATH = "/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf";

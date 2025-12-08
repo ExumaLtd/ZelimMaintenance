@@ -90,6 +90,16 @@ html, body {
     margin-bottom: 40px; 
 }
 
+/* --- LOGO VISIBILITY FIX (Essential for SVG Sizing) --- */
+.logo-section img {
+    /* Ensure the image can be seen and scaled, helpful for SVGs */
+    display: block;
+    max-width: 100%; 
+    height: auto; 
+    max-height: 40px; /* Set a maximum height to match Next.js Image component height prop */
+}
+/* ---------------------------------------------------- */
+
 .portal-title {
     /* Title typography */
     color: #FFF; 
