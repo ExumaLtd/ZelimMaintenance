@@ -91,7 +91,7 @@ html, body {
     background: transparent;
     padding: 0;
     text-align: left; 
-    /* Desktop/Tablet setting: ensures no conflicting margin-bottom */
+    /* Default spacing reset for Desktop */
     margin-bottom: 0; 
 }
 
@@ -388,8 +388,8 @@ html, body {
     
     .swift-dashboard-container {
         grid-template-columns: 1fr; 
-        /* CORRECTED: Setting 40px gap for the vertical space between panels */
-        gap: 40px; 
+        /* FIX APPLIED: Use a small, safe gap for horizontal, vertical space handled by margin-bottom */
+        gap: 20px; 
         margin-top: 40px; 
     }
     
@@ -401,8 +401,8 @@ html, body {
     .detail-panel {
         grid-column: span 12;
         text-align: left; 
-        /* Relying on grid gap: 40px for vertical space */
-        margin-bottom: 0; 
+        /* FIX APPLIED: This creates the 40px vertical space (20px margin + 20px grid gap) */
+        margin-bottom: 20px; 
     }
 
     /* Centers the overall detail block */
@@ -548,8 +548,7 @@ html, body {
     
     .detail-panel {
         text-align: center; 
-        /* Relying on grid gap: 40px for vertical space */
-        margin-bottom: 0; 
+        /* Inherits margin-bottom: 20px from 900px query, which works with 20px grid gap to total 40px */
     }
     
     /* TYPOGRAPHY FIX: Apply smaller heading size for mobile */
