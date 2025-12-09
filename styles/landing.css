@@ -8,6 +8,8 @@
   height: 100%;
   /* Ensure children don't push outside the viewport */
   overflow: hidden; 
+  /* Ensure flex children stretch to full height */
+  align-items: stretch; 
 }
 
 /* =========================================
@@ -27,7 +29,7 @@
 .landing-hero-inner {
   width: 100%;
   height: 100%; 
-  /* FIXED: Constrain height to viewport minus parent padding to prevent overflow */
+  /* FIXED: Keep the max-height constraint for robustness */
   max-height: calc(100vh - 48px); 
 
   border-radius: 20px;
@@ -61,6 +63,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 32px 56px 80px;
+  /* FIXED: Explicitly set height to 100% to fill the parent .landing-root */
+  height: 100%; 
 }
 
 .landing-main {
