@@ -79,8 +79,7 @@ body {
 
 .detail-panel {
     grid-column: span 4;
-    /* FIX: Implement the required desktop max-width constraint (305px) */
-    max-width: 305px; 
+    /* max-width: 305px; <-- REMOVED V20 FIX */
     padding: 0;
     text-align: left; 
     margin-bottom: 0;
@@ -132,6 +131,8 @@ body {
     flex-direction: column;
     gap: 16px;
     margin-top: 20px;
+    /* FIX V21: Apply the required desktop max-width constraint (305px) here */
+    max-width: 305px; 
     width: 100%; 
 }
 
@@ -364,8 +365,6 @@ body {
     
     /* Left Panel (Ensure full width) */
     .detail-panel {
-        /* Remove max-width on mobile/tablet */
-        max-width: none;
         margin-bottom: 20px;
         text-align: left;
         justify-self: stretch; 
@@ -373,13 +372,6 @@ body {
         display: block;
         position: static; 
         width: 100% !important; 
-    }
-    
-    /* Action Panel (Ensure full width) */
-    .action-panel {
-        justify-self: stretch; 
-        width: 100% !important;
-        text-align: left;
     }
     
     /* Logo Container (Left Align - No change to image fix, relies on default above) */
@@ -398,17 +390,28 @@ body {
     .portal-title .break-point {
         display: block;
     }
+    
+    /* Details section (Remove desktop max-width) */
     .maintenance-details {
+        max-width: none; 
         flex-direction: row;
         flex-wrap: wrap;
         gap: 20px;
         width: 100%; 
     }
+    
     .detail-item {
         flex: 0 1 calc(33.33% - 14px); 
         padding-bottom: 0;
         border-bottom: none;
         min-width: 100px; 
+    }
+
+    /* Action Panel (Ensure full width) */
+    .action-panel {
+        justify-self: stretch; 
+        width: 100% !important;
+        text-align: left;
     }
 
     .maintenance-group-wrapper {
@@ -491,11 +494,14 @@ body {
         font-size: 22px;
         line-height: 28px;
     }
+    
+    /* Details section (Mobile) */
     .maintenance-details {
         flex-direction: column;
         gap: 12px;
         margin: 20px auto 0;
     }
+    
     .detail-item {
         align-items: center;
         flex: none;
