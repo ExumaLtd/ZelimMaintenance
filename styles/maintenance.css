@@ -1,12 +1,13 @@
-/* ===============================
-   GLOBAL LAYOUT + BACKGROUND (Definitive Full Screen Coverage)
-=============================== */
+/* =========================================================================
+   MAINTENANCE PORTAL STYLES (maintenance.css)
+   Overrides global styles for the maintenance-specific routes.
+========================================================================= */
+
+/* --- 1. BASE AND LAYOUT --- */
+
 html {
-    /* Set Montserrat as the primary font for this page */
-    font-family: 'Montserrat', sans-serif; 
-    /* Ensure box-sizing is border-box for easier calculation */
+    font-family: 'Montserrat', sans-serif;
     box-sizing: border-box;
-    /* --- CRITICAL HEIGHT FIX: Use 100% on HTML --- */
     height: 100%;
 }
 *, *::before, *::after {
@@ -16,346 +17,286 @@ html {
 body {
     margin: 0;
     padding: 0;
-    /* --- CRITICAL HEIGHT FIX: Body covers the full HTML height --- */
-    height: 100%; 
+    height: 100%;
+    font-family: 'Montserrat', sans-serif;
     
-    /* REINFORCED FONT FAMILY SETTING */
-    font-family: 'Montserrat', sans-serif; 
-    
-    /* Apply the gradient and ensure it covers the whole screen */
+    /* Background Gradient */
     background: radial-gradient(
         85.89% 70.71% at 50% 50%,
         #172F36 0%,
         #2E444A 100%
     );
-    
-    /* Ensures the background STAYS PUT and covers the whole screen */
-    background-attachment: fixed; 
-    background-size: cover; 
+    background-attachment: fixed;
+    background-size: cover;
     
     color: #ffffff;
-    /* Final guardrail */
     overflow-x: hidden;
 }
 
-/* Wrapper so logo behaves correctly */
+/* Wrapper and Page Container */
 .swift-main-layout-wrapper {
     position: relative;
-    /* --- CRITICAL HEIGHT FIX: Use DYNAMIC VIEWPORT HEIGHT (dvh) for mobile bars --- */
-    min-height: 100vh; /* Fallback for older browsers */
-    min-height: 100dvh; /* Modern solution for Dynamic Viewport Height */
+    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
-    width: 100%; 
+    width: 100%;
 }
 
-/* New wrapper to handle max-width and desktop margins */
 .page-wrapper {
-    max-width: 1280px; 
-    /* Desktop: 80px left, 80px right */
-    width: calc(100% - 160px); 
+    max-width: 1280px;
+    width: calc(100% - 160px); /* 160px = 80px margin on each side */
     margin: 0 auto;
-    padding-bottom: 0; 
-    background: transparent; /* Ensure transparency */
+    padding-bottom: 0;
+    background: transparent;
 }
 
-/* ===============================
-   MAIN GRID LAYOUT (12 COLUMNS, 20px Gutter)
-=============================== */
+
+/* --- 2. GRID AND DASHBOARD CONTAINER --- */
+
 .swift-dashboard-container {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
-    /* Standard 20px gap for 12-column desktop view */
-    gap: 20px; 
+    gap: 20px;
     width: 100%;
-    margin-top: 60px; 
-    /* Desktop/Tablet: Keep 40px margin at the bottom for content separation */
-    margin-bottom: 40px; 
+    margin-top: 60px;
+    margin-bottom: 40px;
     position: relative;
-    flex-shrink: 0; 
+    flex-shrink: 0;
 }
 
-/* --- THE DEFINITIVE FIX: Pseudo-element to reserve FIXED logo space (Desktop only) --- */
+/* Pseudo-element for Fixed Logo spacing (Desktop only) */
 .swift-dashboard-container::after {
     content: "";
-    display: block; 
-    position: absolute; 
-    bottom: -80px; 
+    display: block;
+    position: absolute;
+    bottom: -80px;
     left: 0;
     right: 0;
-    height: 80px; 
-    grid-column: 1 / -1; 
+    height: 80px;
+    grid-column: 1 / -1;
 }
-/* ---------------------------------------------------------------------------------- */
 
 
-/* ===============================
-   LEFT PANEL (Detail Panel) - Spans 4 columns
-=============================== */
+/* --- 3. LEFT PANEL (DETAIL PANEL) --- */
+
 .detail-panel {
-    grid-column: span 4; 
-    background: transparent;
+    grid-column: span 4;
     padding: 0;
-    text-align: left; 
-    /* Default spacing reset for Desktop */
-    margin-bottom: 0; 
+    text-align: left;
+    margin-bottom: 0;
 }
 
 .logo-section {
-    margin-bottom: 40px; 
+    margin-bottom: 40px;
 }
-
 .logo-section img {
     display: block;
-    max-width: 100%; 
-    height: auto; 
-    max-height: 40px; 
-    margin: 0; 
+    max-width: 100%;
+    height: auto;
+    max-height: 40px;
+    margin: 0;
 }
 
 .portal-title {
-    color: #FFF; 
+    color: #FFF;
     font-size: 30px;
     font-weight: 600;
-    line-height: 38px; 
-    margin: 0 0 34px; 
+    line-height: 38px;
+    margin: 0 0 34px;
 }
 
-/* --- DETAIL ITEMS (Serial Number, Dates, etc.) --- */
-
+/* Detail Items */
 .maintenance-details {
     display: flex;
-    flex-direction: column; 
-    /* Default spacing for Desktop */
-    gap: 16px; 
+    flex-direction: column;
+    gap: 16px;
     margin-top: 20px;
-    max-width: 305px; 
-    width: 100%; 
-    margin-left: 0;
-    margin-right: 0;
+    max-width: 305px;
+    width: 100%;
 }
 
-/* Wrapper for each label/value pair */
 .detail-item {
     display: flex;
     padding-bottom: 12px;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 4px; 
+    gap: 4px;
     align-self: stretch;
-    /* Separator line */
     border-bottom: 1px solid rgba(160, 172, 175, 0.20);
-    width: 100%; 
 }
-
-/* Remove bottom border and padding from the last item in the details list (Desktop default) */
 .maintenance-details .detail-item:last-child {
     border-bottom: none;
     padding-bottom: 0;
 }
 
-
 .detail-label {
     color: #A0ACAF;
-    font-size: 14px; 
-    font-weight: 500; 
-    line-height: 20px; 
-    margin-top: 0;
-    margin-bottom: 0; 
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    margin: 0;
 }
 
 .detail-value {
-    color: #F7F7F7; 
-    /* Updated typography styles */
-    font-size: 20px; 
-    font-weight: 600; 
-    line-height: 26px; 
-    margin-top: 0;
-    margin-bottom: 0; 
+    color: #F7F7F7;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 26px;
+    margin: 0;
 }
 
-/* ===============================
-   ACTION PANEL (Right Panel) - Spans 8 columns
-=============================== */
+
+/* --- 4. ACTION PANEL (RIGHT PANEL) & CARDS --- */
+
 .action-panel {
-    grid-column: span 8; 
+    grid-column: span 8;
     display: flex;
     flex-direction: column;
-    gap: 20px; 
+    gap: 20px;
     width: 100%;
     text-align: left;
 }
 
-/* === ONE LARGE RECTANGLE (NEW WRAPPER) === */
 .maintenance-group-wrapper {
-    background: #172F36; 
+    background: #172F36;
     padding: 20px;
-    border-radius: 20px; 
-    width: 100%;
+    border-radius: 20px;
     display: flex;
-    gap: 20px; 
+    gap: 20px;
+    width: 100%;
 }
 
-
-/* === TWO #036274 CONTAINERS (The inner cards) === */
 .maintenance-card {
-    flex: 1 1; 
+    flex: 1 1;
     background: linear-gradient(39deg, rgba(74, 98, 104, 0.20) 12.44%, rgba(74, 98, 104, 0.00) 87.56%);
-    border-radius: 10px; 
-    /* Desktop/Tablet padding */
-    padding: 25px 30px 30px; 
-    border: none;
-    box-shadow: none;
-    min-width: 0; 
-}
-
-.maintenance-card h3,
-.downloads-card h3 {
-    color: #F7F7F7; 
-    font-size: 22px;
-    font-weight: 600;
-    line-height: 28px;
-    margin: 0 0 8px; 
-}
-
-.description {
-    color: #A0ACAF; 
-    font-size: 14px; 
-    line-height: 20px;
-    margin: 0; 
-    margin-bottom: 20px;
+    border-radius: 10px;
+    padding: 25px 30px 30px;
+    min-width: 0;
 }
 
 .downloads-card {
-    background: #172F36; 
-    border: none; 
-    box-shadow: none; 
-    /* Desktop/Tablet padding */
-    padding: 24px 30px 30px; 
-    border-radius: 20px; 
+    background: #172F36;
+    padding: 24px 30px 30px;
+    border-radius: 20px;
     width: 100%;
     min-width: 0;
 }
 
-/* ===============================
-   START BUTTON STYLES (FINAL DEFINITIVE FIX)
-=============================== */
-
-/* Combining selectors for high specificity to override global .primary-btn styles */
-.maintenance-card .start-btn, 
-.maintenance-card .primary-btn {
-    /* Layout */
-    display: flex; 
-    max-width: fit-content;
-    padding: 8px 16px; 
-    align-items: center;
-    justify-content: center; 
-    gap: 6px; 
-
-    /* Appearance & Colors */
-    border: 2px solid rgba(255, 255, 255, 0.12); 
-    border-radius: 8px; 
-    background-color: #00EADE; 
-
-    /* Typography */
-    color: #0D3037; 
-    font-size: 14px;
+.maintenance-card h3,
+.downloads-card h3 {
+    color: #F7F7F7;
+    font-size: 22px;
     font-weight: 600;
-    line-height: 20px; 
-    text-align: center;
-    text-decoration: none; 
-    text-transform: none !important; 
-    
-    transition: background-color 0.2s, border-color 0.2s;
-    
-    /* DESKTOP/TABLET: Remove auto margins to force LEFT alignment */
-    margin-left: 0;
-    margin-right: 0;
+    line-height: 28px;
+    margin: 0 0 8px;
 }
 
-/* Hover effect for high specificity */
+.description {
+    color: #A0ACAF;
+    font-size: 14px;
+    line-height: 20px;
+    margin: 0 0 20px;
+}
+
+
+/* --- 5. BUTTONS AND LINKS --- */
+
+/* Start Button Styles */
+.maintenance-card .start-btn,
+.maintenance-card .primary-btn {
+    display: flex;
+    max-width: fit-content;
+    padding: 8px 16px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    background-color: #00EADE;
+
+    color: #0D3037;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+    text-transform: none !important;
+
+    transition: background-color 0.2s, border-color 0.2s;
+    margin: 0; /* Ensures left alignment */
+}
+
 .maintenance-card .start-btn:hover,
 .maintenance-card .primary-btn:hover {
     background-color: #00D3C9;
     cursor: pointer;
 }
 
-
-/* ===============================
-   DOWNLOAD LINKS (Final Layout Confirmation)
-=============================== */
+/* Download Links */
 .download-list {
-    display: flex; 
-    flex-direction: row; 
-    gap: 15px; 
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
     justify-content: flex-start;
-    min-width: 0; 
+    min-width: 0;
 }
 
 .download-link {
-    flex: 1; 
+    flex: 1;
     display: flex;
-    padding: 12px; 
-    flex-direction: row; 
-    align-items: center; 
-    gap: 15px; 
+    padding: 12px;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
 
-    border-radius: 8px; 
-    background: #27454B; 
+    border-radius: 8px;
+    background: #27454B;
     text-decoration: none;
     transition: background-color 0.2s;
     min-width: 0;
 }
-
-/* --- HOVER EFFECT ADDED HERE --- */
 .download-link:hover {
-    background: #45595E; 
+    background: #45595E;
     cursor: pointer;
 }
-/* ------------------------------- */
 
-/* Image icon inside the link */
 .download-link img {
-    margin-bottom: 0; 
-    flex-shrink: 0; 
+    margin-bottom: 0;
+    flex-shrink: 0;
 }
 
-/* File name text */
 .download-link p {
-    color: #F7F7F7; 
+    color: #F7F7F7;
     font-size: 14px;
     font-weight: 600;
-    line-height: 16px; 
+    line-height: 16px;
     margin: 0;
 }
 
-/* File size text */
 .download-link span {
-    color: #A0ACAF; 
-    font-size: 14px; 
-    line-height: 22px; 
+    color: #A0ACAF;
+    font-size: 14px;
+    line-height: 22px;
     margin-top: 0;
     display: block;
 }
 
 
-/* ===============================
-   FIXED LOGO (POSITIONED AT BOTTOM: 50PX) - FIXED OPACITY
-=============================== */
+/* --- 6. FIXED LOGO --- */
+
 .fixed-zelim-logo {
     position: fixed;
-    bottom: 50px; 
+    bottom: 50px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 50;
-    opacity: 1; /* <-- FIXED: Set to 100% opacity */
+    opacity: 1;
     top: auto;
     right: auto;
 }
 
 .fixed-zelim-logo a {
     text-decoration: none;
-    display: block; 
+    display: block;
 }
 
 .fixed-zelim-logo img {
@@ -363,293 +304,158 @@ body {
     width: auto;
 }
 
-/* ===============================
-   FIXED LOGO HEIGHT SAFETY 
-=============================== */
+/* --- 7. MEDIA QUERIES --- */
+
+/* Logo height safety (Applies to all screens) */
 @media (max-height: 650px) {
-    /* When viewport is too short, logo becomes static */
     .fixed-zelim-logo {
-        position: static !important; 
+        position: static !important;
         margin-top: 40px;
-        margin-bottom: 40px; 
+        margin-bottom: 40px;
     }
-    
-    /* Remove the pseudo-element buffer when the logo is static/on short screens */
     .swift-dashboard-container::after {
-        display: none; 
+        display: none;
     }
 }
 
-
-/* ===============================
-   RESPONSIVE (≤900px) - TABLET/LARGE PHONE VIEW (Left Alignment Maintained)
-=============================== */
+/* Tablet/Large Phone View (max-width: 900px) */
 @media (max-width: 900px) {
-    
-    /* TWEAK: Add 20px padding to the body for tablet view (20px left/right) */
     body {
-        padding: 0 20px; 
+        padding: 0 20px;
     }
 
     .page-wrapper {
-        width: 100%; 
+        width: 100%;
         margin: 0 auto;
-        background: transparent; /* Ensure transparency */
     }
-    
+
     .swift-dashboard-container {
-        grid-template-columns: 1fr; 
-        /* FIX APPLIED: Use a small, safe gap for horizontal, vertical space handled by margin-bottom */
-        gap: 20px; 
-        margin-top: 40px; 
+        grid-template-columns: 1fr;
+        margin-top: 40px;
     }
-    
     .swift-dashboard-container::after {
-        display: none; 
+        display: none;
     }
-    
-    /* === LEFT PANEL CONTENT (Tablet/900px: LEFT ALIGNMENT) === */
+
+    /* Left Panel */
     .detail-panel {
         grid-column: span 12;
-        text-align: left; 
-        /* FIX APPLIED: This creates the 40px vertical space (20px margin + 20px grid gap) */
-        margin-bottom: 20px; 
+        margin-bottom: 20px;
     }
-
-    /* Centers the overall detail block */
-    .maintenance-details {
-        max-width: none;
-        width: 100%;
-        margin-left: 0;
-        margin-right: 0;
-        flex-direction: row; 
-        flex-wrap: wrap; 
-        gap: 20px; 
-    }
-    
-    /* Forces the detail items to LEFT align their internal content */
-    .detail-item {
-        align-items: flex-start;
-    }
-    
-    /* Forces "maintenance portal" onto a new line on tablet/mobile */
-    .portal-title .break-point {
-        display: block; 
-    }
-    
-    /* TWEAK 1: Reduce Portal Title size on tablet */
     .portal-title {
-        font-size: 28px; 
+        font-size: 28px;
         line-height: 36px;
-        margin: 0 0 24px; 
+        margin: 0 0 24px;
     }
-    
-    /* MODIFIED: Individual Serial/Date items for Tablet (EQUAL width) */
+    .portal-title .break-point {
+        display: block;
+    }
+    .maintenance-details {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
     .detail-item {
-        flex: 1; 
-        padding-bottom: 0; 
-        border-bottom: none; 
-    }
-    
-    .action-panel {
-        grid-column: span 12; 
-        text-align: left; 
-    }
-    
-    /* Buttons should NOT be centered on Tablet view */
-    .maintenance-card .start-btn, 
-    .maintenance-card .primary-btn {
-        margin-left: 0;
-        margin-right: 0;
+        flex: 1;
+        padding-bottom: 0;
+        border-bottom: none;
     }
 
-    /* Maintenance cards (Annual/Depth) remain 2-up on tablet */
+    /* Action Panel */
+    .action-panel {
+        grid-column: span 12;
+    }
     .maintenance-group-wrapper {
         gap: 20px;
         padding: 20px;
-        max-width: 100%; 
     }
-    
-    /* Fixed logo moves to static position for mobile */
+
+    /* Logo & Footer */
     .fixed-zelim-logo {
         position: static;
         transform: none;
-        margin-top: 40px;
-        margin-bottom: 40px; 
+        margin: 40px auto;
         text-align: center;
-        opacity: 1; /* <-- FIXED: Ensures 100% opacity on mobile override */
-        top: auto;
-        right: auto;
-    }
-    
-    /* Download links remain 2-up on tablet */
-    .download-list {
-        justify-content: flex-start;
-        margin-left: 0;
-        margin-right: 0;
-        max-width: 100%; 
+        opacity: 1;
     }
 
-    /* Download links formatting for 2-up tablet view */
-    .download-link {
-        align-items: center; 
-        gap: 15px; 
-        padding: 12px;
-        flex-direction: row; 
-        max-width: 100%; 
-        min-width: 0;
-    }
-    
-    .download-link img {
-        margin-bottom: 0; 
-        flex-shrink: 0; 
-    }
-
-    /* Download links formatting for 2-up tablet view */
+    /* Downloads */
     .download-link div {
-        /* This rule was missing in the original 900px block but is needed for flow */
         min-width: 0;
         flex: 1;
     }
-    
     .download-link p {
-        /* This rule was missing in the original 900px block but is needed for flow */
-        word-wrap: break-word; 
+        word-wrap: break-word;
     }
 }
 
 
-/* ===============================
-   RESPONSIVE (≤600px) - SMALL MOBILE VIEW (20px Padding & CENTER Alignment)
-=============================== */
+/* Small Mobile View (max-width: 600px) */
 @media (max-width: 600px) {
-    
-    /* --- MOBILE PADDING & CONTAINMENT --- */
-    
-    /* FIXED: Enforce 20px padding on the body for small mobile view */
+    /* Body/Wrapper */
     body {
-        padding: 0 20px; 
-        overflow-x: hidden;
+        padding: 0 20px;
     }
-    
     .page-wrapper {
-        width: 100%; 
-        max-width: 100%; 
-        margin: 0;
-        background: transparent; /* Ensure transparency */
-        /* Forces content area to fill most of the screen minus fixed elements/margins */
         min-height: calc(100dvh - 80px);
     }
     
-    .swift-dashboard-container {
-        min-height: 100%; /* Take up all available height in the page-wrapper */
-    }
-    
+    /* Action Panel & Cards */
     .maintenance-group-wrapper {
-        flex-direction: column; 
+        flex-direction: column;
     }
-    
-    /* SEPARATING CARD STYLES FOR MOBILE PADDING CONTROL */
-    
-    .maintenance-card {
-        width: 100%;
-        max-width: 100%;
-        /* REVERTED PADDING for maintenance-card */
-        padding: 25px 30px 30px; 
-        min-width: 0;
-    }
-
     .downloads-card {
-        width: 100%;
-        max-width: 100%;
-        /* NEW PADDING: Top 15px, Right/Left 20px, Bottom 20px */
-        padding: 15px 20px 20px; 
-        border-radius: 20px;
-        min-width: 0;
+        padding: 15px 20px 20px;
     }
-    
-    /* Download card title and description must be forced to wrap */
     .downloads-card h3,
     .downloads-card .description {
         word-wrap: break-word;
         overflow-wrap: break-word;
-        max-width: 100%;
     }
-    
-    /* --- MOBILE ALIGNMENT: CENTER EVERYTHING (AS REQUESTED) --- */
 
+    /* Alignment Changes (Centered) */
     .logo-section img {
-        margin: 0 auto; 
+        margin: 0 auto;
     }
-    
     .detail-panel {
-        text-align: center; 
-        /* Inherits margin-bottom: 20px from 900px query, which works with 20px grid gap to total 40px */
+        text-align: center;
     }
-    
-    /* TYPOGRAPHY FIX: Apply smaller heading size for mobile */
     .portal-title {
         font-size: 22px;
-        line-height: 28px; 
-        margin: 0 0 24px;
+        line-height: 28px;
     }
-
     .maintenance-details {
-        flex-direction: column; 
-        /* Setting gap to 12px between detail items on mobile */
-        gap: 12px; 
-        margin-left: auto;
-        margin-right: auto;
+        flex-direction: column;
+        gap: 12px;
+        margin: 20px auto 0;
     }
-
     .detail-item {
-        /* ALIGNMENT: Ensures content is centered */
         align-items: center;
-        flex: none; 
-        /* Setting bottom padding to 12px on mobile */
-        padding-bottom: 12px; 
-        border-bottom: 1px solid rgba(160, 172, 175, 0.20); 
+        flex: none;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(160, 172, 175, 0.20);
     }
-
     .action-panel {
         text-align: center;
     }
-    
-    .maintenance-card .start-btn, 
+
+    /* Buttons */
+    .maintenance-card .start-btn,
     .maintenance-card .primary-btn {
-        margin-left: auto;
-        margin-right: auto;
+        margin: 0 auto;
     }
 
-    /* Download List: Centered, but links are 100% width inside */
+    /* Downloads */
     .download-list {
         flex-direction: column;
         align-items: center;
-        justify-content: center;
-        margin-left: auto;
-        margin-right: auto;
-        width: 100%;
-        max-width: 100%;
-        min-width: 0;
     }
-
     .download-link {
         width: 100%;
-        max-width: 100%;
-        text-align: left; 
-        min-width: 0;
-    }
-    
-    .download-link div {
-        flex: 1; 
-        min-width: 0; 
         text-align: left;
     }
-    
-    .download-link p, 
+    .download-link div,
+    .download-link p,
     .download-link span {
         text-align: left;
-        display: block;
-        word-break: break-all; 
     }
 }
