@@ -1,20 +1,9 @@
 /* globals.css */
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap'); 
 
-/* ====================================================================
-   FINAL GRADIENT FIX: Guarantees gradient behind ALL safe-areas (iOS)
-   Applies gradient to HTML & BODY, removes all conflicting solid colors.
-==================================================================== */
-
 html {
-  /* Fixes iOS height reporting issue */
   height: -webkit-fill-available;
   font-family: 'Montserrat', sans-serif; 
-  
-  /* LAYER 1: Apply GRADIENT to HTML to be blended by translucent toolbars */
-  background: radial-gradient(85.89% 70.71% at 50% 50%, #172F36 0%, #2E444A 100%);
-  background-attachment: fixed;
-  background-size: cover;
 }
 
 body {
@@ -22,16 +11,14 @@ body {
   margin: 0; 
   min-height: 100vh;
   min-height: -webkit-fill-available;
-  
-  /* Applies inset padding to ensure content respects safe area */
   padding-bottom: env(safe-area-inset-bottom);
   padding-top: env(safe-area-inset-top);
   
-  /* LAYER 2: Re-apply the GRADIENT to the BODY as well, just for maximum coverage */
-  background: radial-gradient(85.89% 70.71% at 50% 50%, #172F36 0%, #2E444A 100%);
-  background-attachment: fixed;
+  /* LAYER 1: Apply GRADIENT to BODY and force it to win the cascade */
+  background: radial-gradient(85.89% 70.71% at 50% 50%, #172F36 0%, #2E444A 100%) !important;
   background-size: cover;
-
+  background-attachment: fixed;
+  
   color: #bdc4c6;
   line-height: 1.6;
 }
@@ -45,9 +32,10 @@ a {
   box-sizing: border-box;
 }
 
-/* IMPORTANT: `:root` must NOT have a background color or it will block the gradient on HTML */
+/* LAYER 2: CRITICAL SAFARI FIX - Provide a solid background color to the root 
+   for the translucent top/bottom toolbars to blend against, preventing white/grey. */
 :root {
-  /* This is now clean, relying on HTML background */
+  background-color: #172F36;
 }
 
 .fixed-zelim-logo {
