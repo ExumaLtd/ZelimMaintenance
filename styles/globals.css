@@ -91,12 +91,41 @@ a {
   cursor: not-allowed;
 }
 
-/* --- LOGO --- */
-.zelim-logo {
-    max-width: 120px;
-    height: auto;
-    opacity: 0.8;
+/* --- LOGO & FOOTER (UPDATED FOR 100% OPACITY) --- */
+
+/* * ORIGINAL CODE FOR .zelim-logo REMOVED/REPLACED:
+* .zelim-logo {
+* max-width: 120px;
+* height: auto;
+* opacity: 0.8; 
+* }
+* .zelim-logo:hover {
+* opacity: 1;
+* }
+*/
+
+/* FIXED LOGO - Ensures 100% opacity, incorporating original positioning */
+.fixed-zelim-logo {
+    position: fixed;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    opacity: 1; /* FORCES 100% OPACITY */
+    top: auto;
+    right: auto;
 }
-.zelim-logo:hover {
-    opacity: 1;
+
+/* LANDING FOOTER - Ensures 100% opacity, incorporating original properties */
+.landing-footer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 32px;
+    opacity: 1; /* FORCES 100% OPACITY */
+}
+
+/* Override any potential hover effect that tries to set lower opacity */
+.landing-footer:hover {
+    opacity: 1 !important; 
 }
