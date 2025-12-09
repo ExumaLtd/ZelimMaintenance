@@ -50,7 +50,7 @@ body {
 }
 
 
-/* --- 2. GRID AND DASHBOARD CONTAINER --- */
+/* --- 2. GRID AND DASHBOARD CONTAINER (DEFAULT) --- */
 
 .swift-dashboard-container {
     display: grid;
@@ -345,14 +345,21 @@ body {
         padding: 0 !important; 
     }
 
+    /* GUARANTEED GRID FIX: Force collapse to 1 column */
     .swift-dashboard-container {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
         margin-top: 40px; 
     }
     .swift-dashboard-container::after {
         display: none;
     }
 
+    /* GUARANTEED GRID FIX: Force panels to span full 1-column width */
+    .detail-panel,
+    .action-panel {
+        grid-column: 1 / -1 !important;
+    }
+    
     /* Left Panel (Ensure full width) */
     .detail-panel {
         margin-bottom: 20px;
@@ -475,7 +482,6 @@ body {
         justify-self: center; 
         align-self: start;
         display: block;
-        /* width: 100% !important; REMOVED (Relies on grid/justify-self) */
     }
     .portal-title {
         font-size: 22px;
