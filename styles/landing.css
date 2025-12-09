@@ -28,8 +28,8 @@
   border-radius: 20px;
   overflow: hidden;
   
-  /* DEFAULT IMAGE: The full engineer image */
-  background-image: url('../assets/images/swiftmaintenanceportal-hero.png'); 
+  /* DEFAULT IMAGE: The full engineer image (UPDATED PATH) */
+  background-image: url('/assets/images/swiftmaintenanceportal-hero.png'); 
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -37,15 +37,13 @@
 
 /* This is the class to OVERRIDE if you want a different hero */
 .landing-hero-inner.new-logo-bg {
-    /* New square logo */
-    background-image: url('../assets/images/ZelimSWIFT(Square).png');
+    /* New square logo (UPDATED PATH) */
+    background-image: url('/assets/images/ZelimSWIFT(Square).png');
     background-size: contain; 
     background-position: center;
     background-repeat: no-repeat; 
     background-color: #2e444a; /* Added safety background color */
 }
-
-/* Removed redundant .landing-hero-inner img selector */
 
 /* =========================================
    RIGHT PANEL
@@ -66,7 +64,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex: 1;
+  flex: 1 1;
 }
 
 /* =========================================
