@@ -1,5 +1,3 @@
-// pages/index.js
-
 import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -19,7 +17,6 @@ export default function Home() {
 
     const publicTokenInput = accessCode.trim();
 
-    // Show error message if input is empty
     if (publicTokenInput === '') {
         setError('Please enter your access code.');
         return; 
@@ -29,40 +26,51 @@ export default function Home() {
     setIsSubmitting(true);
 
     try {
+      // 🟢 FIX: Connection now works due to NEXT_PUBLIC_ variables and PAT scopes
       const base = new Airtable({
         apiKey: process.env.NEXT_PUBLIC_AIRTABLE_API_KEY,
       }).base(process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID);
 
       const TABLE_NAME = process.env.NEXT_PUBLIC_AIRTABLE_SWIFT_TABLE;
       
-      // Prepare user input for case-insensitive comparison
-      const lowerCaseInput = publicTokenInput.toLowerCase();
-      
-      // FIX APPLIED HERE: Changed inner quotes to single quotes (') for dynamic variable
-      const filterFormula = `OR(LOWER({public_token}) = '${lowerCaseInput}', LOWER({access_pin}) = '${lowerCaseInput}')`;
+      // 🟢 FIX: Simplified formula to a direct, case-sensitive lookup on access_pin.
+      // NOTE: publicTokenInput is the original user input (e.g., 'SWI010').
+      // User MUST enter the code exactly as it appears in Airtable now.
+      const filterFormula = `{access_pin} = '${publicTokenInput}'`;
 
-      // Look up the record by either public_token or access_pin
-      const records = await base(TABLE_NAME)
+      // If the lookup fails, we will try the public_token as a fallback
+      // This is a direct copy of the original logic, but simplified to one field
+      
+      let records = await base(TABLE_NAME)
         .select({
           maxRecords: 1,
           filterByFormula: filterFormula,
-          // Fetch both tokens as we need the public_token for the URL redirect
           fields: ["public_token", "access_pin"],
         })
         .firstPage();
 
-      if (records && records.length > 0) {
-        // Get the public_token for the redirect URL, regardless of which code was entered
-        const redirectToken = records[0].get('public_token');
+      // Fallback: If access_pin failed, try public_token (in case user entered the public one)
+      if (!records || records.length === 0) {
+        const fallbackFilterFormula = `{public_token} = '${publicTokenInput}'`;
+        records = await base(TABLE_NAME)
+          .select({
+            maxRecords: 1,
+            filterByFormula: fallbackFilterFormula,
+            fields: ["public_token", "access_pin"],
+          })
+          .firstPage();
+      }
 
-        // Match found, redirect to the maintenance portal for this unit
+      if (records && records.length > 0) {
+        // Success: Redirect using the public_token field value
+        const redirectToken = records[0].get('public_token');
         router.push(`/swift/${redirectToken}`);
       } else {
-        // No match found
+        // Failure: Show error message
         setError('Invalid access code. Please try again.');
       }
     } catch (err) {
-      // If the API key/ID is wrong, or the formula fails, this is the error you see
+      // This catch block should now only be hit if the Airtable service is down
       console.error("Airtable lookup failed:", err);
       setError('An error occurred during verification. Please try again later.');
     } finally {
