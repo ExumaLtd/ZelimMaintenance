@@ -91,7 +91,7 @@ h1.landing-title {
 }
 
 /* =========================================
-   FORM STACK (INPUT + BUTTON) - UPDATED
+   FORM STACK (INPUT + BUTTON)
 ========================================= */
 
 .form-stack {
@@ -137,8 +137,9 @@ h1.landing-title {
 
 .input-field:focus {
   outline: none;
-  /* Keeping border color the same to remove visual highlight on focus */
-  border-color: #394d54; 
+  /* FIX: Ensure the focus border matches the static border and remove any browser default box shadow/glow */
+  border-color: #394d54;
+  box-shadow: none; 
 }
 
 /* ERROR STATE */
