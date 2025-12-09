@@ -79,6 +79,8 @@ body {
 
 .detail-panel {
     grid-column: span 4;
+    /* FIX: Implement the required desktop max-width constraint (305px) */
+    max-width: 305px; 
     padding: 0;
     text-align: left; 
     margin-bottom: 0;
@@ -362,6 +364,8 @@ body {
     
     /* Left Panel (Ensure full width) */
     .detail-panel {
+        /* Remove max-width on mobile/tablet */
+        max-width: none;
         margin-bottom: 20px;
         text-align: left;
         justify-self: stretch; 
