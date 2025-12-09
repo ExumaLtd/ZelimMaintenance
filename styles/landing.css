@@ -157,7 +157,7 @@ h1.landing-title {
 }
 
 /* =========================================
-   PRIMARY BUTTON - CLEANED
+   PRIMARY BUTTON - CLEANED & FIXED
 ========================================= */
 
 .primary-btn {
@@ -172,7 +172,8 @@ h1.landing-title {
   font-weight: 600;
   color: #003336; 
   cursor: pointer;
-  text-transform: none; 
+  /* AGGRESSIVE FIX: Ensure text is NOT uppercase */
+  text-transform: none !important; 
 
   transition:
     background-color 150ms ease,
@@ -183,11 +184,7 @@ h1.landing-title {
   background: #01e6dd;
 }
 
-/* Disabled state re-added based on common necessity (optional) */
-.primary-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed; 
-}
+/* REMOVED .primary-btn:disabled block entirely to ensure full color and cursor: pointer is maintained */
 
 /* =========================================
    FOOTER LOGO
