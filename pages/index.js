@@ -38,8 +38,8 @@ export default function Home() {
       // Prepare user input for case-insensitive comparison
       const lowerCaseInput = publicTokenInput.toLowerCase();
       
-      // Construct the OR formula to check against both fields (case-insensitive)
-      const filterFormula = `OR(LOWER({public_token}) = "${lowerCaseInput}", LOWER({access_pin}) = "${lowerCaseInput}")`;
+      // FIX APPLIED HERE: Changed inner quotes to single quotes (') for dynamic variable
+      const filterFormula = `OR(LOWER({public_token}) = '${lowerCaseInput}', LOWER({access_pin}) = '${lowerCaseInput}')`;
 
       // Look up the record by either public_token or access_pin
       const records = await base(TABLE_NAME)
@@ -62,6 +62,7 @@ export default function Home() {
         setError('Invalid access code. Please try again.');
       }
     } catch (err) {
+      // If the API key/ID is wrong, or the formula fails, this is the error you see
       console.error("Airtable lookup failed:", err);
       setError('An error occurred during verification. Please try again later.');
     } finally {
