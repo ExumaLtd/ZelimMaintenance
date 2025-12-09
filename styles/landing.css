@@ -100,7 +100,7 @@ h1.landing-title {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 10px;
+  gap: 20px; /* <--- UPDATED TO 20px */
 }
 
 .input-wrapper {
@@ -117,7 +117,6 @@ h1.landing-title {
   border-radius: 8px;
   border: 1px solid #394d54;
   background: #4f6167;
-  /* Applying font family to input */
   font-family: Montserrat;
   font-size: 16px;
   line-height: 24px;
@@ -158,7 +157,7 @@ h1.landing-title {
 }
 
 /* =========================================
-   PRIMARY BUTTON - FONT FIX APPLIED
+   PRIMARY BUTTON - FINAL STYLING
 ========================================= */
 
 .primary-btn {
@@ -170,7 +169,7 @@ h1.landing-title {
   border: 2px solid hsla(0,0%,100%,.12);
   background-color: #01fff6;
   color: #0d3037;
-  /* FIX: Apply !important to font-family to override any remaining global default */
+  /* FIX: Ensure Montserrat is applied */
   font-family: Montserrat !important; 
   font-size: 16px; 
   line-height: 24px; 
