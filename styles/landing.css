@@ -6,15 +6,10 @@
   display: flex;
   min-height: 100vh;
   height: 100%;
-  /* Ensure children don't push outside the viewport */
-  overflow: hidden; 
-  /* Ensure flex children stretch to full height */
-  align-items: stretch; 
 }
 
 /* =========================================
    LEFT HERO (IMAGE)
-   (Optimized for CSS background application)
 ========================================= */
 
 .landing-hero {
@@ -23,37 +18,19 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  /* NEW FIX: Explicitly set height using viewport units 
-     to ensure it respects the main container's height. 
-     This is the 50% column height. */
-  height: 100vh; 
 }
 
-/* Container for the image/background itself */
 .landing-hero-inner {
   width: 100%;
-  height: 100%; 
-  /* This height is now guaranteed by its parent, .landing-hero, 
-     which is fixed to 100vh height */
-  
+  height: 100%;
   border-radius: 20px;
   overflow: hidden;
-  
-  /* DEFAULT IMAGE: The full engineer image (Path Fixed) */
-  background-image: url('/assets/images/swiftmaintenanceportal-hero.png'); 
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
 }
 
-/* This is the class to OVERRIDE if you want a different hero */
-.landing-hero-inner.new-logo-bg {
-    /* New square logo (Path Fixed) */
-    background-image: url('/assets/images/ZelimSWIFT(Square).png');
-    background-size: contain; 
-    background-position: center;
-    background-repeat: no-repeat; 
-    background-color: #2e444a; 
+.landing-hero-inner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* =========================================
@@ -67,8 +44,6 @@
   align-items: center;
   justify-content: space-between;
   padding: 32px 56px 80px;
-  /* Fixed: Explicitly set height to 100% to fill the parent .landing-root */
-  height: 100%; 
 }
 
 .landing-main {
@@ -77,7 +52,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex: 1 1;
+  flex: 1;
 }
 
 /* =========================================
