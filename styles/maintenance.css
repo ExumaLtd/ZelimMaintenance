@@ -3,14 +3,12 @@
    Overrides global styles for the maintenance-specific routes.
 ========================================================================= */
 
-/* --- 1. BASE AND LAYOUT --- */
+/* --- 1. BASE AND LAYOUT (No changes) --- */
 
 html {
     font-family: 'Montserrat', sans-serif;
     box-sizing: border-box;
     height: 100%;
-    
-    /* FIXED: BACKGROUND MOVED TO HTML FOR FULL VIEWPORT COVERAGE */
     background: radial-gradient(
         85.89% 70.71% at 50% 50%,
         #172F36 0%,
@@ -27,16 +25,13 @@ body {
     margin: 0;
     padding: 0;
     height: 100%;
-    
-    /* FIXED: Background removed, relies on HTML */
     background: transparent; 
-    
     font-family: 'Montserrat', sans-serif; 
     color: #ffffff;
     overflow-x: hidden;
 }
 
-/* Wrapper and Page Container */
+/* Wrapper and Page Container (No changes) */
 .swift-main-layout-wrapper {
     position: relative;
     min-height: 100vh;
@@ -55,7 +50,7 @@ body {
 }
 
 
-/* --- 2. GRID AND DASHBOARD CONTAINER --- */
+/* --- 2. GRID AND DASHBOARD CONTAINER (No changes) --- */
 
 .swift-dashboard-container {
     display: grid;
@@ -68,7 +63,6 @@ body {
     flex-shrink: 0;
 }
 
-/* Pseudo-element for Fixed Logo spacing (Desktop only) */
 .swift-dashboard-container::after {
     content: "";
     display: block;
@@ -86,50 +80,38 @@ body {
 .detail-panel {
     grid-column: span 4;
     padding: 0;
-    /* Desktop alignment for inline content */
     text-align: left; 
     margin-bottom: 0;
-    /* FIX: Ensure the Grid Item aligns itself to the start of its column */
     justify-self: start;
     align-self: start;
-    /* Ensure it behaves like a standard block wrapper in its column */
     display: block;
-    
-    /* REVERT: Ensure normal flow */
     position: static; 
 }
 
-/* DESKTOP LOGO SCALING (250px x 40px max) */
+/* DESKTOP LOGO CONTAINER */
 .logo-section {
-    /* 1. REQUIRED for Next.js 'fill' prop to work */
     position: relative; 
-    
-    /* 2. Set the MAXIMUM dimensions for the entire logo area */
     max-width: 250px;
     max-height: 40px;
-    
-    /* 3. Essential: Set explicit size based on the new max values to reserve space */
     width: 250px; 
     height: 40px;
-    
-    /* REVERT: Use simple margin and rely on justify-self: start for container alignment */
     display: block;
     margin: 0 0 40px 0 !important;
 }
 
-/* The actual image element inside the logo-section div (.client-logo in JS) */
+/* DESKTOP LOGO IMAGE FIX (LEFT ALIGN) */
 .logo-section img {
-    /* DEFAULT DESKTOP/TABLET FIX: Pin the absolutely positioned image to the left */
+    /* REQUIRED NEXT.JS OVERRIDES FOR LEFT ALIGNMENT */
     position: absolute !important;
     left: 0 !important;
-    right: auto !important;
-    width: auto !important; 
+    right: auto !important; /* Pin left */
+    width: auto !important; /* Don't stretch */
     height: 100% !important;
     object-fit: contain !important;
     top: 0 !important; 
     bottom: 0 !important;
     
-    /* Clean up old flow rules */
+    /* Clean up flow rules */
     display: block;
     max-width: 100%; 
     max-height: 100%;
@@ -142,11 +124,10 @@ body {
     font-size: 30px;
     font-weight: 600;
     line-height: 38px;
-    /* REVERT: Restore original margin */
     margin: 0 0 34px; 
 }
 
-/* Detail Items */
+/* Detail Items (No changes) */
 .maintenance-details {
     display: flex;
     flex-direction: column;
@@ -186,7 +167,7 @@ body {
 }
 
 
-/* --- 4. ACTION PANEL (RIGHT PANEL) & CARDS --- */
+/* --- 4. ACTION PANEL (RIGHT PANEL) & CARDS (No major changes) --- */
 
 .action-panel {
     grid-column: span 8;
@@ -239,9 +220,8 @@ body {
 }
 
 
-/* --- 5. BUTTONS AND LINKS --- */
+/* --- 5. BUTTONS AND LINKS (No changes) --- */
 
-/* Start Button Styles - UPDATED COLORS */
 .maintenance-card .start-btn,
 .maintenance-card .primary-btn {
     display: flex;
@@ -250,31 +230,24 @@ body {
     align-items: center;
     justify-content: center;
     gap: 6px;
-
     border: 2px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
-    /* 1. NEW BUTTON COLOR */
     background-color: #01FFF6; 
-
-    /* FONT COLOR REMAINS #0D3037 */
     color: #0D3037;
     font-size: 14px;
     font-weight: 600;
     line-height: 20px;
     text-transform: none !important;
-
     transition: background-color 0.2s, border-color 0.2s;
     margin: 0; 
 }
 
 .maintenance-card .start-btn:hover,
 .maintenance-card .primary-btn:hover {
-    /* 2. NEW HOVER COLOR */
     background-color: #01e6dd; 
     cursor: pointer;
 }
 
-/* Download Links */
 .download-list {
     display: flex;
     flex-direction: row;
@@ -290,7 +263,6 @@ body {
     flex-direction: row;
     align-items: center;
     gap: 15px;
-
     border-radius: 8px;
     background: #27454B;
     text-decoration: none;
@@ -324,7 +296,7 @@ body {
 }
 
 
-/* --- 6. FIXED LOGO --- */
+/* --- 6. FIXED LOGO (No changes) --- */
 
 .fixed-zelim-logo {
     position: fixed;
@@ -380,41 +352,47 @@ body {
         display: none;
     }
 
-    /* Left Panel */
+    /* Left Panel (Ensure full width) */
     .detail-panel {
         margin-bottom: 20px;
-        /* Tablet view is still left-aligned */
         text-align: left;
-        /* FIX: Ensure element fills the single column space */
+        /* FIX: Explicitly ensure element fills the single column space */
         justify-self: stretch; 
         align-self: start;
         display: block;
         position: static; 
-        /* FIX: Explicitly ensure full width */
-        width: 100%; 
+        /* FIX: Double check full width */
+        width: 100% !important; 
     }
+    
+    /* Action Panel (Ensure full width) */
+    .action-panel {
+        /* FIX: Explicitly ensure element fills the single column space */
+        justify-self: stretch; 
+        width: 100% !important;
+        text-align: left;
+    }
+    
+    /* Logo Container (Left Align) */
     .logo-section {
-        /* Re-establish flow margin */
         margin: 0 0 40px 0 !important;
-        
-        /* Ensure tablet logo is left-aligned */
         margin-left: 0 !important; 
         margin-right: auto !important; 
-        
-        /* Ensure block flow */
         display: block !important;
     }
+    
+    /* Tablet Logo Image Fix (LEFT ALIGN - SAME AS DESKTOP) */
     .logo-section img {
-        /* FIX: Keep the desktop override for left-alignment */
         position: absolute !important;
         left: 0 !important;
-        right: auto !important;
-        width: auto !important; 
+        right: auto !important; /* Pin left */
+        width: auto !important; /* Don't stretch */
         height: 100% !important;
         object-fit: contain !important;
         top: 0 !important; 
         bottom: 0 !important;
     }
+    
     .portal-title {
         font-size: 28px;
         line-height: 36px;
@@ -436,16 +414,11 @@ body {
         min-width: 100px; 
     }
 
-    /* Action Panel */
-    .action-panel {
-        text-align: left;
-    }
     .maintenance-group-wrapper {
         gap: 20px;
         padding: 20px;
     }
 
-    /* Logo & Footer */
     .fixed-zelim-logo {
         position: static;
         transform: none;
@@ -454,7 +427,6 @@ body {
         opacity: 1;
     }
 
-    /* Downloads */
     .download-link div {
         min-width: 0;
         flex: 1;
@@ -475,7 +447,7 @@ body {
         min-height: calc(100dvh - 80px);
     }
     
-    /* Action Panel & Cards */
+    /* Action Panel & Cards (No changes) */
     .maintenance-group-wrapper {
         flex-direction: column;
     }
@@ -488,43 +460,37 @@ body {
         overflow-wrap: break-word;
     }
 
-    /* Alignment Changes (Centered) */
+    /* Logo Container (Center Align) */
     .logo-section {
-        /* OVERRIDE: Enforce 10% smaller max size for mobile */
         max-width: 225px; 
         max-height: 36px; 
-        
-        /* Re-establish fixed size based on the new max for the fill prop */
         width: 225px;
         height: 36px;
-        
-        /* FIX: Mobile centering override */
+        /* FIX: Mobile centering override for container */
         margin-left: auto !important;
         margin-right: auto !important;
-        
-        /* Ensure block flow */
         display: block !important;
     }
 
+    /* Mobile Logo Image Fix (CENTER ALIGN - Fill container) */
     .logo-section img {
-        /* FIX: Revert the absolute position for centering on mobile */
         position: absolute !important;
         left: 0 !important;
-        right: 0 !important; /* Allows fill */
-        width: 100% !important; /* Allows fill */
+        right: 0 !important; /* Allow fill */
+        width: 100% !important; /* Allow fill */
         height: 100% !important;
         object-fit: contain !important;
         top: 0 !important; 
         bottom: 0 !important;
     }
     
+    /* Detail Panel (Center Align) */
     .detail-panel {
-        /* Center the entire panel content for mobile */
         text-align: center;
-        justify-self: center; /* Center the grid item itself on mobile */
+        justify-self: center; 
         align-self: start;
         display: block;
-        width: 100%; /* Ensure full width on mobile too */
+        width: 100% !important;
     }
     .portal-title {
         font-size: 22px;
