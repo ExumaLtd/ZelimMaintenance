@@ -19,13 +19,12 @@ export default function Home() {
 
     const publicToken = accessCode.trim();
 
-    // NEW VALIDATION: Check if input is empty and show error if true
+    // FIX: Show error message if input is empty
     if (publicToken === '') {
         setError('Please enter your access code.');
-        return; // Stop submission
+        return; 
     }
-    // END NEW VALIDATION
-
+    
     setError('');
     setIsSubmitting(true);
 
@@ -116,9 +115,9 @@ export default function Home() {
               <button
                 type="submit"
                 className="primary-btn"
-                // REMOVED DISABLED PROP to allow validation to run on click
+                // Disabled prop removed to allow submission/validation when empty
               >
-                {/* FIX: Corrected text case */}
+                {/* FIX: Corrected button text case */}
                 {isSubmitting ? 'Verifying...' : 'Enter portal'}
               </button>
             </form>

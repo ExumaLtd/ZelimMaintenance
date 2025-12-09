@@ -179,12 +179,11 @@ h1.landing-title {
 }
 
 .primary-btn:hover:not(:disabled) {
-  /* STYLES COPIED FROM MAINTENANCE CARD HOVER */
-  background-color: #01e6dd !important; 
-  cursor: pointer;
+  /* Ensure hover effect applies */
+  background: #01e6dd !important;
 }
 
-/* Disabled state removed to ensure full color and cursor: pointer is maintained */
+/* DISABLED STATE: Removed entirely to ensure full color and cursor: pointer is maintained when disabled */
 
 /* =========================================
    FOOTER LOGO

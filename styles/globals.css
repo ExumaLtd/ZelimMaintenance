@@ -1,12 +1,15 @@
 /* globals.css */
 
-/* --- RESET & FONT IMPORT --- */
+/* --- FONT IMPORT --- */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap'); 
+
+/* --- RESET --- */
 
 html,
 body {
   padding: 0;
   margin: 0;
-  font-family: sans-serif;
+  font-family: 'Montserrat', sans-serif; 
   background-color: #0b1a1f;
   color: #bdc4c6;
   line-height: 1.6;
