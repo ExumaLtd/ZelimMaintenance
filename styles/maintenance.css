@@ -112,8 +112,8 @@ body {
     flex-direction: column;
     gap: 16px;
     margin-top: 20px;
-    max-width: 305px;
-    width: 100%;
+    /* FIXED: Removed max-width: 305px; to allow full panel width */
+    width: 100%; 
 }
 
 .detail-item {
@@ -355,7 +355,7 @@ body {
         flex-direction: row;
         flex-wrap: wrap;
         gap: 20px;
-        width: 100%; /* Ensure container uses full width for calculation */
+        width: 100%; /* Important for flex-basis calculation */
     }
     .detail-item {
         /* FIXED: Ensures three items fit on one line on tablet */
