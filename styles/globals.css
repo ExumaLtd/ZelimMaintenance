@@ -2,8 +2,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap'); 
 
 html {
+  /* Fixes iOS height reporting issue and enables full viewport height */
   height: -webkit-fill-available;
   font-family: 'Montserrat', sans-serif; 
+  
+  /* CRITICAL SAFARI FIX: Apply gradient to HTML to be blended by translucent toolbars */
+  background: radial-gradient(85.89% 70.71% at 50% 50%, #172F36 0%, #2E444A 100%);
+  background-attachment: fixed;
+  background-size: cover;
 }
 
 body {
@@ -14,10 +20,8 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
   padding-top: env(safe-area-inset-top);
   
-  /* FINAL FIX: Uses the radial gradient globally and forces it to win */
-  background: radial-gradient(85.89% 70.71% at 50% 50%, #172F36 0%, #2E444A 100%) !important;
-  background-size: cover;
-  background-attachment: fixed;
+  /* Reset background on body so the HTML gradient shows through. */
+  background: transparent; 
   
   color: #bdc4c6;
   line-height: 1.6;
