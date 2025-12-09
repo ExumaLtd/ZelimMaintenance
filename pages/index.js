@@ -3,7 +3,7 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import Image from "next/image"; // Next.js Image component is still recommended
+import Image from "next/image"; 
 
 export default function IndexPage() {
   const [pin, setPin] = useState("");
@@ -63,12 +63,9 @@ export default function IndexPage() {
         {/* LEFT PANEL */}
         <div className="landing-hero">
           <div className="landing-hero-inner">
-            {/* ✅ IMAGE SWAP: Now using the new hero image path. 
-               The 'logo-swap' class has been removed because this is a hero image, 
-               not a contained logo, and should use the default CSS object-fit: cover.
-            */}
+            {/* ✅ UPDATED IMAGE SOURCE: Now using swiftmaintenanceportal-hero(3).png */}
             <Image
-              src="/images/swiftmaintenanceportal-hero(2).png" // New Hero Image Path
+              src="/images/swiftmaintenanceportal-hero(3).png" 
               alt="SWIFT Survivor Recovery System in use" 
               width={500} // Placeholder: Adjust for optimization
               height={800} // Placeholder: Adjust for optimization
