@@ -62,7 +62,8 @@ body {
     grid-template-columns: repeat(12, 1fr);
     gap: 20px;
     width: 100%;
-    margin-top: 60px;
+    /* REVERT: Restore original margin-top */
+    margin-top: 60px; 
     margin-bottom: 40px;
     position: relative;
     flex-shrink: 0;
@@ -94,6 +95,9 @@ body {
     align-self: start;
     /* Ensure it behaves like a standard block wrapper in its column */
     display: block;
+    
+    /* REVERT: Remove absolute positioning context */
+    position: static; 
 }
 
 /* DESKTOP LOGO SCALING (250px x 40px max) */
@@ -109,12 +113,14 @@ body {
     width: 250px; 
     height: 40px;
     
-    margin-bottom: 40px; 
+    /* FIX: Force block flow behavior to override any inherited Flex/Grid centering */
+    display: block !important;
     
-    /* ABSOLUTE FIX: Ensure left alignment for block/inline-block children */
+    /* Restore margin: 0 0 40px 0 and use !important to guarantee left margin is 0 */
+    margin: 0 0 40px 0 !important;
+    
+    /* Ensure any inline content (the image) is left-aligned */
     text-align: left !important;
-    /* Ensure left margin is zero, overriding any possible inherited 'auto' */
-    margin-left: 0 !important;
 }
 
 /* The actual image element inside the logo-section div (.client-logo in JS) */
@@ -132,7 +138,8 @@ body {
     font-size: 30px;
     font-weight: 600;
     line-height: 38px;
-    margin: 0 0 34px;
+    /* REVERT: Restore original margin */
+    margin: 0 0 34px; 
 }
 
 /* Detail Items */
@@ -363,7 +370,7 @@ body {
 
     .swift-dashboard-container {
         grid-template-columns: 1fr;
-        margin-top: 40px;
+        margin-top: 40px; 
     }
     .swift-dashboard-container::after {
         display: none;
@@ -378,6 +385,16 @@ body {
         justify-self: start; 
         align-self: start;
         display: block;
+        position: static; 
+    }
+    .logo-section {
+        /* Re-establish flow margin */
+        margin: 0 0 40px 0 !important;
+        
+        /* Ensure tablet logo is left-aligned */
+        margin-left: 0 !important; 
+        margin-right: auto !important; 
+        text-align: left !important;
     }
     .portal-title {
         font-size: 28px;
@@ -403,6 +420,7 @@ body {
     /* Action Panel */
     .action-panel {
         grid-column: span 12;
+        text-align: left;
     }
     .maintenance-group-wrapper {
         gap: 20px;
@@ -463,11 +481,14 @@ body {
         height: 36px;
         
         /* FIX: Mobile centering override */
-        margin-left: auto;
-        margin-right: auto;
+        margin-left: auto !important;
+        margin-right: auto !important;
         
-        /* Reset desktop overrides for mobile centering */
+        /* Ensure mobile text-align is centered */
         text-align: center !important; 
+        
+        /* Ensure block flow */
+        display: block !important;
     }
 
     .logo-section img {
