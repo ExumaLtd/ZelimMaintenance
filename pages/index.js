@@ -3,6 +3,7 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import Image from "next/image"; // Added Image component import
 
 export default function IndexPage() {
   const [pin, setPin] = useState("");
@@ -63,10 +64,19 @@ export default function IndexPage() {
         {/* LEFT PANEL */}
         <div className="landing-hero">
           <div className="landing-hero-inner">
-            {/* The image tag below points to your local asset */}
-            <img
-              src="/images/swiftmaintenanceportal-hero.png"
-              alt="Engineer using tablet at dusk"
+            {/* ✅ FIXED IMAGE BLOCK:
+              1. Uses Next/Image component.
+              2. Updated 'src' to the new logo path.
+              3. New 'alt' text.
+              4. Added 'className="logo-swap"' for proper display/background.
+            */}
+            <Image
+              src="/assets/images/ZelimSWIFT(Square).png" // New image path
+              alt="SWIFT Survivor Recovery System in use" // Updated alt text
+              width={500} // Set appropriate dimensions for Next/Image optimization
+              height={800} // Set appropriate dimensions for Next/Image optimization
+              className="logo-swap" 
+              priority
             />
           </div>
         </div>

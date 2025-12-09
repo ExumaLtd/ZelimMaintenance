@@ -34,6 +34,16 @@
 }
 
 /* =========================================
+   IMAGE SWAP ADJUSTMENT (NEW SECTION)
+   Used with <img class="logo-swap"> to display the square logo correctly.
+========================================= */
+
+.landing-hero-inner img.logo-swap {
+  object-fit: contain; /* Ensures the entire square logo is visible (no cropping) */
+  background-color: #2e444a; /* Fills the space around the logo */
+}
+
+/* =========================================
    RIGHT PANEL
 ========================================= */
 
