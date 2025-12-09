@@ -3,17 +3,51 @@
 /* --- FONT IMPORT --- */
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap'); 
 
-/* --- RESET --- */
+/* ============================================================
+   GLOBAL SAFE-AREA + FULL BLEED BACKGROUND FOR iOS & MOBILE
+   (Now uses the radial gradient globally)
+============================================================ */
 
-html,
-body {
-  padding: 0;
-  margin: 0;
+/* 1. HTML & VIEWPORT SETUP (CRITICAL FOR iOS HEIGHT FIX) */
+html {
+  /* Fixes iOS height reporting issue and enables full viewport height */
+  height: -webkit-fill-available;
+  
+  /* Your existing font and box-sizing */
   font-family: 'Montserrat', sans-serif; 
-  background-color: #0b1a1f;
+}
+
+/* 2. BODY & BACKGROUND SETUP */
+body {
+  /* Replaces padding: 0; margin: 0; */
+  padding: 0;
+  margin: 0; 
+
+  /* Ensures body expands to fill the height, using the iOS fix */
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+
+  /* Let the background extend under iPhone home bar (THE FIX) */
+  padding-bottom: env(safe-area-inset-bottom);
+
+  /* Apply top inset for notch devices (safe to include) */
+  padding-top: env(safe-area-inset-top);
+
+  /* Your global gradient background (Used for ALL pages by default) */
+  background: radial-gradient(
+    85.89% 70.71% at 50% 50%,
+    #172F36 0%,
+    #2E444A 100%
+  );
+  background-size: cover;
+  background-attachment: fixed;
+
+  /* Your existing colors and line-height */
   color: #bdc4c6;
   line-height: 1.6;
 }
+
+/* 3. RESET & UTILITIES */
 
 a {
   color: inherit;
@@ -23,6 +57,12 @@ a {
 * {
   box-sizing: border-box;
 }
+
+/* Ensure the root background matches your theme inside safe areas */
+:root {
+  background-color: #172F36; /* Match the gradient start color for safety */
+}
+
 
 /* --- LOGO --- */
 

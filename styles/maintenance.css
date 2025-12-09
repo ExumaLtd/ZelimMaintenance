@@ -1,6 +1,7 @@
 /* =========================================================================
    MAINTENANCE PORTAL STYLES (maintenance.css)
    Overrides global styles for the maintenance-specific routes.
+   V28: Final version with desktop gap fix and clean global integration.
 ========================================================================= */
 
 /* --- 1. BASE AND LAYOUT --- */
@@ -8,23 +9,16 @@
 html {
     font-family: 'Montserrat', sans-serif;
     box-sizing: border-box;
-    height: 100%;
-    background: radial-gradient(
-        85.89% 70.71% at 50% 50%,
-        #172F36 0%,
-        #2E444A 100%
-    );
-    background-attachment: fixed;
-    background-size: cover;
+    /* Cleaned: ALL height and background rules removed, handled by global CSS */
 }
 *, *::before, *::after {
     box-sizing: inherit;
 }
 
 body {
+    /* Cleaned: ALL height, padding, and main background rules removed, handled by global CSS */
     margin: 0;
-    padding: 0;
-    height: 100%;
+    padding: 0; 
     background: transparent; 
     font-family: 'Montserrat', sans-serif; 
     color: #ffffff;
@@ -54,8 +48,8 @@ body {
 
 .swift-dashboard-container {
     display: grid;
-    /* V27: Use minmax to ensure the left column (detail-panel) has a minimum width (325px) 
-       to prevent its content from collapsing the 20px gap at smaller desktop sizes. */
+    /* V27 FIX: Use minmax to ensure the left column (detail-panel) has a minimum width (325px) 
+       to prevent its content from collapsing the 20px gap at smaller desktop sizes (>= 901px). */
     grid-template-columns: minmax(325px, 4fr) 8fr;
     gap: 20px;
     width: 100%;
@@ -80,10 +74,8 @@ body {
 /* --- 3. LEFT PANEL (DETAIL PANEL) --- */
 
 .detail-panel {
-    /* V27: Column definition changes to align with the new grid template. 
-       This panel occupies the first explicit column (minmax(325px, 4fr)). */
+    /* V27 FIX: Align with new grid-template-columns definition */
     grid-column: 1;
-    /* V27: Remove explicit padding from V26, rely on grid gap and minmax */
     padding: 0; 
     text-align: left; 
     margin-bottom: 0;
@@ -174,8 +166,7 @@ body {
 /* --- 4. ACTION PANEL (RIGHT PANEL) & CARDS --- */
 
 .action-panel {
-    /* V27: Column definition changes to align with the new grid template. 
-       This panel occupies the second explicit column (8fr). */
+    /* V27 FIX: Align with new grid-template-columns definition */
     grid-column: 2;
     display: flex;
     flex-direction: column;
@@ -302,7 +293,7 @@ body {
 }
 
 
-/* --- 6. FIXED LOGO --- */
+/* --- 6. FIXED LOGO (Mobile-specific placement handles most cases) --- */
 
 .fixed-zelim-logo {
     position: fixed;
@@ -372,7 +363,7 @@ body {
     
     /* Left Panel (Ensure full width) */
     .detail-panel {
-        /* V27: Padding is already 0, restore margin-bottom for vertical separation */
+        /* V26 FIX: Reset desktop padding to 0, use margin-bottom for vertical separation */
         padding: 0;
         margin-bottom: 20px; 
         text-align: left;
