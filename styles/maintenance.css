@@ -205,7 +205,7 @@ body {
 
 /* --- 5. BUTTONS AND LINKS --- */
 
-/* Start Button Styles */
+/* Start Button Styles - UPDATED COLORS */
 .maintenance-card .start-btn,
 .maintenance-card .primary-btn {
     display: flex;
@@ -217,8 +217,10 @@ body {
 
     border: 2px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
-    background-color: #00EADE;
+    /* 1. NEW BUTTON COLOR */
+    background-color: #01FFF6; 
 
+    /* FONT COLOR REMAINS #0D3037 */
     color: #0D3037;
     font-size: 14px;
     font-weight: 600;
@@ -231,7 +233,8 @@ body {
 
 .maintenance-card .start-btn:hover,
 .maintenance-card .primary-btn:hover {
-    background-color: #00D3C9;
+    /* 2. NEW HOVER COLOR */
+    background-color: #01e6dd; 
     cursor: pointer;
 }
 
