@@ -109,8 +109,12 @@ body {
     width: 250px; 
     height: 40px;
     
-    /* DEFINITIVE FIX: Use !important to override any competing inline or utility class centering */
-    margin: 0 0 40px 0 !important; 
+    margin-bottom: 40px; 
+    
+    /* ABSOLUTE FIX: Ensure left alignment for block/inline-block children */
+    text-align: left !important;
+    /* Ensure left margin is zero, overriding any possible inherited 'auto' */
+    margin-left: 0 !important;
 }
 
 /* The actual image element inside the logo-section div (.client-logo in JS) */
@@ -461,6 +465,9 @@ body {
         /* FIX: Mobile centering override */
         margin-left: auto;
         margin-right: auto;
+        
+        /* Reset desktop overrides for mobile centering */
+        text-align: center !important; 
     }
 
     .logo-section img {
