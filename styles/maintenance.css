@@ -90,13 +90,13 @@ body {
     /* Desktop alignment for inline content */
     text-align: left; 
     margin-bottom: 0;
-    /* FIX: Ensure the Grid Item aligns itself to the start of its row/column */
+    /* FIX: Ensure the Grid Item aligns itself to the start of its column */
     justify-self: start;
     align-self: start;
     /* Ensure it behaves like a standard block wrapper in its column */
     display: block;
     
-    /* REVERT: Remove absolute positioning context */
+    /* REVERT: Ensure normal flow */
     position: static; 
 }
 
@@ -119,8 +119,7 @@ body {
     /* Restore margin: 0 0 40px 0 and use !important to guarantee left margin is 0 */
     margin: 0 0 40px 0 !important;
     
-    /* Ensure any inline content (the image) is left-aligned */
-    text-align: left !important;
+    /* REMOVED: text-align: left !important; as it's ineffective on block content */
 }
 
 /* The actual image element inside the logo-section div (.client-logo in JS) */
@@ -129,7 +128,9 @@ body {
     display: block;
     max-width: 100%; 
     max-height: 100%;
-    margin: 0;
+    
+    /* FIX: Force the image to the left edge of the container */
+    margin: 0 auto 0 0 !important; 
 }
 
 
@@ -394,7 +395,13 @@ body {
         /* Ensure tablet logo is left-aligned */
         margin-left: 0 !important; 
         margin-right: auto !important; 
-        text-align: left !important;
+        
+        /* Ensure block flow */
+        display: block !important;
+    }
+    .logo-section img {
+        /* Force the image to the left edge of the container */
+        margin: 0 auto 0 0 !important; 
     }
     .portal-title {
         font-size: 28px;
@@ -484,16 +491,13 @@ body {
         margin-left: auto !important;
         margin-right: auto !important;
         
-        /* Ensure mobile text-align is centered */
-        text-align: center !important; 
-        
         /* Ensure block flow */
         display: block !important;
     }
 
     .logo-section img {
         /* Mobile: Center the image within its container */
-        margin: 0 auto;
+        margin: 0 auto !important; 
     }
     
     .detail-panel {
