@@ -1,17 +1,14 @@
 /* globals.css */
 
 /* --- RESET & FONT IMPORT --- */
-/* REMOVED: @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap'); */
 
 html,
 body {
   padding: 0;
   margin: 0;
-  /* REMOVED: font-family: 'Roboto', sans-serif; */
-  /* This line should be managed by the page-specific CSS now, e.g., Montserrat in maintenance.css */
-  font-family: sans-serif; /* Set to a generic fallback */
-  background-color: #0b1a1f; /* Dark background for the landing page */
-  color: #bdc4c6; /* Light text color */
+  font-family: sans-serif;
+  background-color: #0b1a1f;
+  color: #bdc4c6;
   line-height: 1.6;
 }
 
@@ -47,9 +44,9 @@ a {
 .input-field {
   width: 100%;
   padding: 15px 20px;
-  border: 1px solid #37474f; /* Darker border */
+  border: 1px solid #37474f;
   border-radius: 8px;
-  background-color: #172a32; /* Slightly lighter than background */
+  background-color: #172a32;
   color: #ffffff;
   font-size: 1rem;
   transition: border-color 0.3s, box-shadow 0.3s;
@@ -73,7 +70,7 @@ a {
   padding: 15px 30px;
   border: none;
   border-radius: 8px;
-  background-color: #2196f3; /* Zelim blue */
+  background-color: #2196f3;
   color: white;
   font-size: 1.1rem;
   font-weight: bold;
@@ -91,30 +88,15 @@ a {
   cursor: not-allowed;
 }
 
-/* --- LOGO & FOOTER (UPDATED FOR 100% OPACITY) --- */
+/* --- LOGO --- */
 
-/* 1. FIXED LOGO - Includes all original properties and sets opacity to 1 */
 .fixed-zelim-logo {
     position: fixed;
     bottom: 50px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 50;
-    opacity: 1; /* FORCES 100% OPACITY */
+    opacity: 1; 
     top: auto;
     right: auto;
-}
-
-/* 2. LANDING FOOTER - Includes all original properties and sets opacity to 1 */
-.landing-footer {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    margin-top: 32px;
-    opacity: 1; /* FORCES 100% OPACITY */
-}
-
-/* 3. LANDING FOOTER HOVER - Ensures 100% opacity even on hover, overriding other styles */
-.landing-footer:hover {
-    opacity: 1 !important; 
 }
