@@ -3,7 +3,7 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import Image from "next/image"; // Added Image component import
+import Image from "next/image"; // Next.js Image component is still recommended
 
 export default function IndexPage() {
   const [pin, setPin] = useState("");
@@ -52,7 +52,6 @@ export default function IndexPage() {
   return (
     <>
       <Head>
-        {/* CORRECTED BROWSER TAB TITLE */}
         <title>Zelim | SWIFT Maintenance Portal</title> 
         <meta
           name="description"
@@ -64,18 +63,15 @@ export default function IndexPage() {
         {/* LEFT PANEL */}
         <div className="landing-hero">
           <div className="landing-hero-inner">
-            {/* ✅ FIXED IMAGE BLOCK:
-              1. Uses Next/Image component.
-              2. Updated 'src' to the new logo path.
-              3. New 'alt' text.
-              4. Added 'className="logo-swap"' for proper display/background.
+            {/* ✅ IMAGE SWAP: Now using the new hero image path. 
+               The 'logo-swap' class has been removed because this is a hero image, 
+               not a contained logo, and should use the default CSS object-fit: cover.
             */}
             <Image
-              src="/assets/images/ZelimSWIFT(Square).png" // New image path
-              alt="SWIFT Survivor Recovery System in use" // Updated alt text
-              width={500} // Set appropriate dimensions for Next/Image optimization
-              height={800} // Set appropriate dimensions for Next/Image optimization
-              className="logo-swap" 
+              src="/images/swiftmaintenanceportal-hero(2).png" // New Hero Image Path
+              alt="SWIFT Survivor Recovery System in use" 
+              width={500} // Placeholder: Adjust for optimization
+              height={800} // Placeholder: Adjust for optimization
               priority
             />
           </div>
