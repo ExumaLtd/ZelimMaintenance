@@ -181,10 +181,11 @@ h1.landing-title {
 }
 
 .primary-btn:hover:not(:disabled) {
-  background: #01e6dd;
+  /* Ensure hover effect applies */
+  background: #01e6dd !important;
 }
 
-/* REMOVED .primary-btn:disabled block entirely to ensure full color and cursor: pointer is maintained */
+/* DISABLED STATE: Removed entirely to ensure full color and cursor: pointer is maintained when disabled */
 
 /* =========================================
    FOOTER LOGO
