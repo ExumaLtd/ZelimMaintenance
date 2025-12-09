@@ -184,7 +184,7 @@ h1.landing-title {
 }
 
 /* =========================================
-   FOOTER LOGO (FIXED FOR 100% OPACITY)
+   FOOTER LOGO
 ========================================= */
 
 .landing-footer {
@@ -192,7 +192,6 @@ h1.landing-title {
   display: flex;
   justify-content: center;
   margin-top: 32px;
-  /* ADDED: Set opacity to 1 here too, just in case */
   opacity: 1; 
 }
 
@@ -202,24 +201,12 @@ h1.landing-title {
 
 .zelim-logo {
   width: 140px;
-  /* CHANGED: Removed opacity: 0.9; to make it 100% opaque */
   opacity: 1; 
 }
 
 .zelim-logo:hover {
-  /* CHANGED: Since it is already 1, no need to change it on hover */
-  opacity: 1;
+  opacity: 1; 
 }
-
-/* * NOTE: The .fixed-zelim-logo class from your globals.css 
- * is responsible for the other fixed logo. Ensure it is also set 
- * to opacity: 1 in your globals.css to fix both.
- * The definition for the fixed logo in your globals.css was:
- * .fixed-zelim-logo { ... opacity: 1; ... } 
- * This file (the landing page style) fixed the transparency for the 
- * logo inside the footer (.zelim-logo).
-*/
-
 
 /* =========================================
    RESPONSIVE (≤900px)
