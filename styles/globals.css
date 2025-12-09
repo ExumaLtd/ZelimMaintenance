@@ -1,28 +1,35 @@
 /* globals.css */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap'); 
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+
+/* ----------------------------------------------------------
+   GLOBAL SAFE-AREA + DEVICE BACKGROUND + FONT RESET
+----------------------------------------------------------- */
 
 html {
-  /* Fixes iOS height reporting issue and enables full viewport height */
   height: -webkit-fill-available;
-  font-family: 'Montserrat', sans-serif; 
-  
-  /* CRITICAL SAFARI FIX: Apply gradient to HTML to be blended by translucent toolbars */
-  background: radial-gradient(85.89% 70.71% at 50% 50%, #172F36 0%, #2E444A 100%);
+  font-family: 'Montserrat', sans-serif;
+
+  /* OPTION A – FIXED GRADIENT WITH HIGHER LIGHT CENTRE */
+  background: radial-gradient(
+    150% 150% at 50% 20%,
+    #172F36 0%,
+    #2E444A 100%
+  );
   background-attachment: fixed;
   background-size: cover;
 }
 
+/* Make sure body does not override HTML gradient */
 body {
   padding: 0;
-  margin: 0; 
+  margin: 0;
   min-height: 100vh;
   min-height: -webkit-fill-available;
+
   padding-bottom: env(safe-area-inset-bottom);
   padding-top: env(safe-area-inset-top);
-  
-  /* Reset background on body so the HTML gradient shows through. */
-  background: transparent; 
-  
+
+  background: transparent;
   color: #bdc4c6;
   line-height: 1.6;
 }
@@ -36,18 +43,19 @@ a {
   box-sizing: border-box;
 }
 
-/* Ensures the root background matches the gradient start color for safety */
+/* Fallback background for extreme edge cases */
 :root {
   background-color: #172F36;
 }
 
+/* Fixed Zelim footer logo */
 .fixed-zelim-logo {
-    position: fixed;
-    bottom: 50px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 50;
-    opacity: 1; 
-    top: auto;
-    right: auto;
+  position: fixed;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  opacity: 1;
+  top: auto;
+  right: auto;
 }
