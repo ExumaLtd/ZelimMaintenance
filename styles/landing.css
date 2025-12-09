@@ -157,7 +157,7 @@ h1.landing-title {
 }
 
 /* =========================================
-   PRIMARY BUTTON - FIXED COLOR
+   PRIMARY BUTTON - FIXED COLOR & TEXT-TRANSFORM
 ========================================= */
 
 .primary-btn {
@@ -175,7 +175,7 @@ h1.landing-title {
   /* FONT COLOR */
   color: #003336; 
   cursor: pointer;
-  /* REMOVED UPPERCASE */
+  /* FIX: Ensure text is NOT uppercase */
   text-transform: none; 
 
   transition:
@@ -184,8 +184,8 @@ h1.landing-title {
 }
 
 .primary-btn:hover:not(:disabled) {
-  /* HOVER COLOR */
-  background: #01e6dd !important; /* Also make hover aggressive */
+  /* HOVER COLOR - AGGRESSIVE FIX */
+  background: #01e6dd !important;
 }
 
 .primary-btn:disabled {
