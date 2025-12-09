@@ -55,7 +55,7 @@ body {
 .swift-dashboard-container {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
-    gap: 20px;
+    gap: 20px; /* V25: Reverted to standard gap */
     width: 100%;
     margin-top: 60px; 
     margin-bottom: 40px;
@@ -79,8 +79,8 @@ body {
 
 .detail-panel {
     grid-column: span 4;
-    /* max-width: 305px; <-- REMOVED V20 FIX */
-    padding: 0;
+    /* FIX V25: Add 20px padding on the right to guarantee horizontal separation */
+    padding: 0 20px 0 0;
     text-align: left; 
     margin-bottom: 0;
     justify-self: start;
@@ -131,7 +131,7 @@ body {
     flex-direction: column;
     gap: 16px;
     margin-top: 20px;
-    /* FIX V21: Apply the required desktop max-width constraint (305px) here */
+    /* V21: Desktop max-width constraint (305px) */
     max-width: 305px; 
     width: 100%; 
 }
@@ -365,7 +365,9 @@ body {
     
     /* Left Panel (Ensure full width) */
     .detail-panel {
-        margin-bottom: 20px;
+        /* V25: REMOVE desktop padding, restore 20px vertical margin */
+        padding: 0;
+        margin-bottom: 20px; 
         text-align: left;
         justify-self: stretch; 
         align-self: start;
@@ -391,7 +393,7 @@ body {
         display: block;
     }
     
-    /* Details section (Remove desktop max-width) */
+    /* Details section (Mobile/Tablet) */
     .maintenance-details {
         max-width: none; 
         flex-direction: row;
