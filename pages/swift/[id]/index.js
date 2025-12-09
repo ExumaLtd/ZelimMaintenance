@@ -1,16 +1,11 @@
-// pages/swift/[id]/index.js
-
 import Head from "next/head";
 import Link from "next/link";
 import Airtable from "airtable";
 import Image from "next/image";
 import fs from 'fs';
 import path from 'path';
-// ... rest of imports
 
-// ===============================
-// FILE SIZE UTILITY (No changes needed)
-// ===============================
+// FILE SIZE UTILITY
 const getFileSize = (filePath) => {
   try {
     const fullPath = path.join(process.cwd(), 'public', filePath);
@@ -28,25 +23,19 @@ const getFileSize = (filePath) => {
 };
 
 
-// ===============================
 // FETCH UNIT DETAILS & FILE SIZES
-// ===============================
 export async function getServerSideProps(context) {
   const publicToken = context.params.id;
 
-  // --- UNIQUE FILE PATHS ---
   const maintenanceManualPath = '/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf';
   const installationGuidePath = '/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf';
 
-  // Calculate sizes for both unique files
   const fileSizes = {
     maintenanceManualSize: getFileSize(maintenanceManualPath),
     installationGuideSize: getFileSize(installationGuidePath),
   };
-  // ----------------------
 
   try {
-    // 🟢 FIX: Use NEXT_PUBLIC_ variables here for consistency with login page
     const base = new Airtable({
       apiKey: process.env.NEXT_PUBLIC_AIRTABLE_API_KEY, 
     }).base(process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID);
@@ -71,7 +60,6 @@ export async function getServerSideProps(context) {
     }
 
     const record = records[0];
-    // ... rest of getServerSideProps code ...
 
     const unitDetails = {
       serial_number: record.get("serial_number") || "N/A",
@@ -92,7 +80,7 @@ export async function getServerSideProps(context) {
       props: { 
         unit: unitDetails, 
         publicToken,
-        ...fileSizes, // Pass file sizes to props
+        ...fileSizes,
       },
     };
   } catch (error) {
@@ -101,11 +89,7 @@ export async function getServerSideProps(context) {
   }
 }
 
-// ... rest of the component code (getClientLogo and SwiftUnitPage) remains unchanged ...
-
-// ===============================
-// LOGO HANDLING (FINALIZED LOGIC)
-// ===============================
+// LOGO HANDLING
 const getClientLogo = (companyName, serialNumber) => {
   // 1. Changi Airport (SWI001 & SWI002)
   if (
@@ -118,6 +102,7 @@ const getClientLogo = (companyName, serialNumber) => {
       alt: `${companyName} Logo`,
       width: 150,
       height: 40,
+      showLogo: true,
     };
   }
 
@@ -131,21 +116,36 @@ const getClientLogo = (companyName, serialNumber) => {
       alt: `${companyName} Logo`,
       width: 150,
       height: 40,
+      showLogo: true,
+    };
+  }
+  
+  // 3. Hatloy Maritime (SWI010, SWI011)
+  if (
+    serialNumber === "SWI010" ||
+    serialNumber === "SWI011" ||
+    companyName.includes("Hatloy Maritime")
+  ) {
+    return {
+      src: "/client_logos/hatloy_maritime/HatloyMaritime_Logo(White).svg",
+      alt: `${companyName} Logo`,
+      width: 150,
+      height: 40,
+      showLogo: true,
     };
   }
 
-  // 3. Default (Zelim Logo)
+  // 4. DEFAULT: No logo shown if no client match.
   return {
-    src: "/logo/zelim-logo.svg",
-    alt: "Zelim Logo",
-    width: 100,
-    height: 30,
+    src: null, 
+    alt: "No client logo set",
+    width: 0,
+    height: 0,
+    showLogo: false,
   };
 };
 
-// ===============================
 // PAGE COMPONENT
-// ===============================
 export default function SwiftUnitPage({ 
   unit, 
   publicToken, 
@@ -168,22 +168,25 @@ export default function SwiftUnitPage({
       <Head>
         <title>{companyName} maintenance portal</title>
       </Head>
-      {/* ... rest of the JSX structure is the same as before ... */}
       <div className="swift-main-layout-wrapper">
         <div className="page-wrapper">
           <div className="swift-dashboard-container">
             {/* LEFT PANEL */}
             <div className="detail-panel">
-              <div className="logo-section">
-                <Image
-                  src={logoProps.src}
-                  alt={logoProps.alt}
-                  width={logoProps.width}
-                  height={logoProps.height}
-                  className="client-logo"
-                  priority
-                />
-              </div>
+              
+              {/* Conditional Rendering for the Logo Section */}
+              {logoProps.showLogo && (
+                <div className="logo-section">
+                  <Image
+                    src={logoProps.src}
+                    alt={logoProps.alt}
+                    width={logoProps.width}
+                    height={logoProps.height}
+                    className="client-logo"
+                    priority
+                  />
+                </div>
+              )}
 
               <h1 className="portal-title">
                 {companyName} <span className="break-point">maintenance portal</span> 
@@ -215,7 +218,7 @@ export default function SwiftUnitPage({
               
               <div className="maintenance-group-wrapper"> 
                 
-                {/* ANNUAL CARD (INNER SECTION 1) */}
+                {/* ANNUAL CARD */}
                 <div className="maintenance-card">
                   <h3>Annual<br />maintenance</h3>
                   <p className="description">
@@ -231,7 +234,7 @@ export default function SwiftUnitPage({
                   </Link>
                 </div>
 
-                {/* DEPTH CARD (INNER SECTION 2) */}
+                {/* DEPTH CARD */}
                 <div className="maintenance-card">
                   <h3>30-month depth maintenance</h3>
                   <p className="description">
@@ -248,7 +251,7 @@ export default function SwiftUnitPage({
                 </div>
               </div> 
 
-              {/* DOWNLOADS (Remains separate) */}
+              {/* DOWNLOADS */}
               <div className="downloads-card">
                 <h3>Downloads</h3>
                 <p className="description">
@@ -296,10 +299,9 @@ export default function SwiftUnitPage({
           </div>
         </div>
 
-        {/* SPACER PREVENTS OVERLAP */}
         <div className="zelim-spacer"></div>
 
-        {/* FIXED LOGO - UPDATED WITH LINK */}
+        {/* FIXED LOGO */}
         <div className="fixed-zelim-logo">
           <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
             <Image
