@@ -89,7 +89,7 @@ export async function getServerSideProps(context) {
   }
 }
 
-// LOGO HANDLING (No default fallback, returns showLogo: false if no match)
+// LOGO HANDLING (Returns null if no client match)
 const getClientLogo = (companyName, serialNumber) => {
   // 1. Changi Airport (SWI001 & SWI002)
   if (
@@ -102,7 +102,6 @@ const getClientLogo = (companyName, serialNumber) => {
       alt: `${companyName} Logo`,
       width: 150,
       height: 40,
-      showLogo: true,
     };
   }
 
@@ -116,7 +115,6 @@ const getClientLogo = (companyName, serialNumber) => {
       alt: `${companyName} Logo`,
       width: 150,
       height: 40,
-      showLogo: true,
     };
   }
   
@@ -131,18 +129,11 @@ const getClientLogo = (companyName, serialNumber) => {
       alt: `${companyName} Logo`,
       width: 150,
       height: 40,
-      showLogo: true,
     };
   }
 
-  // 4. DEFAULT: No logo shown if no client match.
-  return {
-    src: null, 
-    alt: "No client logo set",
-    width: 0,
-    height: 0,
-    showLogo: false,
-  };
+  // 4. DEFAULT: Return null.
+  return null; 
 };
 
 // PAGE COMPONENT
@@ -174,20 +165,17 @@ export default function SwiftUnitPage({
             {/* LEFT PANEL */}
             <div className="detail-panel">
               
-              {/* Conditional Rendering for the Logo Section */}
-              {logoProps.showLogo && (
+              {/* FINAL FIX: Only render logo section if logoProps is not null */}
+              {logoProps && (
                 <div className="logo-section">
-                  {/* CRITICAL: Only render Image if src is valid to prevent artifact */}
-                  {logoProps.src && (
-                    <Image
-                      src={logoProps.src}
-                      alt={logoProps.alt}
-                      width={logoProps.width}
-                      height={logoProps.height}
-                      className="client-logo"
-                      priority
-                    />
-                  )}
+                  <Image
+                    src={logoProps.src}
+                    alt={logoProps.alt}
+                    width={logoProps.width}
+                    height={logoProps.height}
+                    className="client-logo"
+                    priority
+                  />
                 </div>
               )}
 
