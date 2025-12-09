@@ -109,8 +109,8 @@ body {
     width: 250px; 
     height: 40px;
     
-    /* FIX: Set top (0), right (0), bottom (40px), left (0) margins for left alignment */
-    margin: 0 0 40px 0; 
+    /* DEFINITIVE FIX: Use !important to override any competing inline or utility class centering */
+    margin: 0 0 40px 0 !important; 
 }
 
 /* The actual image element inside the logo-section div (.client-logo in JS) */
