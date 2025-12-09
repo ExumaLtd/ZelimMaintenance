@@ -4,28 +4,22 @@ import Head from "next/head";
 import Link from "next/link";
 import Airtable from "airtable";
 import Image from "next/image";
-// --- IMPORTS FOR FILE SIZE ---
 import fs from 'fs';
 import path from 'path';
-// -----------------------------
+// ... rest of imports
 
 // ===============================
-// FILE SIZE UTILITY
+// FILE SIZE UTILITY (No changes needed)
 // ===============================
 const getFileSize = (filePath) => {
   try {
-    // filePath starts from the public directory, e.g., '/downloads/file.pdf'
     const fullPath = path.join(process.cwd(), 'public', filePath);
     const stats = fs.statSync(fullPath);
     const bytes = stats.size;
-
-    // Convert bytes to a human-readable format (MB, KB)
     if (bytes === 0) return '0 Bytes';
-
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   } catch (error) {
     console.warn(`Could not get size for file: ${filePath}`, error.message);
@@ -52,11 +46,12 @@ export async function getServerSideProps(context) {
   // ----------------------
 
   try {
+    // 🟢 FIX: Use NEXT_PUBLIC_ variables here for consistency with login page
     const base = new Airtable({
-      apiKey: process.env.AIRTABLE_API_KEY,
-    }).base(process.env.AIRTABLE_BASE_ID);
+      apiKey: process.env.NEXT_PUBLIC_AIRTABLE_API_KEY, 
+    }).base(process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID);
 
-    const TABLE_NAME = process.env.AIRTABLE_SWIFT_TABLE;
+    const TABLE_NAME = process.env.NEXT_PUBLIC_AIRTABLE_SWIFT_TABLE;
 
     const records = await base(TABLE_NAME)
       .select({
@@ -76,6 +71,7 @@ export async function getServerSideProps(context) {
     }
 
     const record = records[0];
+    // ... rest of getServerSideProps code ...
 
     const unitDetails = {
       serial_number: record.get("serial_number") || "N/A",
@@ -105,6 +101,8 @@ export async function getServerSideProps(context) {
   }
 }
 
+// ... rest of the component code (getClientLogo and SwiftUnitPage) remains unchanged ...
+
 // ===============================
 // LOGO HANDLING (FINALIZED LOGIC)
 // ===============================
@@ -116,7 +114,6 @@ const getClientLogo = (companyName, serialNumber) => {
     companyName.includes("Changi")
   ) {
     return {
-      // ✅ CORRECTED PATH
       src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg",
       alt: `${companyName} Logo`,
       width: 150,
@@ -130,7 +127,6 @@ const getClientLogo = (companyName, serialNumber) => {
     companyName.includes("Milford Haven")
   ) {
     return {
-      // ✅ CORRECTED PATH
       src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg",
       alt: `${companyName} Logo`,
       width: 150,
@@ -159,23 +155,20 @@ export default function SwiftUnitPage({
   const serialNumber = unit.serial_number;
   const companyName = unit.company;
   
-  // ⚠️ IMPORTANT: Pass serialNumber to trigger the new logo logic!
   const logoProps = getClientLogo(companyName, serialNumber);
 
-  // --- UNIQUE DOWNLOAD CONSTANTS ---
   const MAINTENANCE_PDF_PATH = "/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf";
   const INSTALLATION_PDF_PATH = "/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf";
 
   const MAINTENANCE_TITLE = "SWIFT maintenance manual.pdf";
   const INSTALLATION_TITLE = "SWIFT installation guide.pdf";
-  // ---------------------------------
 
   return (
     <>
       <Head>
         <title>{companyName} maintenance portal</title>
       </Head>
-
+      {/* ... rest of the JSX structure is the same as before ... */}
       <div className="swift-main-layout-wrapper">
         <div className="page-wrapper">
           <div className="swift-dashboard-container">
@@ -220,7 +213,6 @@ export default function SwiftUnitPage({
             {/* RIGHT PANEL */}
             <div className="action-panel">
               
-              {/* === ONE LARGE RECTANGLE (MAINTENANCE GROUP WRAPPER) === */}
               <div className="maintenance-group-wrapper"> 
                 
                 {/* ANNUAL CARD (INNER SECTION 1) */}
@@ -255,8 +247,6 @@ export default function SwiftUnitPage({
                   </Link>
                 </div>
               </div> 
-              {/* === END MAINTENANCE GROUP WRAPPER === */}
-
 
               {/* DOWNLOADS (Remains separate) */}
               <div className="downloads-card">
@@ -268,7 +258,7 @@ export default function SwiftUnitPage({
 
                 <div className="download-list">
                   <a
-                    href={MAINTENANCE_PDF_PATH} // <-- CORRECT PATH
+                    href={MAINTENANCE_PDF_PATH} 
                     target="_blank"
                     className="download-link"
                   >
@@ -280,12 +270,12 @@ export default function SwiftUnitPage({
                     />
                     <div>
                       <p>{MAINTENANCE_TITLE}</p> 
-                      <span>{maintenanceManualSize}</span> {/* <-- UNIQUE DYNAMIC SIZE */}
+                      <span>{maintenanceManualSize}</span>
                     </div>
                   </a>
 
                   <a
-                    href={INSTALLATION_PDF_PATH} // <-- CORRECT PATH
+                    href={INSTALLATION_PDF_PATH}
                     target="_blank"
                     className="download-link"
                   >
@@ -297,7 +287,7 @@ export default function SwiftUnitPage({
                     />
                     <div>
                       <p>{INSTALLATION_TITLE}</p>
-                      <span>{installationGuideSize}</span> {/* <-- UNIQUE DYNAMIC SIZE */}
+                      <span>{installationGuideSize}</span>
                     </div>
                   </a>
                 </div>
