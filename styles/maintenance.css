@@ -62,7 +62,6 @@ body {
     grid-template-columns: repeat(12, 1fr);
     gap: 20px;
     width: 100%;
-    /* REVERT: Restore original margin-top */
     margin-top: 60px; 
     margin-bottom: 40px;
     position: relative;
@@ -109,28 +108,32 @@ body {
     max-width: 250px;
     max-height: 40px;
     
-    /* 3. Essential: Set explicit size based on the max values to reserve space */
+    /* 3. Essential: Set explicit size based on the new max values to reserve space */
     width: 250px; 
     height: 40px;
     
-    /* FIX: Force block flow behavior to override any inherited Flex/Grid centering */
-    display: block !important;
-    
-    /* Restore margin: 0 0 40px 0 and use !important to guarantee left margin is 0 */
+    /* REVERT: Use simple margin and rely on justify-self: start for container alignment */
+    display: block;
     margin: 0 0 40px 0 !important;
-    
-    /* REMOVED: text-align: left !important; as it's ineffective on block content */
 }
 
 /* The actual image element inside the logo-section div (.client-logo in JS) */
 .logo-section img {
-    object-fit: contain; 
+    /* NEXT.JS FILL OVERRIDE: Pin the absolutely positioned image to the left */
+    position: absolute !important;
+    left: 0 !important;
+    right: auto !important;
+    width: auto !important; 
+    height: 100% !important;
+    object-fit: contain !important;
+    top: 0 !important; 
+    bottom: 0 !important;
+    
+    /* Clean up old flow rules */
     display: block;
     max-width: 100%; 
     max-height: 100%;
-    
-    /* FIX: Force the image to the left edge of the container */
-    margin: 0 auto 0 0 !important; 
+    margin: 0; 
 }
 
 
@@ -400,8 +403,16 @@ body {
         display: block !important;
     }
     .logo-section img {
-        /* Force the image to the left edge of the container */
-        margin: 0 auto 0 0 !important; 
+        /* Reset Next.js absolute positioning for smaller screens to allow flow-based centering if needed, 
+           but keep the desktop override for consistency */
+        position: absolute !important;
+        left: 0 !important;
+        right: auto !important;
+        width: auto !important; 
+        height: 100% !important;
+        object-fit: contain !important;
+        top: 0 !important; 
+        bottom: 0 !important;
     }
     .portal-title {
         font-size: 28px;
@@ -496,8 +507,15 @@ body {
     }
 
     .logo-section img {
-        /* Mobile: Center the image within its container */
-        margin: 0 auto !important; 
+        /* Re-center the absolutely positioned image for mobile by allowing auto margins */
+        position: absolute !important;
+        left: 0 !important;
+        right: 0 !important; /* Allow auto margins */
+        width: 100% !important; /* Allow full width fill */
+        height: 100% !important;
+        object-fit: contain !important;
+        top: 0 !important; 
+        bottom: 0 !important;
     }
     
     .detail-panel {
