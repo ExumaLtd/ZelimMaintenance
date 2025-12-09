@@ -3,7 +3,7 @@
    Overrides global styles for the maintenance-specific routes.
 ========================================================================= */
 
-/* --- 1. BASE AND LAYOUT (No changes) --- */
+/* --- 1. BASE AND LAYOUT --- */
 
 html {
     font-family: 'Montserrat', sans-serif;
@@ -31,7 +31,6 @@ body {
     overflow-x: hidden;
 }
 
-/* Wrapper and Page Container (No changes) */
 .swift-main-layout-wrapper {
     position: relative;
     min-height: 100vh;
@@ -50,7 +49,7 @@ body {
 }
 
 
-/* --- 2. GRID AND DASHBOARD CONTAINER (No changes) --- */
+/* --- 2. GRID AND DASHBOARD CONTAINER --- */
 
 .swift-dashboard-container {
     display: grid;
@@ -99,12 +98,12 @@ body {
     margin: 0 0 40px 0 !important;
 }
 
-/* DESKTOP LOGO IMAGE FIX (LEFT ALIGN) */
+/* DESKTOP/TABLET LOGO IMAGE FIX (LEFT ALIGN) */
 .logo-section img {
-    /* REQUIRED NEXT.JS OVERRIDES FOR LEFT ALIGNMENT */
+    /* REQUIRED NEXT.JS OVERRIDES FOR LEFT ALIGNMENT (Default for > 600px) */
     position: absolute !important;
     left: 0 !important;
-    right: auto !important; /* Pin left */
+    right: auto !important; /* Pin left, unpin right */
     width: auto !important; /* Don't stretch */
     height: 100% !important;
     object-fit: contain !important;
@@ -127,7 +126,6 @@ body {
     margin: 0 0 34px; 
 }
 
-/* Detail Items (No changes) */
 .maintenance-details {
     display: flex;
     flex-direction: column;
@@ -167,7 +165,7 @@ body {
 }
 
 
-/* --- 4. ACTION PANEL (RIGHT PANEL) & CARDS (No major changes) --- */
+/* --- 4. ACTION PANEL (RIGHT PANEL) & CARDS --- */
 
 .action-panel {
     grid-column: span 8;
@@ -220,7 +218,7 @@ body {
 }
 
 
-/* --- 5. BUTTONS AND LINKS (No changes) --- */
+/* --- 5. BUTTONS AND LINKS --- */
 
 .maintenance-card .start-btn,
 .maintenance-card .primary-btn {
@@ -296,7 +294,7 @@ body {
 }
 
 
-/* --- 6. FIXED LOGO (No changes) --- */
+/* --- 6. FIXED LOGO --- */
 
 .fixed-zelim-logo {
     position: fixed;
@@ -356,41 +354,26 @@ body {
     .detail-panel {
         margin-bottom: 20px;
         text-align: left;
-        /* FIX: Explicitly ensure element fills the single column space */
         justify-self: stretch; 
         align-self: start;
         display: block;
         position: static; 
-        /* FIX: Double check full width */
         width: 100% !important; 
     }
     
     /* Action Panel (Ensure full width) */
     .action-panel {
-        /* FIX: Explicitly ensure element fills the single column space */
         justify-self: stretch; 
         width: 100% !important;
         text-align: left;
     }
     
-    /* Logo Container (Left Align) */
+    /* Logo Container (Left Align - No change to image fix, relies on default above) */
     .logo-section {
         margin: 0 0 40px 0 !important;
         margin-left: 0 !important; 
         margin-right: auto !important; 
         display: block !important;
-    }
-    
-    /* Tablet Logo Image Fix (LEFT ALIGN - SAME AS DESKTOP) */
-    .logo-section img {
-        position: absolute !important;
-        left: 0 !important;
-        right: auto !important; /* Pin left */
-        width: auto !important; /* Don't stretch */
-        height: 100% !important;
-        object-fit: contain !important;
-        top: 0 !important; 
-        bottom: 0 !important;
     }
     
     .portal-title {
@@ -447,7 +430,7 @@ body {
         min-height: calc(100dvh - 80px);
     }
     
-    /* Action Panel & Cards (No changes) */
+    /* Action Panel & Cards */
     .maintenance-group-wrapper {
         flex-direction: column;
     }
@@ -472,12 +455,13 @@ body {
         display: block !important;
     }
 
-    /* Mobile Logo Image Fix (CENTER ALIGN - Fill container) */
+    /* MOBILE LOGO IMAGE FIX (CENTER ALIGN - Fill container) */
     .logo-section img {
+        /* OVERRIDE TO CENTER: Pin to both sides and stretch, allowing 'contain' to center the SVG */
         position: absolute !important;
         left: 0 !important;
-        right: 0 !important; /* Allow fill */
-        width: 100% !important; /* Allow fill */
+        right: 0 !important; 
+        width: 100% !important; 
         height: 100% !important;
         object-fit: contain !important;
         top: 0 !important; 
@@ -490,7 +474,7 @@ body {
         justify-self: center; 
         align-self: start;
         display: block;
-        width: 100% !important;
+        /* width: 100% !important; REMOVED (Relies on justify-self: stretch/grid column from 900px query) */
     }
     .portal-title {
         font-size: 22px;
