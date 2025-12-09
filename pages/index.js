@@ -2,6 +2,7 @@
 
 import Head from 'next/head';
 import Image from 'next/image';
+import Link from 'next/link'; // <--- THIS WAS ADDED
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Airtable from 'airtable';
@@ -58,12 +59,12 @@ export default function Home() {
       </Head>
 
       <div className="landing-root">
-        {/* LEFT HERO (IMAGE) */}
+        {/* LEFT HERO (IMAGE) - UPDATED SOURCE */}
         <div className="landing-hero">
           <div className="landing-hero-inner">
             <Image
-              src="/images/swiftmaintenanceportal-hero.png"
-              alt="An engineer looking into the distance, wearing a hard hat."
+              src="/images/swiftmaintenanceportal-hero(3).png"
+              alt="SWIFT maintenance portal hero image"
               width={1000}
               height={1000}
               quality={100}
@@ -93,7 +94,7 @@ export default function Home() {
                 <input
                   type="text"
                   className="input-field"
-                  placeholder="Enter your access code."
+                  placeholder="Enter your access code"
                   value={accessCode}
                   onChange={(e) => {
                     setAccessCode(e.target.value);
