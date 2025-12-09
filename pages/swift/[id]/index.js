@@ -89,7 +89,7 @@ export async function getServerSideProps(context) {
   }
 }
 
-// LOGO HANDLING (Returns null if no client match, height adjusted for Hatloy)
+// LOGO HANDLING (Returns null if no client match. Removed width/height)
 const getClientLogo = (companyName, serialNumber) => {
   // 1. Changi Airport (SWI001 & SWI002)
   if (
@@ -100,8 +100,6 @@ const getClientLogo = (companyName, serialNumber) => {
     return {
       src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg",
       alt: `${companyName} Logo`,
-      width: 150,
-      height: 40,
     };
   }
 
@@ -113,12 +111,10 @@ const getClientLogo = (companyName, serialNumber) => {
     return {
       src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg",
       alt: `${companyName} Logo`,
-      width: 150,
-      height: 40,
     };
   }
   
-  // 3. Hatloy Maritime (SWI010, SWI011) - PATH CORRECTED, HEIGHT INCREASED
+  // 3. Hatloy Maritime (SWI010, SWI011) - PATH CORRECTED
   if (
     serialNumber === "SWI010" ||
     serialNumber === "SWI011" ||
@@ -127,8 +123,6 @@ const getClientLogo = (companyName, serialNumber) => {
     return {
       src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg", 
       alt: `${companyName} Logo`,
-      width: 150,
-      height: 50, 
     };
   }
 
@@ -171,10 +165,10 @@ export default function SwiftUnitPage({
                   <Image
                     src={logoProps.src}
                     alt={logoProps.alt}
-                    width={logoProps.width}
-                    height={logoProps.height}
+                    // DIMENSIONS CONTROLLED BY CSS NOW
                     className="client-logo"
                     priority
+                    fill // <-- KEY CHANGE for CSS-controlled sizing
                   />
                 </div>
               )}
