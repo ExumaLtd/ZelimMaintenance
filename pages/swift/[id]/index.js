@@ -89,7 +89,7 @@ export async function getServerSideProps(context) {
   }
 }
 
-// LOGO HANDLING (Returns null if no client match)
+// LOGO HANDLING (Returns null if no client match, height adjusted for Hatloy)
 const getClientLogo = (companyName, serialNumber) => {
   // 1. Changi Airport (SWI001 & SWI002)
   if (
@@ -118,17 +118,17 @@ const getClientLogo = (companyName, serialNumber) => {
     };
   }
   
-  // 3. Hatloy Maritime (SWI010, SWI011) - PATH CORRECTED
+  // 3. Hatloy Maritime (SWI010, SWI011) - PATH CORRECTED, HEIGHT INCREASED
   if (
     serialNumber === "SWI010" ||
     serialNumber === "SWI011" ||
     companyName.includes("Hatloy Maritime")
   ) {
     return {
-      src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg",
+      src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg", 
       alt: `${companyName} Logo`,
       width: 150,
-      height: 40,
+      height: 50, 
     };
   }
 
