@@ -104,10 +104,8 @@ body {
     width: 250px; 
     height: 40px;
     
-    margin-bottom: 40px; 
-    /* FIX: Force left alignment on desktop */
-    margin-left: 0; 
-    margin-right: 0;
+    /* FIX: Set top (0), right (0), bottom (40px), left (0) margins for left alignment */
+    margin: 0 0 40px 0; 
 }
 
 /* The actual image element inside the logo-section div (.client-logo in JS) */
@@ -445,8 +443,8 @@ body {
     /* Alignment Changes (Centered) */
     .logo-section {
         /* OVERRIDE: Enforce 10% smaller max size for mobile */
-        max-width: 225px; /* 250px * 0.9 */
-        max-height: 36px; /* 40px * 0.9 */
+        max-width: 225px; 
+        max-height: 36px; 
         
         /* Re-establish fixed size based on the new max for the fill prop */
         width: 225px;
