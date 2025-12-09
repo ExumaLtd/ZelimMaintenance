@@ -14,7 +14,7 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
   padding-top: env(safe-area-inset-top);
   
-  /* CORRECTED: Uses the radial gradient as the global background */
+  /* CORRECTED: Uses the radial gradient as the GLOBAL background for all pages */
   background: radial-gradient(85.89% 70.71% at 50% 50%, #172F36 0%, #2E444A 100%);
   background-size: cover;
   background-attachment: fixed;
@@ -32,7 +32,7 @@ a {
   box-sizing: border-box;
 }
 
-/* Ensures the root background matches the gradient start color inside safe areas */
+/* Ensures the root background matches the gradient start color for safety */
 :root {
   background-color: #172F36;
 }
