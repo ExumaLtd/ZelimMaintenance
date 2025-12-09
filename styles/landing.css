@@ -136,9 +136,7 @@ h1.landing-title {
 
 .input-field:focus {
   outline: none;
-  /* FIX: Ensure the border color remains the same as the static border color (#394d54) 
-     or set to transparent if you don't want any visual indication of focus border. 
-     Keeping it the same ensures no visible change from the default state. */
+  /* Keeping border color the same to remove visual highlight on focus */
   border-color: #394d54; 
 }
 
@@ -157,21 +155,26 @@ h1.landing-title {
 }
 
 /* =========================================
-   PRIMARY BUTTON
+   PRIMARY BUTTON - UPDATED STYLES
 ========================================= */
 
 .primary-btn {
   width: 100%;
   padding: 12px 16px;
   border-radius: 8px;
-  border: 2px solid rgba(255, 255, 255, 0.12);
-  background: #01fff6;
+  /* Keeping original border color */
+  border: 2px solid rgba(255, 255, 255, 0.12); 
+  /* CHANGED BUTTON COLOR */
+  background: #01FFF6; 
   font-family: Montserrat;
   font-size: 16px;
   line-height: 24px;
   font-weight: 600;
-  color: #003336;
+  /* CHANGED FONT COLOR */
+  color: #003336; 
   cursor: pointer;
+  /* REMOVED UPPERCASE */
+  text-transform: none; 
 
   transition:
     background-color 150ms ease,
@@ -179,7 +182,8 @@ h1.landing-title {
 }
 
 .primary-btn:hover:not(:disabled) {
-  background: #01e6dd;
+  /* UPDATED HOVER COLOR */
+  background: #01e6dd; 
 }
 
 .primary-btn:disabled {
