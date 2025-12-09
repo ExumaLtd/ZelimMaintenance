@@ -23,15 +23,19 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
+  /* NEW FIX: Explicitly set height using viewport units 
+     to ensure it respects the main container's height. 
+     This is the 50% column height. */
+  height: 100vh; 
 }
 
 /* Container for the image/background itself */
 .landing-hero-inner {
   width: 100%;
   height: 100%; 
-  /* FIXED: Keep the max-height constraint for robustness */
-  max-height: calc(100vh - 48px); 
-
+  /* This height is now guaranteed by its parent, .landing-hero, 
+     which is fixed to 100vh height */
+  
   border-radius: 20px;
   overflow: hidden;
   
@@ -63,7 +67,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 32px 56px 80px;
-  /* FIXED: Explicitly set height to 100% to fill the parent .landing-root */
+  /* Fixed: Explicitly set height to 100% to fill the parent .landing-root */
   height: 100%; 
 }
 
