@@ -118,14 +118,14 @@ const getClientLogo = (companyName, serialNumber) => {
     };
   }
   
-  // 3. Hatloy Maritime (SWI010, SWI011)
+  // 3. Hatloy Maritime (SWI010, SWI011) - PATH CORRECTED
   if (
     serialNumber === "SWI010" ||
     serialNumber === "SWI011" ||
     companyName.includes("Hatloy Maritime")
   ) {
     return {
-      src: "/client_logos/hatloy_maritime/HatloyMaritime_Logo(White).svg",
+      src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg",
       alt: `${companyName} Logo`,
       width: 150,
       height: 40,
@@ -165,7 +165,7 @@ export default function SwiftUnitPage({
             {/* LEFT PANEL */}
             <div className="detail-panel">
               
-              {/* FINAL FIX: Only render logo section if logoProps is not null */}
+              {/* Only render logo section if logoProps is not null */}
               {logoProps && (
                 <div className="logo-section">
                   <Image
