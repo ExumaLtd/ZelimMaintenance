@@ -2,7 +2,7 @@
 
 import Head from 'next/head';
 import Image from 'next/image';
-import Link from 'next/link'; // <--- THIS WAS ADDED
+import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Airtable from 'airtable';
@@ -110,7 +110,8 @@ export default function Home() {
                 className="primary-btn"
                 disabled={isSubmitting || accessCode.trim() === ''}
               >
-                {isSubmitting ? 'Verifying...' : 'ENTER PORTAL'}
+                {/* FIX APPLIED HERE: Changed 'ENTER PORTAL' to 'Enter portal' */}
+                {isSubmitting ? 'Verifying...' : 'Enter portal'}
               </button>
             </form>
           </div>
