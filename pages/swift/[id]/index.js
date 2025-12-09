@@ -23,7 +23,7 @@ const getFileSize = (filePath) => {
 };
 
 
-// FETCH UNIT DETAILS & FILE SIZES
+// FETCH UNIT DETAILS & FILE SIZES (runs on server)
 export async function getServerSideProps(context) {
   const publicToken = context.params.id;
 
@@ -89,7 +89,7 @@ export async function getServerSideProps(context) {
   }
 }
 
-// LOGO HANDLING
+// LOGO HANDLING (No default fallback, returns showLogo: false if no match)
 const getClientLogo = (companyName, serialNumber) => {
   // 1. Changi Airport (SWI001 & SWI002)
   if (
@@ -177,14 +177,17 @@ export default function SwiftUnitPage({
               {/* Conditional Rendering for the Logo Section */}
               {logoProps.showLogo && (
                 <div className="logo-section">
-                  <Image
-                    src={logoProps.src}
-                    alt={logoProps.alt}
-                    width={logoProps.width}
-                    height={logoProps.height}
-                    className="client-logo"
-                    priority
-                  />
+                  {/* CRITICAL: Only render Image if src is valid to prevent artifact */}
+                  {logoProps.src && (
+                    <Image
+                      src={logoProps.src}
+                      alt={logoProps.alt}
+                      width={logoProps.width}
+                      height={logoProps.height}
+                      className="client-logo"
+                      priority
+                    />
+                  )}
                 </div>
               )}
 
