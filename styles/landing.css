@@ -157,7 +157,7 @@ h1.landing-title {
 }
 
 /* =========================================
-   PRIMARY BUTTON
+   PRIMARY BUTTON - FIXED COLOR
 ========================================= */
 
 .primary-btn {
@@ -166,8 +166,8 @@ h1.landing-title {
   border-radius: 8px;
   /* Keeping original border color */
   border: 2px solid rgba(255, 255, 255, 0.12); 
-  /* BUTTON COLOR */
-  background: #01FFF6; 
+  /* BUTTON COLOR - AGGRESSIVE FIX */
+  background: #01FFF6 !important; 
   font-family: Montserrat;
   font-size: 16px;
   line-height: 24px;
@@ -185,7 +185,7 @@ h1.landing-title {
 
 .primary-btn:hover:not(:disabled) {
   /* HOVER COLOR */
-  background: #01e6dd; 
+  background: #01e6dd !important; /* Also make hover aggressive */
 }
 
 .primary-btn:disabled {
