@@ -17,6 +17,15 @@ export default function Home() {
     e.preventDefault();
     if (isSubmitting) return;
 
+    const publicToken = accessCode.trim();
+
+    // NEW VALIDATION: Check if input is empty and show error if true
+    if (publicToken === '') {
+        setError('Please enter your access code.');
+        return; // Stop submission
+    }
+    // END NEW VALIDATION
+
     setError('');
     setIsSubmitting(true);
 
@@ -26,20 +35,19 @@ export default function Home() {
       }).base(process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID);
 
       const TABLE_NAME = process.env.NEXT_PUBLIC_AIRTABLE_SWIFT_TABLE;
-      const publicToken = accessCode.trim().toLowerCase();
-
+      
       // Look up the record by the public_token (which is the access code)
       const records = await base(TABLE_NAME)
         .select({
           maxRecords: 1,
-          filterByFormula: `{public_token} = "${publicToken}"`,
+          filterByFormula: `{public_token} = "${publicToken.toLowerCase()}"`,
           fields: ["public_token"],
         })
         .firstPage();
 
       if (records && records.length > 0) {
         // Match found, redirect to the maintenance portal for this unit
-        router.push(`/swift/${publicToken}`);
+        router.push(`/swift/${publicToken.toLowerCase()}`);
       } else {
         // No match found
         setError('Invalid access code. Please try again.');
@@ -108,9 +116,9 @@ export default function Home() {
               <button
                 type="submit"
                 className="primary-btn"
-                disabled={isSubmitting || accessCode.trim() === ''}
+                // REMOVED DISABLED PROP to allow validation to run on click
               >
-                {/* FIX APPLIED HERE: Changed 'ENTER PORTAL' to 'Enter portal' */}
+                {/* FIX: Corrected text case */}
                 {isSubmitting ? 'Verifying...' : 'Enter portal'}
               </button>
             </form>

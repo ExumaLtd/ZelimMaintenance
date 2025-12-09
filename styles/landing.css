@@ -157,35 +157,34 @@ h1.landing-title {
 }
 
 /* =========================================
-   PRIMARY BUTTON - CLEANED & FIXED
+   PRIMARY BUTTON - FIXED TO MATCH PORTAL
 ========================================= */
 
 .primary-btn {
   width: 100%;
   padding: 12px 16px;
   border-radius: 8px;
-  border: 2px solid rgba(255, 255, 255, 0.12); 
-  background: #01FFF6; 
-  font-family: Montserrat;
-  font-size: 16px;
-  line-height: 24px;
+  
+  /* STYLES COPIED FROM MAINTENANCE CARD */
+  border: 2px solid hsla(0,0%,100%,.12);
+  background-color: #01fff6;
+  color: #0d3037;
+  font-size: 16px; 
+  line-height: 24px; 
   font-weight: 600;
-  color: #003336; 
   cursor: pointer;
   /* AGGRESSIVE FIX: Ensure text is NOT uppercase */
   text-transform: none !important; 
-
-  transition:
-    background-color 150ms ease,
-    opacity 150ms ease;
+  transition: background-color .2s,border-color .2s;
 }
 
 .primary-btn:hover:not(:disabled) {
-  /* Ensure hover effect applies */
-  background: #01e6dd !important;
+  /* STYLES COPIED FROM MAINTENANCE CARD HOVER */
+  background-color: #01e6dd !important; 
+  cursor: pointer;
 }
 
-/* DISABLED STATE: Removed entirely to ensure full color and cursor: pointer is maintained when disabled */
+/* Disabled state removed to ensure full color and cursor: pointer is maintained */
 
 /* =========================================
    FOOTER LOGO
