@@ -382,14 +382,17 @@ body {
 
     /* Left Panel */
     .detail-panel {
-        grid-column: span 12;
+        /* grid-column: span 12; REMOVED - it's unnecessary in 1fr grid */
         margin-bottom: 20px;
         /* Tablet view is still left-aligned */
         text-align: left;
-        justify-self: start; 
+        /* FIX: Ensure element fills the single column space */
+        justify-self: stretch; 
         align-self: start;
         display: block;
         position: static; 
+        /* FIX: Explicitly ensure full width */
+        width: 100%; 
     }
     .logo-section {
         /* Re-establish flow margin */
@@ -437,7 +440,7 @@ body {
 
     /* Action Panel */
     .action-panel {
-        grid-column: span 12;
+        /* grid-column: span 12; REMOVED */
         text-align: left;
     }
     .maintenance-group-wrapper {
@@ -524,6 +527,7 @@ body {
         justify-self: center; /* Center the grid item itself on mobile */
         align-self: start;
         display: block;
+        width: 100%; /* Ensure full width on mobile too */
     }
     .portal-title {
         font-size: 22px;
