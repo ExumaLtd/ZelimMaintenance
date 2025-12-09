@@ -9,6 +9,15 @@ html {
     font-family: 'Montserrat', sans-serif;
     box-sizing: border-box;
     height: 100%;
+    
+    /* FIXED: BACKGROUND MOVED TO HTML FOR FULL VIEWPORT COVERAGE */
+    background: radial-gradient(
+        85.89% 70.71% at 50% 50%,
+        #172F36 0%,
+        #2E444A 100%
+    );
+    background-attachment: fixed;
+    background-size: cover;
 }
 *, *::before, *::after {
     box-sizing: inherit;
@@ -18,17 +27,11 @@ body {
     margin: 0;
     padding: 0;
     height: 100%;
-    font-family: 'Montserrat', sans-serif;
     
-    /* Background Gradient */
-    background: radial-gradient(
-        85.89% 70.71% at 50% 50%,
-        #172F36 0%,
-        #2E444A 100%
-    );
-    background-attachment: fixed;
-    background-size: cover;
+    /* FIXED: Background removed, relies on HTML */
+    background: transparent; 
     
+    font-family: 'Montserrat', sans-serif; 
     color: #ffffff;
     overflow-x: hidden;
 }
@@ -45,7 +48,7 @@ body {
 
 .page-wrapper {
     max-width: 1280px;
-    width: calc(100% - 160px); /* 160px = 80px margin on each side */
+    width: calc(100% - 160px); 
     margin: 0 auto;
     padding-bottom: 0;
     background: transparent;
@@ -112,7 +115,7 @@ body {
     flex-direction: column;
     gap: 16px;
     margin-top: 20px;
-    /* FIXED: Removed max-width: 305px; to allow full panel width */
+    /* max-width removed */
     width: 100%; 
 }
 
@@ -223,7 +226,7 @@ body {
     text-transform: none !important;
 
     transition: background-color 0.2s, border-color 0.2s;
-    margin: 0; /* Ensures left alignment */
+    margin: 0; 
 }
 
 .maintenance-card .start-btn:hover,
@@ -355,10 +358,9 @@ body {
         flex-direction: row;
         flex-wrap: wrap;
         gap: 20px;
-        width: 100%; /* Important for flex-basis calculation */
+        width: 100%; 
     }
     .detail-item {
-        /* FIXED: Ensures three items fit on one line on tablet */
         flex: 0 1 calc(33.33% - 14px); 
         padding-bottom: 0;
         border-bottom: none;
