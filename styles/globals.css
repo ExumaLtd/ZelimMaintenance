@@ -93,18 +93,7 @@ a {
 
 /* --- LOGO & FOOTER (UPDATED FOR 100% OPACITY) --- */
 
-/* * ORIGINAL CODE FOR .zelim-logo REMOVED/REPLACED:
-* .zelim-logo {
-* max-width: 120px;
-* height: auto;
-* opacity: 0.8; 
-* }
-* .zelim-logo:hover {
-* opacity: 1;
-* }
-*/
-
-/* FIXED LOGO - Ensures 100% opacity, incorporating original positioning */
+/* 1. FIXED LOGO - Includes all original properties and sets opacity to 1 */
 .fixed-zelim-logo {
     position: fixed;
     bottom: 50px;
@@ -116,7 +105,7 @@ a {
     right: auto;
 }
 
-/* LANDING FOOTER - Ensures 100% opacity, incorporating original properties */
+/* 2. LANDING FOOTER - Includes all original properties and sets opacity to 1 */
 .landing-footer {
     width: 100%;
     display: flex;
@@ -125,7 +114,7 @@ a {
     opacity: 1; /* FORCES 100% OPACITY */
 }
 
-/* Override any potential hover effect that tries to set lower opacity */
+/* 3. LANDING FOOTER HOVER - Ensures 100% opacity even on hover, overriding other styles */
 .landing-footer:hover {
     opacity: 1 !important; 
 }
