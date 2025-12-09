@@ -9,17 +9,17 @@
 html {
     font-family: 'Montserrat', sans-serif;
     box-sizing: border-box;
-    /* Cleaned: ALL height and background rules removed, handled by global CSS */
+    /* CLEANED: All height and background rules removed; gradient handled globally. */
 }
 *, *::before, *::after {
     box-sizing: inherit;
 }
 
 body {
-    /* Cleaned: ALL height, padding, and main background rules removed, handled by global CSS */
+    /* CLEANED: All height, padding, and main background rules removed, handled globally. */
     margin: 0;
     padding: 0; 
-    background: transparent; 
+    background: transparent; /* Allows global background to show through */
     font-family: 'Montserrat', sans-serif; 
     color: #ffffff;
     overflow-x: hidden;
@@ -48,8 +48,8 @@ body {
 
 .swift-dashboard-container {
     display: grid;
-    /* V27 FIX: Use minmax to ensure the left column (detail-panel) has a minimum width (325px) 
-       to prevent its content from collapsing the 20px gap at smaller desktop sizes (>= 901px). */
+    /* V27 FIX: Use minmax to guarantee a minimum width for the left panel (325px) 
+       to enforce the 20px gap at smaller desktop sizes (>= 901px). */
     grid-template-columns: minmax(325px, 4fr) 8fr;
     gap: 20px;
     width: 100%;

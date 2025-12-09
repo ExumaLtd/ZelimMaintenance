@@ -13,9 +13,12 @@ body {
   min-height: -webkit-fill-available;
   padding-bottom: env(safe-area-inset-bottom);
   padding-top: env(safe-area-inset-top);
+  
+  /* CORRECTED: Uses the radial gradient as the global background */
   background: radial-gradient(85.89% 70.71% at 50% 50%, #172F36 0%, #2E444A 100%);
   background-size: cover;
   background-attachment: fixed;
+  
   color: #bdc4c6;
   line-height: 1.6;
 }
@@ -29,6 +32,7 @@ a {
   box-sizing: border-box;
 }
 
+/* Ensures the root background matches the gradient start color inside safe areas */
 :root {
   background-color: #172F36;
 }
