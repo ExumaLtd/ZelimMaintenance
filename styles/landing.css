@@ -10,6 +10,7 @@
 
 /* =========================================
    LEFT HERO (IMAGE)
+   (Optimized for CSS background application)
 ========================================= */
 
 .landing-hero {
@@ -20,18 +21,31 @@
   padding: 24px;
 }
 
+/* Container for the image/background itself */
 .landing-hero-inner {
   width: 100%;
   height: 100%;
   border-radius: 20px;
   overflow: hidden;
+  
+  /* DEFAULT IMAGE: The full engineer image */
+  background-image: url('../assets/images/swiftmaintenanceportal-hero.png'); 
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-.landing-hero-inner img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+/* This is the class to OVERRIDE if you want a different hero */
+.landing-hero-inner.new-logo-bg {
+    /* New square logo */
+    background-image: url('../assets/images/ZelimSWIFT(Square).png');
+    background-size: contain; 
+    background-position: center;
+    background-repeat: no-repeat; 
+    background-color: #2e444a; /* Added safety background color */
 }
+
+/* Removed redundant .landing-hero-inner img selector */
 
 /* =========================================
    RIGHT PANEL
