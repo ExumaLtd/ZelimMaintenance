@@ -1,100 +1,105 @@
 // pages/index.js
 
-import Head from "next/head";
-import { useRouter } from "next/router";
-import { useState } from "react";
-import Image from "next/image"; 
+import Head from 'next/head';
+import Image from 'next/image';
+import { useState } from 'react';
+import { useRouter } from 'next/router';
+import Airtable from 'airtable';
 
-export default function IndexPage() {
-  const [pin, setPin] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+export default function Home() {
+  const [accessCode, setAccessCode] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
-  async function handleSubmit(e) {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    if (isSubmitting) return;
 
-    if (!pin.trim()) {
-      setError("Please enter your SWIFT access code.");
-      return;
-    }
+    setError('');
+    setIsSubmitting(true);
 
     try {
-      setLoading(true);
+      const base = new Airtable({
+        apiKey: process.env.NEXT_PUBLIC_AIRTABLE_API_KEY,
+      }).base(process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID);
 
-      const res = await fetch("/api/swift-resolve-pin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pin: pin.trim() }),
-      });
+      const TABLE_NAME = process.env.NEXT_PUBLIC_AIRTABLE_SWIFT_TABLE;
+      const publicToken = accessCode.trim().toLowerCase();
 
-      const data = await res.json();
+      // Look up the record by the public_token (which is the access code)
+      const records = await base(TABLE_NAME)
+        .select({
+          maxRecords: 1,
+          filterByFormula: `{public_token} = "${publicToken}"`,
+          fields: ["public_token"],
+        })
+        .firstPage();
 
-      if (!res.ok) {
-        setError(
-          data.error || "Code not recognised. Please check and try again."
-        );
-        return;
+      if (records && records.length > 0) {
+        // Match found, redirect to the maintenance portal for this unit
+        router.push(`/swift/${publicToken}`);
+      } else {
+        // No match found
+        setError('Invalid access code. Please try again.');
       }
-
-      // Success – go to that unit’s selection page using the publicToken
-      router.push(`/swift/${data.publicToken}`);
-
     } catch (err) {
-      console.error(err);
-      setError("Something went wrong. Please try again.");
+      console.error("Airtable lookup failed:", err);
+      setError('An error occurred during verification. Please try again later.');
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <>
       <Head>
-        <title>Zelim | SWIFT Maintenance Portal</title> 
-        <meta
-          name="description"
-          content="For authorised engineers completing inspections and servicing."
-        />
+        <title>SWIFT Maintenance Portal</title>
       </Head>
 
       <div className="landing-root">
-        {/* LEFT PANEL */}
+        {/* LEFT HERO (IMAGE) */}
         <div className="landing-hero">
           <div className="landing-hero-inner">
-            {/* ✅ UPDATED IMAGE SOURCE: Now using swiftmaintenanceportal-hero(3).png */}
             <Image
-              src="/images/swiftmaintenanceportal-hero(3).png" 
-              alt="SWIFT Survivor Recovery System in use" 
-              width={500} // Placeholder: Adjust for optimization
-              height={800} // Placeholder: Adjust for optimization
+              src="/images/swiftmaintenanceportal-hero.png"
+              alt="An engineer looking into the distance, wearing a hard hat."
+              width={1000}
+              height={1000}
+              quality={100}
               priority
             />
           </div>
         </div>
 
-        {/* RIGHT PANEL */}
+        {/* RIGHT PANEL (CONTENT) */}
         <div className="landing-content">
-          <main className="landing-main">
-            <header className="landing-header">
+          <div className="landing-main">
+            
+            {/* HEADER TEXT */}
+            <div className="landing-header">
               <h1 className="landing-title">
                 <span>SWIFT</span>
                 <span>maintenance portal</span>
               </h1>
               <p className="landing-subtitle">
-                For authorised engineers completing inspections and servicing.
+                For authorised engineers carrying out official inspections and scheduled servicing.
               </p>
-            </header>
+            </div>
 
-            <form className="form-stack" onSubmit={handleSubmit}>
-              <div className={`input-wrapper ${error ? "has-error" : ""}`}>
+            {/* FORM STACK */}
+            <form onSubmit={handleFormSubmit} className="form-stack">
+              <div className={`input-wrapper ${error ? 'has-error' : ''}`}>
                 <input
                   type="text"
                   className="input-field"
-                  placeholder="Enter your access code"
-                  value={pin}
-                  onChange={(e) => setPin(e.target.value)}
+                  placeholder="Enter your access code."
+                  value={accessCode}
+                  onChange={(e) => {
+                    setAccessCode(e.target.value);
+                    setError(''); // Clear error on change
+                  }}
+                  disabled={isSubmitting}
                 />
                 {error && <p className="error-text">{error}</p>}
               </div>
@@ -102,26 +107,24 @@ export default function IndexPage() {
               <button
                 type="submit"
                 className="primary-btn"
-                disabled={loading}
+                disabled={isSubmitting || accessCode.trim() === ''}
               >
-                {loading ? "Checking…" : "Enter portal"}
+                {isSubmitting ? 'Verifying...' : 'ENTER PORTAL'}
               </button>
             </form>
-          </main>
+          </div>
 
+          {/* FOOTER LOGO */}
           <footer className="landing-footer">
-            <a
-              href="https://www.zelim.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="logo-link"
-            >
-              <img
+            <Link href="https://www.zelim.com" target="_blank" rel="noopener noreferrer" className="logo-link">
+              <Image
                 src="/logo/zelim-logo.svg"
-                alt="Zelim"
+                alt="Zelim Logo"
+                width={100}
+                height={30}
                 className="zelim-logo"
               />
-            </a>
+            </Link>
           </footer>
         </div>
       </div>

@@ -137,9 +137,9 @@ h1.landing-title {
 
 .input-field:focus {
   outline: none;
-  /* FIX: Ensure the focus border matches the static border and remove any browser default box shadow/glow */
-  border-color: #394d54;
-  box-shadow: none; 
+  /* AGGRESSIVE FIX: Use !important to override external focus styles */
+  border-color: #394d54 !important;
+  box-shadow: none !important; 
 }
 
 /* ERROR STATE */
