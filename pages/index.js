@@ -17,10 +17,10 @@ export default function Home() {
     e.preventDefault();
     if (isSubmitting) return;
 
-    const publicToken = accessCode.trim();
+    const publicTokenInput = accessCode.trim();
 
-    // FIX: Show error message if input is empty
-    if (publicToken === '') {
+    // Show error message if input is empty
+    if (publicTokenInput === '') {
         setError('Please enter your access code.');
         return; 
     }
@@ -35,18 +35,28 @@ export default function Home() {
 
       const TABLE_NAME = process.env.NEXT_PUBLIC_AIRTABLE_SWIFT_TABLE;
       
-      // Look up the record by the public_token (which is the access code)
+      // Prepare user input for case-insensitive comparison
+      const lowerCaseInput = publicTokenInput.toLowerCase();
+      
+      // Construct the OR formula to check against both fields (case-insensitive)
+      const filterFormula = `OR(LOWER({public_token}) = "${lowerCaseInput}", LOWER({access_pin}) = "${lowerCaseInput}")`;
+
+      // Look up the record by either public_token or access_pin
       const records = await base(TABLE_NAME)
         .select({
           maxRecords: 1,
-          filterByFormula: `{public_token} = "${publicToken.toLowerCase()}"`,
-          fields: ["public_token"],
+          filterByFormula: filterFormula,
+          // Fetch both tokens as we need the public_token for the URL redirect
+          fields: ["public_token", "access_pin"],
         })
         .firstPage();
 
       if (records && records.length > 0) {
+        // Get the public_token for the redirect URL, regardless of which code was entered
+        const redirectToken = records[0].get('public_token');
+
         // Match found, redirect to the maintenance portal for this unit
-        router.push(`/swift/${publicToken.toLowerCase()}`);
+        router.push(`/swift/${redirectToken}`);
       } else {
         // No match found
         setError('Invalid access code. Please try again.');
@@ -66,7 +76,7 @@ export default function Home() {
       </Head>
 
       <div className="landing-root">
-        {/* LEFT HERO (IMAGE) - UPDATED SOURCE */}
+        {/* LEFT HERO (IMAGE) */}
         <div className="landing-hero">
           <div className="landing-hero-inner">
             <Image
@@ -115,9 +125,7 @@ export default function Home() {
               <button
                 type="submit"
                 className="primary-btn"
-                // Disabled prop removed to allow submission/validation when empty
               >
-                {/* FIX: Corrected button text case */}
                 {isSubmitting ? 'Verifying...' : 'Enter portal'}
               </button>
             </form>
