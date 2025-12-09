@@ -340,7 +340,7 @@ body {
 
 
 /* ===============================
-   FIXED LOGO (POSITIONED AT BOTTOM: 50PX)
+   FIXED LOGO (POSITIONED AT BOTTOM: 50PX) - FIXED OPACITY
 =============================== */
 .fixed-zelim-logo {
     position: fixed;
@@ -348,7 +348,7 @@ body {
     left: 50%;
     transform: translateX(-50%);
     z-index: 50;
-    opacity: 0.8;
+    opacity: 1; /* <-- FIXED: Set to 100% opacity */
     top: auto;
     right: auto;
 }
@@ -477,7 +477,7 @@ body {
         margin-top: 40px;
         margin-bottom: 40px; 
         text-align: center;
-        opacity: 1;
+        opacity: 1; /* <-- FIXED: Ensures 100% opacity on mobile override */
         top: auto;
         right: auto;
     }
@@ -503,6 +503,18 @@ body {
     .download-link img {
         margin-bottom: 0; 
         flex-shrink: 0; 
+    }
+
+    /* Download links formatting for 2-up tablet view */
+    .download-link div {
+        /* This rule was missing in the original 900px block but is needed for flow */
+        min-width: 0;
+        flex: 1;
+    }
+    
+    .download-link p {
+        /* This rule was missing in the original 900px block but is needed for flow */
+        word-wrap: break-word; 
     }
 }
 
@@ -552,6 +564,7 @@ body {
         max-width: 100%;
         /* NEW PADDING: Top 15px, Right/Left 20px, Bottom 20px */
         padding: 15px 20px 20px; 
+        border-radius: 20px;
         min-width: 0;
     }
     
