@@ -86,11 +86,14 @@ body {
 .detail-panel {
     grid-column: span 4;
     padding: 0;
-    /* Desktop alignment */
+    /* Desktop alignment for inline content */
     text-align: left; 
     margin-bottom: 0;
-    /* FIX: Force grid item content to the left side of its column */
+    /* FIX: Ensure the Grid Item aligns itself to the start of its row/column */
     justify-self: start;
+    align-self: start;
+    /* Ensure it behaves like a standard block wrapper in its column */
+    display: block;
 }
 
 /* DESKTOP LOGO SCALING (250px x 40px max) */
@@ -368,7 +371,9 @@ body {
         margin-bottom: 20px;
         /* Tablet view is still left-aligned */
         text-align: left;
-        justify-self: start; /* Also enforce start for tablet layout change */
+        justify-self: start; 
+        align-self: start;
+        display: block;
     }
     .portal-title {
         font-size: 28px;
@@ -467,6 +472,8 @@ body {
         /* Center the entire panel content for mobile */
         text-align: center;
         justify-self: center; /* Center the grid item itself on mobile */
+        align-self: start;
+        display: block;
     }
     .portal-title {
         font-size: 22px;
