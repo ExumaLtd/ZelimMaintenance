@@ -71,7 +71,7 @@ h1.landing-title {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  /* gap: 4px; <--- REMOVED */
   color: #f7f7f7;
   font-family: Montserrat;
   font-size: 30px;
@@ -136,7 +136,10 @@ h1.landing-title {
 
 .input-field:focus {
   outline: none;
-  border-color: #394d54;
+  /* FIX: Ensure the border color remains the same as the static border color (#394d54) 
+     or set to transparent if you don't want any visual indication of focus border. 
+     Keeping it the same ensures no visible change from the default state. */
+  border-color: #394d54; 
 }
 
 /* ERROR STATE */
