@@ -1,35 +1,37 @@
 /* globals.css */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap'); 
 
-/* ----------------------------------------------------------
-   GLOBAL SAFE-AREA + DEVICE BACKGROUND + FONT RESET
------------------------------------------------------------ */
+/* ====================================================================
+   FINAL GRADIENT FIX: Guarantees gradient behind ALL safe-areas (iOS)
+   Applies gradient to HTML & BODY, removes all conflicting solid colors.
+==================================================================== */
 
 html {
+  /* Fixes iOS height reporting issue */
   height: -webkit-fill-available;
-  font-family: 'Montserrat', sans-serif;
-
-  /* OPTION A – FIXED GRADIENT WITH HIGHER LIGHT CENTRE */
-  background: radial-gradient(
-    150% 150% at 50% 20%,
-    #172F36 0%,
-    #2E444A 100%
-  );
+  font-family: 'Montserrat', sans-serif; 
+  
+  /* LAYER 1: Apply GRADIENT to HTML to be blended by translucent toolbars */
+  background: radial-gradient(85.89% 70.71% at 50% 50%, #172F36 0%, #2E444A 100%);
   background-attachment: fixed;
   background-size: cover;
 }
 
-/* Make sure body does not override HTML gradient */
 body {
   padding: 0;
-  margin: 0;
+  margin: 0; 
   min-height: 100vh;
   min-height: -webkit-fill-available;
-
+  
+  /* Applies inset padding to ensure content respects safe area */
   padding-bottom: env(safe-area-inset-bottom);
   padding-top: env(safe-area-inset-top);
+  
+  /* LAYER 2: Re-apply the GRADIENT to the BODY as well, just for maximum coverage */
+  background: radial-gradient(85.89% 70.71% at 50% 50%, #172F36 0%, #2E444A 100%);
+  background-attachment: fixed;
+  background-size: cover;
 
-  background: transparent;
   color: #bdc4c6;
   line-height: 1.6;
 }
@@ -43,19 +45,18 @@ a {
   box-sizing: border-box;
 }
 
-/* Fallback background for extreme edge cases */
+/* IMPORTANT: `:root` must NOT have a background color or it will block the gradient on HTML */
 :root {
-  background-color: #172F36;
+  /* This is now clean, relying on HTML background */
 }
 
-/* Fixed Zelim footer logo */
 .fixed-zelim-logo {
-  position: fixed;
-  bottom: 50px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 50;
-  opacity: 1;
-  top: auto;
-  right: auto;
+    position: fixed;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    opacity: 1; 
+    top: auto;
+    right: auto;
 }
