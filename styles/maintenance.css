@@ -123,6 +123,7 @@ body {
     gap: 4px;
     align-self: stretch;
     border-bottom: 1px solid rgba(160, 172, 175, 0.20);
+    width: 100%;
 }
 .maintenance-details .detail-item:last-child {
     border-bottom: none;
@@ -353,11 +354,15 @@ body {
     .maintenance-details {
         flex-direction: row;
         flex-wrap: wrap;
+        gap: 20px;
+        width: 100%; /* Ensure container uses full width for calculation */
     }
     .detail-item {
-        flex: 1;
+        /* FIXED: Ensures three items fit on one line on tablet */
+        flex: 0 1 calc(33.33% - 14px); 
         padding-bottom: 0;
         border-bottom: none;
+        min-width: 100px; 
     }
 
     /* Action Panel */
