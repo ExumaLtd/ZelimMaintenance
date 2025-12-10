@@ -1,12 +1,41 @@
 import Head from "next/head";
+import Script from "next/script";
 import Link from "next/link";
 import Airtable from "airtable";
-import Script from "next/script";
 
-// ==========================================================
-// SERVER-SIDE DATA FETCH — CLEAN PRODUCTION VERSION
-// ==========================================================
+// -----------------------------------------------------
+// CLIENT LOGO LOOKUP (same logic as your main unit page)
+// -----------------------------------------------------
+const getClientLogo = (companyName, serialNumber) => {
+  if (
+    serialNumber === "SWI001" ||
+    serialNumber === "SWI002" ||
+    (companyName && companyName.includes("Changi"))
+  ) {
+    return "/client_logos/changi_airport/ChangiAirport_Logo(White).svg";
+  }
 
+  if (
+    serialNumber === "SWI003" ||
+    (companyName && companyName.includes("Milford Haven"))
+  ) {
+    return "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg";
+  }
+
+  if (
+    serialNumber === "SWI010" ||
+    serialNumber === "SWI011" ||
+    (companyName && companyName.includes("Hatloy Maritime"))
+  ) {
+    return "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg";
+  }
+
+  return null;
+};
+
+// -----------------------------------------------------
+// SERVER-SIDE DATA FETCH
+// -----------------------------------------------------
 export async function getServerSideProps(context) {
   const publicToken = context.params.id;
 
@@ -21,7 +50,7 @@ export async function getServerSideProps(context) {
       .select({
         maxRecords: 1,
         filterByFormula: `{public_token} = "${publicToken}"`,
-        fields: ["serial_number", "annual_form_id"],
+        fields: ["serial_number", "company", "annual_form_id"],
       })
       .firstPage();
 
@@ -33,29 +62,28 @@ export async function getServerSideProps(context) {
 
     const unitDetails = {
       serial_number: record.get("serial_number") || "N/A",
+      company: record.get("company") || "",
       formId: record.get("annual_form_id") || "m5vA7bq5tcus",
     };
 
     return {
       props: { unit: unitDetails, publicToken },
     };
-  } catch (error) {
-    // Production-safe fallback
+  } catch (e) {
     return { redirect: { destination: "/", permanent: false } };
   }
 }
 
-// ==========================================================
+// -----------------------------------------------------
 // PAGE COMPONENT
-// ==========================================================
-
+// -----------------------------------------------------
 export default function AnnualMaintenancePage({ unit, publicToken }) {
   const serialNumber = unit.serial_number;
   const formId = unit.formId;
 
-  const dataFilloutId = formId
-    ? `${formId}?public_token=${publicToken}&swift_serial=${serialNumber}`
-    : null;
+  const dataFilloutId = `${formId}?public_token=${publicToken}&swift_serial=${serialNumber}`;
+
+  const companyLogo = getClientLogo(unit.company, serialNumber);
 
   return (
     <div className="swift-main-layout-wrapper">
@@ -66,51 +94,51 @@ export default function AnnualMaintenancePage({ unit, publicToken }) {
 
         <div className="swift-checklist-container">
 
-          {/* HEADER */}
-          <header className="checklist-header">
-            <h1 className="unit-title">SWIFT Unit: {serialNumber}</h1>
-            <p className="checklist-type">Annual Maintenance Checklist</p>
-            <p className="checklist-info">Token: {publicToken.toUpperCase()}</p>
+          {/* ---------------------------
+              HERO HEADER (centered)
+          --------------------------- */}
+          <header className="checklist-hero">
+
+            {companyLogo && (
+              <img
+                src={companyLogo}
+                alt={`${unit.company} logo`}
+                className="checklist-hero-logo"
+              />
+            )}
+
+            <h1 className="checklist-hero-title">
+              SWIFT {serialNumber}
+            </h1>
+
+            <h2 className="checklist-hero-subtitle">
+              Annual maintenance
+            </h2>
           </header>
 
-          {/* FORM EMBED */}
+          {/* ---------------------------
+              FORM EMBED
+          --------------------------- */}
           <main className="form-embed-area">
-            {formId ? (
-              <>
-                <div
-                  style={{ width: "100%", minHeight: "800px" }}
-                  data-fillout-id={dataFilloutId}
-                  data-fillout-embed-type="standard"
-                  data-fillout-inherit-parameters
-                  data-fillout-dynamic-resize
-                >
-                  <p
-                    style={{
-                      textAlign: "center",
-                      color: "#A0ACAF",
-                      padding: "50px 0",
-                    }}
-                  >
-                    Loading form...
-                  </p>
-                </div>
-
-                <Script
-                  src="https://server.fillout.com/embed/v1/"
-                  strategy="afterInteractive"
-                />
-              </>
-            ) : (
-              <div style={{ padding: "20px", textAlign: "center", color: "#bdc4c6" }}>
-                <p>Form Not Available. Please check Airtable configuration.</p>
-              </div>
-            )}
+            <div
+              data-fillout-id={dataFilloutId}
+              data-fillout-embed-type="standard"
+              data-fillout-inherit-parameters
+              data-fillout-dynamic-resize
+              style={{ width: "100%", minHeight: "900px" }}
+            />
+            <Script
+              src="https://server.fillout.com/embed/v1/"
+              strategy="afterInteractive"
+            />
           </main>
 
-          {/* FOOTER */}
+          {/* ---------------------------
+              FOOTER LINK
+          --------------------------- */}
           <footer className="checklist-footer">
             <Link href={`/swift/${publicToken}`} className="back-link">
-              &larr; Back to Unit Overview
+              ← Back to unit overview
             </Link>
           </footer>
 

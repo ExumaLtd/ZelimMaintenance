@@ -1,112 +1,115 @@
-/* checklist.css */
+/* =========================================
+   CHECKLIST PAGE — HERO + FORM
+========================================= */
 
-/* --- FORM PAGE LAYOUT --- */
-
-/* Sets up the full page container, aligning it with your main portal design */
 .swift-checklist-container {
-    padding-top: 60px; /* Aligns content roughly with the dashboard grid */
-    padding-bottom: 40px;
-    width: 100%;
-    max-width: 1280px; /* Aligns with page-wrapper max width */
-    margin: 0 auto;
-    padding-left: 80px;  /* Desktop left padding */
-    padding-right: 80px; /* Desktop right padding */
+  width: 100%;
+  max-width: 900px;
+  margin: 60px auto 100px;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
 }
 
-/* --- HEADER AND TEXT STYLES --- */
+/* -----------------------------
+   HERO HEADER (matches landing)
+----------------------------- */
 
-.checklist-header {
-    margin-bottom: 30px;
+.checklist-hero {
+  width: 100%;
+  text-align: center;
+  margin: 0 auto 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
 }
 
-.unit-title {
-    color: #F7F7F7;
-    font-size: 30px;
-    font-weight: 600;
-    line-height: 38px;
-    margin: 0 0 10px; 
+.checklist-hero-logo {
+  max-width: 200px;
+  height: auto;
+  opacity: 0.9;
 }
 
-.checklist-type {
-    color: #A0ACAF;
-    font-size: 16px;
-    line-height: 24px;
-    margin: 0 0 5px;
+.checklist-hero-title {
+  color: #F7F7F7;
+  font-family: Montserrat;
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 44px;
+  margin: 0;
 }
 
-.checklist-info {
-    color: #A0ACAF;
-    font-size: 14px;
-    opacity: 0.7;
-    margin: 0;
+.checklist-hero-subtitle {
+  color: #A0ACAF;
+  font-family: Montserrat;
+  font-size: 20px;
+  font-weight: 500;
+  margin: 0;
 }
 
-/* --- FORM EMBED AREA (THE CONTAINER) --- */
+/* -----------------------------
+   FORM EMBED AREA
+----------------------------- */
 
 .form-embed-area {
-    /* Styles to make the container look like the other cards/sections */
-    background: #172F36; /* Background color of your current downloads card */
-    padding: 24px 30px 30px; /* Padding to match card styles */
-    border-radius: 20px;
-    width: 100%;
-    min-width: 0;
+  width: 100%;
+  background: #0F262B;
+  padding: 40px 20px 60px;
+  border-radius: 20px;
 }
 
-/* --- IFRAME STYLING --- */
-
-.form-embed-area iframe {
-    width: 100%;
-    min-height: 800px; /* Adjust this height based on the longest form */
-    height: 100%;
-    border: none;
-    overflow: hidden;
-    display: block; 
+.form-embed-area > div {
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-/* --- FOOTER/BACK LINK STYLES --- */
+[data-fillout-id] {
+  width: 100% !important;
+  min-height: 900px;
+  display: block;
+  border-radius: 12px;
+}
+
+/* -----------------------------
+   FOOTER
+----------------------------- */
 
 .checklist-footer {
-    padding-top: 40px;
+  text-align: center;
+  margin-top: 20px;
 }
 
 .back-link {
-    color: #01FFF6;
-    font-size: 14px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: color 0.2s;
+  color: #01FFF6;
+  font-weight: 600;
+  font-size: 16px;
 }
 
 .back-link:hover {
-    color: #01e6dd;
+  opacity: 0.8;
 }
 
-/* --- MEDIA QUERIES (RESPONSIVENESS) --- */
-
-@media (max-width: 900px) {
-    .swift-checklist-container {
-        padding-top: 40px;
-        /* Match mobile padding from maintenance.css */
-        padding-left: 20px;
-        padding-right: 20px;
-    }
-    .unit-title {
-        font-size: 26px;
-    }
-    .form-embed-area {
-        padding: 20px; 
-    }
-}
+/* -----------------------------
+   RESPONSIVE
+----------------------------- */
 
 @media (max-width: 600px) {
-    .unit-title {
-        font-size: 22px;
-        line-height: 28px;
-    }
-    .form-embed-area {
-        padding: 15px 20px 20px; /* Reduced padding for small screens */
-    }
-    .form-embed-area iframe {
-        min-height: 600px; 
-    }
+  .checklist-hero-logo {
+    max-width: 150px;
+  }
+
+  .checklist-hero-title {
+    font-size: 28px;
+    line-height: 34px;
+  }
+
+  .checklist-hero-subtitle {
+    font-size: 18px;
+  }
+
+  .form-embed-area {
+    padding: 30px 15px 50px;
+  }
 }
