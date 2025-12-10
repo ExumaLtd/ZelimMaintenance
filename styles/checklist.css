@@ -11,7 +11,7 @@
 }
 
 /* ---------------------------------------------
-   LOGO (DESKTOP)
+   LOGO CONTAINER (DESKTOP)
 ---------------------------------------------- */
 .checklist-logo {
   position: relative;
@@ -22,15 +22,21 @@
   margin: 0 auto 30px;
 }
 
+/* ---------------------------------------------
+   FIXED LOGO SCALING (for wide logos like Hatløy)
+---------------------------------------------- */
 .checklist-logo img {
   position: absolute !important;
-  left: 0 !important;
-  right: auto !important;
-  width: auto !important;
-  height: 100% !important;
-  top: 0 !important;
-  bottom: 0 !important;
+  inset: 0 !important;
+  margin: auto !important;
+
+  width: 100% !important;        /* always fit container width */
+  height: auto !important;       /* scale proportionally */
+  max-width: 100% !important;
+  max-height: 100% !important;
+
   object-fit: contain !important;
+  display: block;
 }
 
 /* ---------------------------------------------
@@ -84,11 +90,11 @@
 }
 
 /* =======================================================
-   MOBILE RULES — MUST MATCH maintenance.css
+   MOBILE RULES — Matches maintenance.css
 ======================================================= */
 @media (max-width: 600px) {
 
-  /* Mobile logo sizing (same as maintenance page) */
+  /* Mobile logo sizing (same as maintenance) */
   .checklist-logo {
     max-width: 225px;
     max-height: 36px;
@@ -98,7 +104,7 @@
     margin-right: auto !important;
   }
 
-  /* Mobile title sizing (same as maintenance page) */
+  /* Mobile title sizing */
   .checklist-hero-title {
     font-size: 22px;
     line-height: 28px;
