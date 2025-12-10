@@ -4,7 +4,7 @@ import Link from "next/link";
 import Airtable from "airtable";
 
 /* -------------------------------------------------------
-   CLIENT LOGO DETECTION
+   CLIENT LOGO DETECTION — same logic as maintenance page
 ------------------------------------------------------- */
 const getClientLogo = (companyName, serialNumber) => {
   if (
@@ -34,7 +34,7 @@ const getClientLogo = (companyName, serialNumber) => {
 };
 
 /* -------------------------------------------------------
-   SERVER-SIDE DATA FETCH
+   SERVER-SIDE DATA FETCH (Airtable)
 ------------------------------------------------------- */
 export async function getServerSideProps(context) {
   const publicToken = context.params.id;
@@ -76,29 +76,35 @@ export async function getServerSideProps(context) {
 }
 
 /* -------------------------------------------------------
-   PAGE COMPONENT
+   PAGE COMPONENT — ANNUAL MAINTENANCE CHECKLIST
 ------------------------------------------------------- */
 export default function AnnualMaintenancePage({ unit, publicToken }) {
   const serialNumber = unit.serial_number;
-  const formId = unit.formId;
-
-  const dataFilloutId = `${formId}?public_token=${publicToken}&swift_serial=${serialNumber}`;
-
   const companyLogo = getClientLogo(unit.company, serialNumber);
+
+  // Build Fillout embed URL
+  const dataFilloutId = `${unit.formId}?public_token=${publicToken}&swift_serial=${serialNumber}`;
 
   return (
     <div className="swift-main-layout-wrapper">
       <div className="page-wrapper">
+
+        {/* ---------------------------
+            HEAD TAGS
+        --------------------------- */}
         <Head>
           <title>SWIFT {serialNumber} annual maintenance</title>
           <meta
             name="description"
-            content={`Annual maintenance checklist for SWIFT ${serialNumber}.`}
+            content={`Annual maintenance checklist for SWIFT ${serialNumber}`}
           />
         </Head>
 
         <div className="swift-checklist-container">
-          {/* HERO */}
+
+          {/* ---------------------------
+              HERO HEADER
+          --------------------------- */}
           <header className="checklist-hero">
 
             {companyLogo && (
@@ -114,26 +120,26 @@ export default function AnnualMaintenancePage({ unit, publicToken }) {
             </h1>
           </header>
 
-          {/* FORM */}
+          {/* ---------------------------
+              FORM EMBED AREA
+          --------------------------- */}
           <main className="form-embed-area">
             <div
               data-fillout-id={dataFilloutId}
               data-fillout-embed-type="standard"
               data-fillout-inherit-parameters
               data-fillout-dynamic-resize
-              style={{
-                width: "100%",
-                minHeight: "900px",
-              }}
+              style={{ width: "100%", minHeight: "900px" }}
             />
-
             <Script
               src="https://server.fillout.com/embed/v1/"
               strategy="afterInteractive"
             />
           </main>
 
-          {/* FOOTER */}
+          {/* ---------------------------
+              FOOTER
+          --------------------------- */}
           <footer className="checklist-footer">
             <Link href={`/swift/${publicToken}`} className="back-link">
               ← Back to unit overview
