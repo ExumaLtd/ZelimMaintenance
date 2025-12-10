@@ -22,16 +22,14 @@
   margin: 0 auto 30px;
 }
 
-/* ---------------------------------------------
-   FIXED LOGO SCALING (for wide logos like Hatløy)
----------------------------------------------- */
+/* FIXED LOGO SCALING */
 .checklist-logo img {
   position: absolute !important;
   inset: 0 !important;
   margin: auto !important;
 
-  width: 100% !important;        /* always fit container width */
-  height: auto !important;       /* scale proportionally */
+  width: 100% !important; 
+  height: auto !important;
   max-width: 100% !important;
   max-height: 100% !important;
 
@@ -40,8 +38,7 @@
 }
 
 /* ---------------------------------------------
-   HERO TITLE
-   Matches maintenance portal typography
+   HERO TITLE — Matches maintenance portal
 ---------------------------------------------- */
 .checklist-hero-title {
   color: #F7F7F7;
@@ -66,10 +63,23 @@
   min-height: 900px;
   padding: 0;
   margin-top: 20px;
+
+  /* ensure rounded iframe displays cleanly */
+  border-radius: 20px;
+  overflow: hidden;
 }
 
+/* Hides the default “Loading Form…” text */
 .form-embed-area p {
   display: none !important;
+}
+
+/* ---------------------------------------------
+   IFRAME CORNER RADIUS (NEW)
+---------------------------------------------- */
+.form-embed-area iframe {
+  border-radius: 20px !important;
+  overflow: hidden !important;
 }
 
 /* ---------------------------------------------
@@ -94,7 +104,7 @@
 ======================================================= */
 @media (max-width: 600px) {
 
-  /* Mobile logo sizing (same as maintenance) */
+  /* Mobile logo sizing */
   .checklist-logo {
     max-width: 225px;
     max-height: 36px;
@@ -104,18 +114,23 @@
     margin-right: auto !important;
   }
 
-  /* Mobile title sizing */
+  /* Mobile title */
   .checklist-hero-title {
     font-size: 22px;
     line-height: 28px;
     margin-bottom: 30px;
   }
 
-  /* Full-width form */
+  /* Rounded form area */
   .form-embed-area {
     width: 100%;
     padding: 0;
-    border-radius: 12px;
+    border-radius: 20px;
     min-height: 900px;
+    overflow: hidden;
+  }
+
+  .form-embed-area iframe {
+    border-radius: 20px !important;
   }
 }
