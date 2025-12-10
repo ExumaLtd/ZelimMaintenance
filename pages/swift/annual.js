@@ -1,21 +1,20 @@
-// pages/swift/[id]/annual.js - FINAL STRUCTURE
+// pages/swift/[id]/annual.js - FINAL CODE WITH STANDARD FILLOUT EMBED
 
 import Head from "next/head";
 import Link from "next/link";
 import Airtable from "airtable";
+import Script from "next/script"; // <-- REQUIRED for reliable script loading
 
 // --- Data Fetching (runs on server before page load) ---
 export async function getServerSideProps(context) {
   const publicToken = context.params.id;
   
   try {
-    // Note: Uses Airtable API keys from environment variables
     const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
       process.env.AIRTABLE_BASE_ID
     );
     const TABLE_NAME = process.env.AIRTABLE_SWIFT_TABLE;
     
-    // Fetch the unit details and the specific Annual Form ID
     const records = await base(TABLE_NAME)
       .select({
         maxRecords: 1,
@@ -25,14 +24,14 @@ export async function getServerSideProps(context) {
       .firstPage();
 
     if (!records || records.length === 0) {
-      // If no unit found, redirect to the login page
       return { redirect: { destination: '/', permanent: false } };
     }
     
     const record = records[0];
     const unitDetails = {
       serial_number: record.get("serial_number") || "N/A",
-      formId: record.get("annual_form_id") || null, // The Fillout Form ID
+      // Use the actual Form ID from your Airtable record, or hardcode the one you provided if it's the same for all annual checks
+      formId: record.get("annual_form_id") || "m5vA7bq5tcus", 
     };
 
     return {
@@ -51,40 +50,45 @@ export default function AnnualMaintenancePage({ unit, publicToken }) {
   const serialNumber = unit.serial_number;
   const formId = unit.formId;
 
-  // Added as a temporary cache buster in the final debugging step (can be removed later)
-  const cacheBuster = 'recompile'; 
-
-  const filloutUrl = formId 
-    ? `https://forms.fillout.com/${formId}?unit_public_token=${publicToken}&embed=true`
+  // Fillout requires parameters to be passed in the 'data-fillout-id' attribute, 
+  // appended to the base form ID.
+  const dataFilloutId = formId 
+    ? `${formId}?public_token=${publicToken}&swift_serial=${serialNumber}` 
     : null;
 
   return (
-    // WRAPPED IN GLOBAL LAYOUTS
     <div className="swift-main-layout-wrapper">
       <div className="page-wrapper">
         <Head>
           <title>SWIFT Annual Checklist | {serialNumber}</title>
         </Head>
 
-        {/* Use the central container for styling */}
         <div className="swift-checklist-container">
           
-          {/* HEADER (Styled by checklist.css) */}
           <header className="checklist-header">
             <h1 className="unit-title">SWIFT Unit: {serialNumber}</h1>
             <p className="checklist-type">Annual Maintenance Checklist</p>
             <p className="checklist-info">Token: {publicToken.toUpperCase()}</p>
           </header>
 
-          {/* EMBED AREA (Styled by checklist.css) */}
           <main className="form-embed-area">
             {formId ? (
-              <iframe
-                title="Annual Maintenance Form"
-                src={filloutUrl}
-                /* STYLES MOVED TO checklist.css */
-                allowFullScreen
-              />
+              <>
+                {/* 1. The Fillout container DIV (Standard Embed) */}
+                <div 
+                  style={{ width: '100%', minHeight: '800px' }} 
+                  data-fillout-id={dataFilloutId}
+                  data-fillout-embed-type="standard"
+                  data-fillout-inherit-parameters
+                  data-fillout-dynamic-resize
+                >
+                  {/* Fallback content while script loads */}
+                  <p style={{ textAlign: 'center', color: '#A0ACAF', padding: '50px 0' }}>Loading form...</p>
+                </div>
+
+                {/* 2. The Next.js Script Loader (Crucial for resolving the 404 cache issue) */}
+                <Script src="https://server.fillout.com/embed/v1/" strategy="afterInteractive" />
+              </>
             ) : (
               // Fallback if formId is missing
               <div style={{ padding: '20px', textAlign: 'center', color: '#bdc4c6' }}>
@@ -93,7 +97,6 @@ export default function AnnualMaintenancePage({ unit, publicToken }) {
             )}
           </main>
 
-          {/* FOOTER (Styled by checklist.css) */}
           <footer className="checklist-footer">
             <Link href={`/swift/${publicToken}`} className="back-link">
               &larr; Back to Unit Selection
