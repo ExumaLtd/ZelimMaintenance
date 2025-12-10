@@ -4,7 +4,7 @@ import Link from "next/link";
 import Airtable from "airtable";
 
 /* -------------------------------------------------------
-   CLIENT LOGO DETECTION (same logic as maintenance page)
+   CLIENT LOGO DETECTION
 ------------------------------------------------------- */
 const getClientLogo = (companyName, serialNumber) => {
   if (
@@ -98,10 +98,7 @@ export default function AnnualMaintenancePage({ unit, publicToken }) {
         </Head>
 
         <div className="swift-checklist-container">
-
-          {/* ---------------------------
-              HERO HEADER
-          --------------------------- */}
+          {/* HERO */}
           <header className="checklist-hero">
 
             {companyLogo && (
@@ -117,16 +114,17 @@ export default function AnnualMaintenancePage({ unit, publicToken }) {
             </h1>
           </header>
 
-          {/* ---------------------------
-              FORM EMBED
-          --------------------------- */}
+          {/* FORM */}
           <main className="form-embed-area">
             <div
               data-fillout-id={dataFilloutId}
               data-fillout-embed-type="standard"
               data-fillout-inherit-parameters
               data-fillout-dynamic-resize
-              style={{ width: "100%", minHeight: "900px" }}
+              style={{
+                width: "100%",
+                minHeight: "900px",
+              }}
             />
 
             <Script
@@ -135,15 +133,12 @@ export default function AnnualMaintenancePage({ unit, publicToken }) {
             />
           </main>
 
-          {/* ---------------------------
-              FOOTER
-          --------------------------- */}
+          {/* FOOTER */}
           <footer className="checklist-footer">
             <Link href={`/swift/${publicToken}`} className="back-link">
               ← Back to unit overview
             </Link>
           </footer>
-
         </div>
       </div>
     </div>
