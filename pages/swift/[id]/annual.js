@@ -1,19 +1,14 @@
-// pages/swift/[id]/annual.js - FULL FILE WITH DEBUGGING & STANDARD FILLOUT EMBED
-
 import Head from "next/head";
 import Link from "next/link";
 import Airtable from "airtable";
 import Script from "next/script";
 
 // ==========================================================
-// 🔍 SERVER-SIDE DATA FETCH (Debug Version)
+// SERVER-SIDE DATA FETCH — CLEAN PRODUCTION VERSION
 // ==========================================================
 
 export async function getServerSideProps(context) {
   const publicToken = context.params.id;
-
-  console.log("======= DEBUG: /annual getServerSideProps =======");
-  console.log("URL publicToken:", publicToken);
 
   try {
     const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
@@ -22,59 +17,42 @@ export async function getServerSideProps(context) {
 
     const TABLE_NAME = process.env.AIRTABLE_SWIFT_TABLE;
 
-    console.log("Using Airtable table:", TABLE_NAME);
-    console.log("Using Base ID:", process.env.AIRTABLE_BASE_ID);
-    console.log("API KEY present:", !!process.env.AIRTABLE_API_KEY);
-
-    const formula = `{public_token} = "${publicToken}"`;
-    console.log("Filter formula:", formula);
-
     const records = await base(TABLE_NAME)
       .select({
         maxRecords: 1,
-        filterByFormula: formula,
+        filterByFormula: `{public_token} = "${publicToken}"`,
         fields: ["serial_number", "annual_form_id"],
       })
       .firstPage();
 
-    console.log("Records returned:", records.length);
-
     if (!records || records.length === 0) {
-      console.log("❌ No Airtable match found — redirecting to /");
       return { redirect: { destination: "/", permanent: false } };
     }
 
     const record = records[0];
-
-    console.log("Record fields:");
-    console.log("serial_number:", record.get("serial_number"));
-    console.log("annual_form_id:", record.get("annual_form_id"));
 
     const unitDetails = {
       serial_number: record.get("serial_number") || "N/A",
       formId: record.get("annual_form_id") || "m5vA7bq5tcus",
     };
 
-    console.log("Returning props:", unitDetails);
-
     return {
       props: { unit: unitDetails, publicToken },
     };
   } catch (error) {
-    console.log("❌ ERROR in /annual getServerSideProps:", error);
+    // Production-safe fallback
     return { redirect: { destination: "/", permanent: false } };
   }
 }
 
 // ==========================================================
-// 🔧 PAGE COMPONENT
+// PAGE COMPONENT
 // ==========================================================
 
 export default function AnnualMaintenancePage({ unit, publicToken }) {
   const serialNumber = unit.serial_number;
   const formId = unit.formId;
 
-  // Fillout expects the form ID + query parameters
   const dataFilloutId = formId
     ? `${formId}?public_token=${publicToken}&swift_serial=${serialNumber}`
     : null;
@@ -117,21 +95,14 @@ export default function AnnualMaintenancePage({ unit, publicToken }) {
                   </p>
                 </div>
 
-                {/* Fillout Script Loader */}
                 <Script
                   src="https://server.fillout.com/embed/v1/"
                   strategy="afterInteractive"
                 />
               </>
             ) : (
-              <div
-                style={{
-                  padding: "20px",
-                  textAlign: "center",
-                  color: "#bdc4c6",
-                }}
-              >
-                <p>Form Not Available. Please check Airtable config.</p>
+              <div style={{ padding: "20px", textAlign: "center", color: "#bdc4c6" }}>
+                <p>Form Not Available. Please check Airtable configuration.</p>
               </div>
             )}
           </main>
@@ -142,6 +113,7 @@ export default function AnnualMaintenancePage({ unit, publicToken }) {
               &larr; Back to Unit Overview
             </Link>
           </footer>
+
         </div>
       </div>
     </div>
