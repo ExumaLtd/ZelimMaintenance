@@ -1,0 +1,112 @@
+/* checklist.css */
+
+/* --- FORM PAGE LAYOUT --- */
+
+/* Sets up the full page container, aligning it with your main portal design */
+.swift-checklist-container {
+    padding-top: 60px; /* Aligns content roughly with the dashboard grid */
+    padding-bottom: 40px;
+    width: 100%;
+    max-width: 1280px; /* Aligns with page-wrapper max width */
+    margin: 0 auto;
+    padding-left: 80px;  /* Desktop left padding */
+    padding-right: 80px; /* Desktop right padding */
+}
+
+/* --- HEADER AND TEXT STYLES --- */
+
+.checklist-header {
+    margin-bottom: 30px;
+}
+
+.unit-title {
+    color: #F7F7F7;
+    font-size: 30px;
+    font-weight: 600;
+    line-height: 38px;
+    margin: 0 0 10px; 
+}
+
+.checklist-type {
+    color: #A0ACAF;
+    font-size: 16px;
+    line-height: 24px;
+    margin: 0 0 5px;
+}
+
+.checklist-info {
+    color: #A0ACAF;
+    font-size: 14px;
+    opacity: 0.7;
+    margin: 0;
+}
+
+/* --- FORM EMBED AREA (THE CONTAINER) --- */
+
+.form-embed-area {
+    /* Styles to make the container look like the other cards/sections */
+    background: #172F36; /* Background color of your current downloads card */
+    padding: 24px 30px 30px; /* Padding to match card styles */
+    border-radius: 20px;
+    width: 100%;
+    min-width: 0;
+}
+
+/* --- IFRAME STYLING --- */
+
+.form-embed-area iframe {
+    width: 100%;
+    min-height: 800px; /* Adjust this height based on the longest form */
+    height: 100%;
+    border: none;
+    overflow: hidden;
+    display: block; 
+}
+
+/* --- FOOTER/BACK LINK STYLES --- */
+
+.checklist-footer {
+    padding-top: 40px;
+}
+
+.back-link {
+    color: #01FFF6;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.back-link:hover {
+    color: #01e6dd;
+}
+
+/* --- MEDIA QUERIES (RESPONSIVENESS) --- */
+
+@media (max-width: 900px) {
+    .swift-checklist-container {
+        padding-top: 40px;
+        /* Match mobile padding from maintenance.css */
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    .unit-title {
+        font-size: 26px;
+    }
+    .form-embed-area {
+        padding: 20px; 
+    }
+}
+
+@media (max-width: 600px) {
+    .unit-title {
+        font-size: 22px;
+        line-height: 28px;
+    }
+    .form-embed-area {
+        padding: 15px 20px 20px; /* Reduced padding for small screens */
+    }
+    .form-embed-area iframe {
+        min-height: 600px; 
+    }
+}

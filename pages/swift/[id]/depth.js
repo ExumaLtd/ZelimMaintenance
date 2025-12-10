@@ -1,11 +1,12 @@
-// pages/swift/[id]/depth.js - DEPTH CHECKLIST PAGE (FINAL)
+// pages/swift/[id]/depth.js - FINAL STRUCTURE
 
 import Head from "next/head";
 import Link from "next/link";
 import Airtable from "airtable";
 
-// --- Data Fetching ---
+// --- Data Fetching (Keep this as is) ---
 export async function getServerSideProps(context) {
+  // ... data fetching logic ... (KEEP THIS THE SAME)
   const publicToken = context.params.id;
 
   try {
@@ -18,7 +19,6 @@ export async function getServerSideProps(context) {
       .select({
         maxRecords: 1,
         filterByFormula: `{public_token} = "${publicToken}"`, 
-        // Fetch serial_number and form ID
         fields: ["serial_number", "depth_form_id"], 
       })
       .firstPage();
@@ -30,7 +30,6 @@ export async function getServerSideProps(context) {
     const record = records[0];
     const unitDetails = {
       serial_number: record.get("serial_number") || "N/A",
-      // Pass the form ID to the component
       formId: record.get("depth_form_id") || null,
     };
 
@@ -50,55 +49,52 @@ export default function DepthMaintenancePage({ unit, publicToken }) {
   const serialNumber = unit.serial_number;
   const formId = unit.formId;
 
-  // 🚨 CORRECTED URL STRUCTURE for robust embedding and prefill
   const filloutUrl = formId 
     ? `https://forms.fillout.com/${formId}?unit_public_token=${publicToken}&embed=true`
     : null;
 
   return (
-    <>
-      <Head>
-        {/* DYNAMIC BROWSER TAB TITLE: SWIFT Depth Checklist | Serial Number */}
-        <title>SWIFT Depth Checklist | {serialNumber}</title>
-      </Head>
+    // WRAPPED IN GLOBAL LAYOUTS
+    <div className="swift-main-layout-wrapper">
+      <div className="page-wrapper">
+        <Head>
+          <title>SWIFT Depth Checklist | {serialNumber}</title>
+        </Head>
 
-      <div className="swift-checklist-container">
-        
-        {/* HEADER */}
-        <header className="checklist-header">
-          <h1 className="unit-title">SWIFT Unit: {serialNumber}</h1>
-          <p className="checklist-type">Depth Maintenance Checklist</p>
-          <p className="checklist-info">Public Token: {publicToken.toUpperCase()}</p>
-        </header>
+        {/* Use the central container for styling */}
+        <div className="swift-checklist-container">
+          
+          {/* HEADER (Styled by checklist.css) */}
+          <header className="checklist-header">
+            <h1 className="unit-title">SWIFT Unit: {serialNumber}</h1>
+            <p className="checklist-type">Depth Maintenance Checklist</p>
+            <p className="checklist-info">Token: {publicToken.toUpperCase()}</p>
+          </header>
 
-        {/* EMBED AREA - Now using iFrame */}
-        <main className="form-embed-area">
-          {formId ? (
-            <iframe
-              title="Depth Maintenance Form"
-              src={filloutUrl}
-              style={{
-                width: '100%',
-                height: '100%',
-                border: 'none',
-                backgroundColor: 'white' 
-              }}
-              allowFullScreen
-            />
-          ) : (
-            <div style={{ padding: '20px', textAlign: 'center', color: '#bdc4c6' }}>
-                <p>Form Not Available. Please ensure the form ID is configured in Airtable.</p>
-            </div>
-          )}
-        </main>
+          {/* EMBED AREA (Styled by checklist.css) */}
+          <main className="form-embed-area">
+            {formId ? (
+              <iframe
+                title="Depth Maintenance Form"
+                src={filloutUrl}
+                /* REMOVED INLINE STYLES - Now handled by checklist.css */
+                allowFullScreen
+              />
+            ) : (
+              <div style={{ padding: '20px', textAlign: 'center', color: '#bdc4c6' }}>
+                  <p>Form Not Available. Please ensure the form ID is configured in Airtable.</p>
+              </div>
+            )}
+          </main>
 
-        {/* FOOTER */}
-        <footer className="checklist-footer">
-          <Link href={`/swift/${publicToken}`} className="back-link">
-            &larr; Back to Unit Selection
-          </Link>
-        </footer>
+          {/* FOOTER (Styled by checklist.css) */}
+          <footer className="checklist-footer">
+            <Link href={`/swift/${publicToken}`} className="back-link">
+              &larr; Back to Unit Selection
+            </Link>
+          </footer>
+        </div>
       </div>
-    </>
+    </div>
   );
 }

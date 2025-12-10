@@ -2,7 +2,8 @@
 
 import "../styles/globals.css";
 import "../styles/landing.css";      // Login portal styles
-import "../styles/maintenance.css"; // Client portal styles (replaces swift.css)
+import "../styles/maintenance.css"; // Client portal styles
+import "../styles/checklist.css";   // <--- ADDED: Styles for the dedicated form pages
 import Head from "next/head";
 
 export default function MyApp({ Component, pageProps }) {
