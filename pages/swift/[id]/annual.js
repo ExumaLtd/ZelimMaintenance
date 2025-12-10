@@ -1,122 +1,147 @@
-/* =========================================
-   CHECKLIST PAGE — HERO + FORM
-========================================= */
+import Head from "next/head";
+import Script from "next/script";
+import Link from "next/link";
+import Airtable from "airtable";
 
-.swift-checklist-container {
-  width: 100%;
-  max-width: 900px;
-  margin: 60px auto 100px;
-  padding: 0 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
-}
-
-/* -----------------------------
-   HERO HEADER (matches landing)
------------------------------ */
-
-.checklist-hero {
-  width: 100%;
-  text-align: center;
-  margin-top: 60px;
-  margin-bottom: 40px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-/* Logo container (copied from maintenance.css) */
-.checklist-logo {
-  position: relative;
-  max-width: 250px;
-  max-height: 40px;
-  width: 250px;
-  height: 40px;
-  display: block;
-  margin: 0 auto 10px auto;
-}
-
-.checklist-logo img {
-  position: absolute !important;
-  left: 0 !important;
-  right: auto !important;
-  width: auto !important;
-  height: 100% !important;
-  object-fit: contain !important;
-  top: 0 !important;
-  bottom: 0 !important;
-
-  display: block;
-  max-width: 100%;
-  max-height: 100%;
-  margin: 0;
-}
-
-/* Title (matches .portal-title exactly) */
-.checklist-hero-title {
-  color: #FFFFFF;
-  font-family: Montserrat, sans-serif;
-  font-size: 30px;
-  font-weight: 600;
-  line-height: 38px;
-  text-align: center;
-  margin: 0;
-}
-
-.checklist-hero-title .break-point {
-  display: block; /* always force a new line */
-}
-
-/* -----------------------------
-   FORM EMBED AREA
------------------------------ */
-
-.form-embed-area {
-  width: 100%;
-  background: #0f262b;
-  padding: 20px 20px 20px 20px; /* your requested padding */
-  border-radius: 20px;
-}
-
-.form-embed-area > div {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-[data-fillout-id] {
-  width: 100% !important;
-  min-height: 900px;
-  display: block;
-  border-radius: 12px;
-}
-
-/* -----------------------------
-   FOOTER
------------------------------ */
-
-.checklist-footer {
-  text-align: center;
-}
-
-.back-link {
-  color: #01FFF6;
-  font-weight: 600;
-  font-size: 16px;
-}
-
-.back-link:hover {
-  opacity: 0.8;
-}
-
-/* -----------------------------
-   RESPONSIVE
------------------------------ */
-
-@media (max-width: 600px) {
-  .checklist-logo {
-    max-width: 200px;
-    height: 36px;
+/* -------------------------------------------------------
+   CLIENT LOGO DETECTION (copied from maintenance page)
+------------------------------------------------------- */
+const getClientLogo = (companyName, serialNumber) => {
+  if (
+    serialNumber === "SWI001" ||
+    serialNumber === "SWI002" ||
+    (companyName && companyName.includes("Changi"))
+  ) {
+    return "/client_logos/changi_airport/ChangiAirport_Logo(White).svg";
   }
+
+  if (
+    serialNumber === "SWI003" ||
+    (companyName && companyName.includes("Milford Haven"))
+  ) {
+    return "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg";
+  }
+
+  if (
+    serialNumber === "SWI010" ||
+    serialNumber === "SWI011" ||
+    (companyName && companyName.includes("Hatloy Maritime"))
+  ) {
+    return "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg";
+  }
+
+  return null;
+};
+
+/* -------------------------------------------------------
+   SERVER-SIDE DATA FETCH
+------------------------------------------------------- */
+export async function getServerSideProps(context) {
+  const publicToken = context.params.id;
+
+  try {
+    const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
+      process.env.AIRTABLE_BASE_ID
+    );
+
+    const TABLE_NAME = process.env.AIRTABLE_SWIFT_TABLE;
+
+    const records = await base(TABLE_NAME)
+      .select({
+        maxRecords: 1,
+        filterByFormula: `{public_token} = "${publicToken}"`,
+        fields: ["serial_number", "company", "annual_form_id"],
+      })
+      .firstPage();
+
+    if (!records || records.length === 0) {
+      return { redirect: { destination: "/", permanent: false } };
+    }
+
+    const record = records[0];
+
+    return {
+      props: {
+        unit: {
+          serial_number: record.get("serial_number") || "N/A",
+          company: record.get("company") || "",
+          formId: record.get("annual_form_id") || "m5vA7bq5tcus",
+        },
+        publicToken,
+      },
+    };
+  } catch (err) {
+    return { redirect: { destination: "/", permanent: false } };
+  }
+}
+
+/* -------------------------------------------------------
+   PAGE COMPONENT
+------------------------------------------------------- */
+export default function AnnualMaintenancePage({ unit, publicToken }) {
+  const serialNumber = unit.serial_number;
+  const formId = unit.formId;
+
+  const dataFilloutId = `${formId}?public_token=${publicToken}&swift_serial=${serialNumber}`;
+
+  const companyLogo = getClientLogo(unit.company, serialNumber);
+
+  return (
+    <div className="swift-main-layout-wrapper">
+      <div className="page-wrapper">
+        <Head>
+          <title>SWIFT Annual Checklist | {serialNumber}</title>
+        </Head>
+
+        <div className="swift-checklist-container">
+          
+          {/* ---------------------------
+              HERO HEADER
+          --------------------------- */}
+          <header className="checklist-hero">
+
+            {companyLogo && (
+              <div className="checklist-logo">
+                <img src={companyLogo} alt={`${unit.company} logo`} />
+              </div>
+            )}
+
+            <h1 className="checklist-hero-title">
+              SWIFT {serialNumber}
+              <span className="break-point"></span>
+              annual maintenance
+            </h1>
+          </header>
+
+          {/* ---------------------------
+              FORM EMBED
+          --------------------------- */}
+          <main className="form-embed-area">
+            <div
+              data-fillout-id={dataFilloutId}
+              data-fillout-embed-type="standard"
+              data-fillout-inherit-parameters
+              data-fillout-dynamic-resize
+              style={{ width: "100%", minHeight: "900px" }}
+            />
+
+            <Script
+              src="https://server.fillout.com/embed/v1/"
+              strategy="afterInteractive"
+            />
+          </main>
+
+          {/* ---------------------------
+              FOOTER
+          --------------------------- */}
+          <footer className="checklist-footer">
+            <Link href={`/swift/${publicToken}`} className="back-link">
+              ← Back to unit overview
+            </Link>
+          </footer>
+
+        </div>
+      </div>
+    </div>
+  );
 }

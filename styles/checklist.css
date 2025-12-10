@@ -13,40 +13,60 @@
 }
 
 /* -----------------------------
-   HERO HEADER (matches landing)
+   HERO HEADER (matches portal)
 ----------------------------- */
 
 .checklist-hero {
   width: 100%;
   text-align: center;
-  margin: 0 auto 20px;
+  margin-top: 60px;
+  margin-bottom: 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 18px;
+  gap: 12px;
 }
 
-.checklist-hero-logo {
-  max-width: 200px;
-  height: auto;
-  opacity: 0.9;
+/* LOGO (copied from maintenance.css rules) */
+.checklist-logo {
+  position: relative;
+  max-width: 250px;
+  max-height: 40px;
+  width: 250px;
+  height: 40px;
+  display: block;
+  margin: 0 auto 10px auto;
 }
 
+.checklist-logo img {
+  position: absolute !important;
+  left: 0 !important;
+  right: auto !important;
+  width: auto !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  top: 0 !important;
+  bottom: 0 !important;
+
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0;
+}
+
+/* HERO TITLE — matches .portal-title */
 .checklist-hero-title {
-  color: #F7F7F7;
-  font-family: Montserrat;
-  font-size: 36px;
+  color: #FFFFFF;
+  font-family: Montserrat, sans-serif;
+  font-size: 30px;
   font-weight: 600;
-  line-height: 44px;
+  line-height: 38px;
+  text-align: center;
   margin: 0;
 }
 
-.checklist-hero-subtitle {
-  color: #A0ACAF;
-  font-family: Montserrat;
-  font-size: 20px;
-  font-weight: 500;
-  margin: 0;
+.checklist-hero-title .break-point {
+  display: block; /* Always force newline */
 }
 
 /* -----------------------------
@@ -55,8 +75,8 @@
 
 .form-embed-area {
   width: 100%;
-  background: #0F262B;
-  padding: 40px 20px 60px;
+  background: #0f262b;
+  padding: 20px;
   border-radius: 20px;
 }
 
@@ -78,7 +98,6 @@
 
 .checklist-footer {
   text-align: center;
-  margin-top: 20px;
 }
 
 .back-link {
@@ -92,24 +111,12 @@
 }
 
 /* -----------------------------
-   RESPONSIVE
+   MOBILE
 ----------------------------- */
 
 @media (max-width: 600px) {
-  .checklist-hero-logo {
-    max-width: 150px;
-  }
-
-  .checklist-hero-title {
-    font-size: 28px;
-    line-height: 34px;
-  }
-
-  .checklist-hero-subtitle {
-    font-size: 18px;
-  }
-
-  .form-embed-area {
-    padding: 30px 15px 50px;
+  .checklist-logo {
+    max-width: 200px;
+    max-height: 36px;
   }
 }
