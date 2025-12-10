@@ -1,155 +1,125 @@
-/* =======================================================
-   CHECKLIST PAGE (ANNUAL & DEPTH)
-   Matches maintenance portal visual style
-======================================================= */
+/* =========================================
+   CHECKLIST PAGE — HERO + FORM
+========================================= */
 
-/* PAGE WRAPPER */
 .swift-checklist-container {
   width: 100%;
-  padding: 60px 20px 100px; /* Desktop spacing */
+  max-width: 900px;
+  margin: 60px auto 100px;
   text-align: center;
 }
 
-/* ---------------------------------------------
-   LOGO CONTAINER (DESKTOP)
----------------------------------------------- */
+/* HERO LOGO - same rules as maintenance.css */
 .checklist-logo {
   position: relative;
   max-width: 250px;
   max-height: 40px;
   width: 250px;
   height: 40px;
-  margin: 0 auto 30px;
+  margin: 0 auto 32px auto;
 }
 
 .checklist-logo img {
   position: absolute !important;
-  inset: 0 !important;
-  margin: auto !important;
-
+  left: 0 !important;
+  right: 0 !important;
+  top: 0 !important;
+  bottom: 0 !important;
   width: 100% !important;
-  height: auto !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
-
+  height: 100% !important;
   object-fit: contain !important;
-  display: block;
 }
 
-/* ---------------------------------------------
-   HERO TITLE — Matches maintenance portal
----------------------------------------------- */
+/* HERO TITLE */
 .checklist-hero-title {
-  color: #F7F7F7;
+  color: #fff;
+  font-family: Montserrat;
   font-size: 30px;
   font-weight: 600;
   line-height: 38px;
   margin: 0 0 40px;
-  text-align: center;
-  white-space: pre-line; /* enable forced line break */
 }
 
-.break-point {
+.checklist-hero-title .break-point {
   display: block;
-  height: 0;
 }
 
-/* -------------------------------------------------
-   FORM CONTAINER — MAX WIDTH + CENTERED
-   (Desktop layout)
--------------------------------------------------- */
+/* FORM AREA */
 .form-embed-area {
   width: 100%;
-  max-width: 900px;        /* NEW: Desktop max width */
-  margin: 20px auto 0;     /* NEW: Proper centering + spacing */
-  padding: 0;
+  margin: 0 auto;
+  border-radius: 20px;
   overflow: hidden;
-  border-radius: 20px;     /* Smooth rounded container */
-  min-height: 900px;
 }
 
-/* Hide default Fillout “Loading form…” text */
-.form-embed-area p {
-  display: none !important;
-}
-
-/* Rounded iframe */
+/* Force iframe container from Fillout to round corners */
 .form-embed-area iframe {
   border-radius: 20px !important;
   overflow: hidden !important;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
-/* ---------------------------------------------
-   FOOTER LINK
----------------------------------------------- */
+/* FOOTER */
 .checklist-footer {
   margin-top: 40px;
 }
 
-.checklist-footer .back-link {
+.back-link {
   color: #A0ACAF;
   font-size: 14px;
   text-decoration: none;
 }
 
-.checklist-footer .back-link:hover {
-  color: #FFFFFF;
+.back-link:hover {
+  color: #ffffff;
 }
 
-/* =======================================================
-   TABLET + MOBILE — Matches maintenance.css
-======================================================= */
+/* =========================================
+   MOBILE + TABLET
+========================================= */
+
 @media (max-width: 900px) {
-
-  /* Same spacing as maintenance page */
   .swift-checklist-container {
-    padding: 40px 20px 80px;
+    width: 100%;
+    padding: 0 20px;     /* Reduced from huge mobile margins */
+    margin-top: 40px;
   }
 
-  /* Full-width inside padding */
-  .form-embed-area {
-    max-width: 100%;
-    margin: 20px 0 0;
-    border-radius: 20px;
-  }
-
-  .checklist-hero-title {
-    font-size: 26px;
-    line-height: 34px;
-    margin-bottom: 30px;
-  }
-}
-
-/* =======================================================
-   SMALL MOBILE — Perfect alignment
-======================================================= */
-@media (max-width: 600px) {
-
-  .swift-checklist-container {
-    padding: 32px 20px 80px; /* identical to maintenance mobile spacing */
-  }
-
-  /* Mobile logo sizing */
   .checklist-logo {
     max-width: 225px;
     max-height: 36px;
     width: 225px;
     height: 36px;
-    margin: 0 auto 30px !important;
   }
 
   .checklist-hero-title {
-    font-size: 22px;
-    line-height: 28px;
-    margin-bottom: 28px;
+    font-size: 26px;
+    line-height: 34px;
   }
 
   .form-embed-area {
-    margin-top: 20px;
-    border-radius: 20px;
+    padding: 0;
   }
 
+  /* iFrame margin fix on mobile */
   .form-embed-area iframe {
+    max-width: 100%;
+    margin: 0;
     border-radius: 20px !important;
+  }
+}
+
+/* =========================================
+   SMALL MOBILE
+========================================= */
+@media (max-width: 600px) {
+  .checklist-hero-title {
+    font-size: 22px;
+    line-height: 28px;
+  }
+
+  .checklist-logo {
+    margin-bottom: 24px;
   }
 }
