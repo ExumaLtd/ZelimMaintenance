@@ -1,3 +1,5 @@
+// pages/swift/[id]/index.js - FINAL CORRECTED LINKS
+
 import Head from "next/head";
 import Link from "next/link";
 import Airtable from "airtable";
@@ -212,6 +214,7 @@ export default function SwiftUnitPage({
                     Maintenance Manual.
                   </p>
                   <Link
+                    // 🚨 CORRECTED LINK: Uses publicToken to link to the annual form page
                     href={`/swift/${publicToken}/annual`}
                     className="start-btn primary-btn"
                   >
@@ -228,6 +231,7 @@ export default function SwiftUnitPage({
                     Maintenance Manual.
                   </p>
                   <Link
+                    // 🚨 CORRECTED LINK: Uses publicToken to link to the depth form page
                     href={`/swift/${publicToken}/depth`}
                     className="start-btn primary-btn"
                   >
