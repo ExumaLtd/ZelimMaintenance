@@ -4,7 +4,7 @@ import Link from "next/link";
 import Airtable from "airtable";
 
 /* -------------------------------------------------------
-   CLIENT LOGO DETECTION (copied from maintenance page)
+   CLIENT LOGO DETECTION (same rules as maintenance page)
 ------------------------------------------------------- */
 const getClientLogo = (companyName, serialNumber) => {
   if (
@@ -34,7 +34,7 @@ const getClientLogo = (companyName, serialNumber) => {
 };
 
 /* -------------------------------------------------------
-   SERVER-SIDE DATA FETCH
+   SERVER SIDE PROPS (Airtable)
 ------------------------------------------------------- */
 export async function getServerSideProps(context) {
   const publicToken = context.params.id;
@@ -82,8 +82,10 @@ export default function AnnualMaintenancePage({ unit, publicToken }) {
   const serialNumber = unit.serial_number;
   const formId = unit.formId;
 
+  // Fillout embed URL
   const dataFilloutId = `${formId}?public_token=${publicToken}&swift_serial=${serialNumber}`;
 
+  // Company logo
   const companyLogo = getClientLogo(unit.company, serialNumber);
 
   return (
@@ -94,10 +96,10 @@ export default function AnnualMaintenancePage({ unit, publicToken }) {
         </Head>
 
         <div className="swift-checklist-container">
-          
-          {/* ---------------------------
-              HERO HEADER
-          --------------------------- */}
+
+          {/* ==========================================
+              HERO HEADER — FIXED SPACING + CENTERING
+          =========================================== */}
           <header className="checklist-hero">
 
             {companyLogo && (
@@ -113,9 +115,9 @@ export default function AnnualMaintenancePage({ unit, publicToken }) {
             </h1>
           </header>
 
-          {/* ---------------------------
-              FORM EMBED
-          --------------------------- */}
+          {/* ==========================================
+              FILL OUT FORM EMBED
+          =========================================== */}
           <main className="form-embed-area">
             <div
               data-fillout-id={dataFilloutId}
@@ -131,9 +133,9 @@ export default function AnnualMaintenancePage({ unit, publicToken }) {
             />
           </main>
 
-          {/* ---------------------------
-              FOOTER
-          --------------------------- */}
+          {/* ==========================================
+              FOOTER NAVIGATION
+          =========================================== */}
           <footer className="checklist-footer">
             <Link href={`/swift/${publicToken}`} className="back-link">
               ← Back to unit overview
