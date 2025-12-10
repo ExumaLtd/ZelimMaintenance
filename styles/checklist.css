@@ -1,19 +1,18 @@
-/* =========================================
-   CHECKLIST PAGE STYLES
-   Matches maintenance page styling
-========================================= */
+/* =======================================================
+   CHECKLIST PAGE (ANNUAL & DEPTH)
+   Matches maintenance portal visual style
+======================================================= */
 
-.swift-checklist-page {
+/* PAGE WRAPPER */
+.swift-checklist-container {
   width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-  text-align: center;
   padding: 60px 20px 100px;
+  text-align: center;
 }
 
-/* -------------------------------
+/* ---------------------------------------------
    LOGO (DESKTOP)
--------------------------------- */
+---------------------------------------------- */
 .checklist-logo {
   position: relative;
   max-width: 250px;
@@ -34,58 +33,62 @@
   object-fit: contain !important;
 }
 
-/* -------------------------------
-   TITLE
--------------------------------- */
+/* ---------------------------------------------
+   HERO TITLE
+   Matches maintenance portal typography
+---------------------------------------------- */
 .checklist-hero-title {
+  color: #F7F7F7;
   font-size: 30px;
   font-weight: 600;
   line-height: 38px;
-  color: #F7F7F7;
   margin: 0 0 40px;
-  white-space: pre-line; /* enables manual line breaks */
+  text-align: center;
+  white-space: pre-line; /* enables forced break */
 }
 
-/* ------------------------------------------
-   FORM CONTAINER (NO BACKGROUND WRAPPER)
-------------------------------------------- */
+.break-point {
+  display: block;
+  height: 0;
+}
+
+/* ---------------------------------------------
+   FORM WRAPPER
+---------------------------------------------- */
 .form-embed-area {
   width: 100%;
   min-height: 900px;
-  border-radius: 20px;
   padding: 0;
   margin-top: 20px;
 }
 
-/* Remove default paragraph fallback */
 .form-embed-area p {
   display: none !important;
 }
 
-/* -------------------------------
-   BACK LINK
--------------------------------- */
-.checklist-back {
+/* ---------------------------------------------
+   FOOTER LINK
+---------------------------------------------- */
+.checklist-footer {
   margin-top: 40px;
-  text-align: center;
 }
 
-.checklist-back a {
+.checklist-footer .back-link {
   color: #A0ACAF;
   font-size: 14px;
   text-decoration: none;
 }
 
-.checklist-back a:hover {
-  color: #F7F7F7;
+.checklist-footer .back-link:hover {
+  color: #FFFFFF;
 }
 
-/* =========================================
-   MOBILE (MATCH MAINTENANCE PAGE)
-========================================= */
+/* =======================================================
+   MOBILE RULES — MUST MATCH maintenance.css
+======================================================= */
 @media (max-width: 600px) {
 
-  /* Mobile logo sizing identical to maintenance.css */
+  /* Mobile logo sizing (same as maintenance page) */
   .checklist-logo {
     max-width: 225px;
     max-height: 36px;
@@ -95,14 +98,14 @@
     margin-right: auto !important;
   }
 
-  /* Mobile title sizing identical to maintenance.css */
+  /* Mobile title sizing (same as maintenance page) */
   .checklist-hero-title {
     font-size: 22px;
     line-height: 28px;
     margin-bottom: 30px;
   }
 
-  /* Form full width */
+  /* Full-width form */
   .form-embed-area {
     width: 100%;
     padding: 0;
