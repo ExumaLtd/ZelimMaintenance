@@ -3,15 +3,10 @@
 const nextConfig = {
   reactStrictMode: true,
 
-  // REQUIRED for formidable & custom API parsing (Next 14+ syntax)
   experimental: {
     serverActions: {
-      bodySizeLimit: '5mb',
+      bodySizeLimit: "5mb",
     },
-  },
-
-  api: {
-    bodyParser: false,   // Allow multipart/form-data
   },
 
   async redirects() {

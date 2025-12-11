@@ -1,12 +1,14 @@
+// pages/api/submit-maintenance.js
+// NEXT 14+ → bodyParser must be disabled PER ROUTE, NOT in next.config.js
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 import formidable from "formidable";
 import fs from "fs";
 import fetch from "node-fetch";
-
-export const config = {
-  api: {
-    bodyParser: false, // Required so formidable can handle multipart
-  },
-};
 
 // -------------------------------------------------------------
 // Helper: Upload a file buffer to Airtable as an attachment
@@ -19,25 +21,26 @@ async function uploadToAirtableAttachment(buffer, filename) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      // Upload as base64 (Airtable’s new attachment API format)
       file: buffer.toString("base64"),
       filename: filename,
     }),
   });
 
   const uploadJson = await uploadReq.json();
+
   if (!uploadJson?.id) {
+    console.error("❌ Airtable attachment upload failed", uploadJson);
     throw new Error("Attachment upload failed");
   }
 
   return {
     url: uploadJson.url,
-    filename: filename,
+    filename,
   };
 }
 
 // -------------------------------------------------------------
-// Parse multipart/form-data
+// Parse multipart/form-data via Formidable
 // -------------------------------------------------------------
 function parseForm(req) {
   return new Promise((resolve, reject) => {
@@ -65,7 +68,7 @@ export default async function handler(req, res) {
     const { fields, files } = await parseForm(req);
 
     // ---------------------------------------------------------
-    // Extract fields
+    // Extract fields from form
     // ---------------------------------------------------------
     const {
       maintained_by,
@@ -79,7 +82,7 @@ export default async function handler(req, res) {
       location_what3words,
     } = fields;
 
-    // Build Q1–Q16 JSON
+    // Build Q1–Q16 JSON blob
     const checklist_json = JSON.stringify({
       q1: fields.q1 || "",
       q2: fields.q2 || "",
@@ -101,7 +104,7 @@ export default async function handler(req, res) {
     });
 
     // ---------------------------------------------------------
-    // Upload signature
+    // Upload signature (if exists)
     // ---------------------------------------------------------
     let signatureAttachment = [];
     if (files.signature) {
@@ -111,7 +114,7 @@ export default async function handler(req, res) {
     }
 
     // ---------------------------------------------------------
-    // Upload photos (0-many)
+    // Upload photos (if any)
     // ---------------------------------------------------------
     let photoAttachments = [];
     if (files.photos) {
@@ -123,14 +126,14 @@ export default async function handler(req, res) {
         const buffer = fs.readFileSync(file.filepath);
         const uploaded = await uploadToAirtableAttachment(
           buffer,
-          file.originalFilename
+          file.originalFilename || "photo.jpg"
         );
         photoAttachments.push(uploaded);
       }
     }
 
     // ---------------------------------------------------------
-    // CREATE maintenance_checks RECORD IN AIRTABLE
+    // Create maintenance_checks record in Airtable
     // ---------------------------------------------------------
     const createReq = await fetch(
       `${process.env.AIRTABLE_API_URL}/maintenance_checks`,
@@ -145,15 +148,15 @@ export default async function handler(req, res) {
             {
               fields: {
                 unit: [unit_record_id],
-                maintenance_type: maintenance_type,
-                date_of_maintenance: date_of_maintenance,
-                maintained_by: maintained_by,
-                engineer_name: engineer_name,
+                maintenance_type,
+                date_of_maintenance,
+                maintained_by,
+                engineer_name,
                 location_town: location_town || "",
                 location_what3words: location_what3words || "",
                 location_lat: location_lat || "",
                 location_lng: location_lng || "",
-                checklist_json: checklist_json,
+                checklist_json,
                 photos: photoAttachments,
                 signature: signatureAttachment,
               },
@@ -166,6 +169,7 @@ export default async function handler(req, res) {
     const createJson = await createReq.json();
 
     if (!createJson?.records) {
+      console.error("❌ Airtable create error:", createJson);
       return res.status(500).json({
         success: false,
         error: "Airtable record creation failed",
@@ -177,8 +181,9 @@ export default async function handler(req, res) {
     // SUCCESS
     // ---------------------------------------------------------
     return res.status(200).json({ success: true });
+
   } catch (err) {
-    console.error("Submit error:", err);
+    console.error("💥 Submit error:", err);
     return res.status(500).json({
       success: false,
       error: "Server error submitting maintenance",
