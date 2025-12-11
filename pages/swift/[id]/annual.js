@@ -3,11 +3,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 
-const autoGrow = (e) => {
+function autoGrow(e) {
   const el = e.target;
   el.style.height = "auto";
   el.style.height = el.scrollHeight + "px";
-};
+}
 
 export default function Annual({ unit }) {
   const router = useRouter();
@@ -17,16 +17,16 @@ export default function Annual({ unit }) {
   const [errorMsg, setErrorMsg] = useState("");
   const [geo, setGeo] = useState({ lat: "", lng: "", town: "", w3w: "" });
 
-  // SIGNATURE CANVAS
+  // SIGNATURE PAD
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     let drawing = false;
 
     const getPos = (e) => {
-      const r = canvas.getBoundingClientRect();
-      const t = e.touches ? e.touches[0] : e;
-      return { x: t.clientX - r.left, y: t.clientY - r.top };
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches ? e.touches[0] : e;
+      return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
     };
 
     const start = (e) => {
@@ -71,7 +71,7 @@ export default function Annual({ unit }) {
     return !data.some((p) => p !== 0);
   };
 
-  // GEO LOCATION
+  // GEO & WHAT3WORDS
   useEffect(() => {
     if (!navigator.geolocation) return;
 
@@ -84,31 +84,28 @@ export default function Annual({ unit }) {
 
       try {
         const w3 = await fetch(
-          `https://api.what3words.com/v3/convert-to-3wa?coordinates=${lat},${lng}&key=${process.env.NEXT_PUBLIC_W3W_API_KEY}`
+          `https://api.what3words.com/v3/convert-to-3wa?coordinates=${lat}%2C${lng}&key=${process.env.NEXT_PUBLIC_W3W_API_KEY}`
         );
         const w3json = await w3.json();
-
-        w3w = w3json?.words || "";
+        w3w = w3json.words || "";
 
         const osm = await fetch(
           `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
         );
         const osmJson = await osm.json();
-
         town =
           osmJson.address?.town ||
-          osmJson.address?.city ||
           osmJson.address?.village ||
+          osmJson.address?.city ||
           "";
       } catch {}
 
-      setGeo({ lat, lng, town, w3w });
+      setGeo({ lat, lng, w3w, town });
     });
   }, []);
 
   const questions = Array.from({ length: 16 }, (_, i) => `Question ${i + 1}`);
 
-  // SUBMIT HANDLER
   async function handleSubmit(e) {
     e.preventDefault();
     setErrorMsg("");
@@ -137,11 +134,11 @@ export default function Annual({ unit }) {
         });
 
         const json = await res.json();
-
         if (!json.success) throw new Error(json.error);
 
         router.push(`/swift/${unit.public_token}/annual-complete`);
-      } catch (err) {
+
+      } catch {
         setErrorMsg("Submission failed.");
       }
 
@@ -152,7 +149,7 @@ export default function Annual({ unit }) {
   return (
     <div className="swift-checklist-container">
       <div className="checklist-logo">
-        <img src="/logo/zelim-logo.svg" />
+        <img src="/logos/zelim-logo.png" />
       </div>
 
       <h1 className="checklist-hero-title">
@@ -164,6 +161,7 @@ export default function Annual({ unit }) {
 
       <div className="checklist-form-card">
         <form onSubmit={handleSubmit}>
+          
           <label className="checklist-label">Maintenance company</label>
           <select name="maintained_by" className="checklist-input" required>
             <option value="">Select...</option>
@@ -180,12 +178,7 @@ export default function Annual({ unit }) {
           {questions.map((q, i) => (
             <div key={i}>
               <label className="checklist-label">{q}</label>
-              <textarea
-                name={`q${i + 1}`}
-                className="checklist-textarea"
-                rows={2}
-                onInput={autoGrow}
-              />
+              <textarea name={`q${i + 1}`} className="checklist-textarea" rows={2} onInput={autoGrow} />
             </div>
           ))}
 
@@ -214,13 +207,15 @@ export default function Annual({ unit }) {
   );
 }
 
-// SSR LOAD UNIT DETAILS
+// SERVER SIDE PROPS
 export async function getServerSideProps({ params }) {
   const token = params.id;
 
   const req = await fetch(
-    `${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`,
-    { headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` } }
+    `${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`,
+    {
+      headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
+    }
   );
 
   const json = await req.json();

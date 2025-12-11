@@ -17,47 +17,36 @@ export default function Home() {
 
     const code = accessCode.trim();
     if (!code) {
-      setError("Please enter your access code.");
+      setError('Please enter your access code.');
       return;
     }
 
-    setError("");
+    setError('');
     setIsSubmitting(true);
 
     try {
-      const res = await fetch(
-        `/api/swift-resolve-pin?pin=${encodeURIComponent(code)}`
-      );
+      const res = await fetch(`/api/swift-resolve-pin?pin=${encodeURIComponent(code)}`);
+      const data = await res.json();
 
-      let data = {};
-      try {
-        data = await res.json();
-      } catch {
-        setError("Airtable request failed (invalid response).");
-        setIsSubmitting(false);
-        return;
-      }
-
-      // ❌ Airtable route returned error
       if (!res.ok) {
-        setError(data.error || "Airtable request failed.");
+        setError(data.error || 'Invalid access code.');
         setIsSubmitting(false);
         return;
       }
 
-      // ❌ Missing token
-      if (!data.publicToken) {
-        setError("This unit has no public token assigned.");
+      const redirectToken = data.publicToken;
+
+      if (!redirectToken) {
+        setError('This unit is missing a public token.');
         setIsSubmitting(false);
         return;
       }
 
-      // ✅ Redirect to secure unit page
-      return router.push(`/swift/${data.publicToken}`);
+      return router.push(`/swift/${redirectToken}`);
 
     } catch (err) {
-      console.error("🔥 Portal login error:", err);
-      setError("Network error — please try again.");
+      console.error('PIN verification error:', err);
+      setError('A network error occurred. Please try again.');
       setIsSubmitting(false);
     }
   };
@@ -88,7 +77,6 @@ export default function Home() {
         <div className="landing-content">
           <div className="landing-main">
 
-            {/* HEADER */}
             <div className="landing-header">
               <h1 className="landing-title">
                 <span>SWIFT</span>
@@ -99,7 +87,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* FORM */}
             <form onSubmit={handleFormSubmit} className="form-stack">
               <div className={`input-wrapper ${error ? 'has-error' : ''}`}>
                 <input
@@ -122,7 +109,6 @@ export default function Home() {
             </form>
           </div>
 
-          {/* FOOTER LOGO */}
           <footer className="landing-footer">
             <Link
               href="https://www.zelim.com"
@@ -135,7 +121,6 @@ export default function Home() {
                 alt="Zelim Logo"
                 width={100}
                 height={30}
-                className="zelim-logo"
               />
             </Link>
           </footer>

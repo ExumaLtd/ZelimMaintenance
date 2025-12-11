@@ -1,4 +1,4 @@
-// pages/swift/[id]/index.js
+// pages/swift/[id]/index.js – FINAL FULL VERSION
 
 import Head from "next/head";
 import Link from "next/link";
@@ -7,13 +7,15 @@ import Image from "next/image";
 import fs from "fs";
 import path from "path";
 
+// -----------------------------
 // FILE SIZE UTILITY
+// -----------------------------
 const getFileSize = (filePath) => {
   try {
     const fullPath = path.join(process.cwd(), "public", filePath);
     const stats = fs.statSync(fullPath);
     const bytes = stats.size;
-    if (!bytes) return "0 Bytes";
+    if (bytes === 0) return "0 Bytes";
 
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
@@ -24,9 +26,11 @@ const getFileSize = (filePath) => {
   }
 };
 
-// SERVER-SIDE LOADER
-export async function getServerSideProps({ params }) {
-  const publicToken = params.id;
+// -----------------------------
+// SERVER SIDE PROPS
+// -----------------------------
+export async function getServerSideProps(context) {
+  const publicToken = context.params.id;
 
   const maintenanceManualPath =
     "/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf";
@@ -39,13 +43,11 @@ export async function getServerSideProps({ params }) {
   };
 
   try {
-    const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
-      process.env.AIRTABLE_BASE_ID
-    );
+    const base = new Airtable({
+      apiKey: process.env.AIRTABLE_API_KEY,
+    }).base(process.env.AIRTABLE_BASE_ID);
 
-    const TABLE = process.env.AIRTABLE_SWIFT_TABLE; // MUST BE "swift_units"
-
-    const records = await base(TABLE)
+    const records = await base(process.env.AIRTABLE_SWIFT_TABLE)
       .select({
         maxRecords: 1,
         filterByFormula: `{public_token} = "${publicToken}"`,
@@ -58,85 +60,89 @@ export async function getServerSideProps({ params }) {
       })
       .firstPage();
 
-    if (!records.length)
+    if (!records || records.length === 0) {
       return { redirect: { destination: "/", permanent: false } };
+    }
 
-    const rec = records[0];
+    const record = records[0];
+
+    const unitDetails = {
+      serial_number: record.get("serial_number") || "N/A",
+      company: record.get("company") || "Client Unit",
+      annualDue: record.get("annual_maintenance_due")
+        ? new Date(record.get("annual_maintenance_due")).toLocaleDateString("en-GB")
+        : "N/A",
+      depthDue: record.get("depth_maintenance_due")
+        ? new Date(record.get("depth_maintenance_due")).toLocaleDateString("en-GB")
+        : "N/A",
+    };
 
     return {
       props: {
-        unit: {
-          serial_number: rec.get("serial_number") || "N/A",
-          company: rec.get("company") || "Client Unit",
-          annualDue: rec.get("annual_maintenance_due")
-            ? new Date(rec.get("annual_maintenance_due")).toLocaleDateString(
-                "en-GB"
-              )
-            : "N/A",
-          depthDue: rec.get("depth_maintenance_due")
-            ? new Date(rec.get("depth_maintenance_due")).toLocaleDateString(
-                "en-GB"
-              )
-            : "N/A",
-        },
+        unit: unitDetails,
         publicToken,
         ...fileSizes,
       },
     };
   } catch (err) {
-    console.error("UNIT PAGE ERROR:", err);
+    console.error("Error fetching unit data:", err);
     return { redirect: { destination: "/", permanent: false } };
   }
 }
 
+// -----------------------------
 // CLIENT LOGO RESOLVER
+// -----------------------------
 const getClientLogo = (companyName, serialNumber) => {
-  if (
-    ["SWI001", "SWI002"].includes(serialNumber) ||
-    companyName.includes("Changi")
-  )
+  if (["SWI001", "SWI002"].includes(serialNumber) || companyName.includes("Changi")) {
     return {
       src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg",
       alt: `${companyName} Logo`,
     };
+  }
 
-  if (serialNumber === "SWI003" || companyName.includes("Milford"))
+  if (serialNumber === "SWI003" || companyName.includes("Milford Haven")) {
     return {
       src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg",
       alt: `${companyName} Logo`,
     };
+  }
 
-  if (
-    ["SWI010", "SWI011"].includes(serialNumber) ||
-    companyName.includes("Hatloy")
-  )
+  if (["SWI010", "SWI011"].includes(serialNumber) || companyName.includes("Hatloy")) {
     return {
       src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg",
       alt: `${companyName} Logo`,
     };
+  }
 
   return null;
 };
 
+// -----------------------------
 // PAGE COMPONENT
+// -----------------------------
 export default function SwiftUnitPage({
   unit,
   publicToken,
   maintenanceManualSize,
   installationGuideSize,
 }) {
-  const logoProps = getClientLogo(unit.company, unit.serial_number);
+  const serialNumber = unit.serial_number;
+  const companyName = unit.company;
+
+  const logoProps = getClientLogo(companyName, serialNumber);
 
   return (
     <>
       <Head>
-        <title>{unit.company} maintenance portal</title>
+        <title>{companyName} maintenance portal</title>
       </Head>
 
       <div className="swift-main-layout-wrapper">
         <div className="page-wrapper">
           <div className="swift-dashboard-container">
-            {/* LEFT */}
+            
+            {/* LEFT PANEL */}
             <div className="detail-panel">
               {logoProps && (
                 <div className="logo-section">
@@ -151,14 +157,14 @@ export default function SwiftUnitPage({
               )}
 
               <h1 className="portal-title">
-                {unit.company}
+                {companyName}
                 <span className="break-point">maintenance portal</span>
               </h1>
 
               <div className="maintenance-details">
                 <div className="detail-item">
                   <p className="detail-label">Serial number</p>
-                  <p className="detail-value">{unit.serial_number}</p>
+                  <p className="detail-value">{serialNumber}</p>
                 </div>
 
                 <div className="detail-item">
@@ -167,37 +173,35 @@ export default function SwiftUnitPage({
                 </div>
 
                 <div className="detail-item">
-                  <p className="detail-label">30-month depth maintenance</p>
+                  <p className="detail-label">30-month depth maintenance due</p>
                   <p className="detail-value">{unit.depthDue}</p>
                 </div>
               </div>
             </div>
 
-            {/* RIGHT */}
+            {/* RIGHT PANEL */}
             <div className="action-panel">
+
               <div className="maintenance-group-wrapper">
+
                 <div className="maintenance-card">
-                  <h3>Annual<br />maintenance</h3>
+                  <h3>Annual<br/>maintenance</h3>
                   <p className="description">
-                    To be completed in accordance with Section 7.1.2 of the Maintenance Manual.
+                    To be completed in accordance with Section 7.1.2 –
+                    Annual Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.
                   </p>
-                  <Link
-                    href={`/swift/${publicToken}/annual`}
-                    className="start-btn primary-btn"
-                  >
+                  <Link href={`/swift/${publicToken}/annual`} className="start-btn primary-btn">
                     Start maintenance
                   </Link>
                 </div>
 
                 <div className="maintenance-card">
-                  <h3>30-month depth<br />maintenance</h3>
+                  <h3>30-month depth<br/>maintenance</h3>
                   <p className="description">
-                    As outlined in Section 7.2.2 – Depth Maintenance Procedure.
+                    To be completed in accordance with Section 7.2.2 –
+                    30-Month Depth Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.
                   </p>
-                  <Link
-                    href={`/swift/${publicToken}/depth`}
-                    className="start-btn primary-btn"
-                  >
+                  <Link href={`/swift/${publicToken}/depth`} className="start-btn primary-btn">
                     Start maintenance
                   </Link>
                 </div>
@@ -207,28 +211,20 @@ export default function SwiftUnitPage({
               <div className="downloads-card">
                 <h3>Downloads</h3>
                 <p className="description">
-                  Required for annual and 30-month maintenance work.
+                  To be used in accordance with both annual and 30-month depth maintenance.
                 </p>
 
                 <div className="download-list">
-                  <a
-                    href="/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf"
-                    target="_blank"
-                    className="download-link"
-                  >
-                    <Image src="/Icons/PDF_Icon.svg" width={40} height={40} />
+                  <a href="/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf" target="_blank" className="download-link">
+                    <Image src="/Icons/PDF_Icon.svg" width={40} height={40} alt="PDF Icon" />
                     <div>
                       <p>SWIFT maintenance manual.pdf</p>
                       <span>{maintenanceManualSize}</span>
                     </div>
                   </a>
 
-                  <a
-                    href="/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf"
-                    target="_blank"
-                    className="download-link"
-                  >
-                    <Image src="/Icons/PDF_Icon.svg" width={40} height={40} />
+                  <a href="/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf" target="_blank" className="download-link">
+                    <Image src="/Icons/PDF_Icon.svg" width={40} height={40} alt="PDF Icon" />
                     <div>
                       <p>SWIFT installation guide.pdf</p>
                       <span>{installationGuideSize}</span>
@@ -236,14 +232,16 @@ export default function SwiftUnitPage({
                   </a>
                 </div>
               </div>
+
             </div>
           </div>
         </div>
 
-        {/* Fixed logo */}
+        {/* Fixed Zelim logo */}
+        <div className="zelim-spacer"></div>
         <div className="fixed-zelim-logo">
           <a href="https://www.zelim.com" target="_blank">
-            <Image src="/logo/zelim-logo.svg" width={80} height={20} />
+            <Image src="/logo/zelim-logo.svg" width={80} height={20} alt="Zelim logo" />
           </a>
         </div>
       </div>

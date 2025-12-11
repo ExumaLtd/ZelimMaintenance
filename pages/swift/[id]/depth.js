@@ -17,7 +17,9 @@ export default function Depth({ unit }) {
   const [errorMsg, setErrorMsg] = useState("");
   const [geo, setGeo] = useState({ lat: "", lng: "", town: "", w3w: "" });
 
+  // -----------------------------
   // SIGNATURE PAD
+  // -----------------------------
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -74,7 +76,9 @@ export default function Depth({ unit }) {
     return !data.some((p) => p !== 0);
   };
 
-  // GEO LOCATION
+  // -----------------------------
+  // GEO + WHAT3WORDS
+  // -----------------------------
   useEffect(() => {
     if (!navigator.geolocation) return;
 
@@ -111,6 +115,9 @@ export default function Depth({ unit }) {
 
   const questions = Array.from({ length: 20 }, (_, i) => `Question ${i + 1}`);
 
+  // -----------------------------
+  // HANDLE SUBMIT
+  // -----------------------------
   async function handleSubmit(e) {
     e.preventDefault();
     setErrorMsg("");
@@ -140,7 +147,8 @@ export default function Depth({ unit }) {
         const json = await res.json();
         if (!json.success) throw new Error(json.error);
 
-        router.push(`/swift/${unit.public_token}/annual-complete`);
+        router.push(`/swift/${unit.public_token}/depth-complete`);
+
       } catch (err) {
         console.log(err);
         setErrorMsg("Submission failed.");
@@ -215,12 +223,14 @@ export default function Depth({ unit }) {
   );
 }
 
-// SSR: LOAD UNIT DETAILS
+// -----------------------------
+// SSR - LOAD CORRECT UNIT DATA
+// -----------------------------
 export async function getServerSideProps({ params }) {
   const token = params.id;
 
   const req = await fetch(
-    `${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`,
+    `${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`,
     {
       headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
     }

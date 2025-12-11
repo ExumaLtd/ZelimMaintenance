@@ -1,24 +1,28 @@
 // pages/api/swift-resolve-pin.js
+
 import Airtable from "airtable";
+
+// Connect to correct Airtable base
+const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
+  process.env.AIRTABLE_BASE_ID // appOQXbopTwS0SdnL
+);
+
+const TABLE_NAME = process.env.AIRTABLE_SWIFT_TABLE; // swift_units
 
 export default async function handler(req, res) {
   try {
-    const pin = req.query.pin?.trim();
+    const pin = req.query.pin;
 
     if (!pin) {
       return res.status(400).json({ error: "Missing pin" });
     }
 
-    const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY })
-      .base(process.env.AIRTABLE_BASE_ID);
-
-    const table = process.env.AIRTABLE_SWIFT_TABLE; // MUST be "swift_units"
-
-    const records = await base(table)
+    // Lookup using access_pin
+    const records = await base(TABLE_NAME)
       .select({
         maxRecords: 1,
         filterByFormula: `{access_pin} = "${pin}"`,
-        fields: ["public_token"]
+        fields: ["public_token"],
       })
       .firstPage();
 
@@ -26,13 +30,9 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "Code not recognised" });
     }
 
-    const token = records[0].get("public_token");
+    const publicToken = records[0].get("public_token");
 
-    if (!token) {
-      return res.status(500).json({ error: "Missing public token" });
-    }
-
-    return res.status(200).json({ publicToken: token });
+    return res.status(200).json({ publicToken });
 
   } catch (err) {
     console.error("PIN lookup error:", err);
