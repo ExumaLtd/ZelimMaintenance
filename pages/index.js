@@ -17,41 +17,47 @@ export default function Home() {
 
     const code = accessCode.trim();
     if (!code) {
-      setError('Please enter your access code.');
+      setError("Please enter your access code.");
       return;
     }
 
-    setError('');
+    setError("");
     setIsSubmitting(true);
 
     try {
-      // 🔵 CALL THE API ROUTE ON YOUR SERVER
       const res = await fetch(
         `/api/swift-resolve-pin?pin=${encodeURIComponent(code)}`
       );
 
-      const data = await res.json();
+      let data = {};
+      try {
+        data = await res.json();
+      } catch {
+        setError("Airtable request failed (invalid response).");
+        setIsSubmitting(false);
+        return;
+      }
 
+      // ❌ Airtable route returned error
       if (!res.ok) {
-        setError(data.error || 'Invalid access code.');
+        setError(data.error || "Airtable request failed.");
         setIsSubmitting(false);
         return;
       }
 
-      const redirectToken = data.publicToken;
-
-      if (!redirectToken) {
-        setError('This unit is missing a public token.');
+      // ❌ Missing token
+      if (!data.publicToken) {
+        setError("This unit has no public token assigned.");
         setIsSubmitting(false);
         return;
       }
 
-      // ⭐ IMPORTANT: RETURN the router.push so React stops execution
-      return router.push(`/swift/${redirectToken}`);
+      // ✅ Redirect to secure unit page
+      return router.push(`/swift/${data.publicToken}`);
 
     } catch (err) {
-      console.error('PIN verification error:', err);
-      setError('A network error occurred. Please try again.');
+      console.error("🔥 Portal login error:", err);
+      setError("Network error — please try again.");
       setIsSubmitting(false);
     }
   };
