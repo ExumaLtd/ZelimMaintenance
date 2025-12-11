@@ -121,10 +121,11 @@ body {
     margin: 0 0 34px; 
 }
 
-.portal-title .break-point {
+.portal-title .title-line {
     display: block !important;
-    width: 100%;
+    width: 100% !important;
 }
+
 
 .maintenance-details {
     display: flex;
