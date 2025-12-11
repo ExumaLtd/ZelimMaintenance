@@ -73,7 +73,7 @@ export default function Annual({ unit }) {
     return !data.some((p) => p !== 0);
   };
 
-  // GEO + WHAT3WORDS
+  // GEO + W3W
   useEffect(() => {
     if (!navigator.geolocation) return;
 
@@ -107,7 +107,6 @@ export default function Annual({ unit }) {
     });
   }, []);
 
-  // Questions
   const questions = [
     "Question one",
     "Question two",
@@ -127,7 +126,6 @@ export default function Annual({ unit }) {
     "Question sixteen",
   ];
 
-  // SUBMIT
   async function handleSubmit(e) {
     e.preventDefault();
     setSubmitting(true);
@@ -142,7 +140,6 @@ export default function Annual({ unit }) {
     const form = e.target;
     const data = new FormData(form);
 
-    // append signature
     canvasRef.current.toBlob(async (blob) => {
       data.append("signature", blob, "signature.png");
 
@@ -158,7 +155,6 @@ export default function Annual({ unit }) {
         });
 
         const json = await result.json();
-
         if (!json.success) throw new Error(json.error);
 
         router.push(`/swift/${unit.public_token}/annual-complete`);
@@ -246,33 +242,42 @@ export default function Annual({ unit }) {
   );
 }
 
-// SSR — Load unit details
+// =============================================
+// ✅ FIXED SERVER-SIDE DATA LOADER (NO MORE 500)
+// =============================================
 export async function getServerSideProps({ params }) {
-  const token = params.publicToken;
+  const token = params.id; // ✅ FIXED — correct param
 
-  const res = await fetch(
-    `${process.env.AIRTABLE_API_URL}/swift_units?filterByFormula={public_token}='${token}'`,
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
-      },
+  try {
+    const res = await fetch(
+      `${process.env.AIRTABLE_API_URL}/swift_units?filterByFormula={public_token}='${token}'`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
+        },
+      }
+    );
+
+    const json = await res.json();
+
+    if (!json.records.length) {
+      return { notFound: true };
     }
-  );
 
-  const json = await res.json();
+    const record = json.records[0];
 
-  if (!json.records.length) return { notFound: true };
-
-  const record = json.records[0];
-
-  return {
-    props: {
-      unit: {
-        serial_number: record.fields.serial_number,
-        model: record.fields.model,
-        record_id: record.id,
-        public_token: record.fields.public_token,
+    return {
+      props: {
+        unit: {
+          serial_number: record.fields.serial_number,
+          model: record.fields.model,
+          record_id: record.id,
+          public_token: record.fields.public_token,
+        },
       },
-    },
-  };
+    };
+  } catch (err) {
+    console.error("SSR ERROR annual.js:", err);
+    return { notFound: true };
+  }
 }
