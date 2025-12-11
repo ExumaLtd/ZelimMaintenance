@@ -1,6 +1,7 @@
 /* =========================================================================
    CHECKLIST PAGE STYLES (Annual + Depth)
-   Follows maintenance.css rules for logo + hero alignment.
+   Dark Theme – Full Form Implementation
+   Matches maintenance.css portal styling
 ========================================================================= */
 
 /* --- 1. BASE LAYOUT WRAPPER --- */
@@ -10,8 +11,10 @@
     max-width: 900px;
     margin: 60px auto 100px;
     text-align: center;
+    padding: 0 20px;
+    font-family: "Montserrat", sans-serif;
+    color: #FFFFFF;
 }
-
 
 /* --- 2. LOGO (Matches Maintenance Page Exactly) --- */
 
@@ -41,7 +44,6 @@
     display: block;
 }
 
-
 /* --- 3. HERO TITLE (Matches Maintenance Page Rules) --- */
 
 .checklist-hero-title {
@@ -56,43 +58,141 @@
     display: block;
 }
 
+/* =========================================================================
+   4. DARK FORM CARD (NEW)
+========================================================================= */
 
-/* --- 4. IFRAME / FORM AREA --- */
-
-.form-embed-area {
-    width: 100%;
+.checklist-form-card {
+    background: #172F36;
+    padding: 28px;
     border-radius: 20px;
-    overflow: hidden; /* ensures rounded corners apply to Fillout iframe */
+    width: 100%;
+    text-align: left;
+    margin: 0 auto 60px auto;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
 }
 
-.form-embed-area iframe {
-    border-radius: 20px !important;
+/* =========================================================================
+   5. FORM LABELS & FIELD STYLING (Dark Mode)
+========================================================================= */
+
+.checklist-label {
+    display: block;
+    color: #A0ACAF;
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 24px;
+    margin-bottom: 6px;
+}
+
+.checklist-input,
+.checklist-textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    padding: 14px;
+    color: #FFFFFF;
+    font-size: 15px;
+    font-family: "Montserrat", sans-serif;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.checklist-input:focus,
+.checklist-textarea:focus {
+    outline: none;
+    border-color: #01FFF6;
+    box-shadow: 0 0 0 1px #01FFF6;
+}
+
+/* Auto-expanding textareas */
+.checklist-textarea {
+    resize: none;
     overflow: hidden;
+    min-height: 48px;
 }
 
+/* =========================================================================
+   6. SIGNATURE PAD (Dark Mode)
+========================================================================= */
 
-/* --- 5. FOOTER LINK --- */
+.checklist-signature {
+    width: 100%;
+    background: #0B1E22;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 12px;
+    margin-top: 10px;
+}
+
+.checklist-clear-btn {
+    background: none;
+    border: none;
+    color: #01FFF6;
+    text-decoration: underline;
+    margin-top: 6px;
+    cursor: pointer;
+}
+
+/* =========================================================================
+   7. SUBMIT BUTTON
+========================================================================= */
+
+.checklist-submit {
+    width: 100%;
+    margin-top: 34px;
+    padding: 16px;
+    background: #01FFF6;
+    color: #0D3037;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+
+.checklist-submit:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+/* =========================================================================
+   8. ERROR BOX
+========================================================================= */
+
+.checklist-error {
+    background: rgba(255,0,0,0.25);
+    color: #FFB3B3;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 15px;
+}
+
+/* =========================================================================
+   9. FOOTER BACK LINK
+========================================================================= */
 
 .checklist-footer {
-    margin-top: 40px;
+    margin-top: 30px;
     text-align: center;
 }
 
 .back-link {
     color: #A0ACAF;
-    font-size: 14px;
     text-decoration: none;
+    font-size: 14px;
 }
+
 .back-link:hover {
     text-decoration: underline;
 }
 
-
 /* =========================================================================
-   MOBILE BREAKPOINTS (Match Maintenance Page)
+   MOBILE BREAKPOINTS
 ========================================================================= */
 
-/* Mobile & small tablets */
+/* Tablet */
 @media (max-width: 900px) {
     .swift-checklist-container {
         margin-top: 40px;
@@ -100,10 +200,9 @@
     }
 }
 
-/* Phones */
+/* Mobile */
 @media (max-width: 600px) {
 
-    /* REMOVE extra padding to avoid double margins on mobile */
     .swift-checklist-container {
         padding-left: 0 !important;
         padding-right: 0 !important;
@@ -121,5 +220,10 @@
         font-size: 26px;
         line-height: 32px;
         margin-bottom: 28px;
+    }
+
+    .checklist-form-card {
+        padding: 20px;
+        border-radius: 18px;
     }
 }
