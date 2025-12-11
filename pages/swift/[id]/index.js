@@ -1,4 +1,4 @@
-// pages/swift/[id]/index.js – FINAL FULL VERSION
+// pages/swift/[id]/index.js – FINAL FULL VERSION (LONG TEXT VERSION)
 
 import Head from "next/head";
 import Link from "next/link";
@@ -20,7 +20,6 @@ const getFileSize = (filePath) => {
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
   } catch (error) {
     console.warn(`Could not get size for file: ${filePath}`, error.message);
@@ -29,7 +28,7 @@ const getFileSize = (filePath) => {
 };
 
 // ============================================================================
-// FETCH UNIT DETAILS (SSR)
+// FETCH UNIT DETAILS (SERVER SIDE)
 // ============================================================================
 export async function getServerSideProps(context) {
   const publicToken = context.params.id;
@@ -46,10 +45,10 @@ export async function getServerSideProps(context) {
 
   try {
     const base = new Airtable({
-      apiKey: process.env.NEXT_PUBLIC_AIRTABLE_API_KEY,
-    }).base(process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID);
+      apiKey: process.env.AIRTABLE_API_KEY,
+    }).base(process.env.AIRTABLE_BASE_ID);
 
-    const TABLE_NAME = process.env.NEXT_PUBLIC_AIRTABLE_SWIFT_TABLE;
+    const TABLE_NAME = process.env.AIRTABLE_SWIFT_TABLE;
 
     const records = await base(TABLE_NAME)
       .select({
@@ -65,7 +64,9 @@ export async function getServerSideProps(context) {
       .firstPage();
 
     if (!records || records.length === 0) {
-      return { redirect: { destination: "/", permanent: false } };
+      return {
+        redirect: { destination: "/", permanent: false },
+      };
     }
 
     const record = records[0];
@@ -94,12 +95,14 @@ export async function getServerSideProps(context) {
     };
   } catch (error) {
     console.error("Error fetching unit data:", error);
-    return { redirect: { destination: "/", permanent: false } };
+    return {
+      redirect: { destination: "/", permanent: false },
+    };
   }
 }
 
 // ============================================================================
-// CLIENT LOGO LOGIC
+// CLIENT LOGO RESOLVER
 // ============================================================================
 const getClientLogo = (companyName, serialNumber) => {
   // Changi Airport (SWI001, SWI002)
@@ -115,7 +118,10 @@ const getClientLogo = (companyName, serialNumber) => {
   }
 
   // Port of Milford Haven (SWI003)
-  if (serialNumber === "SWI003" || companyName.includes("Milford Haven")) {
+  if (
+    serialNumber === "SWI003" ||
+    companyName.includes("Milford Haven")
+  ) {
     return {
       src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg",
       alt: `${companyName} Logo`,
@@ -156,9 +162,6 @@ export default function SwiftUnitPage({
   const INSTALLATION_PDF_PATH =
     "/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf";
 
-  const MAINTENANCE_TITLE = "SWIFT maintenance manual.pdf";
-  const INSTALLATION_TITLE = "SWIFT installation guide.pdf";
-
   return (
     <>
       <Head>
@@ -176,14 +179,15 @@ export default function SwiftUnitPage({
                     src={logoProps.src}
                     alt={logoProps.alt}
                     className="client-logo"
-                    priority
                     fill
+                    priority
                   />
                 </div>
               )}
 
               <h1 className="portal-title">
-                {companyName} <span className="break-point">maintenance portal</span>
+                {companyName}
+                <span className="break-point">maintenance portal</span>
               </h1>
 
               <div className="maintenance-details">
@@ -206,15 +210,22 @@ export default function SwiftUnitPage({
 
             {/* RIGHT PANEL */}
             <div className="action-panel">
+
+              {/* === MAINTENANCE CARDS === */}
               <div className="maintenance-group-wrapper">
-                {/* ANNUAL CARD */}
+
+                {/* ANNUAL MAINTENANCE */}
                 <div className="maintenance-card">
-                  <h3>Annual<br />maintenance</h3>
+                  <h3>
+                    Annual
+                    <br />
+                    maintenance
+                  </h3>
 
                   <p className="description">
-                    To be completed in accordance with Section 7.1.2 – Annual
-                    Maintenance Process of the SWIFT Survivor Recovery System
-                    Maintenance Manual.
+                    To be completed in accordance with Section 7.1.2 –
+                    Annual Maintenance Process of the SWIFT Survivor Recovery
+                    System Maintenance Manual.
                   </p>
 
                   <Link
@@ -225,14 +236,18 @@ export default function SwiftUnitPage({
                   </Link>
                 </div>
 
-                {/* DEPTH CARD */}
+                {/* DEPTH MAINTENANCE */}
                 <div className="maintenance-card">
-                  <h3>30-month depth<br />maintenance</h3>
+                  <h3>
+                    30-month depth
+                    <br />
+                    maintenance
+                  </h3>
 
                   <p className="description">
-                    To be completed in accordance with Section 7.2.2 – 30-Month
-                    Depth Maintenance Process of the SWIFT Survivor Recovery
-                    System Maintenance Manual.
+                    To be completed in accordance with Section 7.2.2 –
+                    30-Month Depth Maintenance Process of the SWIFT Survivor
+                    Recovery System Maintenance Manual.
                   </p>
 
                   <Link
@@ -244,7 +259,7 @@ export default function SwiftUnitPage({
                 </div>
               </div>
 
-              {/* DOWNLOADS */}
+              {/* === DOWNLOADS === */}
               <div className="downloads-card">
                 <h3>Downloads</h3>
 
@@ -254,18 +269,36 @@ export default function SwiftUnitPage({
                 </p>
 
                 <div className="download-list">
-                  <a href={MAINTENANCE_PDF_PATH} target="_blank" className="download-link">
-                    <Image src="/Icons/PDF_Icon.svg" width={40} height={40} alt="PDF" />
+                  <a
+                    href={MAINTENANCE_PDF_PATH}
+                    target="_blank"
+                    className="download-link"
+                  >
+                    <Image
+                      src="/Icons/PDF_Icon.svg"
+                      width={40}
+                      height={40}
+                      alt="PDF Icon"
+                    />
                     <div>
-                      <p>{MAINTENANCE_TITLE}</p>
+                      <p>SWIFT maintenance manual.pdf</p>
                       <span>{maintenanceManualSize}</span>
                     </div>
                   </a>
 
-                  <a href={INSTALLATION_PDF_PATH} target="_blank" className="download-link">
-                    <Image src="/Icons/PDF_Icon.svg" width={40} height={40} alt="PDF" />
+                  <a
+                    href={INSTALLATION_PDF_PATH}
+                    target="_blank"
+                    className="download-link"
+                  >
+                    <Image
+                      src="/Icons/PDF_Icon.svg"
+                      width={40}
+                      height={40}
+                      alt="PDF Icon"
+                    />
                     <div>
-                      <p>{INSTALLATION_TITLE}</p>
+                      <p>SWIFT installation guide.pdf</p>
                       <span>{installationGuideSize}</span>
                     </div>
                   </a>
@@ -275,8 +308,9 @@ export default function SwiftUnitPage({
           </div>
         </div>
 
-        {/* FOOTER */}
+        {/* Fixed Logo */}
         <div className="zelim-spacer"></div>
+
         <div className="fixed-zelim-logo">
           <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
             <Image src="/logo/zelim-logo.svg" width={80} height={20} alt="Zelim Logo" />
