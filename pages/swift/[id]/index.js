@@ -156,9 +156,10 @@ export default function SwiftUnitPage({
                 </div>
               )}
 
+              {/* ⭐ ALWAYS BREAK INTO 2 LINES ⭐ */}
               <h1 className="portal-title">
-                {companyName}
-                <span className="break-point">maintenance portal</span>
+                <span className="title-line">{companyName}</span>
+                <span className="title-line">maintenance portal</span>
               </h1>
 
               <div className="maintenance-details">
@@ -215,7 +216,11 @@ export default function SwiftUnitPage({
                 </p>
 
                 <div className="download-list">
-                  <a href="/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf" target="_blank" className="download-link">
+                  <a
+                    href="/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf"
+                    target="_blank"
+                    className="download-link"
+                  >
                     <Image src="/Icons/PDF_Icon.svg" width={40} height={40} alt="PDF Icon" />
                     <div>
                       <p>SWIFT maintenance manual.pdf</p>
@@ -223,7 +228,11 @@ export default function SwiftUnitPage({
                     </div>
                   </a>
 
-                  <a href="/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf" target="_blank" className="download-link">
+                  <a
+                    href="/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf"
+                    target="_blank"
+                    className="download-link"
+                  >
                     <Image src="/Icons/PDF_Icon.svg" width={40} height={40} alt="PDF Icon" />
                     <div>
                       <p>SWIFT installation guide.pdf</p>
