@@ -26,8 +26,17 @@ export default function Home() {
     setIsSubmitting(true);
 
     try {
-      // 🔵 Call our secure backend instead of Airtable
-      const res = await fetch(`/api/swift-resolve-pin?pin=${encodeURIComponent(code)}`);
+      // -----------------------------------------------
+      // USE ABSOLUTE URL IN PRODUCTION (IMPORTANT FIX!)
+      // -----------------------------------------------
+      const baseUrl =
+        process.env.NODE_ENV === 'production'
+          ? 'https://maintenance.exuma.co.uk'
+          : '';
+
+      const res = await fetch(
+        `${baseUrl}/api/swift-resolve-pin?pin=${encodeURIComponent(code)}`
+      );
 
       const data = await res.json();
 
@@ -45,7 +54,6 @@ export default function Home() {
         return;
       }
 
-      // Redirect to the SWIFT unit portal
       router.push(`/swift/${redirectToken}`);
 
     } catch (err) {
@@ -64,7 +72,6 @@ export default function Home() {
 
       <div className="landing-root">
 
-        {/* LEFT HERO IMAGE */}
         <div className="landing-hero">
           <div className="landing-hero-inner">
             <Image
@@ -78,11 +85,9 @@ export default function Home() {
           </div>
         </div>
 
-        {/* RIGHT PANEL CONTENT */}
         <div className="landing-content">
           <div className="landing-main">
             
-            {/* HEADER TEXT */}
             <div className="landing-header">
               <h1 className="landing-title">
                 <span>SWIFT</span>
@@ -93,7 +98,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* LOGIN FORM */}
             <form onSubmit={handleFormSubmit} className="form-stack">
               <div className={`input-wrapper ${error ? 'has-error' : ''}`}>
                 <input
@@ -116,7 +120,6 @@ export default function Home() {
             </form>
           </div>
 
-          {/* FOOTER LOGO */}
           <footer className="landing-footer">
             <Link 
               href="https://www.zelim.com"
