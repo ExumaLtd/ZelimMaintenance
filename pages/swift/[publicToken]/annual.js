@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 
-// Auto-grow helper for textareas
 function autoGrow(e) {
   const el = e.target;
   el.style.height = "auto";
@@ -15,9 +14,7 @@ export default function Annual({ unit }) {
   const [errorMsg, setErrorMsg] = useState("");
   const [geo, setGeo] = useState({ lat: "", lng: "", town: "", w3w: "" });
 
-  /* ---------------------------------------------------------
-     SIGNATURE PAD INITIALISATION
-  --------------------------------------------------------- */
+  /* SIGNATURE PAD */
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -25,17 +22,10 @@ export default function Annual({ unit }) {
 
     const getPos = (e) => {
       const rect = canvas.getBoundingClientRect();
-
-      if (e.touches) {
-        return {
-          x: e.touches[0].clientX - rect.left,
-          y: e.touches[0].clientY - rect.top
-        };
-      }
-
+      const evt = e.touches ? e.touches[0] : e;
       return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
+        x: evt.clientX - rect.left,
+        y: evt.clientY - rect.top
       };
     };
 
@@ -51,7 +41,6 @@ export default function Annual({ unit }) {
       if (!drawing) return;
       e.preventDefault();
       const pos = getPos(e);
-
       ctx.lineTo(pos.x, pos.y);
       ctx.strokeStyle = "#FFF";
       ctx.lineWidth = 2;
@@ -69,22 +58,20 @@ export default function Annual({ unit }) {
     canvas.addEventListener("touchend", end);
   }, []);
 
-  function clearSignature() {
+  const clearSignature = () => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
+  };
 
-  function signatureIsEmpty() {
+  const signatureIsEmpty = () => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
     return !data.some((px) => px !== 0);
-  }
+  };
 
-  /* ---------------------------------------------------------
-     LOCATION + WHAT3WORDS + TOWN
-  --------------------------------------------------------- */
+  /* LOCATION & WHAT3WORDS */
   useEffect(() => {
     if (!navigator.geolocation) return;
 
@@ -97,7 +84,7 @@ export default function Annual({ unit }) {
 
       try {
         const w3 = await fetch(
-          `https://api.what3words.com/v3/convert-to-3wa?coordinates=${lat}%2C${lng}&key=${process.env.NEXT_PUBLIC_W3W_API_KEY}`
+          `https://api.what3words.com/v3/convert-to-3wa?coordinates=${lat},${lng}&key=${process.env.NEXT_PUBLIC_W3W_API_KEY}`
         );
         const w3json = await w3.json();
         w3w = w3json.words || "";
@@ -106,6 +93,7 @@ export default function Annual({ unit }) {
           `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
         );
         const osmJson = await osm.json();
+
         town =
           osmJson.address?.town ||
           osmJson.address?.village ||
@@ -119,9 +107,6 @@ export default function Annual({ unit }) {
     });
   }, []);
 
-  /* ---------------------------------------------------------
-     CHECKLIST QUESTIONS (PLACEHOLDERS)
-  --------------------------------------------------------- */
   const questions = [
     "Question one",
     "Question two",
@@ -141,9 +126,7 @@ export default function Annual({ unit }) {
     "Question sixteen"
   ];
 
-  /* ---------------------------------------------------------
-     FORM SUBMISSION
-  --------------------------------------------------------- */
+  /* SUBMIT HANDLER */
   async function handleSubmit(e) {
     e.preventDefault();
     setSubmitting(true);
@@ -163,11 +146,14 @@ export default function Annual({ unit }) {
     canvas.toBlob((blob) => {
       data.append("signature", blob, "signature.png");
 
-      // geo metadata
+      // add new geo metadata
       data.append("location_lat", geo.lat);
       data.append("location_lng", geo.lng);
       data.append("location_town", geo.town);
       data.append("location_what3words", geo.w3w);
+
+      // NEW: add public_token for redirect + audit
+      data.append("public_token", unit.public_token);
 
       fetch("/api/submit-maintenance", {
         method: "POST",
@@ -187,9 +173,6 @@ export default function Annual({ unit }) {
     });
   }
 
-  /* ---------------------------------------------------------
-     PAGE RENDER
-  --------------------------------------------------------- */
   return (
     <div className="swift-checklist-container">
       <div className="checklist-logo">
@@ -206,7 +189,6 @@ export default function Annual({ unit }) {
       <div className="checklist-form-card">
         <form onSubmit={handleSubmit}>
 
-          {/* BASIC DETAILS */}
           <label className="checklist-label">Maintenance company</label>
           <select name="maintained_by" required className="checklist-input">
             <option value="">Select...</option>
@@ -221,8 +203,6 @@ export default function Annual({ unit }) {
           <label className="checklist-label">Date of maintenance</label>
           <input className="checklist-input" type="date" name="date_of_maintenance" required />
 
-
-          {/* CHECKLIST QUESTIONS */}
           {questions.map((q, i) => (
             <div key={i}>
               <label className="checklist-label">{q}</label>
@@ -244,78 +224,63 @@ export default function Annual({ unit }) {
             onInput={autoGrow}
           ></textarea>
 
-          {/* PHOTOS */}
           <label className="checklist-label">Upload photos</label>
-          <input
-            type="file"
-            name="photos"
-            accept="image/*"
-            multiple
-            className="checklist-input"
-          />
+          <input type="file" name="photos" accept="image/*" multiple className="checklist-input" />
 
-          {/* SIGNATURE */}
           <label className="checklist-label">Signature</label>
+          <canvas ref={canvasRef} width={350} height={150} className="checklist-signature"></canvas>
 
-          <canvas
-            ref={canvasRef}
-            width={350}
-            height={150}
-            className="checklist-signature"
-          ></canvas>
-
-          <button
-            type="button"
-            onClick={clearSignature}
-            className="checklist-clear-btn"
-          >
+          <button type="button" onClick={clearSignature} className="checklist-clear-btn">
             Clear signature
           </button>
 
-
-          {/* HIDDEN FIELDS */}
           <input type="hidden" name="unit_record_id" value={unit.record_id} />
           <input type="hidden" name="maintenance_type" value="Annual" />
 
-          {/* SUBMIT */}
           <button className="checklist-submit" disabled={submitting}>
             {submitting ? "Submitting..." : "Submit"}
           </button>
+
         </form>
       </div>
     </div>
   );
 }
 
-/* ---------------------------------------------------------
-   SSR – LOAD UNIT
---------------------------------------------------------- */
+/* ---------------------------------------------
+   SERVER SIDE PROPS — FIXED VERSION
+--------------------------------------------- */
 export async function getServerSideProps({ params }) {
-  const token = params.publicToken;
+  const publicToken = params.publicToken;
 
-  const res = await fetch(
-    `${process.env.AIRTABLE_API_URL}/swift_units?filterByFormula={public_token}='${token}'`,
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
-      },
-    }
-  );
-
-  const json = await res.json();
-
-  if (!json.records.length) return { notFound: true };
-
-  const record = json.records[0];
-
-  return {
-    props: {
-      unit: {
-        serial_number: record.fields.serial_number || "",
-        model: record.fields.model || "",
-        record_id: record.id,
-        public_token: record.fields.public_token
+  try {
+    const res = await fetch(
+      `${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${publicToken}'`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
+        },
       }
-    }
-  };
+    );
+
+    const json = await res.json();
+
+    if (!json.records.length) return { notFound: true };
+
+    const record = json.records[0];
+
+    return {
+      props: {
+        unit: {
+          serial_number: record.fields.serial_number || "",
+          model: record.fields.model || "",
+          record_id: record.id,
+          public_token: record.fields.public_token
+        }
+      }
+    };
+  } catch (err) {
+    console.error("SSR Error Annual Page", err);
+    return { notFound: true };
+  }
 }
