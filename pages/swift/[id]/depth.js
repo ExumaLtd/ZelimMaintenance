@@ -1,96 +1,71 @@
-// pages/swift/[id]/depth.js - FINAL STRUCTURE
-
 import Head from "next/head";
 import Link from "next/link";
 import Airtable from "airtable";
 
-// --- Data Fetching (Keep this as is) ---
-export async function getServerSideProps(context) {
-  // ... data fetching logic ... (KEEP THIS THE SAME)
-  const publicToken = context.params.id;
+export async function getServerSideProps({ params }) {
+  const token = params.id;
 
   try {
-    const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
-      process.env.AIRTABLE_BASE_ID
-    );
-    const TABLE_NAME = process.env.AIRTABLE_SWIFT_TABLE;
-    
-    const records = await base(TABLE_NAME)
+    const base = new Airtable({
+      apiKey: process.env.AIRTABLE_API_KEY,
+    }).base(process.env.AIRTABLE_BASE_ID);
+
+    const records = await base(process.env.AIRTABLE_SWIFT_TABLE)
       .select({
         maxRecords: 1,
-        filterByFormula: `{public_token} = "${publicToken}"`, 
-        fields: ["serial_number", "depth_form_id"], 
+        filterByFormula: `{public_token} = "${token}"`,
+        fields: ["serial_number", "depth_form_id"],
       })
       .firstPage();
 
-    if (!records || records.length === 0) {
-      return { redirect: { destination: '/', permanent: false } };
-    }
-    
+    if (!records.length) return { notFound: true };
+
     const record = records[0];
-    const unitDetails = {
-      serial_number: record.get("serial_number") || "N/A",
-      formId: record.get("depth_form_id") || null,
-    };
 
     return {
-      props: { unit: unitDetails, publicToken },
+      props: {
+        publicToken: token,
+        unit: {
+          serial_number: record.get("serial_number"),
+          formId: record.get("depth_form_id"),
+        },
+      },
     };
-  } catch (error) {
-    console.error("Error fetching unit data for depth page:", error);
-    return { redirect: { destination: '/', permanent: false } };
+  } catch (err) {
+    return { notFound: true };
   }
 }
 
-
-// --- Component Definition ---
-
 export default function DepthMaintenancePage({ unit, publicToken }) {
-  const serialNumber = unit.serial_number;
-  const formId = unit.formId;
-
-  const filloutUrl = formId 
-    ? `https://forms.fillout.com/${formId}?unit_public_token=${publicToken}&embed=true`
+  const formUrl = unit.formId
+    ? `https://forms.fillout.com/${unit.formId}?unit_public_token=${publicToken}&embed=true`
     : null;
 
   return (
-    // WRAPPED IN GLOBAL LAYOUTS
     <div className="swift-main-layout-wrapper">
       <div className="page-wrapper">
         <Head>
-          <title>SWIFT Depth Checklist | {serialNumber}</title>
+          <title>SWIFT Depth Checklist | {unit.serial_number}</title>
         </Head>
 
-        {/* Use the central container for styling */}
         <div className="swift-checklist-container">
-          
-          {/* HEADER (Styled by checklist.css) */}
           <header className="checklist-header">
-            <h1 className="unit-title">SWIFT Unit: {serialNumber}</h1>
+            <h1 className="unit-title">SWIFT Unit: {unit.serial_number}</h1>
             <p className="checklist-type">Depth Maintenance Checklist</p>
-            <p className="checklist-info">Token: {publicToken.toUpperCase()}</p>
+            <p className="checklist-info">Token: {publicToken}</p>
           </header>
 
-          {/* EMBED AREA (Styled by checklist.css) */}
           <main className="form-embed-area">
-            {formId ? (
-              <iframe
-                title="Depth Maintenance Form"
-                src={filloutUrl}
-                /* REMOVED INLINE STYLES - Now handled by checklist.css */
-                allowFullScreen
-              />
+            {formUrl ? (
+              <iframe title="Depth Maintenance Form" src={formUrl} allowFullScreen />
             ) : (
-              <div style={{ padding: '20px', textAlign: 'center', color: '#bdc4c6' }}>
-                  <p>Form Not Available. Please ensure the form ID is configured in Airtable.</p>
-              </div>
+              <p style={{ textAlign: "center" }}>Form not found.</p>
             )}
           </main>
 
-          {/* FOOTER (Styled by checklist.css) */}
           <footer className="checklist-footer">
             <Link href={`/swift/${publicToken}`} className="back-link">
-              &larr; Back to Unit Selection
+              ← Back to Unit Home
             </Link>
           </footer>
         </div>

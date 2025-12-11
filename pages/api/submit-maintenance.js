@@ -1,128 +1,107 @@
-// pages/api/submit-maintenance.js
-
 import formidable from "formidable";
 import fs from "fs";
-import Airtable from "airtable";
+import path from "path";
 
+// Disable body parsing for file uploads
 export const config = {
   api: {
-    bodyParser: false, // Required for formidable
+    bodyParser: false,
   },
 };
 
-// Convert local uploaded file → buffer for Airtable
-function fileToAirtableAttachment(file) {
-  const buffer = fs.readFileSync(file.filepath);
-
-  return {
-    filename: file.originalFilename || "upload.jpg",
-    contentType: file.mimetype,
-    data: buffer.toString("base64"),
-  };
-}
-
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+    return res.status(405).json({ success: false, error: "Method not allowed" });
   }
 
-  // Parse form-data (files + fields)
-  const form = formidable({ multiples: true });
-
-  const { fields, files } = await new Promise((resolve, reject) => {
-    form.parse(req, (err, fields, files) => {
-      if (err) reject(err);
-      resolve({ fields, files });
-    });
-  });
-
   try {
-    // -----------------------------
-    // 1. Pull environment variables
-    // -----------------------------
-    const base = new Airtable({
-      apiKey: process.env.AIRTABLE_API_KEY,
-    }).base(process.env.AIRTABLE_BASE_ID);
+    // Parse form-data
+    const form = new formidable.IncomingForm({ multiples: true });
 
-    const TABLE_NAME = process.env.AIRTABLE_MAINTENANCE_TABLE;
+    const { fields, files } = await new Promise((resolve, reject) => {
+      form.parse(req, (err, fields, files) => {
+        if (err) reject(err);
+        else resolve({ fields, files });
+      });
+    });
 
-    if (!TABLE_NAME) {
-      throw new Error("AIRTABLE_MAINTENANCE_TABLE is missing in env");
-    }
+    // Extract fields
+    const {
+      unit_record_id,
+      maintenance_type,
+      maintained_by,
+      engineer_name,
+      date_of_maintenance,
+      location_lat,
+      location_lng,
+      location_town,
+      location_what3words,
+      comments,
+    } = fields;
 
-    // -----------------------------
-    // 2. Prepare Airtable fields
-    // -----------------------------
-    const recordData = {
-      unit: [fields.unit_record_id], // Linked record
-      maintenance_type: fields.maintenance_type,
-      maintained_by: fields.maintained_by,
-      engineer_name: fields.engineer_name,
-      date_of_maintenance: fields.date_of_maintenance,
-
-      // Geo
-      location_lat: fields.location_lat || "",
-      location_lng: fields.location_lng || "",
-      location_town: fields.location_town || "",
-      location_what3words: fields.location_what3words || "",
-
-      // Comments
-      comments: fields.comments || "",
-
-      // Checklist answers
-      checklist_json: JSON.stringify({
-        q1: fields.q1,
-        q2: fields.q2,
-        q3: fields.q3,
-        q4: fields.q4,
-        q5: fields.q5,
-        q6: fields.q6,
-        q7: fields.q7,
-        q8: fields.q8,
-        q9: fields.q9,
-        q10: fields.q10,
-        q11: fields.q11,
-        q12: fields.q12,
-        q13: fields.q13,
-        q14: fields.q14,
-        q15: fields.q15,
-        q16: fields.q16,
-      }),
+    // Upload helper — converts file to Base64 for Airtable
+    const encodeFile = (file) => {
+      if (!file) return null;
+      const data = fs.readFileSync(file.filepath);
+      return `data:${file.mimetype};base64,${data.toString("base64")}`;
     };
 
-    // -----------------------------
-    // 3. Handle PHOTOS upload
-    // -----------------------------
-    if (files.photos) {
-      const photoFiles = Array.isArray(files.photos)
-        ? files.photos
-        : [files.photos];
+    // Convert signature + photos
+    const signature = encodeFile(files.signature);
+    const photos = Array.isArray(files.photos)
+      ? files.photos.map((f) => encodeFile(f))
+      : files.photos
+      ? [encodeFile(files.photos)]
+      : [];
 
-      recordData.photos = photoFiles.map((file) =>
-        fileToAirtableAttachment(file)
-      );
+    // Build checklist answers dynamically
+    const checklist = {};
+    for (let i = 1; i <= 20; i++) {
+      if (fields[`q${i}`]) checklist[`q${i}`] = fields[`q${i}`];
     }
 
-    // -----------------------------
-    // 4. Handle SIGNATURE upload
-    // -----------------------------
-    if (files.signature) {
-      recordData.signature = [
-        fileToAirtableAttachment(files.signature),
-      ];
+    // Prepare Airtable record
+    const airtableRecord = {
+      fields: {
+        unit: [unit_record_id],
+        maintenance_type,
+        maintained_by,
+        engineer_name,
+        date_of_maintenance,
+        location_lat,
+        location_lng,
+        location_town,
+        location_what3words,
+        comments: comments || "",
+        signature,
+        photos,
+        ...checklist,
+      },
+    };
+
+    // Send to Airtable
+    const response = await fetch(
+      `${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_MAINTENANCE_TABLE}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ records: [airtableRecord] }),
+      }
+    );
+
+    const json = await response.json();
+
+    if (!response.ok) {
+      console.error("Airtable error:", json);
+      return res.status(500).json({ success: false, error: "Airtable save failed" });
     }
 
-    // -----------------------------
-    // 5. Create Airtable record
-    // -----------------------------
-    await base(TABLE_NAME).create(recordData);
-
-    return res.status(200).json({ success: true });
-  } catch (err) {
-    console.error("Submit Maintenance API Error:", err);
-    return res.status(500).json({
-      success: false,
-      error: err.message,
-    });
+    return res.status(200).json({ success: true, id: json.records[0].id });
+  } catch (error) {
+    console.error("Submit error:", error);
+    return res.status(500).json({ success: false, error: "Server error" });
   }
 }

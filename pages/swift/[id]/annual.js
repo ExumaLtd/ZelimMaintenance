@@ -15,7 +15,7 @@ export default function Annual({ unit }) {
   const [errorMsg, setErrorMsg] = useState("");
   const [geo, setGeo] = useState({ lat: "", lng: "", town: "", w3w: "" });
 
-  // ---- SIGNATURE PAD ----
+  // Signature Pad
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -23,8 +23,11 @@ export default function Annual({ unit }) {
 
     const getPos = (e) => {
       const rect = canvas.getBoundingClientRect();
-      const t = e.touches ? e.touches[0] : e;
-      return { x: t.clientX - rect.left, y: t.clientY - rect.top };
+      const touch = e.touches ? e.touches[0] : e;
+      return {
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top,
+      };
     };
 
     const start = (e) => {
@@ -57,8 +60,8 @@ export default function Annual({ unit }) {
   }, []);
 
   const clearSignature = () => {
-    const canvas = canvasRef.current;
-    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    const ctx = canvasRef.current.getContext("2d");
+    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
   };
 
   const signatureIsEmpty = () => {
@@ -69,7 +72,7 @@ export default function Annual({ unit }) {
     return !data.some((p) => p !== 0);
   };
 
-  // ---- GEO LOCATION + W3W ----
+  // GEO Lookup
   useEffect(() => {
     if (!navigator.geolocation) return;
 
@@ -96,30 +99,26 @@ export default function Annual({ unit }) {
           osmJson.address?.village ||
           osmJson.address?.city ||
           "";
-      } catch (err) {
-        console.log("Location lookup failed", err);
+      } catch (e) {
+        console.log("Location failed", e);
       }
 
       setGeo({ lat, lng, w3w, town });
     });
   }, []);
 
-  // ---- QUESTIONS ----
-  const questions = Array.from({ length: 16 }).map(
-    (_, i) => `Question ${i + 1}`
-  );
+  const questions = Array.from({ length: 16 }, (_, i) => `Question ${i + 1}`);
 
-  // ---- SUBMIT ----
   async function handleSubmit(e) {
     e.preventDefault();
-    setSubmitting(true);
     setErrorMsg("");
 
     if (signatureIsEmpty()) {
       setErrorMsg("Signature is required.");
-      setSubmitting(false);
       return;
     }
+
+    setSubmitting(true);
 
     const form = e.target;
     const data = new FormData(form);
@@ -132,18 +131,19 @@ export default function Annual({ unit }) {
       data.append("location_what3words", geo.w3w);
 
       try {
-        const result = await fetch("/api/submit-maintenance", {
+        const res = await fetch("/api/submit-maintenance", {
           method: "POST",
           body: data,
         });
 
-        const json = await result.json();
+        const json = await res.json();
+
         if (!json.success) throw new Error(json.error);
 
         router.push(`/swift/${unit.public_token}/annual-complete`);
       } catch (err) {
-        console.error(err);
-        setErrorMsg("Something went wrong submitting the form.");
+        console.log(err);
+        setErrorMsg("Submission failed.");
       }
 
       setSubmitting(false);
@@ -166,10 +166,10 @@ export default function Annual({ unit }) {
       <div className="checklist-form-card">
         <form onSubmit={handleSubmit}>
           <label className="checklist-label">Maintenance company</label>
-          <select name="maintained_by" required className="checklist-input">
+          <select name="maintained_by" className="checklist-input" required>
             <option value="">Select...</option>
-            <option value="Company Four">Company Four</option>
             <option value="Zelim">Zelim</option>
+            <option value="Company Four">Company Four</option>
           </select>
 
           <label className="checklist-label">Engineer name</label>
@@ -181,43 +181,27 @@ export default function Annual({ unit }) {
           {questions.map((q, i) => (
             <div key={i}>
               <label className="checklist-label">{q}</label>
-              <textarea
-                name={`q${i + 1}`}
-                className="checklist-textarea"
-                onInput={autoGrow}
-                rows={2}
-              />
+              <textarea name={`q${i + 1}`} className="checklist-textarea" rows={2} onInput={autoGrow} />
             </div>
           ))}
 
           <label className="checklist-label">Additional comments</label>
-          <textarea
-            name="comments"
-            className="checklist-textarea"
-            rows={2}
-            onInput={autoGrow}
-          />
+          <textarea name="comments" className="checklist-textarea" rows={2} onInput={autoGrow} />
 
           <label className="checklist-label">Upload photos</label>
-          <input type="file" name="photos" multiple accept="image/*" />
+          <input type="file" name="photos" accept="image/*" multiple />
 
           <label className="checklist-label">Signature</label>
-          <canvas
-            ref={canvasRef}
-            width={350}
-            height={150}
-            className="checklist-signature"
-          />
+          <canvas ref={canvasRef} width={350} height={150} className="checklist-signature" />
 
           <button type="button" onClick={clearSignature} className="checklist-clear-btn">
             Clear signature
           </button>
 
-          {/* Hidden identifiers */}
           <input type="hidden" name="unit_record_id" value={unit.record_id} />
           <input type="hidden" name="maintenance_type" value="Annual" />
 
-          <button disabled={submitting} className="checklist-submit">
+          <button className="checklist-submit" disabled={submitting}>
             {submitting ? "Submitting..." : "Submit"}
           </button>
         </form>
@@ -226,35 +210,29 @@ export default function Annual({ unit }) {
   );
 }
 
-
-// ============================================================================
-// ✅ **CORRECT getServerSideProps() FOR pages/swift/[id]/annual.js**
-// ============================================================================
+// FIXED SSR
 export async function getServerSideProps({ params }) {
-  const token = params.id; // <-- THIS WAS THE FIX
+  const token = params.id;
 
-  const res = await fetch(
+  const req = await fetch(
     `${process.env.AIRTABLE_API_URL}/swift_units?filterByFormula={public_token}='${token}'`,
     {
-      headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
-      },
+      headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
     }
   );
 
-  const json = await res.json();
-
+  const json = await req.json();
   if (!json.records.length) return { notFound: true };
 
-  const record = json.records[0];
+  const rec = json.records[0];
 
   return {
     props: {
       unit: {
-        serial_number: record.fields.serial_number || "",
-        model: record.fields.model || "",
-        record_id: record.id,
-        public_token: record.fields.public_token,
+        serial_number: rec.fields.serial_number,
+        model: rec.fields.model,
+        record_id: rec.id,
+        public_token: rec.fields.public_token,
       },
     },
   };
