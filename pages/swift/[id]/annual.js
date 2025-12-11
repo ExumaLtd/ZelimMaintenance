@@ -71,7 +71,7 @@ export default function Annual({ unit }) {
     return !data.some((p) => p !== 0);
   };
 
-  // GEO & WHAT3WORDS
+  // GEO + WHAT3WORDS
   useEffect(() => {
     if (!navigator.geolocation) return;
 
@@ -137,7 +137,6 @@ export default function Annual({ unit }) {
         if (!json.success) throw new Error(json.error);
 
         router.push(`/swift/${unit.public_token}/annual-complete`);
-
       } catch {
         setErrorMsg("Submission failed.");
       }
@@ -161,7 +160,6 @@ export default function Annual({ unit }) {
 
       <div className="checklist-form-card">
         <form onSubmit={handleSubmit}>
-          
           <label className="checklist-label">Maintenance company</label>
           <select name="maintained_by" className="checklist-input" required>
             <option value="">Select...</option>
@@ -173,25 +171,49 @@ export default function Annual({ unit }) {
           <input className="checklist-input" name="engineer_name" required />
 
           <label className="checklist-label">Date of maintenance</label>
-          <input type="date" className="checklist-input" name="date_of_maintenance" required />
+          <input
+            type="date"
+            className="checklist-input"
+            name="date_of_maintenance"
+            required
+          />
 
           {questions.map((q, i) => (
             <div key={i}>
               <label className="checklist-label">{q}</label>
-              <textarea name={`q${i + 1}`} className="checklist-textarea" rows={2} onInput={autoGrow} />
+              <textarea
+                name={`q${i + 1}`}
+                className="checklist-textarea"
+                rows={2}
+                onInput={autoGrow}
+              />
             </div>
           ))}
 
           <label className="checklist-label">Additional comments</label>
-          <textarea name="comments" className="checklist-textarea" rows={2} onInput={autoGrow} />
+          <textarea
+            name="comments"
+            className="checklist-textarea"
+            rows={2}
+            onInput={autoGrow}
+          />
 
           <label className="checklist-label">Upload photos</label>
           <input type="file" name="photos" accept="image/*" multiple />
 
           <label className="checklist-label">Signature</label>
-          <canvas ref={canvasRef} width={350} height={150} className="checklist-signature" />
+          <canvas
+            ref={canvasRef}
+            width={350}
+            height={150}
+            className="checklist-signature"
+          />
 
-          <button type="button" onClick={clearSignature} className="checklist-clear-btn">
+          <button
+            type="button"
+            onClick={clearSignature}
+            className="checklist-clear-btn"
+          >
             Clear signature
           </button>
 
@@ -207,14 +229,16 @@ export default function Annual({ unit }) {
   );
 }
 
-// SERVER SIDE PROPS
+// === FIXED SERVER-SIDE PROPS (CORRECT AIRTABLE URL) ===
 export async function getServerSideProps({ params }) {
   const token = params.id;
 
   const req = await fetch(
-    `${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`,
+    `${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`,
     {
-      headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
+      headers: {
+        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
+      },
     }
   );
 
