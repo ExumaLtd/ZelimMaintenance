@@ -1,8 +1,7 @@
-// pages/swift/[id]/index.js – FINAL FULL VERSION (LONG TEXT VERSION)
+// pages/swift/[id]/index.js – FINAL FULL VERSION (PATCHED FOR VERCEL)
 
 import Head from "next/head";
 import Link from "next/link";
-import Airtable from "airtable";
 import Image from "next/image";
 import fs from "fs";
 import path from "path";
@@ -30,8 +29,8 @@ const getFileSize = (filePath) => {
 // ============================================================================
 // FETCH UNIT DETAILS (SERVER SIDE)
 // ============================================================================
-export async function getServerSideProps(context) {
-  const publicToken = context.params.id;
+export async function getServerSideProps({ params }) {
+  const publicToken = params.id;
 
   const maintenanceManualPath =
     "/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf";
@@ -44,45 +43,36 @@ export async function getServerSideProps(context) {
   };
 
   try {
-    const base = new Airtable({
-      apiKey: process.env.AIRTABLE_API_KEY,
-    }).base(process.env.AIRTABLE_BASE_ID);
+    // ----------------------------
+    // FIXED: DIRECT AIRTABLE API CALL
+    // ----------------------------
+    const formula = `AND({public_token} = "${publicToken}")`;
+    const url = `${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula=${encodeURIComponent(formula)}`;
 
-    const TABLE_NAME = process.env.AIRTABLE_SWIFT_TABLE;
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
+      },
+    });
 
-    const records = await base(TABLE_NAME)
-      .select({
-        maxRecords: 1,
-        filterByFormula: `{public_token} = "${publicToken}"`,
-        fields: [
-          "serial_number",
-          "company",
-          "annual_maintenance_due",
-          "depth_maintenance_due",
-        ],
-      })
-      .firstPage();
+    const json = await res.json();
 
-    if (!records || records.length === 0) {
+    if (!json.records || json.records.length === 0) {
       return {
         redirect: { destination: "/", permanent: false },
       };
     }
 
-    const record = records[0];
+    const record = json.records[0].fields;
 
     const unitDetails = {
-      serial_number: record.get("serial_number") || "N/A",
-      company: record.get("company") || "Client Unit",
-      annualDue: record.get("annual_maintenance_due")
-        ? new Date(record.get("annual_maintenance_due")).toLocaleDateString(
-            "en-GB"
-          )
+      serial_number: record.serial_number || "N/A",
+      company: record.company || "Client Unit",
+      annualDue: record.annual_maintenance_due
+        ? new Date(record.annual_maintenance_due).toLocaleDateString("en-GB")
         : "N/A",
-      depthDue: record.get("depth_maintenance_due")
-        ? new Date(record.get("depth_maintenance_due")).toLocaleDateString(
-            "en-GB"
-          )
+      depthDue: record.depth_maintenance_due
+        ? new Date(record.depth_maintenance_due).toLocaleDateString("en-GB")
         : "N/A",
     };
 
@@ -94,7 +84,7 @@ export async function getServerSideProps(context) {
       },
     };
   } catch (error) {
-    console.error("Error fetching unit data:", error);
+    console.error("SSR Airtable Fetch Failed:", error);
     return {
       redirect: { destination: "/", permanent: false },
     };
@@ -105,7 +95,6 @@ export async function getServerSideProps(context) {
 // CLIENT LOGO RESOLVER
 // ============================================================================
 const getClientLogo = (companyName, serialNumber) => {
-  // Changi Airport (SWI001, SWI002)
   if (
     serialNumber === "SWI001" ||
     serialNumber === "SWI002" ||
@@ -117,7 +106,6 @@ const getClientLogo = (companyName, serialNumber) => {
     };
   }
 
-  // Port of Milford Haven (SWI003)
   if (
     serialNumber === "SWI003" ||
     companyName.includes("Milford Haven")
@@ -128,7 +116,6 @@ const getClientLogo = (companyName, serialNumber) => {
     };
   }
 
-  // Hatloy Maritime (SWI010, SWI011)
   if (
     serialNumber === "SWI010" ||
     serialNumber === "SWI011" ||
@@ -210,11 +197,8 @@ export default function SwiftUnitPage({
 
             {/* RIGHT PANEL */}
             <div className="action-panel">
-
-              {/* === MAINTENANCE CARDS === */}
               <div className="maintenance-group-wrapper">
-
-                {/* ANNUAL MAINTENANCE */}
+                {/* ANNUAL */}
                 <div className="maintenance-card">
                   <h3>
                     Annual
@@ -236,7 +220,7 @@ export default function SwiftUnitPage({
                   </Link>
                 </div>
 
-                {/* DEPTH MAINTENANCE */}
+                {/* DEPTH */}
                 <div className="maintenance-card">
                   <h3>
                     30-month depth
@@ -246,8 +230,7 @@ export default function SwiftUnitPage({
 
                   <p className="description">
                     To be completed in accordance with Section 7.2.2 –
-                    30-Month Depth Maintenance Process of the SWIFT Survivor
-                    Recovery System Maintenance Manual.
+                    30-Month Depth Maintenance Process.
                   </p>
 
                   <Link
@@ -259,13 +242,12 @@ export default function SwiftUnitPage({
                 </div>
               </div>
 
-              {/* === DOWNLOADS === */}
+              {/* DOWNLOADS */}
               <div className="downloads-card">
                 <h3>Downloads</h3>
 
                 <p className="description">
-                  To be used in accordance with both annual and 30-month depth
-                  maintenance.
+                  To be used in accordance with both annual and 30-month depth maintenance.
                 </p>
 
                 <div className="download-list">
@@ -274,12 +256,7 @@ export default function SwiftUnitPage({
                     target="_blank"
                     className="download-link"
                   >
-                    <Image
-                      src="/Icons/PDF_Icon.svg"
-                      width={40}
-                      height={40}
-                      alt="PDF Icon"
-                    />
+                    <Image src="/Icons/PDF_Icon.svg" width={40} height={40} alt="PDF Icon" />
                     <div>
                       <p>SWIFT maintenance manual.pdf</p>
                       <span>{maintenanceManualSize}</span>
@@ -291,12 +268,7 @@ export default function SwiftUnitPage({
                     target="_blank"
                     className="download-link"
                   >
-                    <Image
-                      src="/Icons/PDF_Icon.svg"
-                      width={40}
-                      height={40}
-                      alt="PDF Icon"
-                    />
+                    <Image src="/Icons/PDF_Icon.svg" width={40} height={40} alt="PDF Icon" />
                     <div>
                       <p>SWIFT installation guide.pdf</p>
                       <span>{installationGuideSize}</span>
@@ -308,7 +280,6 @@ export default function SwiftUnitPage({
           </div>
         </div>
 
-        {/* Fixed Logo */}
         <div className="zelim-spacer"></div>
 
         <div className="fixed-zelim-logo">

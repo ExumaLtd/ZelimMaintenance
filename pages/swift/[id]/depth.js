@@ -1,37 +1,37 @@
+// pages/swift/[id]/depth.js
+
 import Head from "next/head";
 import Link from "next/link";
-import Airtable from "airtable";
 
 export async function getServerSideProps({ params }) {
   const token = params.id;
 
+  const formula = `AND({public_token} = "${token}")`;
+  const url = `${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula=${encodeURIComponent(
+    formula
+  )}`;
+
   try {
-    const base = new Airtable({
-      apiKey: process.env.AIRTABLE_API_KEY,
-    }).base(process.env.AIRTABLE_BASE_ID);
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
+    });
 
-    const records = await base(process.env.AIRTABLE_SWIFT_TABLE)
-      .select({
-        maxRecords: 1,
-        filterByFormula: `{public_token} = "${token}"`,
-        fields: ["serial_number", "depth_form_id"],
-      })
-      .firstPage();
+    const json = await res.json();
+    if (!json.records.length) return { notFound: true };
 
-    if (!records.length) return { notFound: true };
-
-    const record = records[0];
+    const record = json.records[0].fields;
 
     return {
       props: {
         publicToken: token,
         unit: {
-          serial_number: record.get("serial_number"),
-          formId: record.get("depth_form_id"),
+          serial_number: record.serial_number,
+          formId: record.depth_form_id,
         },
       },
     };
   } catch (err) {
+    console.error("Depth SSR error:", err);
     return { notFound: true };
   }
 }
@@ -57,7 +57,11 @@ export default function DepthMaintenancePage({ unit, publicToken }) {
 
           <main className="form-embed-area">
             {formUrl ? (
-              <iframe title="Depth Maintenance Form" src={formUrl} allowFullScreen />
+              <iframe
+                title="Depth Maintenance Form"
+                src={formUrl}
+                allowFullScreen
+              />
             ) : (
               <p style={{ textAlign: "center" }}>Form not found.</p>
             )}
