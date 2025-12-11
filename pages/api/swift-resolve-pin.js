@@ -1,5 +1,3 @@
-// pages/api/swift-resolve-pin.js
-
 import Airtable from "airtable";
 
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
@@ -9,7 +7,6 @@ const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
 const TABLE_NAME = process.env.AIRTABLE_SWIFT_TABLE;
 
 export default async function handler(req, res) {
-  // MUST accept GET because frontend sends GET
   if (req.method !== "GET") {
     res.setHeader("Allow", ["GET"]);
     return res.status(405).json({ error: "Method not allowed" });
@@ -32,13 +29,11 @@ export default async function handler(req, res) {
           "public_token",
           "company",
           "serial_number",
-          "annual_form_id",
-          "depth_form_id"
+          "last_annual_maintenance_date",
+          "annual_maintenance_due"
         ],
       })
       .firstPage();
-
-    console.log("📄 Airtable returned:", records?.length);
 
     if (!records || records.length === 0) {
       return res.status(404).json({ error: "Code not recognised" });
@@ -50,8 +45,8 @@ export default async function handler(req, res) {
       publicToken: record.get("public_token"),
       company: record.get("company"),
       serialNumber: record.get("serial_number"),
-      annualFormId: record.get("annual_form_id"),
-      depthFormId: record.get("depth_form_id"),
+      lastAnnual: record.get("last_annual_maintenance_date"),
+      nextAnnualDue: record.get("annual_maintenance_due")
     });
 
   } catch (err) {
