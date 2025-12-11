@@ -1,8 +1,6 @@
-// pages/swift/[id]/annual.js
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 
-// Auto-expand textarea
 function autoGrow(e) {
   const el = e.target;
   el.style.height = "auto";
@@ -17,9 +15,7 @@ export default function Annual({ unit }) {
   const [errorMsg, setErrorMsg] = useState("");
   const [geo, setGeo] = useState({ lat: "", lng: "", town: "", w3w: "" });
 
-  // ---------------------------------------------------------
-  // SIGNATURE PAD
-  // ---------------------------------------------------------
+  // ---- SIGNATURE PAD ----
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -27,11 +23,8 @@ export default function Annual({ unit }) {
 
     const getPos = (e) => {
       const rect = canvas.getBoundingClientRect();
-      const touch = e.touches ? e.touches[0] : e;
-      return {
-        x: touch.clientX - rect.left,
-        y: touch.clientY - rect.top,
-      };
+      const t = e.touches ? e.touches[0] : e;
+      return { x: t.clientX - rect.left, y: t.clientY - rect.top };
     };
 
     const start = (e) => {
@@ -65,8 +58,7 @@ export default function Annual({ unit }) {
 
   const clearSignature = () => {
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
   };
 
   const signatureIsEmpty = () => {
@@ -74,13 +66,10 @@ export default function Annual({ unit }) {
       .getContext("2d")
       .getImageData(0, 0, canvasRef.current.width, canvasRef.current.height)
       .data;
-
     return !data.some((p) => p !== 0);
   };
 
-  // ---------------------------------------------------------
-  // GEOLOCATION + WHAT3WORDS
-  // ---------------------------------------------------------
+  // ---- GEO LOCATION + W3W ----
   useEffect(() => {
     if (!navigator.geolocation) return;
 
@@ -108,38 +97,19 @@ export default function Annual({ unit }) {
           osmJson.address?.city ||
           "";
       } catch (err) {
-        console.log("Geo lookup failed:", err);
+        console.log("Location lookup failed", err);
       }
 
       setGeo({ lat, lng, w3w, town });
     });
   }, []);
 
-  // ---------------------------------------------------------
-  // QUESTIONS
-  // ---------------------------------------------------------
-  const questions = [
-    "Question one",
-    "Question two",
-    "Question three",
-    "Question four",
-    "Question five",
-    "Question six",
-    "Question seven",
-    "Question eight",
-    "Question nine",
-    "Question ten",
-    "Question eleven",
-    "Question twelve",
-    "Question thirteen",
-    "Question fourteen",
-    "Question fifteen",
-    "Question sixteen",
-  ];
+  // ---- QUESTIONS ----
+  const questions = Array.from({ length: 16 }).map(
+    (_, i) => `Question ${i + 1}`
+  );
 
-  // ---------------------------------------------------------
-  // FORM SUBMIT
-  // ---------------------------------------------------------
+  // ---- SUBMIT ----
   async function handleSubmit(e) {
     e.preventDefault();
     setSubmitting(true);
@@ -154,23 +124,20 @@ export default function Annual({ unit }) {
     const form = e.target;
     const data = new FormData(form);
 
-    // Add signature
     canvasRef.current.toBlob(async (blob) => {
       data.append("signature", blob, "signature.png");
-
-      // GEO metadata
       data.append("location_lat", geo.lat);
       data.append("location_lng", geo.lng);
       data.append("location_town", geo.town);
       data.append("location_what3words", geo.w3w);
 
       try {
-        const res = await fetch("/api/submit-maintenance", {
+        const result = await fetch("/api/submit-maintenance", {
           method: "POST",
           body: data,
         });
 
-        const json = await res.json();
+        const json = await result.json();
         if (!json.success) throw new Error(json.error);
 
         router.push(`/swift/${unit.public_token}/annual-complete`);
@@ -183,9 +150,6 @@ export default function Annual({ unit }) {
     });
   }
 
-  // ---------------------------------------------------------
-  // PAGE UI
-  // ---------------------------------------------------------
   return (
     <div className="swift-checklist-container">
       <div className="checklist-logo">
@@ -209,10 +173,10 @@ export default function Annual({ unit }) {
           </select>
 
           <label className="checklist-label">Engineer name</label>
-          <input name="engineer_name" className="checklist-input" required />
+          <input className="checklist-input" name="engineer_name" required />
 
           <label className="checklist-label">Date of maintenance</label>
-          <input type="date" name="date_of_maintenance" className="checklist-input" required />
+          <input type="date" className="checklist-input" name="date_of_maintenance" required />
 
           {questions.map((q, i) => (
             <div key={i}>
@@ -220,8 +184,8 @@ export default function Annual({ unit }) {
               <textarea
                 name={`q${i + 1}`}
                 className="checklist-textarea"
-                rows={2}
                 onInput={autoGrow}
+                rows={2}
               />
             </div>
           ))}
@@ -235,7 +199,7 @@ export default function Annual({ unit }) {
           />
 
           <label className="checklist-label">Upload photos</label>
-          <input type="file" name="photos" accept="image/*" multiple />
+          <input type="file" name="photos" multiple accept="image/*" />
 
           <label className="checklist-label">Signature</label>
           <canvas
@@ -249,7 +213,7 @@ export default function Annual({ unit }) {
             Clear signature
           </button>
 
-          {/* Hidden AWS/Airtable data */}
+          {/* Hidden identifiers */}
           <input type="hidden" name="unit_record_id" value={unit.record_id} />
           <input type="hidden" name="maintenance_type" value="Annual" />
 
@@ -262,11 +226,12 @@ export default function Annual({ unit }) {
   );
 }
 
-// ---------------------------------------------------------
-// SSR FETCH UNIT — FIXED VERSION
-// ---------------------------------------------------------
+
+// ============================================================================
+// ✅ **CORRECT getServerSideProps() FOR pages/swift/[id]/annual.js**
+// ============================================================================
 export async function getServerSideProps({ params }) {
-  const token = params.id; // 🔥 THIS WAS THE FIX
+  const token = params.id; // <-- THIS WAS THE FIX
 
   const res = await fetch(
     `${process.env.AIRTABLE_API_URL}/swift_units?filterByFormula={public_token}='${token}'`,
@@ -286,8 +251,8 @@ export async function getServerSideProps({ params }) {
   return {
     props: {
       unit: {
-        serial_number: record.fields.serial_number,
-        model: record.fields.model,
+        serial_number: record.fields.serial_number || "",
+        model: record.fields.model || "",
         record_id: record.id,
         public_token: record.fields.public_token,
       },
