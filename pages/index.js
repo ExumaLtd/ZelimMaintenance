@@ -1,9 +1,9 @@
+// pages/index.js
 import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import Airtable from 'airtable';
 
 export default function Home() {
   const [accessCode, setAccessCode] = useState('');
@@ -15,64 +15,43 @@ export default function Home() {
     e.preventDefault();
     if (isSubmitting) return;
 
-    const publicTokenInput = accessCode.trim();
+    const code = accessCode.trim();
 
-    if (publicTokenInput === '') {
-        setError('Please enter your access code.');
-        return; 
+    if (code === '') {
+      setError('Please enter your access code.');
+      return;
     }
-    
+
     setError('');
     setIsSubmitting(true);
 
     try {
-      // 🟢 FIX: Connection now works due to NEXT_PUBLIC_ variables and PAT scopes
-      const base = new Airtable({
-        apiKey: process.env.NEXT_PUBLIC_AIRTABLE_API_KEY,
-      }).base(process.env.NEXT_PUBLIC_AIRTABLE_BASE_ID);
+      // 🔵 Call our secure backend instead of using Airtable directly
+      const res = await fetch(`/api/swift-resolve-pin?pin=${encodeURIComponent(code)}`);
 
-      const TABLE_NAME = process.env.NEXT_PUBLIC_AIRTABLE_SWIFT_TABLE;
-      
-      // 🟢 FIX: Simplified formula to a direct, case-sensitive lookup on access_pin.
-      // NOTE: publicTokenInput is the original user input (e.g., 'SWI010').
-      // User MUST enter the code exactly as it appears in Airtable now.
-      const filterFormula = `{access_pin} = '${publicTokenInput}'`;
+      const data = await res.json();
 
-      // If the lookup fails, we will try the public_token as a fallback
-      // This is a direct copy of the original logic, but simplified to one field
-      
-      let records = await base(TABLE_NAME)
-        .select({
-          maxRecords: 1,
-          filterByFormula: filterFormula,
-          fields: ["public_token", "access_pin"],
-        })
-        .firstPage();
-
-      // Fallback: If access_pin failed, try public_token (in case user entered the public one)
-      if (!records || records.length === 0) {
-        const fallbackFilterFormula = `{public_token} = '${publicTokenInput}'`;
-        records = await base(TABLE_NAME)
-          .select({
-            maxRecords: 1,
-            filterByFormula: fallbackFilterFormula,
-            fields: ["public_token", "access_pin"],
-          })
-          .firstPage();
+      if (!res.ok) {
+        setError(data.error || 'Invalid access code. Please try again.');
+        setIsSubmitting(false);
+        return;
       }
 
-      if (records && records.length > 0) {
-        // Success: Redirect using the public_token field value
-        const redirectToken = records[0].get('public_token');
-        router.push(`/swift/${redirectToken}`);
-      } else {
-        // Failure: Show error message
-        setError('Invalid access code. Please try again.');
+      // Extract the token returned by API
+      const redirectToken = data.publicToken;
+
+      if (!redirectToken) {
+        setError("This unit is missing a public token.");
+        setIsSubmitting(false);
+        return;
       }
+
+      // Redirect to the SWIFT portal
+      router.push(`/swift/${redirectToken}`);
+
     } catch (err) {
-      // This catch block should now only be hit if the Airtable service is down
-      console.error("Airtable lookup failed:", err);
-      setError('An error occurred during verification. Please try again later.');
+      console.error("PIN verification error:", err);
+      setError("A network error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -85,7 +64,8 @@ export default function Home() {
       </Head>
 
       <div className="landing-root">
-        {/* LEFT HERO (IMAGE) */}
+
+        {/* LEFT HERO IMAGE */}
         <div className="landing-hero">
           <div className="landing-hero-inner">
             <Image
@@ -99,7 +79,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* RIGHT PANEL (CONTENT) */}
+        {/* RIGHT PANEL CONTENT */}
         <div className="landing-content">
           <div className="landing-main">
             
@@ -114,7 +94,7 @@ export default function Home() {
               </p>
             </div>
 
-            {/* FORM STACK */}
+            {/* LOGIN FORM */}
             <form onSubmit={handleFormSubmit} className="form-stack">
               <div className={`input-wrapper ${error ? 'has-error' : ''}`}>
                 <input
@@ -124,17 +104,14 @@ export default function Home() {
                   value={accessCode}
                   onChange={(e) => {
                     setAccessCode(e.target.value);
-                    setError(''); // Clear error on change
+                    setError('');
                   }}
                   disabled={isSubmitting}
                 />
                 {error && <p className="error-text">{error}</p>}
               </div>
 
-              <button
-                type="submit"
-                className="primary-btn"
-              >
+              <button type="submit" className="primary-btn">
                 {isSubmitting ? 'Verifying...' : 'Enter portal'}
               </button>
             </form>
@@ -142,7 +119,12 @@ export default function Home() {
 
           {/* FOOTER LOGO */}
           <footer className="landing-footer">
-            <Link href="https://www.zelim.com" target="_blank" rel="noopener noreferrer" className="logo-link">
+            <Link 
+              href="https://www.zelim.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="logo-link"
+            >
               <Image
                 src="/logo/zelim-logo.svg"
                 alt="Zelim Logo"
