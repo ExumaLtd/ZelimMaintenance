@@ -1,23 +1,27 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-  api: {
-    bodyParser: false, // REQUIRED for formidable to work
-  },
 
+const nextConfig = {
   async redirects() {
     return [
       {
-        source: '/swift',
-        destination: '/',
+        source: "/swift",
+        destination: "/",
         permanent: false,
       },
       {
-        source: '/swift/',
-        destination: '/',
+        source: "/swift/",
+        destination: "/",
         permanent: false,
       },
     ];
   },
 };
 
-module.exports = nextConfig;
+// ✔️ API config MUST be exported separately in Next.js 14+
+const api = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+module.exports = { ...nextConfig, ...api };
