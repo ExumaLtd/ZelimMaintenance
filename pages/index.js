@@ -26,7 +26,7 @@ export default function Home() {
     setIsSubmitting(true);
 
     try {
-      // 🔵 Call our secure backend instead of using Airtable directly
+      // 🔵 Call our secure backend instead of Airtable
       const res = await fetch(`/api/swift-resolve-pin?pin=${encodeURIComponent(code)}`);
 
       const data = await res.json();
@@ -37,7 +37,6 @@ export default function Home() {
         return;
       }
 
-      // Extract the token returned by API
       const redirectToken = data.publicToken;
 
       if (!redirectToken) {
@@ -46,7 +45,7 @@ export default function Home() {
         return;
       }
 
-      // Redirect to the SWIFT portal
+      // Redirect to the SWIFT unit portal
       router.push(`/swift/${redirectToken}`);
 
     } catch (err) {
