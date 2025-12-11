@@ -1,79 +1,244 @@
 // pages/swift/[id]/depth.js
 
-import Head from "next/head";
-import Link from "next/link";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/router";
 
-export async function getServerSideProps({ params }) {
-  const token = params.id;
-
-  const formula = `AND({public_token} = "${token}")`;
-  const url = `${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula=${encodeURIComponent(
-    formula
-  )}`;
-
-  try {
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
-    });
-
-    const json = await res.json();
-    if (!json.records.length) return { notFound: true };
-
-    const record = json.records[0].fields;
-
-    return {
-      props: {
-        publicToken: token,
-        unit: {
-          serial_number: record.serial_number,
-          formId: record.depth_form_id,
-        },
-      },
-    };
-  } catch (err) {
-    console.error("Depth SSR error:", err);
-    return { notFound: true };
-  }
+function autoGrow(e) {
+  const el = e.target;
+  el.style.height = "auto";
+  el.style.height = el.scrollHeight + "px";
 }
 
-export default function DepthMaintenancePage({ unit, publicToken }) {
-  const formUrl = unit.formId
-    ? `https://forms.fillout.com/${unit.formId}?unit_public_token=${publicToken}&embed=true`
-    : null;
+export default function Depth({ unit }) {
+  const router = useRouter();
+  const canvasRef = useRef(null);
+
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [geo, setGeo] = useState({ lat: "", lng: "", town: "", w3w: "" });
+
+  // SIGNATURE PAD
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    let drawing = false;
+
+    const getPos = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches ? e.touches[0] : e;
+      return {
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top,
+      };
+    };
+
+    const start = (e) => {
+      e.preventDefault();
+      drawing = true;
+      const { x, y } = getPos(e);
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+    };
+
+    const move = (e) => {
+      if (!drawing) return;
+      e.preventDefault();
+      const { x, y } = getPos(e);
+      ctx.lineTo(x, y);
+      ctx.strokeStyle = "#FFF";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    };
+
+    const end = () => (drawing = false);
+
+    canvas.addEventListener("mousedown", start);
+    canvas.addEventListener("mousemove", move);
+    canvas.addEventListener("mouseup", end);
+
+    canvas.addEventListener("touchstart", start);
+    canvas.addEventListener("touchmove", move);
+    canvas.addEventListener("touchend", end);
+  }, []);
+
+  const clearSignature = () => {
+    const ctx = canvasRef.current.getContext("2d");
+    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+  };
+
+  const signatureIsEmpty = () => {
+    const data = canvasRef.current
+      .getContext("2d")
+      .getImageData(0, 0, canvasRef.current.width, canvasRef.current.height)
+      .data;
+    return !data.some((p) => p !== 0);
+  };
+
+  // GEO LOCATION
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+
+      let w3w = "";
+      let town = "";
+
+      try {
+        const w3 = await fetch(
+          `https://api.what3words.com/v3/convert-to-3wa?coordinates=${lat},${lng}&key=${process.env.NEXT_PUBLIC_W3W_API_KEY}`
+        );
+        const w3json = await w3.json();
+        w3w = w3json.words || "";
+
+        const osm = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
+        );
+        const osmJson = await osm.json();
+        town =
+          osmJson.address?.town ||
+          osmJson.address?.city ||
+          osmJson.address?.village ||
+          "";
+      } catch (e) {
+        console.log("Location lookup failed", e);
+      }
+
+      setGeo({ lat, lng, town, w3w });
+    });
+  }, []);
+
+  const questions = Array.from({ length: 20 }, (_, i) => `Question ${i + 1}`);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setErrorMsg("");
+
+    if (signatureIsEmpty()) {
+      setErrorMsg("Signature is required.");
+      return;
+    }
+
+    setSubmitting(true);
+    const form = e.target;
+    const data = new FormData(form);
+
+    canvasRef.current.toBlob(async (blob) => {
+      data.append("signature", blob, "signature.png");
+      data.append("location_lat", geo.lat);
+      data.append("location_lng", geo.lng);
+      data.append("location_town", geo.town);
+      data.append("location_what3words", geo.w3w);
+
+      try {
+        const res = await fetch("/api/submit-maintenance", {
+          method: "POST",
+          body: data,
+        });
+
+        const json = await res.json();
+        if (!json.success) throw new Error(json.error);
+
+        router.push(`/swift/${unit.public_token}/annual-complete`);
+      } catch (err) {
+        console.log(err);
+        setErrorMsg("Submission failed.");
+      }
+
+      setSubmitting(false);
+    });
+  }
 
   return (
-    <div className="swift-main-layout-wrapper">
-      <div className="page-wrapper">
-        <Head>
-          <title>SWIFT Depth Checklist | {unit.serial_number}</title>
-        </Head>
+    <div className="swift-checklist-container">
+      <div className="checklist-logo">
+        <img src="/logo/zelim-logo.svg" />
+      </div>
 
-        <div className="swift-checklist-container">
-          <header className="checklist-header">
-            <h1 className="unit-title">SWIFT Unit: {unit.serial_number}</h1>
-            <p className="checklist-type">Depth Maintenance Checklist</p>
-            <p className="checklist-info">Token: {publicToken}</p>
-          </header>
+      <h1 className="checklist-hero-title">
+        {unit.model} {unit.serial_number}
+        <span className="break-point">30-Month Depth Maintenance</span>
+      </h1>
 
-          <main className="form-embed-area">
-            {formUrl ? (
-              <iframe
-                title="Depth Maintenance Form"
-                src={formUrl}
-                allowFullScreen
+      {errorMsg && <p className="checklist-error">{errorMsg}</p>}
+
+      <div className="checklist-form-card">
+        <form onSubmit={handleSubmit}>
+          <label className="checklist-label">Maintenance company</label>
+          <select name="maintained_by" className="checklist-input" required>
+            <option value="">Select...</option>
+            <option value="Zelim">Zelim</option>
+            <option value="Company Four">Company Four</option>
+          </select>
+
+          <label className="checklist-label">Engineer name</label>
+          <input className="checklist-input" name="engineer_name" required />
+
+          <label className="checklist-label">Date of maintenance</label>
+          <input type="date" className="checklist-input" name="date_of_maintenance" required />
+
+          {questions.map((q, i) => (
+            <div key={i}>
+              <label className="checklist-label">{q}</label>
+              <textarea
+                name={`q${i + 1}`}
+                className="checklist-textarea"
+                rows={2}
+                onInput={autoGrow}
               />
-            ) : (
-              <p style={{ textAlign: "center" }}>Form not found.</p>
-            )}
-          </main>
+            </div>
+          ))}
 
-          <footer className="checklist-footer">
-            <Link href={`/swift/${publicToken}`} className="back-link">
-              ← Back to Unit Home
-            </Link>
-          </footer>
-        </div>
+          <label className="checklist-label">Additional comments</label>
+          <textarea name="comments" className="checklist-textarea" rows={2} onInput={autoGrow} />
+
+          <label className="checklist-label">Upload photos</label>
+          <input type="file" name="photos" accept="image/*" multiple />
+
+          <label className="checklist-label">Signature</label>
+          <canvas ref={canvasRef} width={350} height={150} className="checklist-signature" />
+
+          <button type="button" onClick={clearSignature} className="checklist-clear-btn">
+            Clear signature
+          </button>
+
+          <input type="hidden" name="unit_record_id" value={unit.record_id} />
+          <input type="hidden" name="maintenance_type" value="Depth" />
+
+          <button className="checklist-submit" disabled={submitting}>
+            {submitting ? "Submitting..." : "Submit"}
+          </button>
+        </form>
       </div>
     </div>
   );
+}
+
+// SSR: LOAD UNIT DETAILS
+export async function getServerSideProps({ params }) {
+  const token = params.id;
+
+  const req = await fetch(
+    `${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`,
+    {
+      headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
+    }
+  );
+
+  const json = await req.json();
+  if (!json.records.length) return { notFound: true };
+
+  const rec = json.records[0];
+
+  return {
+    props: {
+      unit: {
+        serial_number: rec.fields.serial_number,
+        model: rec.fields.model,
+        record_id: rec.id,
+        public_token: rec.fields.public_token,
+      },
+    },
+  };
 }
