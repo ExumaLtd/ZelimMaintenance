@@ -16,8 +16,7 @@ export default function Home() {
     if (isSubmitting) return;
 
     const code = accessCode.trim();
-
-    if (code === '') {
+    if (!code) {
       setError('Please enter your access code.');
       return;
     }
@@ -26,22 +25,15 @@ export default function Home() {
     setIsSubmitting(true);
 
     try {
-      // -----------------------------------------------
-      // USE ABSOLUTE URL IN PRODUCTION (IMPORTANT FIX!)
-      // -----------------------------------------------
-      const baseUrl =
-        process.env.NODE_ENV === 'production'
-          ? 'https://maintenance.exuma.co.uk'
-          : '';
-
+      // 🔵 CALL THE API ROUTE ON YOUR SERVER
       const res = await fetch(
-        `${baseUrl}/api/swift-resolve-pin?pin=${encodeURIComponent(code)}`
+        `/api/swift-resolve-pin?pin=${encodeURIComponent(code)}`
       );
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Invalid access code. Please try again.');
+        setError(data.error || 'Invalid access code.');
         setIsSubmitting(false);
         return;
       }
@@ -49,17 +41,17 @@ export default function Home() {
       const redirectToken = data.publicToken;
 
       if (!redirectToken) {
-        setError("This unit is missing a public token.");
+        setError('This unit is missing a public token.');
         setIsSubmitting(false);
         return;
       }
 
-      router.push(`/swift/${redirectToken}`);
+      // ⭐ IMPORTANT: RETURN the router.push so React stops execution
+      return router.push(`/swift/${redirectToken}`);
 
     } catch (err) {
-      console.error("PIN verification error:", err);
-      setError("A network error occurred. Please try again.");
-    } finally {
+      console.error('PIN verification error:', err);
+      setError('A network error occurred. Please try again.');
       setIsSubmitting(false);
     }
   };
@@ -72,6 +64,7 @@ export default function Home() {
 
       <div className="landing-root">
 
+        {/* LEFT HERO */}
         <div className="landing-hero">
           <div className="landing-hero-inner">
             <Image
@@ -85,9 +78,11 @@ export default function Home() {
           </div>
         </div>
 
+        {/* RIGHT CONTENT */}
         <div className="landing-content">
           <div className="landing-main">
-            
+
+            {/* HEADER */}
             <div className="landing-header">
               <h1 className="landing-title">
                 <span>SWIFT</span>
@@ -98,6 +93,7 @@ export default function Home() {
               </p>
             </div>
 
+            {/* FORM */}
             <form onSubmit={handleFormSubmit} className="form-stack">
               <div className={`input-wrapper ${error ? 'has-error' : ''}`}>
                 <input
@@ -120,8 +116,9 @@ export default function Home() {
             </form>
           </div>
 
+          {/* FOOTER LOGO */}
           <footer className="landing-footer">
-            <Link 
+            <Link
               href="https://www.zelim.com"
               target="_blank"
               rel="noopener noreferrer"
