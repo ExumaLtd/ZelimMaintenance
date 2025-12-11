@@ -1,6 +1,19 @@
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
+  reactStrictMode: true,
+
+  // REQUIRED for formidable & custom API parsing (Next 14+ syntax)
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '5mb',
+    },
+  },
+
+  api: {
+    bodyParser: false,   // Allow multipart/form-data
+  },
+
   async redirects() {
     return [
       {
@@ -17,11 +30,4 @@ const nextConfig = {
   },
 };
 
-// ✔️ API config MUST be exported separately in Next.js 14+
-const api = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-module.exports = { ...nextConfig, ...api };
+module.exports = nextConfig;
