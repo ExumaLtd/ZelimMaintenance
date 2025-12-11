@@ -1,35 +1,21 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 
-/* ------------------------------
-   TEXTAREA AUTO-GROW
------------------------------- */
 function autoGrow(e) {
   const el = e.target;
   el.style.height = "auto";
   el.style.height = el.scrollHeight + "px";
 }
 
-/* ------------------------------
-   COMPONENT
------------------------------- */
 export default function Annual({ unit }) {
   const router = useRouter();
   const canvasRef = useRef(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [geo, setGeo] = useState({ lat: "", lng: "", town: "", w3w: "" });
 
-  const [geo, setGeo] = useState({
-    lat: "",
-    lng: "",
-    town: "",
-    w3w: ""
-  });
-
-  /* ------------------------------
-     SIGNATURE PAD INITIALISATION
-  ------------------------------ */
+  // Signature Pad
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -37,31 +23,26 @@ export default function Annual({ unit }) {
 
     const getPos = (e) => {
       const rect = canvas.getBoundingClientRect();
-      if (e.touches) {
-        return {
-          x: e.touches[0].clientX - rect.left,
-          y: e.touches[0].clientY - rect.top
-        };
-      }
+      const touch = e.touches ? e.touches[0] : e;
       return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top,
       };
     };
 
     const start = (e) => {
       e.preventDefault();
       drawing = true;
-      const pos = getPos(e);
+      const { x, y } = getPos(e);
       ctx.beginPath();
-      ctx.moveTo(pos.x, pos.y);
+      ctx.moveTo(x, y);
     };
 
     const move = (e) => {
       if (!drawing) return;
       e.preventDefault();
-      const pos = getPos(e);
-      ctx.lineTo(pos.x, pos.y);
+      const { x, y } = getPos(e);
+      ctx.lineTo(x, y);
       ctx.strokeStyle = "#FFF";
       ctx.lineWidth = 2;
       ctx.stroke();
@@ -78,29 +59,27 @@ export default function Annual({ unit }) {
     canvas.addEventListener("touchend", end);
   }, []);
 
-  function clearSignature() {
+  const clearSignature = () => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
+  };
 
-  function signatureIsEmpty() {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-    return !data.some((px) => px !== 0);
-  }
+  const signatureIsEmpty = () => {
+    const data = canvasRef.current
+      .getContext("2d")
+      .getImageData(0, 0, canvasRef.current.width, canvasRef.current.height)
+      .data;
+    return !data.some((p) => p !== 0);
+  };
 
-  /* ------------------------------
-     GEOLOCATION + W3W
-  ------------------------------ */
+  // GEO + WHAT3WORDS
   useEffect(() => {
     if (!navigator.geolocation) return;
 
     navigator.geolocation.getCurrentPosition(async (pos) => {
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
-
       let w3w = "";
       let town = "";
 
@@ -120,17 +99,15 @@ export default function Annual({ unit }) {
           osmJson.address?.village ||
           osmJson.address?.city ||
           "";
-      } catch (err) {
-        console.log("Location lookup failed", err);
+      } catch (e) {
+        console.log("Location lookup failed", e);
       }
 
       setGeo({ lat, lng, w3w, town });
     });
   }, []);
 
-  /* ------------------------------
-     CHECKLIST QUESTIONS
-  ------------------------------ */
+  // Questions
   const questions = [
     "Question one",
     "Question two",
@@ -150,56 +127,50 @@ export default function Annual({ unit }) {
     "Question sixteen",
   ];
 
-  /* ------------------------------
-     SUBMIT HANDLER
-  ------------------------------ */
+  // SUBMIT
   async function handleSubmit(e) {
     e.preventDefault();
     setSubmitting(true);
     setErrorMsg("");
 
     if (signatureIsEmpty()) {
-      setSubmitting(false);
       setErrorMsg("Signature is required.");
+      setSubmitting(false);
       return;
     }
 
     const form = e.target;
     const data = new FormData(form);
 
-    // Signature PNG
-    const canvas = canvasRef.current;
-
-    canvas.toBlob((blob) => {
+    // append signature
+    canvasRef.current.toBlob(async (blob) => {
       data.append("signature", blob, "signature.png");
 
-      // GEO metadata
       data.append("location_lat", geo.lat);
       data.append("location_lng", geo.lng);
       data.append("location_town", geo.town);
       data.append("location_what3words", geo.w3w);
 
-      fetch("/api/submit-maintenance", {
-        method: "POST",
-        body: data
-      })
-        .then(async (r) => {
-          const json = await r.json();
-          if (!json.success) throw new Error(json.error);
-
-          router.push(`/swift/${unit.public_token}/annual-complete`);
-        })
-        .catch((err) => {
-          console.log(err);
-          setErrorMsg("Something went wrong submitting the form.");
-          setSubmitting(false);
+      try {
+        const result = await fetch("/api/submit-maintenance", {
+          method: "POST",
+          body: data,
         });
+
+        const json = await result.json();
+
+        if (!json.success) throw new Error(json.error);
+
+        router.push(`/swift/${unit.public_token}/annual-complete`);
+      } catch (err) {
+        console.error(err);
+        setErrorMsg("Something went wrong submitting the form.");
+      }
+
+      setSubmitting(false);
     });
   }
 
-  /* ------------------------------
-     UI RENDER
-  ------------------------------ */
   return (
     <div className="swift-checklist-container">
       <div className="checklist-logo">
@@ -215,27 +186,19 @@ export default function Annual({ unit }) {
 
       <div className="checklist-form-card">
         <form onSubmit={handleSubmit}>
-          {/* BASIC DETAILS */}
           <label className="checklist-label">Maintenance company</label>
           <select name="maintained_by" required className="checklist-input">
             <option value="">Select...</option>
-            <option value="Company A">Company A</option>
-            <option value="Company B">Company B</option>
-            <option value="Company C">Company C</option>
+            <option value="Company Four">Company Four</option>
+            <option value="Zelim">Zelim</option>
           </select>
 
           <label className="checklist-label">Engineer name</label>
           <input className="checklist-input" name="engineer_name" required />
 
           <label className="checklist-label">Date of maintenance</label>
-          <input
-            className="checklist-input"
-            type="date"
-            name="date_of_maintenance"
-            required
-          />
+          <input className="checklist-input" type="date" name="date_of_maintenance" required />
 
-          {/* CHECKLIST QUESTIONS */}
           {questions.map((q, i) => (
             <div key={i}>
               <label className="checklist-label">{q}</label>
@@ -243,53 +206,38 @@ export default function Annual({ unit }) {
                 name={`q${i + 1}`}
                 className="checklist-textarea"
                 rows={2}
-                required
                 onInput={autoGrow}
-              ></textarea>
+              />
             </div>
           ))}
 
           <label className="checklist-label">Additional comments</label>
           <textarea
             name="comments"
-            rows={2}
             className="checklist-textarea"
+            rows={2}
             onInput={autoGrow}
-          ></textarea>
-
-          {/* PHOTOS */}
-          <label className="checklist-label">Upload photos</label>
-          <input
-            type="file"
-            name="photos"
-            accept="image/*"
-            multiple
-            className="checklist-input"
           />
 
-          {/* SIGNATURE */}
+          <label className="checklist-label">Upload photos</label>
+          <input type="file" name="photos" accept="image/*" multiple />
+
           <label className="checklist-label">Signature</label>
           <canvas
             ref={canvasRef}
             width={350}
             height={150}
             className="checklist-signature"
-          ></canvas>
+          />
 
-          <button
-            type="button"
-            onClick={clearSignature}
-            className="checklist-clear-btn"
-          >
+          <button type="button" onClick={clearSignature} className="checklist-clear-btn">
             Clear signature
           </button>
 
-          {/* HIDDEN FIELDS */}
           <input type="hidden" name="unit_record_id" value={unit.record_id} />
           <input type="hidden" name="maintenance_type" value="Annual" />
 
-          {/* SUBMIT */}
-          <button className="checklist-submit" disabled={submitting}>
+          <button disabled={submitting} className="checklist-submit">
             {submitting ? "Submitting..." : "Submit"}
           </button>
         </form>
@@ -298,11 +246,9 @@ export default function Annual({ unit }) {
   );
 }
 
-/* ------------------------------
-   SSR: LOAD UNIT DATA
------------------------------- */
+// SSR — Load unit details
 export async function getServerSideProps({ params }) {
-  const token = params.id; // ✅ CORRECT — dynamic folder is [id]
+  const token = params.publicToken;
 
   const res = await fetch(
     `${process.env.AIRTABLE_API_URL}/swift_units?filterByFormula={public_token}='${token}'`,
@@ -322,11 +268,11 @@ export async function getServerSideProps({ params }) {
   return {
     props: {
       unit: {
-        serial_number: record.fields.serial_number || "",
-        model: record.fields.model || "",
+        serial_number: record.fields.serial_number,
+        model: record.fields.model,
         record_id: record.id,
-        public_token: record.fields.public_token
-      }
-    }
+        public_token: record.fields.public_token,
+      },
+    },
   };
 }

@@ -1,131 +1,164 @@
+// pages/api/submit-maintenance.js
+
 import formidable from "formidable";
 import fs from "fs";
-import path from "path";
+import fetch from "node-fetch";
 
 export const config = {
   api: {
-    bodyParser: false, // ❗ Required for file uploads
+    bodyParser: false,
   },
 };
 
-// Helper: Convert file to base64 buffer for Airtable attachments
-async function fileToAirtableAttachment(file) {
-  const data = await fs.promises.readFile(file.filepath);
-  const base64 = data.toString("base64");
+// Upload file buffer to Airtable's attachment API
+async function uploadToAirtableAttachment(buffer, filename) {
+  const uploadReq = await fetch("https://api.airtable.com/v0/attachments", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      file: buffer.toString("base64"),
+      filename,
+    }),
+  });
+
+  const json = await uploadReq.json();
+  if (!json?.id) throw new Error("Attachment upload failed");
 
   return {
-    url: `data:${file.mimetype};base64,${base64}`,
-    filename: file.originalFilename || "upload",
+    url: json.url,
+    filename,
   };
 }
 
+// Parse multipart form (photos, signature, fields)
+function parseForm(req) {
+  return new Promise((resolve, reject) => {
+    const form = formidable({ multiples: true, keepExtensions: true });
+
+    form.parse(req, (err, fields, files) => {
+      if (err) reject(err);
+      else resolve({ fields, files });
+    });
+  });
+}
+
 export default async function handler(req, res) {
-  if (req.method !== "POST")
+  if (req.method !== "POST") {
     return res.status(405).json({ success: false, error: "Method not allowed" });
+  }
 
   try {
-    // 1. Parse multipart form (text fields + signature + photos)
-    const form = formidable({ multiples: true });
-
-    const { fields, files } = await new Promise((resolve, reject) => {
-      form.parse(req, (err, flds, fls) => {
-        if (err) reject(err);
-        resolve({ fields: flds, files: fls });
-      });
-    });
+    const { fields, files } = await parseForm(req);
 
     const {
-      unit_record_id,
-      maintenance_type,
       maintained_by,
       engineer_name,
       date_of_maintenance,
-      comments,
+      unit_record_id,
+      maintenance_type,
       location_lat,
       location_lng,
       location_town,
       location_what3words,
-      ...checklist
     } = fields;
 
-    // 2. Prepare attachments
-    let signatureAttachment = null;
-    let photoAttachments = [];
+    // Build checklist JSON
+    const checklist_json = JSON.stringify({
+      q1: fields.q1 || "",
+      q2: fields.q2 || "",
+      q3: fields.q3 || "",
+      q4: fields.q4 || "",
+      q5: fields.q5 || "",
+      q6: fields.q6 || "",
+      q7: fields.q7 || "",
+      q8: fields.q8 || "",
+      q9: fields.q9 || "",
+      q10: fields.q10 || "",
+      q11: fields.q11 || "",
+      q12: fields.q12 || "",
+      q13: fields.q13 || "",
+      q14: fields.q14 || "",
+      q15: fields.q15 || "",
+      q16: fields.q16 || "",
+      comments: fields.comments || "",
+    });
 
+    // Upload signature
+    let signatureAttachment = [];
     if (files.signature) {
-      signatureAttachment = await fileToAirtableAttachment(files.signature);
+      const buffer = fs.readFileSync(files.signature.filepath);
+      signatureAttachment.push(
+        await uploadToAirtableAttachment(buffer, "signature.png")
+      );
     }
 
+    // Upload photos
+    let photoAttachments = [];
     if (files.photos) {
-      const array = Array.isArray(files.photos)
-        ? files.photos
-        : [files.photos];
+      const photos = Array.isArray(files.photos) ? files.photos : [files.photos];
 
-      for (const photo of array) {
-        const att = await fileToAirtableAttachment(photo);
-        photoAttachments.push(att);
+      for (let file of photos) {
+        const buffer = fs.readFileSync(file.filepath);
+        photoAttachments.push(
+          await uploadToAirtableAttachment(
+            buffer,
+            file.originalFilename || "photo.jpg"
+          )
+        );
       }
     }
 
-    // 3. Create Airtable submission record
-    const payload = {
-      fields: {
-        unit_record_id,
-        maintenance_type,
-        maintained_by,
-        engineer_name,
-        date_of_maintenance,
-        comments,
-        location_lat,
-        location_lng,
-        location_town,
-        location_what3words,
+    // CREATE RECORD IN maintenance_checks
+    const createReq = await fetch(
+      `${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_MAINTENANCE_TABLE}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          records: [
+            {
+              fields: {
+                unit: [unit_record_id],
+                maintenance_type,
+                date_of_maintenance,
+                maintained_by,
+                engineer_name,
+                location_lat,
+                location_lng,
+                location_town,
+                location_what3words,
+                checklist_json,
+                photos: photoAttachments,
+                signature: signatureAttachment,
+              },
+            },
+          ],
+        }),
+      }
+    );
 
-        // Geo debug helper
-        location_combined: `Lat: ${location_lat}, Lng: ${location_lng}, Town: ${location_town}, W3W: ${location_what3words}`,
+    const json = await createReq.json();
 
-        // Checklist questions
-        ...Object.fromEntries(
-          Object.entries(checklist).map(([key, val]) => [
-            key,
-            Array.isArray(val) ? val[0] : val,
-          ])
-        ),
-
-        // Attachments
-        signature: signatureAttachment ? [signatureAttachment] : undefined,
-        photos: photoAttachments.length ? photoAttachments : undefined,
-      },
-    };
-
-    const AIRTABLE_URL = `${process.env.AIRTABLE_API_URL}/swift_maintenance_logs`;
-
-    const airtableRes = await fetch(AIRTABLE_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const airtableJson = await airtableRes.json();
-
-    if (!airtableRes.ok) {
-      console.error("Airtable error:", airtableJson);
-      return res.status(400).json({
+    if (!json?.records) {
+      return res.status(500).json({
         success: false,
-        error: airtableJson.error?.message || "Airtable submission failed",
+        error: "Airtable failed to create record",
+        airtable: json,
       });
     }
 
-    // 4. Success 🎉
-    return res.status(200).json({
-      success: true,
-      id: airtableJson.id,
-    });
+    return res.status(200).json({ success: true });
   } catch (err) {
     console.error("Submit error:", err);
-    return res.status(500).json({ success: false, error: "Server error" });
+    return res.status(500).json({
+      success: false,
+      error: "Server error submitting maintenance",
+    });
   }
 }
