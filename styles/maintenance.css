@@ -113,13 +113,17 @@ body {
     margin: 0; 
 }
 
-
 .portal-title {
     color: #FFF;
     font-size: 30px;
     font-weight: 600;
     line-height: 38px;
     margin: 0 0 34px; 
+}
+
+.portal-title .break-point {
+    display: block !important;
+    width: 100%;
 }
 
 .maintenance-details {
