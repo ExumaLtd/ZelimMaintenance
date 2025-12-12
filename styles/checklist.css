@@ -1,22 +1,20 @@
 /* =========================================================================
    CHECKLIST PAGE STYLES (Annual + Depth)
-   Dark Theme – FULL + FIXED VERSION
+   Dark Theme – Matches Maintenance Portal Styling
 ========================================================================= */
 
 /* --- 1. BASE LAYOUT WRAPPER --- */
-
 .swift-checklist-container {
     width: 100%;
     max-width: 900px;
-    margin: 60px auto 100px;
+    margin: 60px auto 100px auto;
     text-align: center;
     padding: 0 20px;
     font-family: "Montserrat", sans-serif;
     color: #FFFFFF;
 }
 
-/* --- 2. LOGO (Matches Maintenance Page Exactly) --- */
-
+/* --- 2. LOGO --- */
 .checklist-logo {
     position: relative;
     max-width: 250px;
@@ -28,15 +26,19 @@
 
 .checklist-logo img {
     position: absolute !important;
-    inset: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
     margin: auto !important;
+
     width: 100% !important;
     height: 100% !important;
     object-fit: contain !important;
+    display: block;
 }
 
 /* --- 3. HERO TITLE --- */
-
 .checklist-hero-title {
     color: #FFFFFF;
     font-size: 30px;
@@ -47,12 +49,12 @@
 
 .checklist-hero-title .break-point {
     display: block;
+    text-transform: lowercase;
 }
 
 /* =========================================================================
-   4. DARK FORM CARD
+   4. FORM CARD
 ========================================================================= */
-
 .checklist-form-card {
     background: #172F36;
     padding: 28px;
@@ -63,54 +65,53 @@
 }
 
 /* =========================================================================
-   5. LABELS & INPUT FIELDS (MATCH MAINTENANCE PORTAL)
+   5. FORM LABELS + INPUT FIELDS
 ========================================================================= */
-
 .checklist-label {
     display: block;
     color: #A0ACAF;
     font-size: 14px;
     font-weight: 500;
-    margin-top: 24px;   /* Default spacing */
+    margin-top: 24px;
     margin-bottom: 6px;
 }
 
-/* Remove spacing ONLY for the very first label */
-.checklist-form-card .checklist-label:first-of-type {
-    margin-top: 0 !important;
+/* First label (Maintenance company) should NOT have top margin */
+.checklist-label:first-of-type {
+    margin-top: 0;
 }
 
-/* INPUTS & TEXTAREAS — TRUE PORTAL STYLE */
+/* FIX: Apply spacing to all generated question blocks */
+.checklist-form-card > div {
+    margin-top: 24px;
+}
+
 .checklist-input,
 .checklist-textarea {
     width: 100%;
-    padding: 12px 20px;
-    border-radius: 8px;
-    border: 1px solid #394d54;
     background: #4f6167;
-    font-family: Montserrat, sans-serif;
-    font-size: 16px;
-    line-height: 24px;
-    font-weight: 400;
+    border: 1px solid #394d54;
+    border-radius: 8px;
+    padding: 12px 20px;
     color: #e9ebec;
+    font-size: 16px;
+    font-family: "Montserrat", sans-serif;
     text-align: left;
-    transition: border-color .15s ease, background-color .15s ease, color .15s ease, box-shadow .15s ease;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
-.checklist-input::placeholder,
-.checklist-textarea::placeholder {
+.checklist-input::placeholder {
     color: #bdc4c6;
 }
 
-/* Focus */
 .checklist-input:focus,
 .checklist-textarea:focus {
     outline: none;
-    border-color: #394d54;
+    border-color: #01FFF6;
     box-shadow: none;
 }
 
-/* Auto-expanding textarea */
+/* Auto-expanding textareas */
 .checklist-textarea {
     resize: none;
     overflow: hidden;
@@ -118,9 +119,8 @@
 }
 
 /* =========================================================================
-   6. SIGNATURE PAD AREA
+   6. SIGNATURE PAD
 ========================================================================= */
-
 .checklist-signature {
     width: 100%;
     background: #0B1E22;
@@ -129,55 +129,47 @@
     margin-top: 10px;
 }
 
-/* Signature actions wrapper (Clear + Submit) */
-
-.signature-actions {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 14px;
-    margin-top: 20px;
-}
-
-/* Clear signature link */
+/* =========================================================================
+   7. CLEAR SIGNATURE + SUBMIT BUTTON
+========================================================================= */
 .checklist-clear-btn {
     background: none;
     border: none;
-    padding: 0;
-    font-size: 14px;
-    font-family: Montserrat, sans-serif;
     color: #A0ACAF;
-    cursor: pointer;
-    text-decoration: none !important;
-}
-
-/* =========================================================================
-   7. SUBMIT BUTTON (Portal Style, Left-Aligned, Small)
-========================================================================= */
-
-.checklist-submit {
-    padding: 10px 18px;
-    border-radius: 8px;
-    background-color: #01FFF6;
-    border: 2px solid rgba(255,255,255,0.12);
+    text-decoration: none;
     font-size: 14px;
-    font-weight: 600;
-    font-family: Montserrat, sans-serif;
-    color: #0D3037;
+    margin-top: 10px;
     cursor: pointer;
-    width: auto; /* stops full-width behaviour */
-    text-transform: none !important;
-    transition: background-color .2s ease, border-color .2s ease;
+    font-family: Montserrat;
 }
 
-.checklist-submit:hover {
-    background-color: #01e6dd;
+/* Submit button styled like maintenance portal */
+.checklist-submit {
+    display: inline-block;
+    width: auto;
+    padding: 12px 24px;
+    margin-top: 20px;
+    border-radius: 8px;
+    background: #01FFF6;
+    color: #0D3037;
+    border: 2px solid rgba(255,255,255,0.12);
+
+    font-family: Montserrat !important;
+    font-size: 16px;
+    font-weight: 600;
+
+    cursor: pointer;
+    text-transform: none !important;
+}
+
+.checklist-submit:disabled {
+    opacity: 0.6;
+    cursor: default;
 }
 
 /* =========================================================================
    8. ERROR BOX
 ========================================================================= */
-
 .checklist-error {
     background: rgba(255,0,0,0.25);
     color: #FFB3B3;
@@ -189,54 +181,15 @@
 }
 
 /* =========================================================================
-   9. FOOTER LINK
+   MOBILE BREAKPOINTS
 ========================================================================= */
-
-.checklist-footer {
-    margin-top: 30px;
-    text-align: center;
-}
-
-.back-link {
-    color: #A0ACAF;
-    text-decoration: none;
-    font-size: 14px;
-}
-
-.back-link:hover {
-    text-decoration: underline;
-}
-
-/* =========================================================================
-   RESPONSIVE
-========================================================================= */
-
-@media (max-width: 900px) {
-    .swift-checklist-container {
-        margin-top: 40px;
-        margin-bottom: 80px;
-    }
-}
-
 @media (max-width: 600px) {
-
-    .swift-checklist-container {
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-    }
-
     .checklist-logo {
         max-width: 225px;
         max-height: 36px;
         width: 225px;
         height: 36px;
         margin-bottom: 24px;
-    }
-
-    .checklist-hero-title {
-        font-size: 26px;
-        line-height: 32px;
-        margin-bottom: 28px;
     }
 
     .checklist-form-card {
