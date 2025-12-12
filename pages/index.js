@@ -63,7 +63,7 @@ export default function Home() {
         <div className="landing-hero">
           <div className="landing-hero-inner" style={{ position: "relative" }}>
             <Image
-              src="/images/swiftmaintenanceportal-hero(3).png"
+              src="/images/swiftmaintenanceportal-hero.png"
               alt="SWIFT maintenance portal hero image"
               fill
               priority
