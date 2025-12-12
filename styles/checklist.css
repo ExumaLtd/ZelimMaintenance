@@ -1,6 +1,6 @@
 /* =========================================================================
    CHECKLIST PAGE STYLES (Annual + Depth)
-   Fully aligned with maintenance portal styling
+   Matches maintenance.css styling exactly
 ========================================================================= */
 
 /* --- 1. BASE LAYOUT WRAPPER --- */
@@ -28,12 +28,16 @@
 
 .checklist-logo img {
     position: absolute !important;
-    inset: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
     margin: auto !important;
 
     width: 100% !important;
     height: 100% !important;
     object-fit: contain !important;
+
     display: block;
 }
 
@@ -62,63 +66,62 @@
     width: 100%;
     text-align: left;
     margin: 0 auto 60px;
-    /* Removed shadow */
-    box-shadow: none !important;
+    box-shadow: none !important; /* REMOVE SHADOW */
 }
 
 /* =========================================================================
-   5. FORM LABELS & FIELD STYLING (Matches portal style)
+   5. FORM LABELS & FIELD STYLING
 ========================================================================= */
 
+/* Default label spacing */
 .checklist-label {
     display: block;
     color: #A0ACAF;
     font-size: 14px;
     font-weight: 500;
-
     margin-top: 24px;
     margin-bottom: 6px;
 }
 
-/* remove top margin for the FIRST label */
-.checklist-form-card .checklist-label:first-of-type {
+/* Remove margin from the VERY FIRST label only */
+.checklist-form-card form .checklist-label:first-of-type {
     margin-top: 0 !important;
 }
 
-/* MATCHES .input-field FROM PORTAL */
+/* Unified Maintenance Portal Input Style */
 .checklist-input,
-.checklist-textarea {
+.checklist-textarea,
+.checklist-form-card select {
     width: 100%;
     padding: 12px 20px;
     border-radius: 8px;
-    border: 1px solid #394d54;
-    background: #4f6167;
-
-    font-family: "Montserrat", sans-serif;
+    border: 1px solid #394D54;
+    background: #4F6167;
+    font-family: Montserrat, sans-serif;
     font-size: 16px;
     line-height: 24px;
     font-weight: 400;
-    color: #e9ebec;
-
-    transition:
-      border-color .15s ease,
-      background-color .15s ease,
-      color .15s ease,
-      box-shadow .15s ease;
+    color: #E9EBEC;
+    transition: border-color 150ms ease,
+                background-color 150ms ease,
+                color 150ms ease,
+                box-shadow 150ms ease;
 }
 
 .checklist-input::placeholder,
 .checklist-textarea::placeholder {
-    color: #bdc4c6;
+    color: #BDC4C6;
 }
 
 .checklist-input:focus,
-.checklist-textarea:focus {
+.checklist-textarea:focus,
+.checklist-form-card select:focus {
     outline: none;
-    border-color: #394d54;
+    border-color: #394D54;
     box-shadow: none;
 }
 
+/* Textarea behaviour */
 .checklist-textarea {
     resize: none;
     overflow: hidden;
@@ -137,44 +140,38 @@
     margin-top: 10px;
 }
 
+/* Clear signature link */
 .checklist-clear-btn {
     background: none;
     border: none;
-    color: #01FFF6;
-    text-decoration: underline;
-    margin-top: 6px;
+    color: #A0ACAF !important;
+    text-decoration: none !important;
+    margin-top: 10px;
     cursor: pointer;
+    font-size: 14px;
 }
 
 /* =========================================================================
-   7. SUBMIT BUTTON — MATCHES PORTAL
+   7. SUBMIT BUTTON (Matches maintenance portal)
 ========================================================================= */
 
 .checklist-submit {
-    display: inline-flex;              /* auto width */
-    padding: 12px 16px;
+    margin-top: 20px;
+    padding: 10px 18px;
     border-radius: 8px;
-
     border: 2px solid rgba(255,255,255,0.12);
-    background-color: #01FFF6;
+    background: #01FFF6;
     color: #0D3037;
-
-    font-family: "Montserrat", sans-serif !important;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
-    line-height: 24px;
-
+    font-family: Montserrat, sans-serif;
     cursor: pointer;
-    text-transform: none !important;
-    transition: background-color .2s ease, border-color .2s ease;
-
-    margin-top: 34px;
-    width: auto;                     /* not full width */
-    text-align: left;
+    width: auto;         /* ← Not full width */
+    display: inline-block;
 }
 
 .checklist-submit:hover:not(:disabled) {
-    background-color: #01E6DD !important;
+    background: #01E6DD;
 }
 
 .checklist-submit:disabled {
@@ -227,6 +224,7 @@
 }
 
 @media (max-width: 600px) {
+
     .swift-checklist-container {
         padding-left: 0 !important;
         padding-right: 0 !important;
