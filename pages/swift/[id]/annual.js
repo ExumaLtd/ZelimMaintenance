@@ -66,8 +66,12 @@ export default function Annual({ unit }) {
   const signatureIsEmpty = () => {
     const data = canvasRef.current
       .getContext("2d")
-      .getImageData(0, 0, canvasRef.current.width, canvasRef.current.height)
-      .data;
+      .getImageData(
+        0,
+        0,
+        canvasRef.current.width,
+        canvasRef.current.height
+      ).data;
     return !data.some((p) => p !== 0);
   };
 
@@ -147,11 +151,15 @@ export default function Annual({ unit }) {
 
   return (
     <div className="swift-checklist-container">
-      {/* LOGO FIX — SAME LOGO BEHAVIOUR AS MAINTENANCE PAGE */}
+      
+      {/* ✅ CORRECT CLIENT LOGO DISPLAY */}
       <div className="checklist-logo">
-        {unit.client_logo?.[0]?.url ? (
-          <img src={unit.client_logo[0].url} alt="Client Logo" />
-        ) : null}
+        {unit.client_logos?.[0]?.url && (
+          <img
+            src={unit.client_logos[0].url}
+            alt={unit.client_name || "Client Logo"}
+          />
+        )}
       </div>
 
       <h1 className="checklist-hero-title">
@@ -163,12 +171,12 @@ export default function Annual({ unit }) {
 
       <div className="checklist-form-card">
         <form onSubmit={handleSubmit}>
+
           <label className="checklist-label">Maintenance company</label>
           <select name="maintained_by" className="checklist-input" required>
             <option value="">Select...</option>
             <option value="Zelim">Zelim</option>
             <option value="Company Four">Company Four</option>
-            {/* You can dynamically auto-select client_name if you want */}
           </select>
 
           <label className="checklist-label">Engineer name</label>
@@ -233,7 +241,7 @@ export default function Annual({ unit }) {
   );
 }
 
-// === FIXED SSR: NOW RETURNS LOGO + CLIENT NAME ===
+// === FIXED SERVER-SIDE PROPS (Correct Airtable fields) ===
 export async function getServerSideProps({ params }) {
   const token = params.id;
 
@@ -259,8 +267,8 @@ export async function getServerSideProps({ params }) {
         record_id: rec.id,
         public_token: rec.fields.public_token,
 
-        // 🔥 REQUIRED FOR LOGO TO SHOW (MATCHES MAINTENANCE PAGE)
-        client_logo: rec.fields.client_logo || null,
+        // ✅ MATCHES MAINTENANCE PAGE
+        client_logos: rec.fields.client_logos || null,
         client_name: rec.fields.client_name || "",
       },
     },
