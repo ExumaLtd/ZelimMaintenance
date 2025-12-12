@@ -3,9 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 
-// -----------------------------
-// TEXTAREA AUTO-GROW
-// -----------------------------
+// Auto-expand textareas
 function autoGrow(e) {
   const el = e.target;
   el.style.height = "auto";
@@ -13,33 +11,33 @@ function autoGrow(e) {
 }
 
 // -----------------------------
-// CLIENT LOGO RESOLVER (same logic as maintenance page)
+// CLIENT LOGO RESOLVER (same as dashboard)
 // -----------------------------
 const getClientLogo = (companyName, serialNumber) => {
-  if (
-    ["SWI001", "SWI002"].includes(serialNumber) ||
-    companyName?.includes("Changi")
-  ) {
-    return "/client_logos/changi_airport/ChangiAirport_Logo(White).svg";
+  if (["SWI001", "SWI002"].includes(serialNumber) || companyName.includes("Changi")) {
+    return {
+      src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg",
+      alt: `${companyName} Logo`,
+    };
   }
 
-  if (serialNumber === "SWI003" || companyName?.includes("Milford Haven")) {
-    return "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg";
+  if (serialNumber === "SWI003" || companyName.includes("Milford Haven")) {
+    return {
+      src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg",
+      alt: `${companyName} Logo`,
+    };
   }
 
-  if (
-    ["SWI010", "SWI011"].includes(serialNumber) ||
-    companyName?.includes("Hatloy")
-  ) {
-    return "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg";
+  if (["SWI010", "SWI011"].includes(serialNumber) || companyName.includes("Hatloy")) {
+    return {
+      src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg",
+      alt: `${companyName} Logo`,
+    };
   }
 
   return null;
 };
 
-// -----------------------------
-// COMPONENT
-// -----------------------------
 export default function Annual({ unit }) {
   const router = useRouter();
   const canvasRef = useRef(null);
@@ -48,11 +46,8 @@ export default function Annual({ unit }) {
   const [errorMsg, setErrorMsg] = useState("");
   const [geo, setGeo] = useState({ lat: "", lng: "", town: "", w3w: "" });
 
-  // RESOLVE CLIENT LOGO
-  const clientLogo = getClientLogo(unit.company, unit.serial_number);
-
   // -----------------------------
-  // SIGNATURE PAD
+  // SIGNATURE PAD SETUP
   // -----------------------------
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -102,17 +97,14 @@ export default function Annual({ unit }) {
   const signatureIsEmpty = () => {
     const data = canvasRef.current
       .getContext("2d")
-      .getImageData(
-        0,
-        0,
-        canvasRef.current.width,
-        canvasRef.current.height
-      ).data;
-    return !data.some((p) => p !== 0);
+      .getImageData(0, 0, canvasRef.current.width, canvasRef.current.height)
+      .data;
+
+    return !data.some((pixel) => pixel !== 0);
   };
 
   // -----------------------------
-  // GEOLOCATION + WHAT3WORDS
+  // GEO + WHAT3WORDS
   // -----------------------------
   useEffect(() => {
     if (!navigator.geolocation) return;
@@ -149,7 +141,7 @@ export default function Annual({ unit }) {
   const questions = Array.from({ length: 16 }, (_, i) => `Question ${i + 1}`);
 
   // -----------------------------
-  // FORM SUBMISSION
+  // FORM SUBMIT HANDLER
   // -----------------------------
   async function handleSubmit(e) {
     e.preventDefault();
@@ -191,97 +183,111 @@ export default function Annual({ unit }) {
   }
 
   // -----------------------------
+  // RESOLVE CLIENT LOGO
+  // -----------------------------
+  const logo = getClientLogo(unit.company, unit.serial_number);
+
+  // -----------------------------
   // RENDER
   // -----------------------------
   return (
-    <div className="swift-checklist-container">
-      {/* CLIENT LOGO */}
-      {clientLogo && (
-        <div className="checklist-logo">
-          <img src={clientLogo} alt={`${unit.company} logo`} />
-        </div>
-      )}
+    <div className="swift-main-layout-wrapper">
+      <div className="page-wrapper">
+        <div className="swift-checklist-container">
 
-      <h1 className="checklist-hero-title">
-        {unit.model} {unit.serial_number}
-        <span className="break-point">Annual Maintenance</span>
-      </h1>
+          {/* CLIENT LOGO */}
+          {logo && (
+            <div className="checklist-logo">
+              <img src={logo.src} alt={logo.alt} />
+            </div>
+          )}
 
-      {errorMsg && <p className="checklist-error">{errorMsg}</p>}
+          {/* PAGE TITLE */}
+          <h1 className="checklist-hero-title">
+            {unit.model} {unit.serial_number}
+            <span className="break-point">Annual Maintenance</span>
+          </h1>
 
-      <div className="checklist-form-card">
-        <form onSubmit={handleSubmit}>
-          <label className="checklist-label">Maintenance company</label>
-          <select name="maintained_by" className="checklist-input" required>
-            <option value="">Select...</option>
-            <option value="Zelim">Zelim</option>
-            <option value="Company Four">Company Four</option>
-          </select>
+          {errorMsg && <p className="checklist-error">{errorMsg}</p>}
 
-          <label className="checklist-label">Engineer name</label>
-          <input className="checklist-input" name="engineer_name" required />
+          {/* FORM CARD */}
+          <div className="checklist-form-card">
+            <form onSubmit={handleSubmit}>
+              
+              <label className="checklist-label">Maintenance company</label>
+              <select name="maintained_by" className="checklist-input" required>
+                <option value="">Select...</option>
+                <option value="Zelim">Zelim</option>
+                <option value="Company Four">Company Four</option>
+              </select>
 
-          <label className="checklist-label">Date of maintenance</label>
-          <input
-            type="date"
-            className="checklist-input"
-            name="date_of_maintenance"
-            required
-          />
+              <label className="checklist-label">Engineer name</label>
+              <input className="checklist-input" name="engineer_name" required />
 
-          {questions.map((q, i) => (
-            <div key={i}>
-              <label className="checklist-label">{q}</label>
+              <label className="checklist-label">Date of maintenance</label>
+              <input
+                type="date"
+                className="checklist-input"
+                name="date_of_maintenance"
+                required
+              />
+
+              {questions.map((q, i) => (
+                <div key={i}>
+                  <label className="checklist-label">{q}</label>
+                  <textarea
+                    name={`q${i + 1}`}
+                    className="checklist-textarea"
+                    rows={2}
+                    onInput={autoGrow}
+                  />
+                </div>
+              ))}
+
+              <label className="checklist-label">Additional comments</label>
               <textarea
-                name={`q${i + 1}`}
+                name="comments"
                 className="checklist-textarea"
                 rows={2}
                 onInput={autoGrow}
               />
-            </div>
-          ))}
 
-          <label className="checklist-label">Additional comments</label>
-          <textarea
-            name="comments"
-            className="checklist-textarea"
-            rows={2}
-            onInput={autoGrow}
-          />
+              <label className="checklist-label">Upload photos</label>
+              <input type="file" name="photos" accept="image/*" multiple />
 
-          <label className="checklist-label">Upload photos</label>
-          <input type="file" name="photos" accept="image/*" multiple />
+              <label className="checklist-label">Signature</label>
+              <canvas
+                ref={canvasRef}
+                width={350}
+                height={150}
+                className="checklist-signature"
+              />
 
-          <label className="checklist-label">Signature</label>
-          <canvas
-            ref={canvasRef}
-            width={350}
-            height={150}
-            className="checklist-signature"
-          />
+              <button
+                type="button"
+                onClick={clearSignature}
+                className="checklist-clear-btn"
+              >
+                Clear signature
+              </button>
 
-          <button
-            type="button"
-            onClick={clearSignature}
-            className="checklist-clear-btn"
-          >
-            Clear signature
-          </button>
+              <input type="hidden" name="unit_record_id" value={unit.record_id} />
+              <input type="hidden" name="maintenance_type" value="Annual" />
 
-          <input type="hidden" name="unit_record_id" value={unit.record_id} />
-          <input type="hidden" name="maintenance_type" value="Annual" />
+              <button className="checklist-submit" disabled={submitting}>
+                {submitting ? "Submitting..." : "Submit"}
+              </button>
+            </form>
+          </div>
 
-          <button className="checklist-submit" disabled={submitting}>
-            {submitting ? "Submitting..." : "Submit"}
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );
 }
 
 // -----------------------------
-// SERVER SIDE PROPS
+// SERVER-SIDE PROPS
 // -----------------------------
 export async function getServerSideProps({ params }) {
   const token = params.id;
@@ -303,9 +309,9 @@ export async function getServerSideProps({ params }) {
   return {
     props: {
       unit: {
-        serial_number: rec.fields.serial_number,
         model: rec.fields.model,
-        company: rec.fields.company || "",
+        serial_number: rec.fields.serial_number,
+        company: rec.fields.company,
         record_id: rec.id,
         public_token: rec.fields.public_token,
       },
