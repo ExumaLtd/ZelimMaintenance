@@ -4,7 +4,7 @@
 
 .landing-root {
   display: flex;
-  min-height: 100vh;
+  min-height: 100vh !important; /* FIX: ensures hero gets full height */
   height: 100%;
 }
 
@@ -19,7 +19,7 @@
   justify-content: center;
   padding: 24px;
 
-  /* REQUIRED to prevent collapsing (fixes the missing image) */
+  /* Prevent collapsing */
   height: 100%;
   min-height: 100%;
 }
@@ -29,6 +29,8 @@
   height: 100%;          /* REQUIRED for Next.js image */
   border-radius: 20px;
   overflow: hidden;
+
+  position: relative;     /* ★ REQUIRED FOR <Image fill> */
 }
 
 .landing-hero-inner img {
@@ -137,7 +139,6 @@ h1.landing-title {
   color: #bdc4c6;
 }
 
-/* CLEAN FOCUS FIX */
 .input-field:focus {
   outline: none;
   border-color: #394d54;
