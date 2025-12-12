@@ -148,11 +148,14 @@ export default function Annual({ unit }) {
   return (
     <div className="swift-checklist-container">
 
-      {/* ✅ FIXED: DYNAMIC CLIENT LOGO (same as maintenance pages) */}
+      {/* ✅ Dynamic client logo fix */}
       <div className="checklist-logo">
-        {unit.client_logo ? (
-          <img src={unit.client_logo} alt={`${unit.client_name} logo`} />
-        ) : null}
+        {unit.client_logo?.[0]?.url && (
+          <img
+            src={unit.client_logo[0].url}
+            alt={`${unit.client_name} logo`}
+          />
+        )}
       </div>
 
       <h1 className="checklist-hero-title">
@@ -175,25 +178,49 @@ export default function Annual({ unit }) {
           <input className="checklist-input" name="engineer_name" required />
 
           <label className="checklist-label">Date of maintenance</label>
-          <input type="date" className="checklist-input" name="date_of_maintenance" required />
+          <input
+            type="date"
+            className="checklist-input"
+            name="date_of_maintenance"
+            required
+          />
 
           {questions.map((q, i) => (
             <div key={i}>
               <label className="checklist-label">{q}</label>
-              <textarea name={`q${i + 1}`} className="checklist-textarea" rows={2} onInput={autoGrow} />
+              <textarea
+                name={`q${i + 1}`}
+                className="checklist-textarea"
+                rows={2}
+                onInput={autoGrow}
+              />
             </div>
           ))}
 
           <label className="checklist-label">Additional comments</label>
-          <textarea name="comments" className="checklist-textarea" rows={2} onInput={autoGrow} />
+          <textarea
+            name="comments"
+            className="checklist-textarea"
+            rows={2}
+            onInput={autoGrow}
+          />
 
           <label className="checklist-label">Upload photos</label>
           <input type="file" name="photos" accept="image/*" multiple />
 
           <label className="checklist-label">Signature</label>
-          <canvas ref={canvasRef} width={350} height={150} className="checklist-signature" />
+          <canvas
+            ref={canvasRef}
+            width={350}
+            height={150}
+            className="checklist-signature"
+          />
 
-          <button type="button" onClick={clearSignature} className="checklist-clear-btn">
+          <button
+            type="button"
+            onClick={clearSignature}
+            className="checklist-clear-btn"
+          >
             Clear signature
           </button>
 
@@ -209,7 +236,7 @@ export default function Annual({ unit }) {
   );
 }
 
-// === FIXED SERVER-SIDE PROPS (INCLUDES LOGO + CLIENT NAME) ===
+// === SERVER-SIDE PROPS ===
 export async function getServerSideProps({ params }) {
   const token = params.id;
 
@@ -234,8 +261,6 @@ export async function getServerSideProps({ params }) {
         model: rec.fields.model,
         record_id: rec.id,
         public_token: rec.fields.public_token,
-
-        // ✅ NEW: BRING IN LOGO + CLIENT NAME
         client_logo: rec.fields.client_logo || null,
         client_name: rec.fields.client_name || "",
       },
