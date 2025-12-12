@@ -18,11 +18,15 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
+
+  /* REQUIRED to prevent collapsing (fixes the missing image) */
+  height: 100%;
+  min-height: 100%;
 }
 
 .landing-hero-inner {
   width: 100%;
-  height: 100%;
+  height: 100%;          /* REQUIRED for Next.js image */
   border-radius: 20px;
   overflow: hidden;
 }
@@ -71,7 +75,6 @@ h1.landing-title {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* gap: 4px; <--- REMOVED */
   color: #f7f7f7;
   font-family: Montserrat;
   font-size: 30px;
@@ -79,7 +82,6 @@ h1.landing-title {
   line-height: 38px;
 }
 
-/* UPDATED SUBTITLE STYLES */
 .landing-subtitle {
   margin: 16px 0 0;
   text-align: center;
@@ -100,7 +102,7 @@ h1.landing-title {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 16px; /* <--- UPDATED TO 16px */
+  gap: 16px;
 }
 
 .input-wrapper {
@@ -135,11 +137,11 @@ h1.landing-title {
   color: #bdc4c6;
 }
 
-/* CLEAN FIX FOR INPUT FOCUS */
+/* CLEAN FOCUS FIX */
 .input-field:focus {
   outline: none;
   border-color: #394d54;
-  box-shadow: none; 
+  box-shadow: none;
 }
 
 /* ERROR STATE */
@@ -157,35 +159,31 @@ h1.landing-title {
 }
 
 /* =========================================
-   PRIMARY BUTTON - FINAL STYLING
+   PRIMARY BUTTON
 ========================================= */
 
 .primary-btn {
   width: 100%;
   padding: 12px 16px;
   border-radius: 8px;
-  
-  /* STYLES COPIED FROM MAINTENANCE CARD */
+
   border: 2px solid hsla(0,0%,100%,.12);
   background-color: #01fff6;
   color: #0d3037;
-  /* FIX: Ensure Montserrat is applied */
+
   font-family: Montserrat !important; 
   font-size: 16px; 
   line-height: 24px; 
   font-weight: 600;
+
   cursor: pointer;
-  /* AGGRESSIVE FIX: Ensure text is NOT uppercase */
-  text-transform: none !important; 
-  transition: background-color .2s,border-color .2s;
+  text-transform: none !important;
+  transition: background-color .2s, border-color .2s;
 }
 
 .primary-btn:hover:not(:disabled) {
-  /* Ensure hover effect applies */
   background: #01e6dd !important;
 }
-
-/* DISABLED STATE: Removed entirely to ensure full color and cursor: pointer is maintained when disabled */
 
 /* =========================================
    FOOTER LOGO
@@ -196,7 +194,7 @@ h1.landing-title {
   display: flex;
   justify-content: center;
   margin-top: 32px;
-  opacity: 1; 
+  opacity: 1;
 }
 
 .logo-link {
@@ -205,11 +203,11 @@ h1.landing-title {
 
 .zelim-logo {
   width: 140px;
-  opacity: 1; 
+  opacity: 1;
 }
 
 .zelim-logo:hover {
-  opacity: 1; 
+  opacity: 1;
 }
 
 /* =========================================
@@ -222,7 +220,7 @@ h1.landing-title {
   }
 
   .landing-hero {
-    display: none;
+    display: none;  /* Matches previous build */
   }
 
   .landing-content {
