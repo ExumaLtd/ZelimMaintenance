@@ -147,15 +147,11 @@ export default function Annual({ unit }) {
 
   return (
     <div className="swift-checklist-container">
-
-      {/* ✅ Dynamic client logo fix */}
+      {/* LOGO FIX — SAME LOGO BEHAVIOUR AS MAINTENANCE PAGE */}
       <div className="checklist-logo">
-        {unit.client_logo?.[0]?.url && (
-          <img
-            src={unit.client_logo[0].url}
-            alt={`${unit.client_name} logo`}
-          />
-        )}
+        {unit.client_logo?.[0]?.url ? (
+          <img src={unit.client_logo[0].url} alt="Client Logo" />
+        ) : null}
       </div>
 
       <h1 className="checklist-hero-title">
@@ -172,6 +168,7 @@ export default function Annual({ unit }) {
             <option value="">Select...</option>
             <option value="Zelim">Zelim</option>
             <option value="Company Four">Company Four</option>
+            {/* You can dynamically auto-select client_name if you want */}
           </select>
 
           <label className="checklist-label">Engineer name</label>
@@ -236,7 +233,7 @@ export default function Annual({ unit }) {
   );
 }
 
-// === SERVER-SIDE PROPS ===
+// === FIXED SSR: NOW RETURNS LOGO + CLIENT NAME ===
 export async function getServerSideProps({ params }) {
   const token = params.id;
 
@@ -261,6 +258,8 @@ export async function getServerSideProps({ params }) {
         model: rec.fields.model,
         record_id: rec.id,
         public_token: rec.fields.public_token,
+
+        // 🔥 REQUIRED FOR LOGO TO SHOW (MATCHES MAINTENANCE PAGE)
         client_logo: rec.fields.client_logo || null,
         client_name: rec.fields.client_name || "",
       },
