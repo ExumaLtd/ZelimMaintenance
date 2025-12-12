@@ -10,9 +10,9 @@ function autoGrow(e) {
   el.style.height = el.scrollHeight + "px";
 }
 
-// -----------------------------
-// CLIENT LOGO RESOLVER (same as dashboard)
-// -----------------------------
+// -------------------------------------------------
+// CLIENT LOGO RESOLVER
+// -------------------------------------------------
 const getClientLogo = (companyName, serialNumber) => {
   if (["SWI001", "SWI002"].includes(serialNumber) || companyName.includes("Changi")) {
     return {
@@ -46,12 +46,19 @@ export default function Annual({ unit }) {
   const [errorMsg, setErrorMsg] = useState("");
   const [geo, setGeo] = useState({ lat: "", lng: "", town: "", w3w: "" });
 
-  // -----------------------------
-  // SIGNATURE PAD SETUP
-  // -----------------------------
+  // -------------------------------------------------
+  // SIGNATURE PAD
+  // -------------------------------------------------
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
+
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#01FFF6";
+
     let drawing = false;
 
     const getPos = (e) => {
@@ -61,7 +68,6 @@ export default function Annual({ unit }) {
     };
 
     const start = (e) => {
-      e.preventDefault();
       drawing = true;
       const { x, y } = getPos(e);
       ctx.beginPath();
@@ -70,11 +76,8 @@ export default function Annual({ unit }) {
 
     const move = (e) => {
       if (!drawing) return;
-      e.preventDefault();
       const { x, y } = getPos(e);
       ctx.lineTo(x, y);
-      ctx.strokeStyle = "#FFF";
-      ctx.lineWidth = 2;
       ctx.stroke();
     };
 
@@ -95,17 +98,14 @@ export default function Annual({ unit }) {
   };
 
   const signatureIsEmpty = () => {
-    const data = canvasRef.current
-      .getContext("2d")
-      .getImageData(0, 0, canvasRef.current.width, canvasRef.current.height)
-      .data;
-
+    const ctx = canvasRef.current.getContext("2d");
+    const data = ctx.getImageData(0, 0, canvasRef.current.width, canvasRef.current.height).data;
     return !data.some((pixel) => pixel !== 0);
   };
 
-  // -----------------------------
+  // -------------------------------------------------
   // GEO + WHAT3WORDS
-  // -----------------------------
+  // -------------------------------------------------
   useEffect(() => {
     if (!navigator.geolocation) return;
 
@@ -127,6 +127,7 @@ export default function Annual({ unit }) {
           `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
         );
         const osmJson = await osm.json();
+
         town =
           osmJson.address?.town ||
           osmJson.address?.village ||
@@ -138,11 +139,9 @@ export default function Annual({ unit }) {
     });
   }, []);
 
-  const questions = Array.from({ length: 16 }, (_, i) => `Question ${i + 1}`);
-
-  // -----------------------------
-  // FORM SUBMIT HANDLER
-  // -----------------------------
+  // -------------------------------------------------
+  // FORM SUBMISSION
+  // -------------------------------------------------
   async function handleSubmit(e) {
     e.preventDefault();
     setErrorMsg("");
@@ -154,20 +153,19 @@ export default function Annual({ unit }) {
 
     setSubmitting(true);
 
-    const form = e.target;
-    const data = new FormData(form);
+    const form = new FormData(e.target);
 
     canvasRef.current.toBlob(async (blob) => {
-      data.append("signature", blob, "signature.png");
-      data.append("location_lat", geo.lat);
-      data.append("location_lng", geo.lng);
-      data.append("location_town", geo.town);
-      data.append("location_what3words", geo.w3w);
+      form.append("signature", blob, "signature.png");
+      form.append("location_lat", geo.lat);
+      form.append("location_lng", geo.lng);
+      form.append("location_town", geo.town);
+      form.append("location_what3words", geo.w3w);
 
       try {
         const res = await fetch("/api/submit-maintenance", {
           method: "POST",
-          body: data,
+          body: form,
         });
 
         const json = await res.json();
@@ -182,27 +180,19 @@ export default function Annual({ unit }) {
     });
   }
 
-  // -----------------------------
-  // RESOLVE CLIENT LOGO
-  // -----------------------------
+  const questions = Array.from({ length: 16 }, (_, i) => `Question ${i + 1}`);
   const logo = getClientLogo(unit.company, unit.serial_number);
 
-  // -----------------------------
-  // RENDER
-  // -----------------------------
   return (
     <div className="swift-main-layout-wrapper">
       <div className="page-wrapper">
         <div className="swift-checklist-container">
-
-          {/* CLIENT LOGO */}
           {logo && (
             <div className="checklist-logo">
               <img src={logo.src} alt={logo.alt} />
             </div>
           )}
 
-          {/* PAGE TITLE */}
           <h1 className="checklist-hero-title">
             {unit.model} {unit.serial_number}
             <span className="break-point">Annual Maintenance</span>
@@ -210,34 +200,28 @@ export default function Annual({ unit }) {
 
           {errorMsg && <p className="checklist-error">{errorMsg}</p>}
 
-          {/* FORM CARD */}
           <div className="checklist-form-card">
             <form onSubmit={handleSubmit}>
-              
-              <label className="checklist-label">Maintenance company</label>
+              {/* First field gets top padding restored */}
+              <label className="checklist-label first-label">Maintenance company</label>
               <select name="maintained_by" className="checklist-input" required>
                 <option value="">Select...</option>
                 <option value="Zelim">Zelim</option>
-                <option value="Company Four">Company Four</option>
               </select>
 
               <label className="checklist-label">Engineer name</label>
-              <input className="checklist-input" name="engineer_name" required />
+              <input name="engineer_name" className="checklist-input" required />
 
               <label className="checklist-label">Date of maintenance</label>
-              <input
-                type="date"
-                className="checklist-input"
-                name="date_of_maintenance"
-                required
-              />
+              <input type="date" name="date_of_maintenance" className="checklist-input" required />
 
+              {/* QUESTIONS */}
               {questions.map((q, i) => (
                 <div key={i}>
                   <label className="checklist-label">{q}</label>
                   <textarea
-                    name={`q${i + 1}`}
                     className="checklist-textarea"
+                    name={`q${i + 1}`}
                     rows={2}
                     onInput={autoGrow}
                   />
@@ -245,59 +229,45 @@ export default function Annual({ unit }) {
               ))}
 
               <label className="checklist-label">Additional comments</label>
-              <textarea
-                name="comments"
-                className="checklist-textarea"
-                rows={2}
-                onInput={autoGrow}
-              />
+              <textarea className="checklist-textarea" name="comments" rows={2} onInput={autoGrow} />
 
               <label className="checklist-label">Upload photos</label>
-              <input type="file" name="photos" accept="image/*" multiple />
+              <input type="file" name="photos" multiple accept="image/*" />
 
               <label className="checklist-label">Signature</label>
-              <canvas
-                ref={canvasRef}
-                width={350}
-                height={150}
-                className="checklist-signature"
-              />
+              <canvas ref={canvasRef} className="checklist-signature" width={600} height={250} />
 
-              <button
-                type="button"
-                onClick={clearSignature}
-                className="checklist-clear-btn"
-              >
-                Clear signature
-              </button>
+              {/* BUTTONS WRAPPED CORRECTLY */}
+              <div className="signature-actions">
+                <button type="button" className="checklist-clear-btn" onClick={clearSignature}>
+                  Clear signature
+                </button>
+
+                <button className="checklist-submit" disabled={submitting}>
+                  {submitting ? "Submitting..." : "Submit"}
+                </button>
+              </div>
 
               <input type="hidden" name="unit_record_id" value={unit.record_id} />
               <input type="hidden" name="maintenance_type" value="Annual" />
-
-              <button className="checklist-submit" disabled={submitting}>
-                {submitting ? "Submitting..." : "Submit"}
-              </button>
             </form>
           </div>
-
         </div>
       </div>
     </div>
   );
 }
 
-// -----------------------------
-// SERVER-SIDE PROPS
-// -----------------------------
+// -------------------------------------------------
+// SERVER SIDE PROPS
+// -------------------------------------------------
 export async function getServerSideProps({ params }) {
   const token = params.id;
 
   const req = await fetch(
     `${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`,
     {
-      headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
-      },
+      headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
     }
   );
 
