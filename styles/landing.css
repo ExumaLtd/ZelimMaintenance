@@ -6,6 +6,7 @@
   display: flex;
   min-height: 100vh;
   height: 100%;
+  align-items: stretch !important; /* ❤️ FIX: ensures hero + content stretch full height */
 }
 
 /* =========================================
@@ -19,17 +20,17 @@
   justify-content: center;
   padding: 24px;
 
-  /* REQUIRED to prevent collapsing */
-  height: 100%;
-  min-height: 100%;
+  /* ❤️ FIX: force full vertical height */
+  min-height: 100vh !important;
+  height: auto !important;
 }
 
 .landing-hero-inner {
   width: 100%;
-  height: 100%;          /* REQUIRED for Next.js fill */
+  height: 100%;  /* REQUIRED for Next.js Image fill */
+  position: relative; /* REQUIRED for next/image fill */
   border-radius: 20px;
   overflow: hidden;
-  position: relative;     /* REQUIRED for next/image fill */
 }
 
 .landing-hero-inner img {
@@ -86,11 +87,11 @@ h1.landing-title {
 .landing-subtitle {
   margin: 16px 0 0;
   text-align: center;
-  color: #a0acaf; 
+  color: #a0acaf;
   font-family: Montserrat;
-  font-size: 14px; 
+  font-size: 14px;
   font-weight: 400;
-  line-height: 20px; 
+  line-height: 20px;
 }
 
 /* =========================================
@@ -112,8 +113,6 @@ h1.landing-title {
   gap: 8px;
 }
 
-/* INPUT FIELD */
-
 .input-field {
   width: 100%;
   padding: 12px 20px;
@@ -126,7 +125,6 @@ h1.landing-title {
   font-weight: 400;
   color: #e9ebec;
   text-align: center;
-
   transition:
     border-color 150ms ease,
     background-color 150ms ease,
@@ -143,8 +141,6 @@ h1.landing-title {
   border-color: #394d54;
   box-shadow: none;
 }
-
-/* ERROR STATE */
 
 .input-wrapper.has-error .input-field {
   border-color: #d92d20;
@@ -166,14 +162,13 @@ h1.landing-title {
   width: 100%;
   padding: 12px 16px;
   border-radius: 8px;
-
   border: 2px solid hsla(0,0%,100%,.12);
   background-color: #01fff6;
   color: #0d3037;
 
-  font-family: Montserrat !important; 
-  font-size: 16px; 
-  line-height: 24px; 
+  font-family: Montserrat !important;
+  font-size: 16px;
+  line-height: 24px;
   font-weight: 600;
 
   cursor: pointer;
@@ -220,7 +215,7 @@ h1.landing-title {
   }
 
   .landing-hero {
-    display: none;
+    display: none; /* Matches your original design */
   }
 
   .landing-content {
@@ -253,26 +248,4 @@ h1.landing-title {
     font-size: 26px;
     line-height: 32px;
   }
-}
-
-/* ==========================================================
-   FIX — override globals.css which breaks hero height
-   ========================================================== */
-
-html, body {
-  height: auto !important;
-  min-height: 100vh !important;
-}
-
-.landing-root {
-  min-height: 100vh !important;
-}
-
-.landing-hero {
-  min-height: 100% !important;
-}
-
-.landing-hero-inner {
-  position: relative !important;
-  height: 100% !important;
 }
