@@ -61,14 +61,15 @@ export default function Home() {
 
         {/* LEFT HERO */}
         <div className="landing-hero">
-          <div className="landing-hero-inner">
+          <div className="landing-hero-inner" style={{ position: "relative" }}>
             <Image
               src="/images/swiftmaintenanceportal-hero(3).png"
               alt="SWIFT maintenance portal hero image"
-              width={1000}
-              height={1000}
-              quality={100}
+              fill
               priority
+              quality={100}
+              sizes="50vw"
+              style={{ objectFit: "cover", objectPosition: "center" }}
             />
           </div>
         </div>
