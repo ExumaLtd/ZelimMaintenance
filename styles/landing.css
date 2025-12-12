@@ -4,7 +4,7 @@
 
 .landing-root {
   display: flex;
-  min-height: 100vh !important; /* FIX: ensures hero gets full height */
+  min-height: 100vh;
   height: 100%;
 }
 
@@ -19,18 +19,17 @@
   justify-content: center;
   padding: 24px;
 
-  /* Prevent collapsing */
+  /* REQUIRED to prevent collapsing */
   height: 100%;
   min-height: 100%;
 }
 
 .landing-hero-inner {
   width: 100%;
-  height: 100%;          /* REQUIRED for Next.js image */
+  height: 100%;          /* REQUIRED for Next.js fill */
   border-radius: 20px;
   overflow: hidden;
-
-  position: relative;     /* ★ REQUIRED FOR <Image fill> */
+  position: relative;     /* REQUIRED for next/image fill */
 }
 
 .landing-hero-inner img {
@@ -221,7 +220,7 @@ h1.landing-title {
   }
 
   .landing-hero {
-    display: none;  /* Matches previous build */
+    display: none;
   }
 
   .landing-content {
@@ -254,4 +253,26 @@ h1.landing-title {
     font-size: 26px;
     line-height: 32px;
   }
+}
+
+/* ==========================================================
+   FIX — override globals.css which breaks hero height
+   ========================================================== */
+
+html, body {
+  height: auto !important;
+  min-height: 100vh !important;
+}
+
+.landing-root {
+  min-height: 100vh !important;
+}
+
+.landing-hero {
+  min-height: 100% !important;
+}
+
+.landing-hero-inner {
+  position: relative !important;
+  height: 100% !important;
 }
