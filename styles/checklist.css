@@ -1,7 +1,6 @@
 /* =========================================================================
    CHECKLIST PAGE STYLES (Annual + Depth)
-   Dark Theme – Full Form Implementation
-   Matches maintenance.css portal styling
+   Fully aligned with maintenance portal styling
 ========================================================================= */
 
 /* --- 1. BASE LAYOUT WRAPPER --- */
@@ -24,27 +23,21 @@
     max-height: 40px;
     width: 250px;
     height: 40px;
-    margin: 0 auto 30px auto;
+    margin: 0 auto 30px;
 }
 
 .checklist-logo img {
     position: absolute !important;
-    top: 0 !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
+    inset: 0 !important;
     margin: auto !important;
 
     width: 100% !important;
     height: 100% !important;
     object-fit: contain !important;
-
-    max-width: 100%;
-    max-height: 100%;
     display: block;
 }
 
-/* --- 3. HERO TITLE (Matches Maintenance Page Rules) --- */
+/* --- 3. HERO TITLE --- */
 
 .checklist-hero-title {
     color: #FFFFFF;
@@ -59,7 +52,7 @@
 }
 
 /* =========================================================================
-   4. DARK FORM CARD (NEW)
+   4. DARK FORM CARD
 ========================================================================= */
 
 .checklist-form-card {
@@ -68,12 +61,13 @@
     border-radius: 20px;
     width: 100%;
     text-align: left;
-    margin: 0 auto 60px auto;
-    box-shadow: none;
+    margin: 0 auto 60px;
+    /* Removed shadow */
+    box-shadow: none !important;
 }
 
 /* =========================================================================
-   5. FORM LABELS & FIELD STYLING (Dark Mode)
+   5. FORM LABELS & FIELD STYLING (Matches portal style)
 ========================================================================= */
 
 .checklist-label {
@@ -81,31 +75,50 @@
     color: #A0ACAF;
     font-size: 14px;
     font-weight: 500;
+
     margin-top: 24px;
     margin-bottom: 6px;
 }
 
+/* remove top margin for the FIRST label */
+.checklist-form-card .checklist-label:first-of-type {
+    margin-top: 0 !important;
+}
+
+/* MATCHES .input-field FROM PORTAL */
 .checklist-input,
 .checklist-textarea {
     width: 100%;
-    background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 10px;
-    padding: 14px;
-    color: #FFFFFF;
-    font-size: 15px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 1px solid #394d54;
+    background: #4f6167;
+
     font-family: "Montserrat", sans-serif;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+    color: #e9ebec;
+
+    transition:
+      border-color .15s ease,
+      background-color .15s ease,
+      color .15s ease,
+      box-shadow .15s ease;
+}
+
+.checklist-input::placeholder,
+.checklist-textarea::placeholder {
+    color: #bdc4c6;
 }
 
 .checklist-input:focus,
 .checklist-textarea:focus {
     outline: none;
-    border-color: #01FFF6;
-    box-shadow: 0 0 0 1px #01FFF6;
+    border-color: #394d54;
+    box-shadow: none;
 }
 
-/* Auto-expanding textareas */
 .checklist-textarea {
     resize: none;
     overflow: hidden;
@@ -113,7 +126,7 @@
 }
 
 /* =========================================================================
-   6. SIGNATURE PAD (Dark Mode)
+   6. SIGNATURE PAD
 ========================================================================= */
 
 .checklist-signature {
@@ -134,20 +147,34 @@
 }
 
 /* =========================================================================
-   7. SUBMIT BUTTON
+   7. SUBMIT BUTTON — MATCHES PORTAL
 ========================================================================= */
 
 .checklist-submit {
-    width: 100%;
-    margin-top: 34px;
-    padding: 16px;
-    background: #01FFF6;
+    display: inline-flex;              /* auto width */
+    padding: 12px 16px;
+    border-radius: 8px;
+
+    border: 2px solid rgba(255,255,255,0.12);
+    background-color: #01FFF6;
     color: #0D3037;
-    border-radius: 10px;
+
+    font-family: "Montserrat", sans-serif !important;
     font-size: 16px;
     font-weight: 600;
-    border: none;
+    line-height: 24px;
+
     cursor: pointer;
+    text-transform: none !important;
+    transition: background-color .2s ease, border-color .2s ease;
+
+    margin-top: 34px;
+    width: auto;                     /* not full width */
+    text-align: left;
+}
+
+.checklist-submit:hover:not(:disabled) {
+    background-color: #01E6DD !important;
 }
 
 .checklist-submit:disabled {
@@ -192,7 +219,6 @@
    MOBILE BREAKPOINTS
 ========================================================================= */
 
-/* Tablet */
 @media (max-width: 900px) {
     .swift-checklist-container {
         margin-top: 40px;
@@ -200,9 +226,7 @@
     }
 }
 
-/* Mobile */
 @media (max-width: 600px) {
-
     .swift-checklist-container {
         padding-left: 0 !important;
         padding-right: 0 !important;
