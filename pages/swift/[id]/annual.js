@@ -3,12 +3,43 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 
+// -----------------------------
+// TEXTAREA AUTO-GROW
+// -----------------------------
 function autoGrow(e) {
   const el = e.target;
   el.style.height = "auto";
   el.style.height = el.scrollHeight + "px";
 }
 
+// -----------------------------
+// CLIENT LOGO RESOLVER (same logic as maintenance page)
+// -----------------------------
+const getClientLogo = (companyName, serialNumber) => {
+  if (
+    ["SWI001", "SWI002"].includes(serialNumber) ||
+    companyName?.includes("Changi")
+  ) {
+    return "/client_logos/changi_airport/ChangiAirport_Logo(White).svg";
+  }
+
+  if (serialNumber === "SWI003" || companyName?.includes("Milford Haven")) {
+    return "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg";
+  }
+
+  if (
+    ["SWI010", "SWI011"].includes(serialNumber) ||
+    companyName?.includes("Hatloy")
+  ) {
+    return "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg";
+  }
+
+  return null;
+};
+
+// -----------------------------
+// COMPONENT
+// -----------------------------
 export default function Annual({ unit }) {
   const router = useRouter();
   const canvasRef = useRef(null);
@@ -17,7 +48,12 @@ export default function Annual({ unit }) {
   const [errorMsg, setErrorMsg] = useState("");
   const [geo, setGeo] = useState({ lat: "", lng: "", town: "", w3w: "" });
 
+  // RESOLVE CLIENT LOGO
+  const clientLogo = getClientLogo(unit.company, unit.serial_number);
+
+  // -----------------------------
   // SIGNATURE PAD
+  // -----------------------------
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -75,7 +111,9 @@ export default function Annual({ unit }) {
     return !data.some((p) => p !== 0);
   };
 
-  // GEO + WHAT3WORDS
+  // -----------------------------
+  // GEOLOCATION + WHAT3WORDS
+  // -----------------------------
   useEffect(() => {
     if (!navigator.geolocation) return;
 
@@ -110,6 +148,9 @@ export default function Annual({ unit }) {
 
   const questions = Array.from({ length: 16 }, (_, i) => `Question ${i + 1}`);
 
+  // -----------------------------
+  // FORM SUBMISSION
+  // -----------------------------
   async function handleSubmit(e) {
     e.preventDefault();
     setErrorMsg("");
@@ -149,18 +190,17 @@ export default function Annual({ unit }) {
     });
   }
 
+  // -----------------------------
+  // RENDER
+  // -----------------------------
   return (
     <div className="swift-checklist-container">
-      
-      {/* ✅ CORRECT CLIENT LOGO DISPLAY */}
-      <div className="checklist-logo">
-        {unit.client_logos?.[0]?.url && (
-          <img
-            src={unit.client_logos[0].url}
-            alt={unit.client_name || "Client Logo"}
-          />
-        )}
-      </div>
+      {/* CLIENT LOGO */}
+      {clientLogo && (
+        <div className="checklist-logo">
+          <img src={clientLogo} alt={`${unit.company} logo`} />
+        </div>
+      )}
 
       <h1 className="checklist-hero-title">
         {unit.model} {unit.serial_number}
@@ -171,7 +211,6 @@ export default function Annual({ unit }) {
 
       <div className="checklist-form-card">
         <form onSubmit={handleSubmit}>
-
           <label className="checklist-label">Maintenance company</label>
           <select name="maintained_by" className="checklist-input" required>
             <option value="">Select...</option>
@@ -241,7 +280,9 @@ export default function Annual({ unit }) {
   );
 }
 
-// === FIXED SERVER-SIDE PROPS (Correct Airtable fields) ===
+// -----------------------------
+// SERVER SIDE PROPS
+// -----------------------------
 export async function getServerSideProps({ params }) {
   const token = params.id;
 
@@ -264,12 +305,9 @@ export async function getServerSideProps({ params }) {
       unit: {
         serial_number: rec.fields.serial_number,
         model: rec.fields.model,
+        company: rec.fields.company || "",
         record_id: rec.id,
         public_token: rec.fields.public_token,
-
-        // ✅ MATCHES MAINTENANCE PAGE
-        client_logos: rec.fields.client_logos || null,
-        client_name: rec.fields.client_name || "",
       },
     },
   };
