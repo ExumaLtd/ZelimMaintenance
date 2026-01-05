@@ -23,21 +23,14 @@ const getClientLogo = (companyName, serialNumber) => {
 
 export default function Annual({ unit, template }) {
   const router = useRouter();
-  
-  if (!unit || !template) {
-    return <div style={{ color: "white", padding: "20px" }}>Loading checklist...</div>;
-  }
-
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [geo, setGeo] = useState({ lat: "", lng: "", town: "", w3w: "" });
   const [photoUrls, setPhotoUrls] = useState([]);
 
-  const questions = template.questions || [];
+  if (!unit || !template) return <div className="p-8 text-white">Loading...</div>;
 
-  const removePhoto = (indexToRemove) => {
-    setPhotoUrls(prev => prev.filter((_, index) => index !== indexToRemove));
-  };
+  const questions = template.questions || [];
 
   useEffect(() => {
     if (!navigator.geolocation) return;
@@ -59,8 +52,7 @@ export default function Annual({ unit, template }) {
     setErrorMsg("");
     setSubmitting(true);
 
-    const formEl = e.target;
-    const formData = new FormData(formEl);
+    const formData = new FormData(e.target);
     const formProps = Object.fromEntries(formData.entries());
 
     const payload = {
@@ -82,7 +74,6 @@ export default function Annual({ unit, template }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
       const json = await res.json();
       if (!json.success) throw new Error(json.error || "Submission failed");
       router.push(`/swift/${unit.public_token}/annual-complete`);
@@ -108,7 +99,7 @@ export default function Annual({ unit, template }) {
               <select name="maintained_by" className="checklist-input" required>
                 <option value="">Select...</option>
                 <option value="Zelim">Zelim</option>
-                <option value="Company Four">Company Four</option>
+                <option value="Exuma">Exuma</option>
               </select>
 
               <label className="checklist-label">Engineer name</label>
@@ -124,32 +115,22 @@ export default function Annual({ unit, template }) {
                 </div>
               ))}
 
-              <label className="checklist-label">Additional comments</label>
-              <textarea name="comments" className="checklist-textarea" rows={2} onInput={autoGrow} />
-
               <label className="checklist-label">Upload photos</label>
               <UploadDropzone
                 endpoint="maintenanceImage"
-                className="bg-slate-800 ut-label:text-lg ut-allowed-content:ut-uploading:text-red-300 border-2 border-dashed border-gray-600 p-8 h-64 cursor-pointer"
+                className="bg-slate-800 ut-label:text-lg border-2 border-dashed border-gray-600 p-8 h-48 cursor-pointer mb-4"
                 onClientUploadComplete={(res) => {
                   const urls = res.map(f => f.url);
                   setPhotoUrls(prev => [...prev, ...urls]);
+                  alert("Upload complete!");
                 }}
-                onUploadError={(error) => alert(`Error: ${error.message}`)}
+                onUploadError={(error) => setErrorMsg(`Upload Error: ${error.message}`)}
               />
 
-              {/* PHOTO PREVIEW */}
               {photoUrls.length > 0 && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '10px', marginTop: '15px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '10px', marginBottom: '20px' }}>
                     {photoUrls.map((url, index) => (
-                    <div key={index} style={{ position: 'relative' }}>
-                        <img src={url} style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '8px' }} />
-                        <button 
-                            type="button" 
-                            onClick={() => removePhoto(index)}
-                            style={{ position: 'absolute', top: '2px', right: '2px', background: 'rgba(255,0,0,0.8)', color: 'white', border: 'none', borderRadius: '50%', width: '22px', height: '22px', cursor: 'pointer' }}
-                        >✕</button>
-                    </div>
+                      <img key={index} src={url} style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '8px' }} />
                     ))}
                 </div>
               )}
@@ -158,7 +139,7 @@ export default function Annual({ unit, template }) {
               <input type="hidden" name="maintenance_type" value="Annual" />
               <input type="hidden" name="checklist_template_id" value={template.id} />
 
-              <button className="checklist-submit" disabled={submitting} style={{ marginTop: '40px' }}>
+              <button className="checklist-submit" disabled={submitting} style={{ marginTop: '20px' }}>
                 {submitting ? "Submitting..." : "Submit maintenance"}
               </button>
             </form>
