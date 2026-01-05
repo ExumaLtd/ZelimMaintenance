@@ -1,6 +1,6 @@
 import formidable from "formidable";
+import fs from "fs";
 
-// Disable Next body parser
 export const config = {
   api: { bodyParser: false },
 };
@@ -13,16 +13,13 @@ export default async function handler(req, res) {
   try {
     const form = new formidable.IncomingForm({ multiples: true });
 
-    const { fields } = await new Promise((resolve, reject) => {
+    const { fields, files } = await new Promise((resolve, reject) => {
       form.parse(req, (err, fields, files) => {
         if (err) reject(err);
-        else resolve({ fields });
+        else resolve({ fields, files });
       });
     });
 
-    // -----------------------------
-    // REQUIRED CORE FIELDS
-    // -----------------------------
     const {
       unit_record_id,
       maintenance_type,
@@ -34,23 +31,24 @@ export default async function handler(req, res) {
       location_lng,
       location_town,
       location_what3words,
+      comments,
     } = fields;
 
     // -----------------------------
-    // BUILD CHECKLIST ANSWERS
+    // BUILD CHECKLIST JSON (FIXED)
     // -----------------------------
     const answers = [];
 
     Object.keys(fields)
-      .filter((key) => /^q\d+$/.test(key)) // q1, q2, q3
+      .filter((key) => /^q\d+$/.test(key)) // q1, q2, q3 ✅
       .sort((a, b) => {
-        const na = Number(a.replace("q", ""));
-        const nb = Number(b.replace("q", ""));
-        return na - nb;
+        const aNum = Number(a.replace("q", ""));
+        const bNum = Number(b.replace("q", ""));
+        return aNum - bNum;
       })
-      .forEach((key) => {
+      .forEach((key, index) => {
         answers.push({
-          question: key,
+          question_number: index + 1,
           answer: fields[key],
         });
       });
@@ -59,7 +57,31 @@ export default async function handler(req, res) {
       maintenance_type,
       submitted_at: new Date().toISOString(),
       answers,
+      comments: comments || "",
     };
+
+    // -----------------------------
+    // FILE ENCODER
+    // -----------------------------
+    const encodeFile = (file) => {
+      if (!file) return null;
+      const buffer = fs.readFileSync(file.filepath);
+      return {
+        filename: file.originalFilename,
+        contentType: file.mimetype,
+        data: buffer.toString("base64"),
+      };
+    };
+
+    const signature = files.signature
+      ? [encodeFile(files.signature)]
+      : [];
+
+    const photos = Array.isArray(files.photos)
+      ? files.photos.map(encodeFile)
+      : files.photos
+      ? [encodeFile(files.photos)]
+      : [];
 
     // -----------------------------
     // AIRTABLE PAYLOAD
@@ -68,17 +90,19 @@ export default async function handler(req, res) {
       records: [
         {
           fields: {
-            unit: [unit_record_id], // linked record MUST be array
+            unit: [unit_record_id],
             maintenance_type,
             checklist_template: [checklist_template_id],
             maintained_by,
             engineer_name,
             date_of_maintenance,
-            location_lat: Number(location_lat),
-            location_lng: Number(location_lng),
+            location_lat: location_lat ? Number(location_lat) : null,
+            location_lng: location_lng ? Number(location_lng) : null,
             location_town,
             location_what3words,
-            checklist_json, // send as object
+            checklist_json: JSON.stringify(checklist_json),
+            photos,
+            signature,
           },
         },
       ],
@@ -100,12 +124,12 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       console.error("Airtable error:", result);
-      return res.status(500).json({ success: false, error: result });
+      return res.status(500).json({ success: false });
     }
 
     return res.status(200).json({ success: true });
   } catch (err) {
     console.error("Submit error:", err);
-    return res.status(500).json({ success: false, error: err.message });
+    return res.status(500).json({ success: false });
   }
 }
