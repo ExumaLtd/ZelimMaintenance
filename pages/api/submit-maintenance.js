@@ -1,7 +1,6 @@
-import formidable from "formidable";
+import { IncomingForm } from "formidable";
 import fs from "fs";
 
-// Disable Next body parser (REQUIRED for file uploads)
 export const config = {
   api: { bodyParser: false },
 };
@@ -12,7 +11,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const form = new formidable.IncomingForm({ multiples: true });
+    const form = new IncomingForm({ multiples: true });
 
     const { fields, files } = await new Promise((resolve, reject) => {
       form.parse(req, (err, fields, files) => {
@@ -35,21 +34,17 @@ export default async function handler(req, res) {
       comments,
     } = fields;
 
-    // ------------------------------------
-    // BUILD CHECKLIST ANSWERS (FIXED)
-    // ------------------------------------
+    // -----------------------------
+    // Build checklist JSON
+    // -----------------------------
     const answers = [];
 
     Object.keys(fields)
-      .filter((key) => /^q\d+$/.test(key)) // q1, q2, q3...
-      .sort((a, b) => {
-        const numA = parseInt(a.replace("q", ""), 10);
-        const numB = parseInt(b.replace("q", ""), 10);
-        return numA - numB;
-      })
+      .filter((key) => key.startsWith("q"))
+      .sort()
       .forEach((key) => {
         answers.push({
-          question_key: key,
+          question: key,
           answer: fields[key],
         });
       });
@@ -58,12 +53,12 @@ export default async function handler(req, res) {
       maintenance_type,
       submitted_at: new Date().toISOString(),
       answers,
-      comments: comments || "",
+      comments,
     };
 
-    // ------------------------------------
-    // FILE ENCODING HELPER
-    // ------------------------------------
+    // -----------------------------
+    // File helper
+    // -----------------------------
     const encodeFile = (file) => {
       if (!file) return null;
       const buffer = fs.readFileSync(file.filepath);
@@ -74,23 +69,20 @@ export default async function handler(req, res) {
       };
     };
 
-    // Signature (single file)
-    const signature =
-      files.signature && encodeFile(files.signature)
-        ? [encodeFile(files.signature)]
-        : [];
+    const signature = files.signature
+      ? [{ ...encodeFile(files.signature) }]
+      : [];
 
-    // Photos (multiple allowed)
     const photos = Array.isArray(files.photos)
       ? files.photos.map((f) => encodeFile(f))
       : files.photos
       ? [encodeFile(files.photos)]
       : [];
 
-    // ------------------------------------
-    // AIRTABLE PAYLOAD
-    // ------------------------------------
-    const airtablePayload = {
+    // -----------------------------
+    // Airtable payload
+    // -----------------------------
+    const payload = {
       records: [
         {
           fields: {
@@ -100,8 +92,8 @@ export default async function handler(req, res) {
             maintained_by,
             engineer_name,
             date_of_maintenance,
-            location_lat: location_lat ? Number(location_lat) : null,
-            location_lng: location_lng ? Number(location_lng) : null,
+            location_lat: Number(location_lat),
+            location_lng: Number(location_lng),
             location_town,
             location_what3words,
             checklist_json: JSON.stringify(checklist_json),
@@ -120,7 +112,7 @@ export default async function handler(req, res) {
           Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(airtablePayload),
+        body: JSON.stringify(payload),
       }
     );
 
@@ -128,12 +120,12 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       console.error("Airtable error:", result);
-      return res.status(500).json({ success: false });
+      return res.status(500).json({ success: false, airtable_error: result });
     }
 
     return res.status(200).json({ success: true });
   } catch (err) {
     console.error("Submit error:", err);
-    return res.status(500).json({ success: false });
+    return res.status(500).json({ success: false, error: err.message });
   }
 }
