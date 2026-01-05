@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
-import { UploadButton } from "../../../utils/uploadthing"; // Ensure this path is correct
+import { UploadButton } from "../../../utils/uploadthing"; 
 
 function autoGrow(e) {
   const el = e.target;
@@ -29,12 +29,13 @@ export default function Annual({ unit, template }) {
   const [errorMsg, setErrorMsg] = useState("");
   const [geo, setGeo] = useState({ lat: "", lng: "", town: "", w3w: "" });
   
-  // NEW: State for UploadThing URLs
+  // State for UploadThing URLs
   const [photoUrls, setPhotoUrls] = useState([]);
+  const [signatureUrl, setSignatureUrl] = useState("");
 
   const questions = template.questions || [];
 
-  // Signature logic (remains same)
+  // Signature drawing logic
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -62,6 +63,7 @@ export default function Annual({ unit, template }) {
   const clearSignature = () => {
     const ctx = canvasRef.current.getContext("2d");
     ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    setSignatureUrl(""); // Clear the saved URL too
   };
 
   const signatureIsEmpty = () => {
@@ -69,6 +71,7 @@ export default function Annual({ unit, template }) {
     return !data.some((pixel) => pixel !== 0);
   };
 
+  // Geolocation setup
   useEffect(() => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -84,19 +87,24 @@ export default function Annual({ unit, template }) {
     });
   }, []);
 
-  // UPDATED HANDLE SUBMIT
   async function handleSubmit(e) {
     e.preventDefault();
     setErrorMsg("");
-    if (signatureIsEmpty()) { setErrorMsg("Signature is required."); return; }
+
+    if (signatureIsEmpty()) { 
+        setErrorMsg("Signature is required."); 
+        return; 
+    }
+
+    if (photoUrls.length === 0) {
+        setErrorMsg("Please upload at least one photo.");
+        return;
+    }
 
     setSubmitting(true);
     const formEl = e.target;
     const formData = new FormData(formEl);
     const formProps = Object.fromEntries(formData.entries());
-
-    // Convert signature to Base64 (Airtable handles this differently, but we send it to our API)
-    const signatureBase64 = canvasRef.current.toDataURL("image/png");
 
     const payload = {
       ...formProps,
@@ -104,8 +112,8 @@ export default function Annual({ unit, template }) {
       location_lng: geo.lng,
       location_town: geo.town,
       location_what3words: geo.w3w,
-      photoUrls: photoUrls, // From UploadThing state
-      signatureBase64: signatureBase64,
+      photoUrls: photoUrls, 
+      signatureUrl: signatureUrl, // This is uploaded via the second UploadButton below
       answers: questions.map((_, i) => ({
         question: `q${i+1}`,
         answer: formProps[`q${i+1}`] || ""
@@ -169,22 +177,45 @@ export default function Annual({ unit, template }) {
                 endpoint="maintenanceImage"
                 onClientUploadComplete={(res) => {
                   setPhotoUrls(res.map(f => f.url));
-                  alert("Photos uploaded!");
+                  alert("Photos uploaded successfully!");
                 }}
                 onUploadError={(error) => alert(`Upload Error: ${error.message}`)}
               />
-              {photoUrls.length > 0 && <p style={{color: '#AAA', fontSize: '12px'}}>{photoUrls.length} photos ready.</p>}
+              {photoUrls.length > 0 && <p className="upload-status-text">{photoUrls.length} photos ready.</p>}
 
-              <label className="checklist-label">Signature</label>
+              <label className="checklist-label">Signature (Draw then click Upload)</label>
               <canvas ref={canvasRef} width={350} height={150} className="checklist-signature" />
-              <button type="button" onClick={clearSignature} className="checklist-clear-btn">Clear signature</button>
+              
+              <div className="signature-actions" style={{ marginTop: '10px', display: 'flex', gap: '10px' }}>
+                  <button type="button" onClick={clearSignature} className="checklist-clear-btn">Clear</button>
+                  
+                  {/* We convert the canvas to a file and upload it manually via UploadThing button */}
+                  <UploadButton
+                    endpoint="signatureImage"
+                    onBeforeUploadBegin={(files) => {
+                        // This converts the canvas to a file right before clicking upload
+                        return new Promise((resolve) => {
+                            canvasRef.current.toBlob((blob) => {
+                                const file = new File([blob], "signature.png", { type: "image/png" });
+                                resolve([file]);
+                            });
+                        });
+                    }}
+                    onClientUploadComplete={(res) => {
+                        setSignatureUrl(res[0].url);
+                        alert("Signature saved!");
+                    }}
+                    onUploadError={(err) => alert("Signature upload failed")}
+                    content={{ button({ ready }) { return ready ? "Save Signature" : "Preparing..."; } }}
+                  />
+              </div>
 
               <input type="hidden" name="unit_record_id" value={unit.record_id} />
               <input type="hidden" name="maintenance_type" value="Annual" />
               <input type="hidden" name="checklist_template_id" value={template.id} />
 
-              <button className="checklist-submit" disabled={submitting}>
-                {submitting ? "Submitting..." : "Submit maintenance"}
+              <button className="checklist-submit" disabled={submitting || !signatureUrl}>
+                {submitting ? "Submitting..." : signatureUrl ? "Submit maintenance" : "Save Signature first"}
               </button>
             </form>
           </div>
