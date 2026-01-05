@@ -1,49 +1,15 @@
-// pages/swift/[id]/annual.js
-
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 
-// ------------------------------------
-// AUTO-EXPAND TEXTAREAS
-// ------------------------------------
+// -----------------------------
+// Auto-grow textarea
+// -----------------------------
 function autoGrow(e) {
-  const el = e.target;
-  el.style.height = "auto";
-  el.style.height = el.scrollHeight + "px";
+  e.target.style.height = "auto";
+  e.target.style.height = e.target.scrollHeight + "px";
 }
 
-// ------------------------------------
-// CLIENT LOGO RESOLVER
-// ------------------------------------
-const getClientLogo = (companyName, serialNumber) => {
-  if (["SWI001", "SWI002"].includes(serialNumber) || companyName.includes("Changi")) {
-    return {
-      src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg",
-      alt: `${companyName} Logo`,
-    };
-  }
-
-  if (serialNumber === "SWI003" || companyName.includes("Milford Haven")) {
-    return {
-      src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg",
-      alt: `${companyName} Logo`,
-    };
-  }
-
-  if (["SWI010", "SWI011"].includes(serialNumber) || companyName.includes("Hatloy")) {
-    return {
-      src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg",
-      alt: `${companyName} Logo`,
-    };
-  }
-
-  return null;
-};
-
-// ------------------------------------
-// PAGE COMPONENT
-// ------------------------------------
-export default function Annual({ unit, template }) {
+export default function Annual({ unit, checklistTemplateId, questions }) {
   const router = useRouter();
   const canvasRef = useRef(null);
 
@@ -51,11 +17,9 @@ export default function Annual({ unit, template }) {
   const [errorMsg, setErrorMsg] = useState("");
   const [geo, setGeo] = useState({ lat: "", lng: "", town: "", w3w: "" });
 
-  const questions = template.questions;
-
-  // ------------------------------------
-  // SIGNATURE PAD
-  // ------------------------------------
+  // -----------------------------
+  // Signature pad
+  // -----------------------------
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -90,7 +54,6 @@ export default function Annual({ unit, template }) {
     canvas.addEventListener("mousedown", start);
     canvas.addEventListener("mousemove", move);
     canvas.addEventListener("mouseup", end);
-
     canvas.addEventListener("touchstart", start);
     canvas.addEventListener("touchmove", move);
     canvas.addEventListener("touchend", end);
@@ -106,13 +69,12 @@ export default function Annual({ unit, template }) {
       .getContext("2d")
       .getImageData(0, 0, canvasRef.current.width, canvasRef.current.height)
       .data;
-
-    return !data.some((pixel) => pixel !== 0);
+    return !data.some((p) => p !== 0);
   };
 
-  // ------------------------------------
-  // GEO + WHAT3WORDS
-  // ------------------------------------
+  // -----------------------------
+  // Geolocation + What3Words
+  // -----------------------------
   useEffect(() => {
     if (!navigator.geolocation) return;
 
@@ -125,7 +87,7 @@ export default function Annual({ unit, template }) {
 
       try {
         const w3 = await fetch(
-          `https://api.what3words.com/v3/convert-to-3wa?coordinates=${lat}%2C${lng}&key=${process.env.NEXT_PUBLIC_W3W_API_KEY}`
+          `https://api.what3words.com/v3/convert-to-3wa?coordinates=${lat},${lng}&key=${process.env.NEXT_PUBLIC_W3W_API_KEY}`
         );
         const w3json = await w3.json();
         w3w = w3json.words || "";
@@ -136,18 +98,18 @@ export default function Annual({ unit, template }) {
         const osmJson = await osm.json();
         town =
           osmJson.address?.town ||
-          osmJson.address?.village ||
           osmJson.address?.city ||
+          osmJson.address?.village ||
           "";
       } catch {}
 
-      setGeo({ lat, lng, w3w, town });
+      setGeo({ lat, lng, town, w3w });
     });
   }, []);
 
-  // ------------------------------------
-  // HANDLE SUBMIT
-  // ------------------------------------
+  // -----------------------------
+  // Submit handler
+  // -----------------------------
   async function handleSubmit(e) {
     e.preventDefault();
     setErrorMsg("");
@@ -158,7 +120,6 @@ export default function Annual({ unit, template }) {
     }
 
     setSubmitting(true);
-
     const form = e.target;
     const data = new FormData(form);
 
@@ -176,170 +137,122 @@ export default function Annual({ unit, template }) {
         });
 
         const json = await res.json();
-        if (!json.success) throw new Error(json.error);
+        if (!json.success) throw new Error();
 
         router.push(`/swift/${unit.public_token}/annual-complete`);
       } catch {
-        setErrorMsg("Submission failed.");
+        setErrorMsg("Submission failed. Please try again.");
       }
 
       setSubmitting(false);
     });
   }
 
-  const logo = getClientLogo(unit.company, unit.serial_number);
-
-  // ------------------------------------
-  // RENDER
-  // ------------------------------------
+  // -----------------------------
+  // Render
+  // -----------------------------
   return (
-    <div className="swift-main-layout-wrapper">
-      <div className="page-wrapper">
-        <div className="swift-checklist-container">
+    <div className="swift-checklist-container">
+      <h1 className="checklist-hero-title">
+        {unit.serial_number}
+        <span className="break-point">annual maintenance</span>
+      </h1>
 
-          {logo && (
-            <div className="checklist-logo">
-              <img src={logo.src} alt={logo.alt} />
-            </div>
-          )}
+      {errorMsg && <p className="checklist-error">{errorMsg}</p>}
 
-          <h1 className="checklist-hero-title">
-            {unit.serial_number}
-            <span className="break-point">annual maintenance</span>
-          </h1>
+      <div className="checklist-form-card">
+        <form onSubmit={handleSubmit}>
 
-          {errorMsg && <p className="checklist-error">{errorMsg}</p>}
+          <label className="checklist-label">Maintenance company</label>
+          <select name="maintained_by" className="checklist-input" required>
+            <option value="">Select…</option>
+            <option value="Zelim">Zelim</option>
+          </select>
 
-          <div className="checklist-form-card">
-            <form onSubmit={handleSubmit}>
+          <label className="checklist-label">Engineer name</label>
+          <input name="engineer_name" className="checklist-input" required />
 
-              <label className="checklist-label">Maintenance company</label>
-              <select name="maintained_by" className="checklist-input" required>
-                <option value="">Select...</option>
-                <option value="Zelim">Zelim</option>
-                <option value="Company Four">Company Four</option>
-              </select>
+          <label className="checklist-label">Date of maintenance</label>
+          <input type="date" name="date_of_maintenance" className="checklist-input" required />
 
-              <label className="checklist-label">Engineer name</label>
-              <input className="checklist-input" name="engineer_name" required />
-
-              <label className="checklist-label">Date of maintenance</label>
-              <input
-                type="date"
-                className="checklist-input"
-                name="date_of_maintenance"
-                required
-              />
-
-              {questions.map((question, i) => (
-                <div key={i}>
-                  <label className="checklist-label">{question}</label>
-                  <textarea
-                    name={`q${i + 1}`}
-                    className="checklist-textarea"
-                    rows={2}
-                    onInput={autoGrow}
-                  />
-                </div>
-              ))}
-
-              <label className="checklist-label">Additional comments</label>
+          {questions.map((q, i) => (
+            <div key={i}>
+              <label className="checklist-label">{q}</label>
               <textarea
-                name="comments"
+                name={`q_${i}`}
                 className="checklist-textarea"
                 rows={2}
                 onInput={autoGrow}
               />
+              <input type="hidden" name={`q_${i}_label`} value={q} />
+            </div>
+          ))}
 
-              <label className="checklist-label">Upload photos</label>
-              <input type="file" name="photos" accept="image/*" multiple />
+          <label className="checklist-label">Additional comments</label>
+          <textarea name="comments" className="checklist-textarea" onInput={autoGrow} />
 
-              <label className="checklist-label">Signature</label>
-              <canvas
-                ref={canvasRef}
-                width={350}
-                height={150}
-                className="checklist-signature"
-              />
+          <label className="checklist-label">Upload photos</label>
+          <input type="file" name="photos" accept="image/*" multiple />
 
-              <button
-                type="button"
-                onClick={clearSignature}
-                className="checklist-clear-btn"
-              >
-                Clear signature
-              </button>
+          <label className="checklist-label">Signature</label>
+          <canvas ref={canvasRef} width={350} height={150} className="checklist-signature" />
+          <button type="button" onClick={clearSignature} className="checklist-clear-btn">
+            Clear signature
+          </button>
 
-              {/* HIDDEN METADATA */}
-              <input type="hidden" name="unit_record_id" value={unit.record_id} />
-              <input type="hidden" name="maintenance_type" value="Annual" />
-              <input type="hidden" name="checklist_template_id" value={template.id} />
-              <input type="hidden" name="checklist_template_name" value={template.name} />
+          {/* 🔑 REQUIRED HIDDEN FIELDS */}
+          <input type="hidden" name="unit_record_id" value={unit.record_id} />
+          <input type="hidden" name="maintenance_type" value="Annual" />
+          <input type="hidden" name="checklist_template_id" value={checklistTemplateId} />
 
-              <button className="checklist-submit" disabled={submitting}>
-                {submitting ? "Submitting..." : "Submit"}
-              </button>
-
-            </form>
-          </div>
-        </div>
+          <button className="checklist-submit" disabled={submitting}>
+            {submitting ? "Submitting…" : "Submit"}
+          </button>
+        </form>
       </div>
     </div>
   );
 }
 
-// ------------------------------------
-// SERVER SIDE PROPS
-// ------------------------------------
+// -----------------------------
+// SERVER SIDE DATA
+// -----------------------------
 export async function getServerSideProps({ params }) {
   const token = params.id;
 
   // Fetch unit
-  const unitReq = await fetch(
+  const unitRes = await fetch(
     `${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`,
     {
-      headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
-      },
+      headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
     }
   );
 
-  const unitJson = await unitReq.json();
+  const unitJson = await unitRes.json();
   if (!unitJson.records.length) return { notFound: true };
 
   const unitRec = unitJson.records[0];
 
-  // Fetch Annual checklist template
-  const templateReq = await fetch(
+  // Fetch Annual template
+  const templateRes = await fetch(
     `${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/checklist_templates?filterByFormula={type}='Annual'`,
     {
-      headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
-      },
+      headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
     }
   );
 
-  const templateJson = await templateReq.json();
-  if (!templateJson.records.length) {
-    throw new Error("Annual checklist template not found");
-  }
-
-  const templateRec = templateJson.records[0];
+  const templateJson = await templateRes.json();
+  const template = templateJson.records[0];
 
   return {
     props: {
       unit: {
-        model: unitRec.fields.model,
         serial_number: unitRec.fields.serial_number,
-        company: unitRec.fields.company,
         record_id: unitRec.id,
         public_token: unitRec.fields.public_token,
       },
-      template: {
-        id: templateRec.id,
-        name: templateRec.fields.template_name,
-        questions: JSON.parse(templateRec.fields.questions_json || "[]"),
-      },
+      checklistTemplateId: template.id,
+      questions: JSON.parse(template.fields.questions_json),
     },
   };
 }
