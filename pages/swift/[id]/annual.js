@@ -3,7 +3,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 
-// Auto-expand textareas
+// ------------------------------------
+// AUTO-EXPAND TEXTAREAS
+// ------------------------------------
 function autoGrow(e) {
   const el = e.target;
   el.style.height = "auto";
@@ -38,13 +40,18 @@ const getClientLogo = (companyName, serialNumber) => {
   return null;
 };
 
-export default function Annual({ unit }) {
+// ------------------------------------
+// PAGE COMPONENT
+// ------------------------------------
+export default function Annual({ unit, template }) {
   const router = useRouter();
   const canvasRef = useRef(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [geo, setGeo] = useState({ lat: "", lng: "", town: "", w3w: "" });
+
+  const questions = template.questions;
 
   // ------------------------------------
   // SIGNATURE PAD
@@ -138,8 +145,6 @@ export default function Annual({ unit }) {
     });
   }, []);
 
-  const questions = Array.from({ length: 16 }, (_, i) => `Question ${i + 1}`);
-
   // ------------------------------------
   // HANDLE SUBMIT
   // ------------------------------------
@@ -207,7 +212,7 @@ export default function Annual({ unit }) {
 
           <div className="checklist-form-card">
             <form onSubmit={handleSubmit}>
-              
+
               <label className="checklist-label">Maintenance company</label>
               <select name="maintained_by" className="checklist-input" required>
                 <option value="">Select...</option>
@@ -226,9 +231,9 @@ export default function Annual({ unit }) {
                 required
               />
 
-              {questions.map((q, i) => (
+              {questions.map((question, i) => (
                 <div key={i}>
-                  <label className="checklist-label">{q}</label>
+                  <label className="checklist-label">{question}</label>
                   <textarea
                     name={`q${i + 1}`}
                     className="checklist-textarea"
@@ -265,8 +270,11 @@ export default function Annual({ unit }) {
                 Clear signature
               </button>
 
+              {/* HIDDEN METADATA */}
               <input type="hidden" name="unit_record_id" value={unit.record_id} />
               <input type="hidden" name="maintenance_type" value="Annual" />
+              <input type="hidden" name="checklist_template_id" value={template.id} />
+              <input type="hidden" name="checklist_template_name" value={template.name} />
 
               <button className="checklist-submit" disabled={submitting}>
                 {submitting ? "Submitting..." : "Submit"}
@@ -286,7 +294,8 @@ export default function Annual({ unit }) {
 export async function getServerSideProps({ params }) {
   const token = params.id;
 
-  const req = await fetch(
+  // Fetch unit
+  const unitReq = await fetch(
     `${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`,
     {
       headers: {
@@ -295,19 +304,41 @@ export async function getServerSideProps({ params }) {
     }
   );
 
-  const json = await req.json();
-  if (!json.records.length) return { notFound: true };
+  const unitJson = await unitReq.json();
+  if (!unitJson.records.length) return { notFound: true };
 
-  const rec = json.records[0];
+  const unitRec = unitJson.records[0];
+
+  // Fetch Annual checklist template
+  const templateReq = await fetch(
+    `${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/checklist_templates?filterByFormula={type}='Annual'`,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
+      },
+    }
+  );
+
+  const templateJson = await templateReq.json();
+  if (!templateJson.records.length) {
+    throw new Error("Annual checklist template not found");
+  }
+
+  const templateRec = templateJson.records[0];
 
   return {
     props: {
       unit: {
-        model: rec.fields.model,
-        serial_number: rec.fields.serial_number,
-        company: rec.fields.company,
-        record_id: rec.id,
-        public_token: rec.fields.public_token,
+        model: unitRec.fields.model,
+        serial_number: unitRec.fields.serial_number,
+        company: unitRec.fields.company,
+        record_id: unitRec.id,
+        public_token: unitRec.fields.public_token,
+      },
+      template: {
+        id: templateRec.id,
+        name: templateRec.fields.template_name,
+        questions: JSON.parse(templateRec.fields.questions_json || "[]"),
       },
     },
   };
