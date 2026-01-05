@@ -1,4 +1,4 @@
-import { IncomingForm } from "formidable";
+import formidable from "formidable";
 import fs from "fs";
 
 export const config = {
@@ -11,13 +11,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    const form = new IncomingForm({
-  multiples: true,
-  allowEmptyFiles: true,
-  minFileSize: 0,
-});
-
-
+    const form = new formidable.IncomingForm({
+      multiples: true,
+      allowEmptyFiles: true,
+      minFileSize: 0,
+    });
 
     const { fields, files } = await new Promise((resolve, reject) => {
       form.parse(req, (err, fields, files) => {
@@ -40,55 +38,57 @@ export default async function handler(req, res) {
       comments,
     } = fields;
 
-    // -----------------------------
-    // Build checklist JSON
-    // -----------------------------
-    const answers = [];
-
-    Object.keys(fields)
-      .filter((key) => key.startsWith("q"))
+    // ------------------------------------
+    // Build checklist JSON from q1, q2, ...
+    // ------------------------------------
+    const answers = Object.keys(fields)
+      .filter((k) => k.startsWith("q"))
       .sort()
-      .forEach((key) => {
-        answers.push({
-          question: key,
-          answer: fields[key],
-        });
-      });
+      .map((key) => ({
+        question: key,
+        answer: fields[key],
+      }));
 
-    const checklist_json = {
+    const checklist_json = JSON.stringify({
       maintenance_type,
       submitted_at: new Date().toISOString(),
       answers,
-      comments,
-    };
+    });
 
-    // -----------------------------
-    // File helper
-    // -----------------------------
+    // ------------------------------------
+    // SAFE file encoder (CRITICAL FIX)
+    // ------------------------------------
     const encodeFile = (file) => {
-      if (!file) return null;
+      if (!file || !file.filepath || file.size === 0) return null;
+
       const buffer = fs.readFileSync(file.filepath);
       return {
         filename: file.originalFilename,
-        contentType: file.mimetype,
+        type: file.mimetype,
         data: buffer.toString("base64"),
       };
     };
 
-    const signature = files.signature
-      ? [{ ...encodeFile(files.signature) }]
-      : [];
+    // Signature (required on frontend, but still guard)
+    const signatureFile = encodeFile(files.signature);
+    const signature = signatureFile ? [signatureFile] : [];
 
-    const photos = Array.isArray(files.photos)
-      ? files.photos.map((f) => encodeFile(f))
-      : files.photos
-      ? [encodeFile(files.photos)]
-      : [];
+    // Photos (optional)
+    const photos = [];
+    if (Array.isArray(files.photos)) {
+      files.photos.forEach((f) => {
+        const encoded = encodeFile(f);
+        if (encoded) photos.push(encoded);
+      });
+    } else if (files.photos) {
+      const encoded = encodeFile(files.photos);
+      if (encoded) photos.push(encoded);
+    }
 
-    // -----------------------------
+    // ------------------------------------
     // Airtable payload
-    // -----------------------------
-    const payload = {
+    // ------------------------------------
+    const airtablePayload = {
       records: [
         {
           fields: {
@@ -102,9 +102,10 @@ export default async function handler(req, res) {
             location_lng: Number(location_lng),
             location_town,
             location_what3words,
-            checklist_json: JSON.stringify(checklist_json),
-            photos,
+            comments: comments || "",
+            checklist_json,
             signature,
+            photos,
           },
         },
       ],
@@ -118,7 +119,7 @@ export default async function handler(req, res) {
           Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(airtablePayload),
       }
     );
 
@@ -126,12 +127,12 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       console.error("Airtable error:", result);
-      return res.status(500).json({ success: false, airtable_error: result });
+      return res.status(500).json({ success: false });
     }
 
     return res.status(200).json({ success: true });
   } catch (err) {
     console.error("Submit error:", err);
-    return res.status(500).json({ success: false, error: err.message });
+    return res.status(500).json({ success: false });
   }
 }
