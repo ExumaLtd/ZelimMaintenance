@@ -1,21 +1,17 @@
 import formidable from "formidable";
 import fs from "fs";
-import path from "path";
 
-// Disable body parsing for file uploads
+// Disable Next body parser
 export const config = {
-  api: {
-    bodyParser: false,
-  },
+  api: { bodyParser: false },
 };
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(405).json({ success: false, error: "Method not allowed" });
+    return res.status(405).json({ success: false });
   }
 
   try {
-    // Parse form-data
     const form = new formidable.IncomingForm({ multiples: true });
 
     const { fields, files } = await new Promise((resolve, reject) => {
@@ -25,10 +21,10 @@ export default async function handler(req, res) {
       });
     });
 
-    // Extract fields
     const {
       unit_record_id,
       maintenance_type,
+      checklist_template_id,
       maintained_by,
       engineer_name,
       date_of_maintenance,
@@ -39,69 +35,100 @@ export default async function handler(req, res) {
       comments,
     } = fields;
 
-    // Upload helper — converts file to Base64 for Airtable
-    const encodeFile = (file) => {
-      if (!file) return null;
-      const data = fs.readFileSync(file.filepath);
-      return `data:${file.mimetype};base64,${data.toString("base64")}`;
+    // -----------------------------
+    // Build checklist JSON
+    // -----------------------------
+    const answers = [];
+
+    Object.keys(fields)
+      .filter((key) => key.startsWith("q_"))
+      .sort()
+      .forEach((key) => {
+        answers.push({
+          question: fields[`${key}_label`],
+          answer: fields[key],
+        });
+      });
+
+    const checklist_json = {
+      maintenance_type,
+      submitted_at: new Date().toISOString(),
+      answers,
     };
 
-    // Convert signature + photos
-    const signature = encodeFile(files.signature);
+    // -----------------------------
+    // File encoding helper
+    // -----------------------------
+    const encodeFile = (file) => {
+      if (!file) return null;
+      const buffer = fs.readFileSync(file.filepath);
+      return {
+        filename: file.originalFilename,
+        contentType: file.mimetype,
+        data: buffer.toString("base64"),
+      };
+    };
+
+    // Signature
+    const signature =
+      files.signature && encodeFile(files.signature)
+        ? [{ ...encodeFile(files.signature) }]
+        : [];
+
+    // Photos
     const photos = Array.isArray(files.photos)
       ? files.photos.map((f) => encodeFile(f))
       : files.photos
       ? [encodeFile(files.photos)]
       : [];
 
-    // Build checklist answers dynamically
-    const checklist = {};
-    for (let i = 1; i <= 20; i++) {
-      if (fields[`q${i}`]) checklist[`q${i}`] = fields[`q${i}`];
-    }
-
-    // Prepare Airtable record
-    const airtableRecord = {
-      fields: {
-        unit: [unit_record_id],
-        maintenance_type,
-        maintained_by,
-        engineer_name,
-        date_of_maintenance,
-        location_lat,
-        location_lng,
-        location_town,
-        location_what3words,
-        comments: comments || "",
-        signature,
-        photos,
-        ...checklist,
-      },
+    // -----------------------------
+    // Airtable payload
+    // -----------------------------
+    const airtablePayload = {
+      records: [
+        {
+          fields: {
+            unit: [unit_record_id],
+            maintenance_type,
+            checklist_template: [checklist_template_id],
+            maintained_by,
+            engineer_name,
+            date_of_maintenance,
+            location_lat: Number(location_lat),
+            location_lng: Number(location_lng),
+            location_town,
+            location_what3words,
+            checklist_json: JSON.stringify(checklist_json),
+            photos,
+            signature,
+          },
+        },
+      ],
     };
 
-    // Send to Airtable
     const response = await fetch(
-      `${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_MAINTENANCE_TABLE}`,
+      `${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_MAINTENANCE_TABLE}`,
       {
         method: "POST",
         headers: {
           Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ records: [airtableRecord] }),
+        body: JSON.stringify(airtablePayload),
       }
     );
 
-    const json = await response.json();
+    const result = await response.json();
 
     if (!response.ok) {
-      console.error("Airtable error:", json);
-      return res.status(500).json({ success: false, error: "Airtable save failed" });
+      console.error("Airtable error:", result);
+      return res.status(500).json({ success: false });
     }
 
-    return res.status(200).json({ success: true, id: json.records[0].id });
-  } catch (error) {
-    console.error("Submit error:", error);
-    return res.status(500).json({ success: false, error: "Server error" });
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("Submit error:", err);
+    return res.status(500).json({ success: false });
   }
 }
