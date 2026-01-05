@@ -1,111 +1,39 @@
-import formidable from "formidable";
-import fs from "fs";
-
-export const config = {
-  api: { bodyParser: false },
-};
-
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ success: false });
   }
 
   try {
-    const form = new formidable.IncomingForm({
-      multiples: true,
-      allowEmptyFiles: true,
-      minFileSize: 0,
-    });
-
-    const { fields, files } = await new Promise((resolve, reject) => {
-      form.parse(req, (err, fields, files) => {
-        if (err) reject(err);
-        else resolve({ fields, files });
-      });
-    });
-
-    const {
-      unit_record_id,
-      maintenance_type,
-      checklist_template_id,
-      maintained_by,
-      engineer_name,
-      date_of_maintenance,
-      location_lat,
-      location_lng,
-      location_town,
-      location_what3words,
-      comments,
-    } = fields;
-
-    // ------------------------------------
-    // Build checklist JSON from q1, q2, ...
-    // ------------------------------------
-    const answers = Object.keys(fields)
-      .filter((k) => k.startsWith("q"))
-      .sort()
-      .map((key) => ({
-        question: key,
-        answer: fields[key],
-      }));
+    // With UploadThing, we receive JSON, not FormData
+    const body = req.body;
 
     const checklist_json = JSON.stringify({
-      maintenance_type,
+      maintenance_type: body.maintenance_type,
       submitted_at: new Date().toISOString(),
-      answers,
+      answers: body.answers || [],
     });
 
-    // ------------------------------------
-    // SAFE file encoder (CRITICAL FIX)
-    // ------------------------------------
-    const encodeFile = (file) => {
-      if (!file || !file.filepath || file.size === 0) return null;
-
-      const buffer = fs.readFileSync(file.filepath);
-      return {
-        filename: file.originalFilename,
-        type: file.mimetype,
-        data: buffer.toString("base64"),
-      };
-    };
-
-    // Signature (required on frontend, but still guard)
-    const signatureFile = encodeFile(files.signature);
-    const signature = signatureFile ? [signatureFile] : [];
-
-    // Photos (optional)
-    const photos = [];
-    if (Array.isArray(files.photos)) {
-      files.photos.forEach((f) => {
-        const encoded = encodeFile(f);
-        if (encoded) photos.push(encoded);
-      });
-    } else if (files.photos) {
-      const encoded = encodeFile(files.photos);
-      if (encoded) photos.push(encoded);
-    }
-
-    // ------------------------------------
-    // Airtable payload
-    // ------------------------------------
+    // Construct Airtable Payload
     const airtablePayload = {
       records: [
         {
           fields: {
-            unit: [unit_record_id],
-            maintenance_type,
-            checklist_template: [checklist_template_id],
-            maintained_by,
-            engineer_name,
-            date_of_maintenance,
-            location_lat: Number(location_lat),
-            location_lng: Number(location_lng),
-            location_town,
-            location_what3words,
-            comments: comments || "",
-            checklist_json,
-            signature,
-            photos,
+            unit: [body.unit_record_id],
+            maintenance_type: body.maintenance_type,
+            checklist_template: [body.checklist_template_id],
+            maintained_by: body.maintained_by,
+            engineer_name: body.engineer_name,
+            date_of_maintenance: body.date_of_maintenance,
+            location_lat: Number(body.location_lat),
+            location_lng: Number(body.location_lng),
+            location_town: body.location_town,
+            location_what3words: body.location_what3words,
+            comments: body.comments || "",
+            checklist_json: checklist_json,
+            // Map the URLs from UploadThing to Airtable format
+            photos: body.photoUrls ? body.photoUrls.map(url => ({ url })) : [],
+            // Note: signature is handled as a photo URL if you upload it, 
+            // for now we'll leave it empty or map it if you use UploadButton for it too.
           },
         },
       ],
@@ -127,12 +55,12 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       console.error("Airtable error:", result);
-      return res.status(500).json({ success: false });
+      return res.status(500).json({ success: false, error: "Airtable save failed" });
     }
 
     return res.status(200).json({ success: true });
   } catch (err) {
     console.error("Submit error:", err);
-    return res.status(500).json({ success: false });
+    return res.status(500).json({ success: false, error: err.message });
   }
 }
