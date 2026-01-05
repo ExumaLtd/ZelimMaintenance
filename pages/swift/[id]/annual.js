@@ -15,6 +15,9 @@ const getClientLogo = (companyName, serialNumber) => {
   if (serialNumber === "SWI003" || companyName?.includes("Milford Haven")) {
     return { src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg", alt: "Logo" };
   }
+  if (["SWI010", "SWI011"].includes(serialNumber) || companyName?.includes("Hatloy")) {
+    return { src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg", alt: "Logo" };
+  }
   return null;
 };
 
@@ -25,6 +28,8 @@ export default function Annual({ unit, template }) {
   const [photoUrls, setPhotoUrls] = useState([]);
 
   if (!unit || !template) return <div className="p-8 text-white">Loading...</div>;
+
+  const questions = template.questions || [];
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -40,7 +45,7 @@ export default function Annual({ unit, template }) {
       unit_record_id: unit.record_id,
       maintenance_type: "Annual",
       checklist_template_id: template.id,
-      answers: (template.questions || []).map((_, i) => ({
+      answers: questions.map((_, i) => ({
         question: `q${i+1}`,
         answer: formProps[`q${i+1}`] || ""
       }))
@@ -54,7 +59,7 @@ export default function Annual({ unit, template }) {
       });
 
       const json = await res.json();
-      if (!json.success) throw new Error(json.error || "Submission failed");
+      if (!json.success) throw new Error(json.error || "Airtable Permission Error");
       router.push(`/swift/${unit.public_token}/annual-complete`);
     } catch (err) {
       setErrorMsg(err.message);
@@ -71,9 +76,11 @@ export default function Annual({ unit, template }) {
           {logo && <div className="checklist-logo"><img src={logo.src} alt={logo.alt} /></div>}
           <h1 className="checklist-hero-title">{unit.serial_number}<span className="break-point">annual maintenance</span></h1>
           
-          {errorMsg && <div className="checklist-error" style={{background: 'rgba(255,0,0,0.1)', border: '1px solid red', padding: '15px', borderRadius: '8px', color: 'red', marginBottom: '20px'}}>
-            <strong>Submission Error:</strong> {errorMsg}
-          </div>}
+          {errorMsg && (
+            <div className="checklist-error" style={{ border: '1px solid #ff4d4d', background: 'rgba(255, 77, 77, 0.1)', padding: '15px', borderRadius: '8px', color: '#ff4d4d', marginBottom: '20px' }}>
+              <strong>Submission Error:</strong> {errorMsg}
+            </div>
+          )}
 
           <div className="checklist-form-card">
             <form onSubmit={handleSubmit}>
@@ -90,7 +97,7 @@ export default function Annual({ unit, template }) {
               <label className="checklist-label">Date of maintenance</label>
               <input type="date" className="checklist-input" name="date_of_maintenance" required />
 
-              {template.questions?.map((question, i) => (
+              {questions.map((question, i) => (
                 <div key={i}>
                   <label className="checklist-label">{question}</label>
                   <textarea name={`q${i + 1}`} className="checklist-textarea" rows={2} onInput={autoGrow} />
@@ -103,6 +110,7 @@ export default function Annual({ unit, template }) {
                 className="bg-slate-800 ut-label:text-lg border-2 border-dashed border-gray-600 p-8 h-48 cursor-pointer mb-4"
                 onClientUploadComplete={(res) => {
                   setPhotoUrls(prev => [...prev, ...res.map(f => f.url)]);
+                  alert("Photos uploaded!");
                 }}
                 onUploadError={(error) => setErrorMsg(`Upload Error: ${error.message}`)}
               />
@@ -115,7 +123,7 @@ export default function Annual({ unit, template }) {
                 </div>
               )}
 
-              <button className="checklist-submit" disabled={submitting}>
+              <button className="checklist-submit" disabled={submitting} style={{ marginTop: '20px' }}>
                 {submitting ? "Submitting..." : "Submit maintenance"}
               </button>
             </form>
@@ -143,7 +151,7 @@ export async function getServerSideProps({ params }) {
 
   return {
     props: {
-      unit: { serial_number: unitRec.fields.serial_number, record_id: unitRec.id, public_token: unitRec.fields.public_token },
+      unit: { serial_number: unitRec.fields.serial_number, company: unitRec.fields.company, record_id: unitRec.id, public_token: unitRec.fields.public_token },
       template: { id: templateRec.id, questions: JSON.parse(templateRec.fields.questions_json || "[]") },
     },
   };
