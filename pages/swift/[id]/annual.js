@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { UploadButton, UploadDropzone } from "../../../utils/uploadthing"; 
+import { UploadDropzone } from "../../../utils/uploadthing"; 
 
 function autoGrow(e) {
   const el = e.target;
@@ -24,60 +24,19 @@ const getClientLogo = (companyName, serialNumber) => {
 export default function Annual({ unit, template }) {
   const router = useRouter();
   
-  // 1. SAFETY GUARD: Prevents build-time crashes when data is fetching
   if (!unit || !template) {
     return <div style={{ color: "white", padding: "20px" }}>Loading checklist...</div>;
   }
 
-  const canvasRef = useRef(null);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [geo, setGeo] = useState({ lat: "", lng: "", town: "", w3w: "" });
-  
-  // State for UploadThing URLs
   const [photoUrls, setPhotoUrls] = useState([]);
-  const [signatureUrl, setSignatureUrl] = useState("");
 
   const questions = template.questions || [];
 
-  // Signature drawing logic
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    let drawing = false;
-    const getPos = (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const touch = e.touches ? e.touches[0] : e;
-      return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
-    };
-    const start = (e) => { e.preventDefault(); drawing = true; const { x, y } = getPos(e); ctx.beginPath(); ctx.moveTo(x, y); };
-    const move = (e) => {
-      if (!drawing) return; e.preventDefault(); const { x, y } = getPos(e);
-      ctx.lineTo(x, y); ctx.strokeStyle = "#FFF"; ctx.lineWidth = 2; ctx.stroke();
-    };
-    const end = () => (drawing = false);
-    canvas.addEventListener("mousedown", start); canvas.addEventListener("mousemove", move); canvas.addEventListener("mouseup", end);
-    canvas.addEventListener("touchstart", start); canvas.addEventListener("touchmove", move); canvas.addEventListener("touchend", end);
-    return () => {
-      canvas.removeEventListener("mousedown", start); canvas.removeEventListener("mousemove", move); canvas.removeEventListener("mouseup", end);
-      canvas.removeEventListener("touchstart", start); canvas.removeEventListener("touchmove", move); canvas.removeEventListener("touchend", end);
-    };
-  }, []);
-
-  const clearSignature = () => {
-    const ctx = canvasRef.current.getContext("2d");
-    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    setSignatureUrl(""); 
-  };
-
   const removePhoto = (indexToRemove) => {
     setPhotoUrls(prev => prev.filter((_, index) => index !== indexToRemove));
-  };
-
-  const signatureIsEmpty = () => {
-    const data = canvasRef.current.getContext("2d").getImageData(0, 0, canvasRef.current.width, canvasRef.current.height).data;
-    return !data.some((pixel) => pixel !== 0);
   };
 
   useEffect(() => {
@@ -98,13 +57,8 @@ export default function Annual({ unit, template }) {
   async function handleSubmit(e) {
     e.preventDefault();
     setErrorMsg("");
-
-    if (signatureIsEmpty() || !signatureUrl) { 
-        setErrorMsg("Please draw and SAVE your signature before submitting."); 
-        return; 
-    }
-
     setSubmitting(true);
+
     const formEl = e.target;
     const formData = new FormData(formEl);
     const formProps = Object.fromEntries(formData.entries());
@@ -116,7 +70,6 @@ export default function Annual({ unit, template }) {
       location_town: geo.town,
       location_what3words: geo.w3w,
       photoUrls: photoUrls, 
-      signatureUrl: signatureUrl,
       answers: questions.map((_, i) => ({
         question: `q${i+1}`,
         answer: formProps[`q${i+1}`] || ""
@@ -177,61 +130,36 @@ export default function Annual({ unit, template }) {
               <label className="checklist-label">Upload photos</label>
               <UploadDropzone
                 endpoint="maintenanceImage"
-                className="bg-slate-800 ut-label:text-lg ut-allowed-content:ut-uploading:text-red-300 border-2 border-dashed border-gray-600 mb-4"
+                className="bg-slate-800 ut-label:text-lg ut-allowed-content:ut-uploading:text-red-300 border-2 border-dashed border-gray-600 p-8 h-64 cursor-pointer"
                 onClientUploadComplete={(res) => {
-                  const newUrls = res.map(f => f.url);
-                  setPhotoUrls(prev => [...prev, ...newUrls]);
+                  const urls = res.map(f => f.url);
+                  setPhotoUrls(prev => [...prev, ...urls]);
                 }}
-                onUploadError={(error) => alert(`Upload Error: ${error.message}`)}
+                onUploadError={(error) => alert(`Error: ${error.message}`)}
               />
 
-              {/* PHOTO PREVIEW GALLERY WITH REMOVE BUTTON */}
+              {/* PHOTO PREVIEW */}
               {photoUrls.length > 0 && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '10px', marginBottom: '20px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '10px', marginTop: '15px' }}>
                     {photoUrls.map((url, index) => (
                     <div key={index} style={{ position: 'relative' }}>
-                        <img src={url} style={{ width: '100%', height: '80px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #444' }} />
+                        <img src={url} style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '8px' }} />
                         <button 
                             type="button" 
                             onClick={() => removePhoto(index)}
-                            style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', fontSize: '12px' }}
+                            style={{ position: 'absolute', top: '2px', right: '2px', background: 'rgba(255,0,0,0.8)', color: 'white', border: 'none', borderRadius: '50%', width: '22px', height: '22px', cursor: 'pointer' }}
                         >✕</button>
                     </div>
                     ))}
                 </div>
               )}
 
-              <label className="checklist-label">Signature (Draw then click Save)</label>
-              <canvas ref={canvasRef} width={350} height={150} className="checklist-signature" />
-              
-              <div style={{ marginTop: '10px', display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  <button type="button" onClick={clearSignature} className="checklist-clear-btn">Clear</button>
-                  
-                  <UploadButton
-                    endpoint="signatureImage"
-                    onBeforeUploadBegin={(files) => {
-                        return new Promise((resolve) => {
-                            canvasRef.current.toBlob((blob) => {
-                                const file = new File([blob], "signature.png", { type: "image/png" });
-                                resolve([file]);
-                            });
-                        });
-                    }}
-                    onClientUploadComplete={(res) => {
-                        setSignatureUrl(res[0].url);
-                        alert("Signature saved successfully!");
-                    }}
-                    onUploadError={() => alert("Failed to save signature. Please try again.")}
-                    content={{ button({ ready }) { return ready ? "Save Signature" : "Uploading..."; } }}
-                  />
-              </div>
-
               <input type="hidden" name="unit_record_id" value={unit.record_id} />
               <input type="hidden" name="maintenance_type" value="Annual" />
               <input type="hidden" name="checklist_template_id" value={template.id} />
 
-              <button className="checklist-submit" disabled={submitting || !signatureUrl} style={{ marginTop: '30px' }}>
-                {submitting ? "Submitting..." : signatureUrl ? "Submit maintenance" : "Save Signature first"}
+              <button className="checklist-submit" disabled={submitting} style={{ marginTop: '40px' }}>
+                {submitting ? "Submitting..." : "Submit maintenance"}
               </button>
             </form>
           </div>
