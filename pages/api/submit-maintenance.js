@@ -14,7 +14,9 @@ export default async function handler(req, res) {
     const form = new IncomingForm({
   multiples: true,
   allowEmptyFiles: true,
+  minFileSize: 0,
 });
+
 
 
     const { fields, files } = await new Promise((resolve, reject) => {
