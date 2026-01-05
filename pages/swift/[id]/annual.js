@@ -2,50 +2,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { UploadDropzone } from "../../../utils/uploadthing"; 
 
-function autoGrow(e) {
-  const el = e.target;
-  el.style.height = "auto";
-  el.style.height = el.scrollHeight + "px";
-}
-
-const getClientLogo = (companyName, serialNumber) => {
-  if (["SWI001", "SWI002"].includes(serialNumber) || companyName?.includes("Changi")) {
-    return { src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg", alt: "Logo" };
-  }
-  if (serialNumber === "SWI003" || companyName?.includes("Milford Haven")) {
-    return { src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg", alt: "Logo" };
-  }
-  if (["SWI010", "SWI011"].includes(serialNumber) || companyName?.includes("Hatloy")) {
-    return { src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg", alt: "Logo" };
-  }
-  return null;
-};
-
 export default function Annual({ unit, template }) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [geo, setGeo] = useState({ lat: "", lng: "", town: "", w3w: "" });
   const [photoUrls, setPhotoUrls] = useState([]);
-
-  if (!unit || !template) return <div className="p-8 text-white">Loading...</div>;
-
-  const questions = template.questions || [];
-
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
-      try {
-        const w3 = await fetch(`https://api.what3words.com/v3/convert-to-3wa?coordinates=${lat}%2C${lng}&key=${process.env.NEXT_PUBLIC_W3W_API_KEY}`);
-        const w3json = await w3.json();
-        const osm = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
-        const osmJson = await osm.json();
-        setGeo({ lat, lng, w3w: w3json.words || "", town: osmJson.address?.town || osmJson.address?.village || osmJson.address?.city || "" });
-      } catch {}
-    });
-  }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -57,12 +18,11 @@ export default function Annual({ unit, template }) {
 
     const payload = {
       ...formProps,
-      location_lat: geo.lat,
-      location_lng: geo.lng,
-      location_town: geo.town,
-      location_what3words: geo.w3w,
       photoUrls: photoUrls, 
-      answers: questions.map((_, i) => ({
+      unit_record_id: unit.record_id,
+      maintenance_type: "Annual",
+      checklist_template_id: template.id,
+      answers: (template.questions || []).map((_, i) => ({
         question: `q${i+1}`,
         answer: formProps[`q${i+1}`] || ""
       }))
@@ -74,8 +34,9 @@ export default function Annual({ unit, template }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+
       const json = await res.json();
-      if (!json.success) throw new Error(json.error || "Submission failed");
+      if (!json.success) throw new Error(json.error || "Airtable Error - Check Table IDs");
       router.push(`/swift/${unit.public_token}/annual-complete`);
     } catch (err) {
       setErrorMsg(err.message);
@@ -83,48 +44,26 @@ export default function Annual({ unit, template }) {
     }
   }
 
-  const logo = getClientLogo(unit.company, unit.serial_number);
-
   return (
     <div className="swift-main-layout-wrapper">
       <div className="page-wrapper">
         <div className="swift-checklist-container">
-          {logo && <div className="checklist-logo"><img src={logo.src} alt={logo.alt} /></div>}
-          <h1 className="checklist-hero-title">{unit.serial_number}<span className="break-point">annual maintenance</span></h1>
-          {errorMsg && <p className="checklist-error">{errorMsg}</p>}
+          <h1 className="checklist-hero-title">{unit.serial_number} annual maintenance</h1>
+          {errorMsg && <p className="checklist-error" style={{color: 'red', marginBottom: '10px'}}>{errorMsg}</p>}
 
           <div className="checklist-form-card">
             <form onSubmit={handleSubmit}>
-              <label className="checklist-label">Maintenance company</label>
-              <select name="maintained_by" className="checklist-input" required>
-                <option value="">Select...</option>
-                <option value="Zelim">Zelim</option>
-                <option value="Exuma">Exuma</option>
-              </select>
-
               <label className="checklist-label">Engineer name</label>
               <input className="checklist-input" name="engineer_name" required />
-
-              <label className="checklist-label">Date of maintenance</label>
-              <input type="date" className="checklist-input" name="date_of_maintenance" required />
-
-              {questions.map((question, i) => (
-                <div key={i}>
-                  <label className="checklist-label">{question}</label>
-                  <textarea name={`q${i + 1}`} className="checklist-textarea" rows={2} onInput={autoGrow} />
-                </div>
-              ))}
 
               <label className="checklist-label">Upload photos</label>
               <UploadDropzone
                 endpoint="maintenanceImage"
-                className="bg-slate-800 ut-label:text-lg border-2 border-dashed border-gray-600 p-8 h-48 cursor-pointer mb-4"
+                className="bg-slate-800 border-2 border-dashed border-gray-600 p-8 h-48 cursor-pointer mb-4"
                 onClientUploadComplete={(res) => {
-                  const urls = res.map(f => f.url);
-                  setPhotoUrls(prev => [...prev, ...urls]);
+                  setPhotoUrls(prev => [...prev, ...res.map(f => f.url)]);
                   alert("Upload complete!");
                 }}
-                onUploadError={(error) => setErrorMsg(`Upload Error: ${error.message}`)}
               />
 
               {photoUrls.length > 0 && (
@@ -135,12 +74,8 @@ export default function Annual({ unit, template }) {
                 </div>
               )}
 
-              <input type="hidden" name="unit_record_id" value={unit.record_id} />
-              <input type="hidden" name="maintenance_type" value="Annual" />
-              <input type="hidden" name="checklist_template_id" value={template.id} />
-
-              <button className="checklist-submit" disabled={submitting} style={{ marginTop: '20px' }}>
-                {submitting ? "Submitting..." : "Submit maintenance"}
+              <button className="checklist-submit" disabled={submitting}>
+                {submitting ? "Submitting to Airtable..." : "Submit maintenance"}
               </button>
             </form>
           </div>
@@ -167,8 +102,8 @@ export async function getServerSideProps({ params }) {
 
   return {
     props: {
-      unit: { serial_number: unitRec.fields.serial_number, company: unitRec.fields.company, record_id: unitRec.id, public_token: unitRec.fields.public_token },
-      template: { id: templateRec.id, name: templateRec.fields.template_name, questions: JSON.parse(templateRec.fields.questions_json || "[]") },
+      unit: { serial_number: unitRec.fields.serial_number, record_id: unitRec.id, public_token: unitRec.fields.public_token },
+      template: { id: templateRec.id, questions: JSON.parse(templateRec.fields.questions_json || "[]") },
     },
   };
 }
