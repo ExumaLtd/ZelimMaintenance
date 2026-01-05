@@ -1,6 +1,7 @@
 import formidable from "formidable";
 import fs from "fs";
 
+// Disable Next body parser (REQUIRED for file uploads)
 export const config = {
   api: { bodyParser: false },
 };
@@ -34,21 +35,21 @@ export default async function handler(req, res) {
       comments,
     } = fields;
 
-    // -----------------------------
-    // BUILD CHECKLIST JSON (FIXED)
-    // -----------------------------
+    // ------------------------------------
+    // BUILD CHECKLIST ANSWERS (FIXED)
+    // ------------------------------------
     const answers = [];
 
     Object.keys(fields)
-      .filter((key) => /^q\d+$/.test(key)) // q1, q2, q3 ✅
+      .filter((key) => /^q\d+$/.test(key)) // q1, q2, q3...
       .sort((a, b) => {
-        const aNum = Number(a.replace("q", ""));
-        const bNum = Number(b.replace("q", ""));
-        return aNum - bNum;
+        const numA = parseInt(a.replace("q", ""), 10);
+        const numB = parseInt(b.replace("q", ""), 10);
+        return numA - numB;
       })
-      .forEach((key, index) => {
+      .forEach((key) => {
         answers.push({
-          question_number: index + 1,
+          question_key: key,
           answer: fields[key],
         });
       });
@@ -60,9 +61,9 @@ export default async function handler(req, res) {
       comments: comments || "",
     };
 
-    // -----------------------------
-    // FILE ENCODER
-    // -----------------------------
+    // ------------------------------------
+    // FILE ENCODING HELPER
+    // ------------------------------------
     const encodeFile = (file) => {
       if (!file) return null;
       const buffer = fs.readFileSync(file.filepath);
@@ -73,19 +74,22 @@ export default async function handler(req, res) {
       };
     };
 
-    const signature = files.signature
-      ? [encodeFile(files.signature)]
-      : [];
+    // Signature (single file)
+    const signature =
+      files.signature && encodeFile(files.signature)
+        ? [encodeFile(files.signature)]
+        : [];
 
+    // Photos (multiple allowed)
     const photos = Array.isArray(files.photos)
-      ? files.photos.map(encodeFile)
+      ? files.photos.map((f) => encodeFile(f))
       : files.photos
       ? [encodeFile(files.photos)]
       : [];
 
-    // -----------------------------
+    // ------------------------------------
     // AIRTABLE PAYLOAD
-    // -----------------------------
+    // ------------------------------------
     const airtablePayload = {
       records: [
         {
@@ -101,6 +105,8 @@ export default async function handler(req, res) {
             location_town,
             location_what3words,
             checklist_json: JSON.stringify(checklist_json),
+            photos,
+            signature,
           },
         },
       ],
