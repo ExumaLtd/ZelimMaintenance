@@ -1,262 +1,106 @@
-// pages/swift/[id]/annual.js
-
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/router";
 import Head from "next/head";
+import { useState } from "react";
 
-/* -----------------------------
-   AUTO-GROW TEXTAREA
------------------------------ */
-function autoGrow(e) {
-  const el = e.target;
-  el.style.height = "auto";
-  el.style.height = el.scrollHeight + "px";
-}
+/**
+ * Airtable record ID for:
+ * checklist_templates → "Annual Maintenance"
+ */
+const ANNUAL_TEMPLATE_ID = "recOjIUedN1UD9jZK";
 
-export default function Annual({ unit, checklistTemplate }) {
-  const router = useRouter();
-  const canvasRef = useRef(null);
-
+export default function AnnualMaintenance({ unit, questions }) {
   const [submitting, setSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [geo, setGeo] = useState({ lat: "", lng: "", town: "", w3w: "" });
+  const [error, setError] = useState(false);
 
-  /* -----------------------------
-     SIGNATURE PAD
-  ----------------------------- */
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    let drawing = false;
-
-    const getPos = (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const touch = e.touches ? e.touches[0] : e;
-      return {
-        x: touch.clientX - rect.left,
-        y: touch.clientY - rect.top,
-      };
-    };
-
-    const start = (e) => {
-      e.preventDefault();
-      drawing = true;
-      const { x, y } = getPos(e);
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-    };
-
-    const move = (e) => {
-      if (!drawing) return;
-      e.preventDefault();
-      const { x, y } = getPos(e);
-      ctx.lineTo(x, y);
-      ctx.strokeStyle = "#FFF";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    };
-
-    const end = () => (drawing = false);
-
-    canvas.addEventListener("mousedown", start);
-    canvas.addEventListener("mousemove", move);
-    canvas.addEventListener("mouseup", end);
-    canvas.addEventListener("touchstart", start);
-    canvas.addEventListener("touchmove", move);
-    canvas.addEventListener("touchend", end);
-
-    return () => {
-      canvas.removeEventListener("mousedown", start);
-      canvas.removeEventListener("mousemove", move);
-      canvas.removeEventListener("mouseup", end);
-      canvas.removeEventListener("touchstart", start);
-      canvas.removeEventListener("touchmove", move);
-      canvas.removeEventListener("touchend", end);
-    };
-  }, []);
-
-  const clearSignature = () => {
-    const ctx = canvasRef.current.getContext("2d");
-    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-  };
-
-  const signatureIsEmpty = () => {
-    const data = canvasRef.current
-      .getContext("2d")
-      .getImageData(0, 0, canvasRef.current.width, canvasRef.current.height)
-      .data;
-    return !data.some((p) => p !== 0);
-  };
-
-  /* -----------------------------
-     GEOLOCATION + WHAT3WORDS
-  ----------------------------- */
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
-
-      let w3w = "";
-      let town = "";
-
-      try {
-        const w3 = await fetch(
-          `https://api.what3words.com/v3/convert-to-3wa?coordinates=${lat},${lng}&key=${process.env.NEXT_PUBLIC_W3W_API_KEY}`
-        );
-        const w3json = await w3.json();
-        w3w = w3json.words || "";
-
-        const osm = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
-        );
-        const osmJson = await osm.json();
-        town =
-          osmJson.address?.town ||
-          osmJson.address?.city ||
-          osmJson.address?.village ||
-          "";
-      } catch (err) {
-        console.warn("Location lookup failed");
-      }
-
-      setGeo({ lat, lng, town, w3w });
-    });
-  }, []);
-
-  /* -----------------------------
-     SUBMIT HANDLER
-  ----------------------------- */
   async function handleSubmit(e) {
     e.preventDefault();
-    setErrorMsg("");
-
-    if (signatureIsEmpty()) {
-      setErrorMsg("Signature is required.");
-      return;
-    }
-
     setSubmitting(true);
-    const form = e.target;
-    const data = new FormData(form);
+    setError(false);
 
-    canvasRef.current.toBlob(async (blob) => {
-      data.append("signature", blob, "signature.png");
-      data.append("location_lat", geo.lat);
-      data.append("location_lng", geo.lng);
-      data.append("location_town", geo.town);
-      data.append("location_what3words", geo.w3w);
+    const formData = new FormData(e.target);
 
-      try {
-        const res = await fetch("/api/submit-maintenance", {
-          method: "POST",
-          body: data,
-        });
+    // REQUIRED metadata for backend
+    formData.append("checklist_template_id", ANNUAL_TEMPLATE_ID);
+    formData.append("maintenance_type", "Annual");
+    formData.append("unit_public_token", unit.public_token);
 
-        const json = await res.json();
-        if (!json.success) throw new Error(json.error);
+    try {
+      const res = await fetch("/api/submit-maintenance", {
+        method: "POST",
+        body: formData,
+      });
 
-        router.push(`/swift/${unit.public_token}/annual-complete`);
-      } catch (err) {
-        console.error(err);
-        setErrorMsg("Submission failed. Please try again.");
-        setSubmitting(false);
+      if (!res.ok) {
+        throw new Error("Submission failed");
       }
-    });
+
+      // Success page (can be changed later)
+      window.location.href = `/swift/${unit.public_token}`;
+    } catch (err) {
+      console.error(err);
+      setSubmitting(false);
+      setError(true);
+    }
   }
 
   return (
     <>
       <Head>
-        <title>Annual Maintenance</title>
+        <title>{unit.serial_number} – Annual Maintenance</title>
       </Head>
 
-      <div className="swift-checklist-container">
-        <div className="checklist-logo">
-          <img src="/logo/zelim-logo.svg" alt="Zelim Logo" />
-        </div>
+      <div className="swift-main-layout-wrapper">
+        <div className="page-wrapper">
+          <h1 className="checklist-hero-title">
+            {unit.serial_number}
+            <span className="break-point">annual maintenance</span>
+          </h1>
 
-        <h1 className="checklist-hero-title">
-          {unit.serial_number}
-          <span className="break-point">annual maintenance</span>
-        </h1>
+          {error && (
+            <div className="error-banner">
+              Submission failed. Please try again.
+            </div>
+          )}
 
-        {errorMsg && <p className="checklist-error">{errorMsg}</p>}
+          <form className="checklist-form" onSubmit={handleSubmit}>
+            {/* Maintenance company */}
+            <div className="form-group">
+              <label>Maintenance company</label>
+              <select name="maintenance_company" required>
+                <option value="">Select…</option>
+                <option value="Zelim">Zelim</option>
+              </select>
+            </div>
 
-        <div className="checklist-form-card">
-          <form onSubmit={handleSubmit}>
-            <label className="checklist-label">Maintenance company</label>
-            <select name="maintained_by" className="checklist-input" required>
-              <option value="">Select...</option>
-              <option value="Zelim">Zelim</option>
-            </select>
+            {/* Engineer */}
+            <div className="form-group">
+              <label>Engineer name</label>
+              <input type="text" name="engineer_name" required />
+            </div>
 
-            <label className="checklist-label">Engineer name</label>
-            <input
-              className="checklist-input"
-              name="engineer_name"
-              required
-            />
+            {/* Date */}
+            <div className="form-group">
+              <label>Date of maintenance</label>
+              <input type="date" name="date_of_maintenance" required />
+            </div>
 
-            <label className="checklist-label">Date of maintenance</label>
-            <input
-              type="date"
-              className="checklist-input"
-              name="date_of_maintenance"
-              required
-            />
-
-            {checklistTemplate.questions.map((q, i) => (
-              <div key={i}>
-                <label className="checklist-label">{q}</label>
-                <textarea
-                  name={`q${i + 1}`}
-                  className="checklist-textarea"
-                  rows={2}
-                  onInput={autoGrow}
+            {/* Dynamic checklist questions */}
+            {questions.map((question, index) => (
+              <div className="form-group" key={index}>
+                <label>{question}</label>
+                <input
+                  type="text"
+                  name={`question_${index}`}
+                  required
                 />
               </div>
             ))}
 
-            <label className="checklist-label">Additional comments</label>
-            <textarea
-              name="comments"
-              className="checklist-textarea"
-              rows={2}
-              onInput={autoGrow}
-            />
-
-            <label className="checklist-label">Upload photos</label>
-            <input type="file" name="photos" accept="image/*" multiple />
-
-            <label className="checklist-label">Signature</label>
-            <canvas
-              ref={canvasRef}
-              width={350}
-              height={150}
-              className="checklist-signature"
-            />
-
             <button
-              type="button"
-              onClick={clearSignature}
-              className="checklist-clear-btn"
+              type="submit"
+              className="primary-btn"
+              disabled={submitting}
             >
-              Clear signature
-            </button>
-
-            {/* REQUIRED HIDDEN FIELDS */}
-            <input type="hidden" name="unit_record_id" value={unit.record_id} />
-            <input type="hidden" name="maintenance_type" value="Annual" />
-            <input
-              type="hidden"
-              name="checklist_template_id"
-              value={checklistTemplate.id}
-            />
-
-            <button className="checklist-submit" disabled={submitting}>
-              {submitting ? "Submitting..." : "Submit"}
+              {submitting ? "Submitting…" : "Submit maintenance"}
             </button>
           </form>
         </div>
@@ -265,51 +109,62 @@ export default function Annual({ unit, checklistTemplate }) {
   );
 }
 
-/* -----------------------------
-   SERVER SIDE PROPS
------------------------------ */
+/* ======================================================
+   SERVER-SIDE DATA FETCHING
+====================================================== */
+
 export async function getServerSideProps({ params }) {
   const token = params.id;
 
-  // 🔑 THIS IS YOUR ANNUAL TEMPLATE RECORD
-  const ANNUAL_TEMPLATE_ID = "recOjIUedN1UD9jZK";
+  const headers = {
+    Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
+  };
 
-  const unitReq = await fetch(
+  /**
+   * 1️⃣ Fetch SWIFT unit by public token
+   */
+  const unitRes = await fetch(
     `${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`,
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
-      },
-    }
+    { headers }
   );
 
-  const unitJson = await unitReq.json();
-  if (!unitJson.records.length) return { notFound: true };
+  const unitJson = await unitRes.json();
 
-  const unitRec = unitJson.records[0];
+  if (!unitJson.records || unitJson.records.length === 0) {
+    return { notFound: true };
+  }
 
-  const templateReq = await fetch(
+  const unit = unitJson.records[0].fields;
+
+  /**
+   * 2️⃣ Fetch Annual checklist template
+   */
+  const templateRes = await fetch(
     `${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/checklist_templates/${ANNUAL_TEMPLATE_ID}`,
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
-      },
-    }
+    { headers }
   );
 
-  const templateJson = await templateReq.json();
+  const templateJson = await templateRes.json();
+
+  /**
+   * 3️⃣ Parse questions_json (Airtable stores this as TEXT)
+   */
+  let questions = [];
+
+  try {
+    questions = JSON.parse(templateJson.fields.questions_json);
+  } catch (err) {
+    console.error("Failed to parse questions_json", err);
+    questions = [];
+  }
 
   return {
     props: {
       unit: {
-        record_id: unitRec.id,
-        serial_number: unitRec.fields.serial_number,
-        public_token: unitRec.fields.public_token,
+        serial_number: unit.serial_number,
+        public_token: unit.public_token,
       },
-      checklistTemplate: {
-        id: templateJson.id,
-        questions: templateJson.fields.questions_json || [],
-      },
+      questions,
     },
   };
 }
