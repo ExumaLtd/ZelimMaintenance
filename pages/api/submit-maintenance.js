@@ -1,5 +1,4 @@
 import formidable from "formidable";
-import fs from "fs";
 
 // Disable Next body parser
 export const config = {
@@ -14,13 +13,16 @@ export default async function handler(req, res) {
   try {
     const form = new formidable.IncomingForm({ multiples: true });
 
-    const { fields, files } = await new Promise((resolve, reject) => {
+    const { fields } = await new Promise((resolve, reject) => {
       form.parse(req, (err, fields, files) => {
         if (err) reject(err);
-        else resolve({ fields, files });
+        else resolve({ fields });
       });
     });
 
+    // -----------------------------
+    // REQUIRED CORE FIELDS
+    // -----------------------------
     const {
       unit_record_id,
       maintenance_type,
@@ -32,20 +34,23 @@ export default async function handler(req, res) {
       location_lng,
       location_town,
       location_what3words,
-      comments,
     } = fields;
 
     // -----------------------------
-    // Build checklist JSON
+    // BUILD CHECKLIST ANSWERS
     // -----------------------------
     const answers = [];
 
     Object.keys(fields)
-      .filter((key) => key.startsWith("q_"))
-      .sort()
+      .filter((key) => /^q\d+$/.test(key)) // q1, q2, q3
+      .sort((a, b) => {
+        const na = Number(a.replace("q", ""));
+        const nb = Number(b.replace("q", ""));
+        return na - nb;
+      })
       .forEach((key) => {
         answers.push({
-          question: fields[`${key}_label`],
+          question: key,
           answer: fields[key],
         });
       });
@@ -57,39 +62,13 @@ export default async function handler(req, res) {
     };
 
     // -----------------------------
-    // File encoding helper
-    // -----------------------------
-    const encodeFile = (file) => {
-      if (!file) return null;
-      const buffer = fs.readFileSync(file.filepath);
-      return {
-        filename: file.originalFilename,
-        contentType: file.mimetype,
-        data: buffer.toString("base64"),
-      };
-    };
-
-    // Signature
-    const signature =
-      files.signature && encodeFile(files.signature)
-        ? [{ ...encodeFile(files.signature) }]
-        : [];
-
-    // Photos
-    const photos = Array.isArray(files.photos)
-      ? files.photos.map((f) => encodeFile(f))
-      : files.photos
-      ? [encodeFile(files.photos)]
-      : [];
-
-    // -----------------------------
-    // Airtable payload
+    // AIRTABLE PAYLOAD
     // -----------------------------
     const airtablePayload = {
       records: [
         {
           fields: {
-            unit: [unit_record_id],
+            unit: [unit_record_id], // linked record MUST be array
             maintenance_type,
             checklist_template: [checklist_template_id],
             maintained_by,
@@ -99,9 +78,7 @@ export default async function handler(req, res) {
             location_lng: Number(location_lng),
             location_town,
             location_what3words,
-            checklist_json: JSON.stringify(checklist_json),
-            photos,
-            signature,
+            checklist_json, // send as object
           },
         },
       ],
@@ -123,12 +100,12 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       console.error("Airtable error:", result);
-      return res.status(500).json({ success: false });
+      return res.status(500).json({ success: false, error: result });
     }
 
     return res.status(200).json({ success: true });
   } catch (err) {
     console.error("Submit error:", err);
-    return res.status(500).json({ success: false });
+    return res.status(500).json({ success: false, error: err.message });
   }
 }
