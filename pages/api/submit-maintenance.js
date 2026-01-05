@@ -101,8 +101,6 @@ export default async function handler(req, res) {
             location_town,
             location_what3words,
             checklist_json: JSON.stringify(checklist_json),
-            photos,
-            signature,
           },
         },
       ],
