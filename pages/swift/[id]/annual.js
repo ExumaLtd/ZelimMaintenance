@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
-// Import both Button and Dropzone
 import { UploadButton, UploadDropzone } from "../../../utils/uploadthing"; 
 
 function autoGrow(e) {
@@ -24,18 +23,24 @@ const getClientLogo = (companyName, serialNumber) => {
 
 export default function Annual({ unit, template }) {
   const router = useRouter();
-  const canvasRef = useRef(null);
+  
+  // 1. SAFETY GUARD: Prevents build-time crashes when data is fetching
+  if (!unit || !template) {
+    return <div style={{ color: "white", padding: "20px" }}>Loading checklist...</div>;
+  }
 
+  const canvasRef = useRef(null);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [geo, setGeo] = useState({ lat: "", lng: "", town: "", w3w: "" });
   
+  // State for UploadThing URLs
   const [photoUrls, setPhotoUrls] = useState([]);
   const [signatureUrl, setSignatureUrl] = useState("");
 
   const questions = template.questions || [];
 
-  // Signature logic
+  // Signature drawing logic
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -63,7 +68,11 @@ export default function Annual({ unit, template }) {
   const clearSignature = () => {
     const ctx = canvasRef.current.getContext("2d");
     ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    setSignatureUrl("");
+    setSignatureUrl(""); 
+  };
+
+  const removePhoto = (indexToRemove) => {
+    setPhotoUrls(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
   const signatureIsEmpty = () => {
@@ -91,7 +100,7 @@ export default function Annual({ unit, template }) {
     setErrorMsg("");
 
     if (signatureIsEmpty() || !signatureUrl) { 
-        setErrorMsg("Please draw and SAVE your signature."); 
+        setErrorMsg("Please draw and SAVE your signature before submitting."); 
         return; 
     }
 
@@ -166,26 +175,33 @@ export default function Annual({ unit, template }) {
               <textarea name="comments" className="checklist-textarea" rows={2} onInput={autoGrow} />
 
               <label className="checklist-label">Upload photos</label>
-              {/* STYLED UPLOAD DROPZONE */}
               <UploadDropzone
                 endpoint="maintenanceImage"
-                className="bg-slate-800 ut-label:text-lg ut-allowed-content:ut-uploading:text-red-300 border-2 border-dashed border-gray-600"
+                className="bg-slate-800 ut-label:text-lg ut-allowed-content:ut-uploading:text-red-300 border-2 border-dashed border-gray-600 mb-4"
                 onClientUploadComplete={(res) => {
-                  setPhotoUrls(res.map(f => f.url));
+                  const newUrls = res.map(f => f.url);
+                  setPhotoUrls(prev => [...prev, ...newUrls]);
                 }}
                 onUploadError={(error) => alert(`Upload Error: ${error.message}`)}
               />
 
-              {/* PHOTO PREVIEW GALLERY */}
+              {/* PHOTO PREVIEW GALLERY WITH REMOVE BUTTON */}
               {photoUrls.length > 0 && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginTop: '15px', marginBottom: '20px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '10px', marginBottom: '20px' }}>
                     {photoUrls.map((url, index) => (
-                    <img key={index} src={url} style={{ width: '100%', height: '80px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #444' }} />
+                    <div key={index} style={{ position: 'relative' }}>
+                        <img src={url} style={{ width: '100%', height: '80px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #444' }} />
+                        <button 
+                            type="button" 
+                            onClick={() => removePhoto(index)}
+                            style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', fontSize: '12px' }}
+                        >✕</button>
+                    </div>
                     ))}
                 </div>
               )}
 
-              <label className="checklist-label">Signature</label>
+              <label className="checklist-label">Signature (Draw then click Save)</label>
               <canvas ref={canvasRef} width={350} height={150} className="checklist-signature" />
               
               <div style={{ marginTop: '10px', display: 'flex', gap: '10px', alignItems: 'center' }}>
@@ -203,8 +219,9 @@ export default function Annual({ unit, template }) {
                     }}
                     onClientUploadComplete={(res) => {
                         setSignatureUrl(res[0].url);
-                        alert("Signature saved!");
+                        alert("Signature saved successfully!");
                     }}
+                    onUploadError={() => alert("Failed to save signature. Please try again.")}
                     content={{ button({ ready }) { return ready ? "Save Signature" : "Uploading..."; } }}
                   />
               </div>
@@ -224,4 +241,25 @@ export default function Annual({ unit, template }) {
   );
 }
 
-// ... getServerSideProps remains same ...
+export async function getServerSideProps({ params }) {
+  const token = params.id;
+  const unitReq = await fetch(`${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`, {
+      headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
+  });
+  const unitJson = await unitReq.json();
+  if (!unitJson.records?.length) return { notFound: true };
+  const unitRec = unitJson.records[0];
+
+  const templateReq = await fetch(`${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/checklist_templates?filterByFormula={type}='Annual'`, {
+      headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
+  });
+  const templateJson = await templateReq.json();
+  const templateRec = templateJson.records[0];
+
+  return {
+    props: {
+      unit: { serial_number: unitRec.fields.serial_number, company: unitRec.fields.company, record_id: unitRec.id, public_token: unitRec.fields.public_token },
+      template: { id: templateRec.id, name: templateRec.fields.template_name, questions: JSON.parse(templateRec.fields.questions_json || "[]") },
+    },
+  };
+}
