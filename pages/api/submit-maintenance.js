@@ -8,6 +8,7 @@ export default async function handler(req, res) {
     const body = req.body;
 
     // 1. Prepare the JSON data for the long-text field in Airtable
+    // This stores all your checklist answers in a single searchable field
     const checklist_json = JSON.stringify({
       maintenance_type: body.maintenance_type,
       submitted_at: new Date().toISOString(),
@@ -20,7 +21,7 @@ export default async function handler(req, res) {
       records: [
         {
           fields: {
-            unit: [body.unit_record_id], // Linked Record ID
+            unit: [body.unit_record_id], // Linked Record ID to the Swift Units table
             maintenance_type: body.maintenance_type,
             checklist_template: [body.checklist_template_id], // Linked Record ID
             maintained_by: body.maintained_by,
@@ -33,12 +34,12 @@ export default async function handler(req, res) {
             comments: body.comments || "",
             checklist_json: checklist_json,
             
-            // MAP THE PHOTO URLS
+            // MAP THE PHOTO URLS FROM UPLOADTHING
             photos: body.photoUrls 
               ? body.photoUrls.map(url => ({ url })) 
               : [],
             
-            // MAP THE SIGNATURE URL
+            // MAP THE SIGNATURE URL FROM UPLOADTHING
             signature: body.signatureUrl 
               ? [{ url: body.signatureUrl }] 
               : [],
@@ -68,7 +69,10 @@ export default async function handler(req, res) {
     }
 
     // Success response to frontend
-    return res.status(200).json({ success: true, airtable_id: result.records[0].id });
+    return res.status(200).json({ 
+        success: true, 
+        airtable_id: result.records[0].id 
+    });
 
   } catch (err) {
     console.error("Submission Handler Error:", err);
