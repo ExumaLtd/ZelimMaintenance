@@ -43,13 +43,14 @@
     text-transform: lowercase;
 }
 
+/* UPDATED: Padding increased to 38px */
 .checklist-form-card {
-    background: #172F36;
-    padding: 28px;
+    background: #172f36;
+    padding: 38px;
     border-radius: 20px;
     width: 100%;
     text-align: left;
-    margin: 0 auto 60px auto;
+    margin: 0 auto 60px;
 }
 
 /* --- TOP ROW DESKTOP LAYOUT --- */
@@ -114,10 +115,11 @@
     opacity: 1 !important;
 }
 
+/* UPDATED: Background changed to requested linear gradient */
 .checklist-input,
 .checklist-textarea {
     width: 100%;
-    background: #4f6167;
+    background: linear-gradient(39deg, rgba(74, 98, 104, .2) 12.44%, rgba(74, 98, 104, 0) 87.56%);
     border: 1px solid #394d54;
     border-radius: 8px;
     padding: 12px 15px; 
@@ -145,7 +147,7 @@
 
 .checklist-input option {
     color: #e9ebec;
-    background: #4f6167;
+    background: #172f36; /* Match card background for cohesive look */
 }
 
 .checklist-input::-ms-expand {
@@ -164,7 +166,6 @@
     line-height: 1.5;
 }
 
-/* Kill native date picker icons */
 input[type="date"]::-webkit-calendar-picker-indicator,
 input[type="date"]::-webkit-inner-spin-button,
 input[type="date"]::-webkit-clear-button {
