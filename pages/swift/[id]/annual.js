@@ -6,6 +6,11 @@ export default function AnnualMaintenance({ unit, template, engineerList }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // If template wasn't found, show an error instead of crashing the page
+  if (!template) {
+    return <div style={{ padding: '20px', color: 'red' }}>Error: Checklist template 'Annual' not found in Airtable.</div>;
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -13,7 +18,6 @@ export default function AnnualMaintenance({ unit, template, engineerList }) {
     const formData = new FormData(e.target);
     const answers = {};
     
-    // Organize checklist answers
     template.questions.forEach(q => {
       answers[q.id] = formData.get(`q-${q.id}`);
     });
@@ -50,12 +54,12 @@ export default function AnnualMaintenance({ unit, template, engineerList }) {
   return (
     <div className="checklist-container">
       <Head>
-        <title>Annual Maintenance - {unit.name}</title>
+        <title>Annual Maintenance - {unit?.name || 'Unit'}</title>
       </Head>
 
       <header className="checklist-header">
         <h1>Annual Maintenance</h1>
-        <p className="unit-badge">{unit.name}</p>
+        <p className="unit-badge">{unit?.name}</p>
       </header>
 
       <form onSubmit={handleSubmit} className="checklist-form">
@@ -83,6 +87,7 @@ export default function AnnualMaintenance({ unit, template, engineerList }) {
             className="checklist-input" 
             placeholder="Search existing or type new name..." 
             required 
+            autoComplete="off"
           />
           <datalist id="engineer-options">
             {engineerList.map((eng) => (
@@ -119,39 +124,45 @@ export async function getServerSideProps(context) {
   const apiKey = process.env.AIRTABLE_API_KEY;
   const baseId = process.env.AIRTABLE_BASE_ID;
 
-  // 1. Fetch Unit Details
-  const unitRes = await fetch(`https://api.airtable.com/v0/${baseId}/swift_units/${id}`, {
-    headers: { Authorization: `Bearer ${apiKey}` }
-  });
-  const unitData = await unitRes.json();
+  try {
+    // 1. Fetch Unit Details
+    const unitRes = await fetch(`https://api.airtable.com/v0/${baseId}/swift_units/${id}`, {
+      headers: { Authorization: `Bearer ${apiKey}` }
+    });
+    const unitData = await unitRes.json();
 
-  // 2. Fetch Checklist Template (Annual)
-  const templateRes = await fetch(`https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula={name}='Annual'`, {
-    headers: { Authorization: `Bearer ${apiKey}` }
-  });
-  const templateJson = await templateRes.json();
-  const templateRec = templateJson.records[0];
+    // 2. Fetch Checklist Template (Annual)
+    // IMPORTANT: Make sure the template name in Airtable is EXACTLY "Annual"
+    const templateRes = await fetch(`https://api.airtable.com/v0/${baseId}/checklist_templates`, {
+      headers: { Authorization: `Bearer ${apiKey}` }
+    });
+    const templateJson = await templateRes.json();
+    
+    // Safety check: Find the record where name is "Annual" manually
+    const templateRec = templateJson.records?.find(r => r.fields.name === 'Annual');
 
-  // 3. Fetch Existing Engineers
-  const engRes = await fetch(`https://api.airtable.com/v0/${baseId}/engineers`, {
-    headers: { Authorization: `Bearer ${apiKey}` }
-  });
-  const engJson = await engRes.json();
-  
-  // MATCHED TO YOUR COLUMN NAME: engineer_name
-  const engineerList = engJson.records.map(rec => ({
-    id: rec.id,
-    name: rec.fields.engineer_name || "" 
-  }));
+    // 3. Fetch Existing Engineers
+    const engRes = await fetch(`https://api.airtable.com/v0/${baseId}/engineers`, {
+      headers: { Authorization: `Bearer ${apiKey}` }
+    });
+    const engJson = await engRes.json();
+    const engineerList = engJson.records?.map(rec => ({
+      id: rec.id,
+      name: rec.fields.engineer_name || "" 
+    })) || [];
 
-  return {
-    props: {
-      unit: { id: unitData.id, name: unitData.fields.unit_name },
-      template: { 
-        id: templateRec.id, 
-        questions: JSON.parse(templateRec.fields.questions_json) 
-      },
-      engineerList
-    }
-  };
+    return {
+      props: {
+        unit: { id: unitData.id, name: unitData.fields.unit_name },
+        template: templateRec ? { 
+          id: templateRec.id, 
+          questions: JSON.parse(templateRec.fields.questions_json) 
+        } : null,
+        engineerList
+      }
+    };
+  } catch (error) {
+    console.error("Fetch Error:", error);
+    return { props: { unit: null, template: null, engineerList: [] } };
+  }
 }
