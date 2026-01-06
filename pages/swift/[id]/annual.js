@@ -21,7 +21,8 @@ const getClientLogo = (companyName, serialNumber) => {
   return null;
 };
 
-export default function Annual({ unit, template }) {
+// Added allCompanies to the props
+export default function Annual({ unit, template, allCompanies = [] }) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -40,9 +41,7 @@ export default function Annual({ unit, template }) {
     const formProps = Object.fromEntries(formData.entries());
 
     const payload = {
-      maintained_by: formProps.maintained_by,
-      engineer_name: formProps.engineer_name,
-      date_of_maintenance: formProps.date_of_maintenance,
+      ...formProps,
       photoUrls: photoUrls, 
       unit_record_id: unit.record_id,
       maintenance_type: "Annual",
@@ -61,7 +60,7 @@ export default function Annual({ unit, template }) {
       });
 
       const json = await res.json();
-      if (!json.success) throw new Error(json.error || "Airtable Submission Error");
+      if (!json.success) throw new Error(json.error || "Airtable Permission Error");
       router.push(`/swift/${unit.public_token}/annual-complete`);
     } catch (err) {
       setErrorMsg(err.message);
@@ -78,13 +77,23 @@ export default function Annual({ unit, template }) {
           {logo && <div className="checklist-logo"><img src={logo.src} alt={logo.alt} /></div>}
           <h1 className="checklist-hero-title">{unit.serial_number}<span className="break-point">annual maintenance</span></h1>
           
+          {errorMsg && (
+            <div className="checklist-error" style={{ border: '1px solid #ff4d4d', background: 'rgba(255, 77, 77, 0.1)', padding: '15px', borderRadius: '8px', color: '#ff4d4d', marginBottom: '20px' }}>
+              <strong>Submission Error:</strong> {errorMsg}
+            </div>
+          )}
+
           <div className="checklist-form-card">
             <form onSubmit={handleSubmit}>
               <label className="checklist-label">Maintenance company</label>
               <select name="maintained_by" className="checklist-input" required>
                 <option value="">Select...</option>
-                <option value="Zelim">Zelim</option>
-                <option value="Exuma">Exuma</option>
+                {/* Dynamically mapping all companies from your database */}
+                {allCompanies.map((companyName, index) => (
+                  <option key={index} value={companyName}>
+                    {companyName}
+                  </option>
+                ))}
               </select>
 
               <label className="checklist-label">Engineer name</label>
@@ -110,6 +119,14 @@ export default function Annual({ unit, template }) {
                 }}
                 onUploadError={(error) => setErrorMsg(`Upload Error: ${error.message}`)}
               />
+
+              {photoUrls.length > 0 && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '10px', marginBottom: '20px' }}>
+                    {photoUrls.map((url, index) => (
+                      <img key={index} src={url} style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '8px' }} />
+                    ))}
+                </div>
+              )}
 
               <button className="checklist-submit" disabled={submitting} style={{ marginTop: '20px' }}>
                 {submitting ? "Submitting..." : "Submit maintenance"}
@@ -137,10 +154,18 @@ export async function getServerSideProps({ params }) {
   const templateJson = await templateReq.json();
   const templateRec = templateJson.records[0];
 
+  // Fetching all companies from your database
+  const companyReq = await fetch(`${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/maintenance_companies`, {
+    headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
+  });
+  const companyJson = await companyReq.json();
+  const allCompanies = companyJson.records?.map(r => r.fields.company_name).filter(Boolean) || [];
+
   return {
     props: {
-      unit: { serial_number: unitRec.fields.serial_number, company: unitRec.fields.company, record_id: unitRec.id, public_token: unitRec.fields.public_token },
+      unit: { serial_number: unitRec.fields.unit_name || unitRec.fields.serial_number, company: unitRec.fields.company, record_id: unitRec.id, public_token: unitRec.fields.public_token },
       template: { id: templateRec.id, questions: JSON.parse(templateRec.fields.questions_json || "[]") },
+      allCompanies: allCompanies // Passing the list to the page
     },
   };
 }
