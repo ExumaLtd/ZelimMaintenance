@@ -6,13 +6,13 @@ export default function AnnualMaintenance({ unit, template, engineerList }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Safety check if template fetch failed
+  // Error state if the Annual template is missing from Airtable
   if (!template) {
     return (
-      <div style={{ padding: '40px', color: '#ff4d4d', backgroundColor: '#1a1a1a', minHeight: '100vh' }}>
-        <h2>Setup Error</h2>
-        <p>Could not find the 'Annual Maintenance' template in your Airtable.</p>
-        <p>Please check that the column is named <strong>template_name</strong> and the record is <strong>Annual Maintenance</strong>.</p>
+      <div style={{ padding: '40px', color: '#ff4d4d', backgroundColor: '#1a1a1a', minHeight: '100vh', fontFamily: 'sans-serif' }}>
+        <h2>Template Not Found</h2>
+        <p>Could not find a checklist template with the type <strong>Annual</strong>.</p>
+        <p>Please check your <em>checklist_templates</em> table in Airtable.</p>
       </div>
     );
   }
@@ -105,13 +105,13 @@ export default function AnnualMaintenance({ unit, template, engineerList }) {
         <hr className="divider" />
 
         <div className="questions-grid">
-          {template.questions.map((q) => (
-            <div key={q.id} className="question-card">
-              <p className="question-text">{q.text}</p>
+          {template.questions.map((q, index) => (
+            <div key={index} className="question-card">
+              <p className="question-text">{q}</p>
               <div className="radio-group">
-                <label><input type="radio" name={`q-${q.id}`} value="Pass" required /> Pass</label>
-                <label><input type="radio" name={`q-${q.id}`} value="Fail" /> Fail</label>
-                <label><input type="radio" name={`q-${q.id}`} value="N/A" /> N/A</label>
+                <label><input type="radio" name={`q-${index}`} value="Pass" required /> Pass</label>
+                <label><input type="radio" name={`q-${index}`} value="Fail" /> Fail</label>
+                <label><input type="radio" name={`q-${index}`} value="N/A" /> N/A</label>
               </div>
             </div>
           ))}
@@ -131,24 +131,24 @@ export async function getServerSideProps(context) {
   const baseId = process.env.AIRTABLE_BASE_ID;
 
   try {
+    // 1. Fetch Unit
     const unitRes = await fetch(`https://api.airtable.com/v0/${baseId}/swift_units/${id}`, {
       headers: { Authorization: `Bearer ${apiKey}` }
     });
     const unitData = await unitRes.json();
 
-    const templateRes = await fetch(`https://api.airtable.com/v0/${baseId}/checklist_templates`, {
+    // 2. Fetch Template specifically filtering for 'Annual' type
+    const templateRes = await fetch(`https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula={type}='Annual'`, {
       headers: { Authorization: `Bearer ${apiKey}` }
     });
     const templateJson = await templateRes.json();
-    
-    // MATCHED TO YOUR SCREENSHOT: Looking for "Annual Maintenance" in "template_name"
-    const templateRec = templateJson.records?.find(r => r.fields.template_name === 'Annual Maintenance');
+    const templateRec = templateJson.records?.[0];
 
+    // 3. Fetch Engineers
     const engRes = await fetch(`https://api.airtable.com/v0/${baseId}/engineers`, {
       headers: { Authorization: `Bearer ${apiKey}` }
     });
     const engJson = await engRes.json();
-    
     const engineerList = engJson.records?.map(rec => ({
       id: rec.id,
       name: rec.fields.engineer_name || "" 
@@ -165,6 +165,7 @@ export async function getServerSideProps(context) {
       }
     };
   } catch (error) {
+    console.error("Fetch Error:", error);
     return { props: { unit: null, template: null, engineerList: [] } };
   }
 }
