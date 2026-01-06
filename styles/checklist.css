@@ -61,7 +61,35 @@
     margin: 0 auto 60px auto;
 }
 
-/* --- 5. FORM LABELS + INPUT FIELDS --- */
+/* --- 5. INLINE GROUP (Desktop 3-column) --- */
+@media (min-width: 768px) {
+    .checklist-inline-group {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+        margin-bottom: 10px;
+    }
+
+    .checklist-field {
+        flex: 1;
+    }
+    
+    .checklist-field .checklist-label {
+        margin-top: 0 !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .checklist-inline-group {
+        display: block;
+    }
+    
+    .checklist-field {
+        margin-bottom: 0px;
+    }
+}
+
+/* --- 6. FORM LABELS + INPUT FIELDS --- */
 .checklist-label {
     display: block;
     color: #A0ACAF;
@@ -75,7 +103,6 @@
     margin-top: 0;
 }
 
-/* FONT AWESOME WRAPPER LOGIC */
 .input-icon-wrapper {
     position: relative;
     width: 100%;
@@ -83,11 +110,11 @@
 
 .input-icon-wrapper i {
     position: absolute;
-    right: 18px; /* Position icon inside the input */
+    right: 18px;
     top: 50%;
     transform: translateY(-50%);
     color: #FFFFFF;
-    pointer-events: none; /* Click "passes through" icon to input */
+    pointer-events: none;
     font-size: 16px;
     z-index: 2;
 }
@@ -104,28 +131,21 @@
     font-family: "Montserrat", sans-serif;
     text-align: left;
     transition: border-color 0.15s ease, background-color 0.15s ease;
-    
-    /* Font Awesome Prep */
     appearance: none !important;
     -webkit-appearance: none !important;
     position: relative;
 }
 
-/* Make room for the icon on the right */
 .checklist-input {
     padding-right: 45px !important; 
 }
 
-/* Native Date Picker Hack: Stretches the invisible native icon to cover the whole field */
+/* Native Date Picker Hack */
 input[type="date"]::-webkit-calendar-picker-indicator {
     background: transparent;
     bottom: 0; color: transparent; cursor: pointer;
     height: auto; left: 0; position: absolute;
     right: 0; top: 0; width: auto; z-index: 3;
-}
-
-.checklist-input::placeholder {
-    color: #bdc4c6;
 }
 
 .checklist-input:focus,
@@ -139,15 +159,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     resize: none;
     overflow: hidden;
     min-height: 48px;
-}
-
-/* --- 6. SIGNATURE PAD --- */
-.checklist-signature {
-    width: 100%;
-    background: #0B1E22;
-    border: 1px solid rgba(255,255,255,0.25);
-    border-radius: 12px;
-    margin-top: 10px;
 }
 
 /* --- 7. SUBMIT BUTTON --- */

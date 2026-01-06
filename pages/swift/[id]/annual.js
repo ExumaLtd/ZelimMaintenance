@@ -85,32 +85,43 @@ export default function Annual({ unit, template, allCompanies = [] }) {
           
           <div className="checklist-form-card">
             <form onSubmit={handleSubmit}>
-              <label className="checklist-label">Maintenance company</label>
-              <div className="input-icon-wrapper">
-                <select name="maintained_by" className="checklist-input" required>
-                  <option value="">Please select</option>
-                  {sortedCompanies.map((companyName, index) => (
-                    <option key={index} value={companyName}>{companyName}</option>
-                  ))}
-                </select>
-                <i className="fa-solid fa-chevron-down"></i>
+              
+              {/* Row 1: Company, Engineer, and Date */}
+              <div className="checklist-inline-group">
+                <div className="checklist-field">
+                  <label className="checklist-label">Maintenance company</label>
+                  <div className="input-icon-wrapper">
+                    <select name="maintained_by" className="checklist-input" required>
+                      <option value="">Please select</option>
+                      {sortedCompanies.map((companyName, index) => (
+                        <option key={index} value={companyName}>{companyName}</option>
+                      ))}
+                    </select>
+                    <i className="fa-solid fa-chevron-down"></i>
+                  </div>
+                </div>
+
+                <div className="checklist-field">
+                  <label className="checklist-label">Engineer name</label>
+                  <input className="checklist-input" name="engineer_name" required />
+                </div>
+
+                <div className="checklist-field">
+                  <label className="checklist-label">Date of maintenance</label>
+                  <div className="input-icon-wrapper">
+                    <input 
+                      type="date" 
+                      className="checklist-input" 
+                      name="date_of_maintenance" 
+                      defaultValue={today} 
+                      required 
+                    />
+                    <i className="fa-regular fa-calendar"></i>
+                  </div>
+                </div>
               </div>
 
-              <label className="checklist-label">Engineer name</label>
-              <input className="checklist-input" name="engineer_name" required placeholder="Type name..." />
-
-              <label className="checklist-label">Date of maintenance</label>
-              <div className="input-icon-wrapper">
-                <input 
-                  type="date" 
-                  className="checklist-input" 
-                  name="date_of_maintenance" 
-                  defaultValue={today} 
-                  required 
-                />
-                <i className="fa-regular fa-calendar"></i>
-              </div>
-
+              {/* Dynamic Questions */}
               {questions.map((question, i) => (
                 <div key={i}>
                   <label className="checklist-label">{question}</label>
@@ -162,16 +173,8 @@ export async function getServerSideProps({ params }) {
 
   return {
     props: {
-      unit: { 
-        serial_number: unitRec.fields.unit_name || unitRec.fields.serial_number, 
-        company: unitRec.fields.company, 
-        record_id: unitRec.id, 
-        public_token: unitRec.fields.public_token 
-      },
-      template: { 
-        id: templateRec.id, 
-        questions: JSON.parse(templateRec.fields.questions_json || "[]") 
-      },
+      unit: { serial_number: unitRec.fields.unit_name || unitRec.fields.serial_number, company: unitRec.fields.company, record_id: unitRec.id, public_token: unitRec.fields.public_token },
+      template: { id: templateRec.id, questions: JSON.parse(templateRec.fields.questions_json || "[]") },
       allCompanies: allCompanies 
     },
   };
