@@ -63,15 +63,15 @@
 @media (min-width: 768px) {
     .checklist-inline-group {
         display: flex;
-        gap: 20px; /* Restored to 20px gap */
-        align-items: flex-end; 
+        gap: 20px; /* Restored to 20px */
+        align-items: flex-end; /* FIXED: Aligns input boxes horizontally */
         margin-bottom: 10px;
         width: 100%;
     }
 
     .checklist-field {
         flex: 1;
-        min-width: 0; /* Ensures content doesn't push width out */
+        min-width: 0;
     }
     
     .checklist-field .checklist-label {
@@ -121,7 +121,7 @@
     font-size: 16px;
     z-index: 10;
     
-    /* Force rendering on first load before script finishes */
+    /* Force rendering on first load */
     font-style: normal;
     font-variant: normal;
     text-rendering: auto;
@@ -136,7 +136,7 @@
     background: #4f6167;
     border: 1px solid #394d54;
     border-radius: 8px;
-    padding: 12px 15px; /* Clean padding for text room */
+    padding: 12px 15px;
     color: #e9ebec;
     font-size: 16px;
     font-family: "Montserrat", sans-serif;
@@ -150,7 +150,7 @@
     height: 48px;
 }
 
-/* FIXED: No manual resize handle. Height controlled by JS autoGrow only. */
+/* FIXED: No manual resize handle. */
 .checklist-textarea {
     resize: none !important; 
     overflow: hidden;
@@ -166,7 +166,7 @@
     box-shadow: none;
 }
 
-/* Date picker transparency logic */
+/* Date picker transparency */
 input[type="date"]::-webkit-calendar-picker-indicator {
     background: transparent;
     bottom: 0; color: transparent; cursor: pointer;
