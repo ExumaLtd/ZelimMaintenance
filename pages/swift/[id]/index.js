@@ -1,4 +1,4 @@
-// pages/swift/[id]/index.js – FINAL FULL VERSION
+// pages/swift/[id]/index.js – FINAL FULL VERSION (Updated)
 
 import Head from "next/head";
 import Link from "next/link";
@@ -94,21 +94,21 @@ export async function getServerSideProps(context) {
 // CLIENT LOGO RESOLVER
 // -----------------------------
 const getClientLogo = (companyName, serialNumber) => {
-  if (["SWI001", "SWI002"].includes(serialNumber) || companyName.includes("Changi")) {
+  if (["SWI001", "SWI002"].includes(serialNumber) || companyName?.includes("Changi")) {
     return {
       src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg",
       alt: `${companyName} Logo`,
     };
   }
 
-  if (serialNumber === "SWI003" || companyName.includes("Milford Haven")) {
+  if (serialNumber === "SWI003" || companyName?.includes("Milford Haven")) {
     return {
       src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg",
       alt: `${companyName} Logo`,
     };
   }
 
-  if (["SWI010", "SWI011"].includes(serialNumber) || companyName.includes("Hatloy")) {
+  if (["SWI010", "SWI011"].includes(serialNumber) || companyName?.includes("Hatloy")) {
     return {
       src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg",
       alt: `${companyName} Logo`,
@@ -135,7 +135,8 @@ export default function SwiftUnitPage({
   return (
     <>
       <Head>
-        <title>{companyName} maintenance portal</title>
+        <title>{companyName} Maintenance Portal</title>
+        {/* CSS is now handled by _app.js */}
       </Head>
 
       <div className="swift-main-layout-wrapper">
@@ -145,18 +146,17 @@ export default function SwiftUnitPage({
             {/* LEFT PANEL */}
             <div className="detail-panel">
               {logoProps && (
-                <div className="logo-section">
+                <div className="logo-section" style={{ position: 'relative' }}>
                   <Image
                     src={logoProps.src}
                     alt={logoProps.alt}
-                    className="client-logo"
                     fill
                     priority
+                    style={{ objectFit: 'contain', objectPosition: 'left' }}
                   />
                 </div>
               )}
 
-              {/* ⭐ ALWAYS BREAK INTO 2 LINES ⭐ */}
               <h1 className="portal-title">
                 <span className="title-line">{companyName}</span>
                 <span className="title-line">maintenance portal</span>
@@ -191,7 +191,7 @@ export default function SwiftUnitPage({
                     To be completed in accordance with Section 7.1.2 –
                     Annual Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.
                   </p>
-                  <Link href={`/swift/${publicToken}/annual`} className="start-btn primary-btn">
+                  <Link href={`/swift/${publicToken}/annual`} className="start-btn">
                     Start maintenance
                   </Link>
                 </div>
@@ -202,7 +202,7 @@ export default function SwiftUnitPage({
                     To be completed in accordance with Section 7.2.2 –
                     30-Month Depth Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.
                   </p>
-                  <Link href={`/swift/${publicToken}/depth`} className="start-btn primary-btn">
+                  <Link href={`/swift/${publicToken}/depth`} className="start-btn">
                     Start maintenance
                   </Link>
                 </div>
@@ -219,6 +219,7 @@ export default function SwiftUnitPage({
                   <a
                     href="/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf"
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="download-link"
                   >
                     <Image src="/Icons/PDF_Icon.svg" width={40} height={40} alt="PDF Icon" />
@@ -231,6 +232,7 @@ export default function SwiftUnitPage({
                   <a
                     href="/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf"
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="download-link"
                   >
                     <Image src="/Icons/PDF_Icon.svg" width={40} height={40} alt="PDF Icon" />
@@ -249,7 +251,7 @@ export default function SwiftUnitPage({
         {/* Fixed Zelim logo */}
         <div className="zelim-spacer"></div>
         <div className="fixed-zelim-logo">
-          <a href="https://www.zelim.com" target="_blank">
+          <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
             <Image src="/logo/zelim-logo.svg" width={80} height={20} alt="Zelim logo" />
           </a>
         </div>

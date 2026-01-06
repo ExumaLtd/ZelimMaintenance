@@ -90,72 +90,92 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   return (
     <div className="swift-main-layout-wrapper">
       <Head>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
         <title>{unit.serial_number} | Annual Maintenance</title>
+        {/* Font Awesome is handled in _app.js, but keeping specific kit link here if needed for icons */}
       </Head>
+      
       <div className="page-wrapper">
         <div className="swift-checklist-container">
-          {logo && <div className="checklist-logo"><img src={logo.src} alt={logo.alt} /></div>}
-          <h1 className="checklist-hero-title">{unit.serial_number}<span className="break-point">annual maintenance</span></h1>
+          
+          {logo && (
+            <div className="checklist-logo">
+              <img src={logo.src} alt={logo.alt} />
+            </div>
+          )}
+
+          <h1 className="checklist-hero-title">
+            {unit.serial_number}
+            <span className="break-point">annual maintenance</span>
+          </h1>
           
           <div className="checklist-form-card">
             <form onSubmit={handleSubmit}>
+              
               <div className="checklist-inline-group">
+                {/* Maintenance Company */}
                 <div className="checklist-field">
                   <label className="checklist-label">Maintenance company</label>
-                  <div className="input-icon-wrapper">
-                    <select 
-                      name="maintained_by" 
-                      className="checklist-input company-dropdown" 
-                      required 
-                      defaultValue=""
-                      onChange={(e) => setSelectedCompany(e.target.value)}
-                    >
-                      <option value="" disabled hidden>Please select</option>
-                      {sortedCompanies.map((companyName, index) => (
-                        <option key={index} value={companyName}>{companyName}</option>
-                      ))}
-                    </select>
-                    <i className="fa-solid fa-chevron-down"></i>
-                  </div>
+                  <select 
+                    name="maintained_by" 
+                    className="checklist-input" 
+                    required 
+                    defaultValue=""
+                    onChange={(e) => setSelectedCompany(e.target.value)}
+                  >
+                    <option value="" disabled hidden>Please select</option>
+                    {sortedCompanies.map((companyName, index) => (
+                      <option key={index} value={companyName}>{companyName}</option>
+                    ))}
+                  </select>
                 </div>
 
+                {/* Engineer Name */}
                 <div className="checklist-field">
                   <label className="checklist-label">Engineer name</label>
-                  <div className="input-icon-wrapper">
-                    <input 
-                      className="checklist-input" 
-                      name="engineer_name" 
-                      autoComplete="off"
-                      // Only attach the list if a company is selected
-                      list={selectedCompany ? "engineer-list" : undefined} 
-                      required 
-                      placeholder={selectedCompany ? "Type or select" : "Select company first"}
-                    />
-                    <datalist id="engineer-list">
-                      {filteredEngineers.map((name, index) => (
-                        <option key={index} value={name} />
-                      ))}
-                    </datalist>
-                  </div>
+                  <input 
+                    className="checklist-input" 
+                    name="engineer_name" 
+                    autoComplete="off"
+                    list={selectedCompany ? "engineer-list" : undefined} 
+                    required 
+                    placeholder={selectedCompany ? "Type or select" : "Select company first"}
+                  />
+                  <datalist id="engineer-list">
+                    {filteredEngineers.map((name, index) => (
+                      <option key={index} value={name} />
+                    ))}
+                  </datalist>
                 </div>
 
+                {/* Date */}
                 <div className="checklist-field">
                   <label className="checklist-label">Date of maintenance</label>
-                  <div className="input-icon-wrapper">
-                    <input type="date" className="checklist-input" name="date_of_maintenance" defaultValue={today} max={today} required />
-                    <i className="fa-regular fa-calendar"></i>
-                  </div>
+                  <input 
+                    type="date" 
+                    className="checklist-input" 
+                    name="date_of_maintenance" 
+                    defaultValue={today} 
+                    max={today} 
+                    required 
+                  />
                 </div>
               </div>
 
+              {/* Dynamic Questions */}
               {questions.map((question, i) => (
                 <div key={i}>
                   <label className="checklist-label">{question}</label>
-                  <textarea name={`q${i + 1}`} className="checklist-textarea" onInput={autoGrow} rows={2} style={{ height: '72px' }} />
+                  <textarea 
+                    name={`q${i + 1}`} 
+                    className="checklist-textarea" 
+                    onInput={autoGrow} 
+                    rows={2} 
+                    style={{ height: '72px' }} 
+                  />
                 </div>
               ))}
 
+              {/* File Upload */}
               <label className="checklist-label">Upload photos</label>
               <UploadDropzone
                 endpoint="maintenanceImage"
@@ -163,6 +183,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                 onClientUploadComplete={(res) => setPhotoUrls(prev => [...prev, ...res.map(f => f.url)])}
                 onUploadError={(error) => alert(`Upload Error: ${error.message}`)}
               />
+
+              {errorMsg && <p style={{ color: '#ff4d4d', marginTop: '10px' }}>{errorMsg}</p>}
 
               <button className="checklist-submit" disabled={submitting}>
                 {submitting ? "Submitting..." : "Submit maintenance"}
@@ -181,7 +203,7 @@ export async function getServerSideProps({ params }) {
     const headers = { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` };
     const baseId = process.env.AIRTABLE_BASE_ID;
 
-    // Fetch everything in parallel
+    // Fetch data in parallel
     const [uReq, tReq, cReq, eReq] = await Promise.all([
       fetch(`https://api.airtable.com/v0/${baseId}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`, { headers }),
       fetch(`https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula={type}='Annual'`, { headers }),
@@ -195,7 +217,6 @@ export async function getServerSideProps({ params }) {
     const unitRec = uJson.records[0];
     const templateRec = tJson.records[0];
 
-    // Create a map for IDs to Company Names to fix the Linked Record issue
     const companyIdToName = {};
     cJson.records?.forEach(r => {
       companyIdToName[r.id] = r.fields.company_name;
@@ -216,7 +237,6 @@ export async function getServerSideProps({ params }) {
         allCompanies: Object.values(companyIdToName).filter(Boolean),
         allEngineers: eJson.records?.map(r => ({
           name: r.fields.engineer_name,
-          // Convert the ID array [ "recXXX" ] into the text "Zelim"
           companyName: companyIdToName[r.fields["company"]?.[0]] || "" 
         })).filter(eng => eng.name) || []
       },

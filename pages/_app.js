@@ -1,7 +1,7 @@
 import "/styles/globals.css";
 import "/styles/landing.css";
-import "/styles/maintenance.css";
-import "/styles/checklist.css";
+import "/styles/dashboard.css";
+import "/styles/form.css";
 
 import Head from "next/head";
 
