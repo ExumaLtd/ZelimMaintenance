@@ -4,7 +4,7 @@ import Head from "next/head";
 import { UploadDropzone } from "../../../utils/uploadthing"; 
 
 function autoGrow(e) {
-  const el = e.target;
+  const el = e.target || e; // Handle both event and raw element
   el.style.height = "72px"; 
   const newHeight = el.scrollHeight;
   el.style.height = newHeight + "px";
@@ -33,17 +33,53 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   // Track company selection for filtering
   const [selectedCompany, setSelectedCompany] = useState("");
 
+  // 1. UNIQUE STORAGE KEY
+  const storageKey = `draft_annual_${unit?.serial_number}`;
+
+  // 2. LOAD DRAFT & SET DATE ON MOUNT
   useEffect(() => {
     const date = new Date().toISOString().split('T')[0];
     setToday(date);
-  }, []);
+
+    const savedDraft = localStorage.getItem(storageKey);
+    if (savedDraft) {
+      try {
+        const data = JSON.parse(savedDraft);
+        
+        // Short timeout ensures the DOM is painted so we can target by name
+        setTimeout(() => {
+          Object.keys(data).forEach(key => {
+            const input = document.getElementsByName(key)[0];
+            if (input) {
+              input.value = data[key];
+              // Trigger auto-grow for textareas
+              if (input.tagName === "TEXTAREA") {
+                autoGrow(input);
+              }
+            }
+          });
+          if (data.maintained_by) setSelectedCompany(data.maintained_by);
+        }, 100);
+      } catch (e) {
+        console.error("Error loading draft", e);
+      }
+    }
+  }, [storageKey]);
+
+  // 3. AUTO-SAVE HANDLER
+  const handleInputChange = (e) => {
+    // Target the form containing the input
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    localStorage.setItem(storageKey, JSON.stringify(data));
+  };
 
   if (!unit || !template) return <div className="p-8 text-white">Loading...</div>;
 
   const questions = template.questions || [];
   const sortedCompanies = [...allCompanies].sort((a, b) => a.localeCompare(b));
 
-  // Filter engineers based on the selected company name
   const filteredEngineers = allEngineers
     .filter(eng => !selectedCompany || eng.companyName === selectedCompany)
     .map(eng => eng.name)
@@ -78,6 +114,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
       const json = await res.json();
       if (!json.success) throw new Error(json.error || "Airtable Submission Error");
+      
+      // 4. CLEAR DRAFT ON SUCCESS
+      localStorage.removeItem(storageKey);
+      
       router.push(`/swift/${unit.public_token}/annual-complete`);
     } catch (err) {
       setErrorMsg(err.message);
@@ -109,10 +149,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             </h1>
             
             <div className="checklist-form-card">
-              <form onSubmit={handleSubmit}>
+              {/* Added onChange here to catch every input event */}
+              <form onSubmit={handleSubmit} onChange={handleInputChange}>
                 
                 <div className="checklist-inline-group">
-                  {/* Maintenance Company */}
                   <div className="checklist-field">
                     <label className="checklist-label">Maintenance company</label>
                     <select 
@@ -129,7 +169,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                     </select>
                   </div>
 
-                  {/* Engineer Name */}
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer name</label>
                     <input 
@@ -147,7 +186,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                     </datalist>
                   </div>
 
-                  {/* Date */}
                   <div className="checklist-field">
                     <label className="checklist-label">Date of maintenance</label>
                     <input 
@@ -161,7 +199,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
                 </div>
 
-                {/* Dynamic Questions */}
                 {questions.map((question, i) => (
                   <div key={i}>
                     <label className="checklist-label">{question}</label>
@@ -175,7 +212,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
                 ))}
 
-                {/* File Upload */}
                 <label className="checklist-label">Upload photos</label>
                 <UploadDropzone
                   endpoint="maintenanceImage"
@@ -204,7 +240,6 @@ export async function getServerSideProps({ params }) {
     const headers = { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` };
     const baseId = process.env.AIRTABLE_BASE_ID;
 
-    // Fetch data in parallel
     const [uReq, tReq, cReq, eReq] = await Promise.all([
       fetch(`https://api.airtable.com/v0/${baseId}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`, { headers }),
       fetch(`https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula={type}='Annual'`, { headers }),

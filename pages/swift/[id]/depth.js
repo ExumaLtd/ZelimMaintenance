@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 
 function autoGrow(e) {
-  const el = e.target;
+  const el = e.target || e;
   el.style.height = "auto";
   el.style.height = el.scrollHeight + "px";
 }
@@ -16,9 +16,18 @@ export default function Depth({ unit }) {
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [geo, setGeo] = useState({ lat: "", lng: "", town: "", w3w: "" });
+  
+  // Signature States
+  const [signatureLocked, setSignatureLocked] = useState(false);
+  const [signatureDataUrl, setSignatureDataUrl] = useState(null);
 
+  const storageKey = `draft_depth_${unit.serial_number}`;
+
+  // 1. INITIALIZE SIGNATURE CANVAS
   useEffect(() => {
+    if (signatureLocked) return;
     const canvas = canvasRef.current;
+    if (!canvas) return;
     const ctx = canvas.getContext("2d");
     let drawing = false;
 
@@ -54,40 +63,84 @@ export default function Depth({ unit }) {
     canvas.addEventListener("mousedown", start);
     canvas.addEventListener("mousemove", move);
     canvas.addEventListener("mouseup", end);
-    canvas.addEventListener("touchstart", start);
-    canvas.addEventListener("touchmove", move);
+    canvas.addEventListener("touchstart", start, { passive: false });
+    canvas.addEventListener("touchmove", move, { passive: false });
     canvas.addEventListener("touchend", end);
-  }, []);
 
-  const clearSignature = () => {
-    const ctx = canvasRef.current.getContext("2d");
-    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    return () => {
+      canvas.removeEventListener("mousedown", start);
+      canvas.removeEventListener("mousemove", move);
+      canvas.removeEventListener("mouseup", end);
+    };
+  }, [signatureLocked]);
+
+  // 2. LOAD DRAFT ON MOUNT
+  useEffect(() => {
+    const savedDraft = localStorage.getItem(storageKey);
+    if (savedDraft) {
+      try {
+        const data = JSON.parse(savedDraft);
+        setTimeout(() => {
+          Object.keys(data).forEach(key => {
+            const input = document.getElementsByName(key)[0];
+            if (input) {
+              input.value = data[key];
+              if (input.tagName === "TEXTAREA") autoGrow(input);
+            }
+          });
+        }, 100);
+      } catch (e) { console.error("Draft load failed", e); }
+    }
+  }, [storageKey]);
+
+  // 3. AUTO-SAVE HANDLER
+  const handleInputChange = (e) => {
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    localStorage.setItem(storageKey, JSON.stringify(data));
+  };
+
+  // 4. SIGNATURE LOCK LOGIC
+  const lockSignature = () => {
+    if (signatureIsEmpty()) {
+      alert("Please provide a signature first.");
+      return;
+    }
+    const dataUrl = canvasRef.current.toDataURL();
+    setSignatureDataUrl(dataUrl);
+    setSignatureLocked(true);
+  };
+
+  const unlockSignature = () => {
+    setSignatureLocked(false);
+    setSignatureDataUrl(null);
   };
 
   const signatureIsEmpty = () => {
-    const data = canvasRef.current
-      .getContext("2d")
-      .getImageData(0, 0, canvasRef.current.width, canvasRef.current.height)
-      .data;
+    if (!canvasRef.current) return true;
+    const data = canvasRef.current.getContext("2d")
+      .getImageData(0, 0, canvasRef.current.width, canvasRef.current.height).data;
     return !data.some((p) => p !== 0);
   };
 
+  // 5. GEO LOCATION
   useEffect(() => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(async (pos) => {
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
-      let w3w = "";
-      let town = "";
       try {
         const w3 = await fetch(`https://api.what3words.com/v3/convert-to-3wa?coordinates=${lat},${lng}&key=${process.env.NEXT_PUBLIC_W3W_API_KEY}`);
         const w3json = await w3.json();
-        w3w = w3json.words || "";
         const osm = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
         const osmJson = await osm.json();
-        town = osmJson.address?.town || osmJson.address?.city || osmJson.address?.village || "";
-      } catch (e) { console.log("Location lookup failed", e); }
-      setGeo({ lat, lng, town, w3w });
+        setGeo({ 
+          lat, lng, 
+          w3w: w3json.words || "", 
+          town: osmJson.address?.town || osmJson.address?.city || "" 
+        });
+      } catch (e) { console.log("Geo lookup failed", e); }
     });
   }, []);
 
@@ -96,31 +149,35 @@ export default function Depth({ unit }) {
   async function handleSubmit(e) {
     e.preventDefault();
     setErrorMsg("");
-    if (signatureIsEmpty()) {
-      setErrorMsg("Signature is required.");
+    if (!signatureLocked) {
+      setErrorMsg("Please lock your signature before submitting.");
       return;
     }
     setSubmitting(true);
     const form = e.target;
     const data = new FormData(form);
 
-    canvasRef.current.toBlob(async (blob) => {
-      data.append("signature", blob, "signature.png");
-      data.append("location_lat", geo.lat);
-      data.append("location_lng", geo.lng);
-      data.append("location_town", geo.town);
-      data.append("location_what3words", geo.w3w);
-      try {
-        const res = await fetch("/api/submit-maintenance", { method: "POST", body: data });
-        const json = await res.json();
-        if (!json.success) throw new Error(json.error);
-        router.push(`/swift/${unit.public_token}/depth-complete`);
-      } catch (err) {
-        console.log(err);
-        setErrorMsg("Submission failed.");
-      }
-      setSubmitting(false);
-    });
+    // Convert DataURL to Blob for upload
+    const response = await fetch(signatureDataUrl);
+    const blob = await response.blob();
+    
+    data.append("signature", blob, "signature.png");
+    data.append("location_lat", geo.lat);
+    data.append("location_lng", geo.lng);
+    data.append("location_town", geo.town);
+    data.append("location_what3words", geo.w3w);
+
+    try {
+      const res = await fetch("/api/submit-maintenance", { method: "POST", body: data });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error);
+      
+      localStorage.removeItem(storageKey); // Success! Clear the draft.
+      router.push(`/swift/${unit.public_token}/depth-complete`);
+    } catch (err) {
+      setErrorMsg("Submission failed. Your progress is saved locally.");
+    }
+    setSubmitting(false);
   }
 
   return (
@@ -141,7 +198,7 @@ export default function Depth({ unit }) {
             </h1>
 
             <div className="checklist-form-card">
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} onChange={handleInputChange}>
                 <div className="checklist-inline-group">
                   <div className="checklist-field">
                     <label className="checklist-label">Maintenance company</label>
@@ -153,7 +210,7 @@ export default function Depth({ unit }) {
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer name</label>
-                    <input className="checklist-input" name="engineer_name" required />
+                    <input className="checklist-input" name="engineer_name" required autoComplete="off" />
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Date of maintenance</label>
@@ -169,19 +226,32 @@ export default function Depth({ unit }) {
                 ))}
 
                 <label className="checklist-label">Signature</label>
-                <div style={{ background: '#27454b', borderRadius: '8px', marginBottom: '10px' }}>
-                   <canvas ref={canvasRef} width={350} height={150} style={{ width: '100%', cursor: 'crosshair' }} />
+                <div style={{ background: '#27454b', borderRadius: '8px', padding: '10px', position: 'relative' }}>
+                  {signatureLocked ? (
+                    <img src={signatureDataUrl} alt="Locked Signature" style={{ width: '100%', height: '150px', objectFit: 'contain' }} />
+                  ) : (
+                    <canvas ref={canvasRef} width={350} height={150} style={{ width: '100%', cursor: 'crosshair', touchAction: 'none' }} />
+                  )}
                 </div>
-                <button type="button" onClick={clearSignature} className="checklist-submit" style={{ background: '#4f6167', color: 'white', marginTop: '0' }}>
-                  Clear signature
-                </button>
+                
+                <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                  {!signatureLocked ? (
+                    <button type="button" onClick={lockSignature} className="checklist-submit" style={{ marginTop: 0 }}>
+                      Lock Signature
+                    </button>
+                  ) : (
+                    <button type="button" onClick={unlockSignature} className="checklist-submit" style={{ marginTop: 0, background: '#4f6167' }}>
+                      Redo Signature
+                    </button>
+                  )}
+                </div>
 
                 <input type="hidden" name="unit_record_id" value={unit.record_id} />
                 <input type="hidden" name="maintenance_type" value="Depth" />
 
-                {errorMsg && <p style={{ color: '#ff4d4d', marginTop: '10px' }}>{errorMsg}</p>}
+                {errorMsg && <p style={{ color: '#ff4d4d', marginTop: '15px' }}>{errorMsg}</p>}
 
-                <button className="checklist-submit" disabled={submitting}>
+                <button className="checklist-submit" disabled={submitting || !signatureLocked}>
                   {submitting ? "Submitting..." : "Submit maintenance"}
                 </button>
               </form>
