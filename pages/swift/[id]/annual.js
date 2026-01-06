@@ -48,12 +48,13 @@ export default function Annual({ unit, template, allCompanies = [] }) {
     const formData = new FormData(e.target);
     const formProps = Object.fromEntries(formData.entries());
 
+    // Explicitly defining the structure to ensure Airtable fields match exactly
     const payload = {
       ...formProps,
-      maintenance_type: "Annual", // Explicitly defined here to fix Airtable missing data
       photoUrls: photoUrls, 
       unit_record_id: unit.record_id,
       checklist_template_id: template.id,
+      maintenance_type: "Annual", // Moved to the end to prevent any overwrite
       answers: questions.map((_, i) => ({
         question: `q${i+1}`,
         answer: formProps[`q${i+1}`] || ""
