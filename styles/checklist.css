@@ -68,7 +68,7 @@
     }
     
     .checklist-field .checklist-label {
-        margin-top: 0 !important;
+        margin-top: 0 !important; 
     }
 }
 
@@ -86,8 +86,13 @@
     color: #A0ACAF;
     font-size: 14px;
     font-weight: 500;
-    margin-top: 20px;
+    margin-top: 20px; /* Default margin for all labels */
     margin-bottom: 6px;
+}
+
+/* Specific class for the upload section to avoid global overrides */
+.upload-section-label {
+    margin-top: 40px !important;
 }
 
 .input-icon-wrapper {
@@ -129,6 +134,7 @@
     -moz-appearance: none !important;
 }
 
+/* Placeholder and Dropdown Colors */
 .checklist-input::placeholder,
 .checklist-textarea::placeholder {
     color: #BDC4C6;
@@ -149,16 +155,14 @@
     display: none;
 }
 
-/* Standard fields stay fixed height */
 .checklist-input {
     height: 48px;
 }
 
-/* Checklist questions are flexible */
 .checklist-textarea {
     resize: none !important; 
     overflow: hidden;
-    min-height: 72px; /* Starts at 2 lines */
+    min-height: 72px; /* Starts at 2 lines for checklist questions */
     display: block;
     line-height: 1.5;
 }

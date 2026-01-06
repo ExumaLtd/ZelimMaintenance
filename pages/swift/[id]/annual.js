@@ -112,7 +112,6 @@ export default function Annual({ unit, template, allCompanies = [] }) {
 
                 <div className="checklist-field">
                   <label className="checklist-label">Engineer name</label>
-                  {/* Standard 1-line input */}
                   <input className="checklist-input" name="engineer_name" required />
                 </div>
 
@@ -134,7 +133,6 @@ export default function Annual({ unit, template, allCompanies = [] }) {
               {questions.map((question, i) => (
                 <div key={i}>
                   <label className="checklist-label">{question}</label>
-                  {/* 2-line checklist textarea */}
                   <textarea 
                     name={`q${i + 1}`} 
                     className="checklist-textarea" 
@@ -145,7 +143,7 @@ export default function Annual({ unit, template, allCompanies = [] }) {
                 </div>
               ))}
 
-              <label className="checklist-label" style={{ marginTop: '40px' }}>Upload photos</label>
+              <label className="checklist-label upload-section-label">Upload photos</label>
               <UploadDropzone
                 endpoint="maintenanceImage"
                 className="bg-slate-800 ut-label:text-lg border-2 border-dashed border-gray-600 p-8 h-48 cursor-pointer mb-4"
