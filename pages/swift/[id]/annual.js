@@ -143,7 +143,7 @@ export default function Annual({ unit, template, allCompanies = [] }) {
                 </div>
               ))}
 
-              <label className="checklist-label upload-section-label">Upload photos</label>
+              <label className="checklist-label">Upload photos</label>
               <UploadDropzone
                 endpoint="maintenanceImage"
                 className="bg-slate-800 ut-label:text-lg border-2 border-dashed border-gray-600 p-8 h-48 cursor-pointer mb-4"

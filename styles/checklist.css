@@ -86,13 +86,8 @@
     color: #A0ACAF;
     font-size: 14px;
     font-weight: 500;
-    margin-top: 20px; /* Default margin for all labels */
+    margin-top: 20px;
     margin-bottom: 6px;
-}
-
-/* Specific class for the upload section to avoid global overrides */
-.upload-section-label {
-    margin-top: 40px !important;
 }
 
 .input-icon-wrapper {
