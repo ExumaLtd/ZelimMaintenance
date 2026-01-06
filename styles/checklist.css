@@ -43,7 +43,6 @@
     text-transform: lowercase;
 }
 
-/* UPDATED: Padding increased to 38px */
 .checklist-form-card {
     background: #172f36;
     padding: 38px;
@@ -115,11 +114,11 @@
     opacity: 1 !important;
 }
 
-/* UPDATED: Background changed to requested linear gradient */
+/* UPDATED: Background set to solid #27454b */
 .checklist-input,
 .checklist-textarea {
     width: 100%;
-    background: linear-gradient(39deg, rgba(74, 98, 104, .2) 12.44%, rgba(74, 98, 104, 0) 87.56%);
+    background: #27454b;
     border: 1px solid #394d54;
     border-radius: 8px;
     padding: 12px 15px; 
@@ -139,7 +138,7 @@
     opacity: 1;
 }
 
-/* Dropdown specific placeholder color logic */
+/* Dropdown color logic */
 .checklist-input:invalid,
 .checklist-input option[value=""] {
     color: #BDC4C6 !important;
@@ -147,7 +146,7 @@
 
 .checklist-input option {
     color: #e9ebec;
-    background: #172f36; /* Match card background for cohesive look */
+    background: #27454b;
 }
 
 .checklist-input::-ms-expand {
