@@ -3,10 +3,9 @@ import { useRouter } from "next/router";
 import Head from "next/head"; 
 import { UploadDropzone } from "../../../utils/uploadthing"; 
 
-// Only used for the checklist questions
 function autoGrow(e) {
   const el = e.target;
-  el.style.height = "72px"; // Reset to 2-line baseline
+  el.style.height = "72px"; 
   const newHeight = el.scrollHeight;
   el.style.height = newHeight + "px";
 }
