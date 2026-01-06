@@ -6,9 +6,15 @@ export default function AnnualMaintenance({ unit, template, engineerList }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // If template wasn't found, show an error instead of crashing the page
+  // Safety check if template fetch failed
   if (!template) {
-    return <div style={{ padding: '20px', color: 'red' }}>Error: Checklist template 'Annual' not found in Airtable.</div>;
+    return (
+      <div style={{ padding: '40px', color: '#ff4d4d', backgroundColor: '#1a1a1a', minHeight: '100vh' }}>
+        <h2>Setup Error</h2>
+        <p>Could not find the 'Annual Maintenance' template in your Airtable.</p>
+        <p>Please check that the column is named <strong>template_name</strong> and the record is <strong>Annual Maintenance</strong>.</p>
+      </div>
+    );
   }
 
   const handleSubmit = async (e) => {
@@ -85,7 +91,7 @@ export default function AnnualMaintenance({ unit, template, engineerList }) {
             list="engineer-options" 
             name="engineer_name" 
             className="checklist-input" 
-            placeholder="Search existing or type new name..." 
+            placeholder="Search or type new name..." 
             required 
             autoComplete="off"
           />
@@ -125,27 +131,24 @@ export async function getServerSideProps(context) {
   const baseId = process.env.AIRTABLE_BASE_ID;
 
   try {
-    // 1. Fetch Unit Details
     const unitRes = await fetch(`https://api.airtable.com/v0/${baseId}/swift_units/${id}`, {
       headers: { Authorization: `Bearer ${apiKey}` }
     });
     const unitData = await unitRes.json();
 
-    // 2. Fetch Checklist Template (Annual)
-    // IMPORTANT: Make sure the template name in Airtable is EXACTLY "Annual"
     const templateRes = await fetch(`https://api.airtable.com/v0/${baseId}/checklist_templates`, {
       headers: { Authorization: `Bearer ${apiKey}` }
     });
     const templateJson = await templateRes.json();
     
-    // Safety check: Find the record where name is "Annual" manually
-    const templateRec = templateJson.records?.find(r => r.fields.name === 'Annual');
+    // MATCHED TO YOUR SCREENSHOT: Looking for "Annual Maintenance" in "template_name"
+    const templateRec = templateJson.records?.find(r => r.fields.template_name === 'Annual Maintenance');
 
-    // 3. Fetch Existing Engineers
     const engRes = await fetch(`https://api.airtable.com/v0/${baseId}/engineers`, {
       headers: { Authorization: `Bearer ${apiKey}` }
     });
     const engJson = await engRes.json();
+    
     const engineerList = engJson.records?.map(rec => ({
       id: rec.id,
       name: rec.fields.engineer_name || "" 
@@ -162,7 +165,6 @@ export async function getServerSideProps(context) {
       }
     };
   } catch (error) {
-    console.error("Fetch Error:", error);
     return { props: { unit: null, template: null, engineerList: [] } };
   }
 }
