@@ -1,209 +1,216 @@
-import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
-import Head from "next/head"; 
-import { UploadDropzone } from "../../../utils/uploadthing"; 
+/* =========================================================================
+   CHECKLIST PAGE STYLES
+========================================================================= */
 
-// Only used for the checklist questions
-function autoGrow(e) {
-  const el = e.target;
-  el.style.height = "72px"; // Reset to 2-line baseline
-  const newHeight = el.scrollHeight;
-  el.style.height = newHeight + "px";
+.swift-checklist-container {
+    width: 100%;
+    max-width: 900px;
+    margin: 60px auto 100px auto;
+    text-align: center;
+    padding: 0 20px;
+    font-family: "Montserrat", sans-serif;
+    color: #FFFFFF;
 }
 
-const getClientLogo = (companyName, serialNumber) => {
-  if (["SWI001", "SWI002"].includes(serialNumber) || companyName?.includes("Changi")) {
-    return { src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg", alt: "Logo" };
-  }
-  if (serialNumber === "SWI003" || companyName?.includes("Milford Haven")) {
-    return { src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg", alt: "Logo" };
-  }
-  if (["SWI010", "SWI011"].includes(serialNumber) || companyName?.includes("Hatloy")) {
-    return { src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg", alt: "Logo" };
-  }
-  return null;
-};
+.checklist-logo {
+    position: relative;
+    max-width: 250px;
+    max-height: 40px;
+    width: 250px;
+    height: 40px;
+    margin: 0 auto 30px auto;
+}
 
-export default function Annual({ unit, template, allCompanies = [] }) {
-  const router = useRouter();
-  const [submitting, setSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [photoUrls, setPhotoUrls] = useState([]);
-  const [today, setToday] = useState("");
+.checklist-logo img {
+    position: absolute !important;
+    top: 0; bottom: 0; left: 0; right: 0;
+    margin: auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+}
 
-  useEffect(() => {
-    const date = new Date().toISOString().split('T')[0];
-    setToday(date);
-  }, []);
+.checklist-hero-title {
+    color: #FFFFFF;
+    font-size: 30px;
+    line-height: 38px;
+    font-weight: 600;
+    margin: 0 0 40px 0;
+}
 
-  if (!unit || !template) return <div className="p-8 text-white">Loading...</div>;
+.checklist-hero-title .break-point {
+    display: block;
+    text-transform: lowercase;
+}
 
-  const questions = template.questions || [];
-  const sortedCompanies = [...allCompanies].sort((a, b) => a.localeCompare(b));
+.checklist-form-card {
+    background: #172f36;
+    padding: 38px;
+    border-radius: 20px;
+    width: 100%;
+    text-align: left;
+    margin: 0 auto 60px;
+}
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setErrorMsg("");
-    setSubmitting(true);
-
-    const formData = new FormData(e.target);
-    const formProps = Object.fromEntries(formData.entries());
-
-    const payload = {
-      ...formProps,
-      photoUrls: photoUrls, 
-      unit_record_id: unit.record_id,
-      maintenance_type: "Annual",
-      checklist_template_id: template.id,
-      answers: questions.map((_, i) => ({
-        question: `q${i+1}`,
-        answer: formProps[`q${i+1}`] || ""
-      }))
-    };
-
-    try {
-      const res = await fetch("/api/submit-maintenance", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error || "Airtable Submission Error");
-      router.push(`/swift/${unit.public_token}/annual-complete`);
-    } catch (err) {
-      setErrorMsg(err.message);
-      setSubmitting(false);
+/* --- TOP ROW DESKTOP LAYOUT --- */
+@media (min-width: 768px) {
+    .checklist-inline-group {
+        display: flex;
+        gap: 20px;
+        align-items: flex-end; 
+        margin-bottom: 10px;
+        width: 100%;
     }
-  }
 
-  const logo = getClientLogo(unit.company, unit.serial_number);
-
-  return (
-    <div className="swift-main-layout-wrapper">
-      <Head>
-        <link 
-          rel="stylesheet" 
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
-        />
-        <title>{unit.serial_number} | Annual Maintenance</title>
-      </Head>
-      <div className="page-wrapper">
-        <div className="swift-checklist-container">
-          {logo && <div className="checklist-logo"><img src={logo.src} alt={logo.alt} /></div>}
-          <h1 className="checklist-hero-title">{unit.serial_number}<span className="break-point">annual maintenance</span></h1>
-          
-          <div className="checklist-form-card">
-            <form onSubmit={handleSubmit}>
-              
-              <div className="checklist-inline-group">
-                <div className="checklist-field">
-                  <label className="checklist-label">Maintenance company</label>
-                  <div className="input-icon-wrapper">
-                    <select name="maintained_by" className="checklist-input" required>
-                      <option value="">Please select</option>
-                      {sortedCompanies.map((companyName, index) => (
-                        <option key={index} value={companyName}>{companyName}</option>
-                      ))}
-                    </select>
-                    <i className="fa-solid fa-chevron-down"></i>
-                  </div>
-                </div>
-
-                <div className="checklist-field">
-                  <label className="checklist-label">Engineer name</label>
-                  <input className="checklist-input" name="engineer_name" required />
-                </div>
-
-                <div className="checklist-field">
-                  <label className="checklist-label">Date of maintenance</label>
-                  <div className="input-icon-wrapper clickable-date">
-                    <input 
-                      type="date" 
-                      className="checklist-input" 
-                      name="date_of_maintenance" 
-                      defaultValue={today} 
-                      required 
-                      onClick={(e) => e.target.showPicker?.()}
-                    />
-                    <i className="fa-regular fa-calendar"></i>
-                  </div>
-                </div>
-              </div>
-
-              {questions.map((question, i) => (
-                <div key={i}>
-                  <label className="checklist-label">{question}</label>
-                  <textarea 
-                    name={`q${i + 1}`} 
-                    className="checklist-textarea" 
-                    onInput={autoGrow} 
-                    rows={2}
-                    style={{ height: '72px' }} 
-                  />
-                </div>
-              ))}
-
-              <label className="checklist-label">Upload photos</label>
-              <UploadDropzone
-                endpoint="maintenanceImage"
-                className="bg-slate-800 ut-label:text-lg border-2 border-dashed border-gray-600 p-8 h-48 cursor-pointer mb-4"
-                onClientUploadComplete={(res) => {
-                  setPhotoUrls(prev => [...prev, ...res.map(f => f.url)]);
-                }}
-                onUploadError={(error) => alert(`Upload Error: ${error.message}`)}
-              />
-
-              <button className="checklist-submit" disabled={submitting}>
-                {submitting ? "Submitting..." : "Submit maintenance"}
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+    .checklist-field {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .checklist-field .checklist-label {
+        margin-top: 0 !important; 
+    }
 }
 
-export async function getServerSideProps({ params }) {
-  const token = params.id;
-  try {
-    const unitReq = await fetch(`${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`, {
-        headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
-    });
-    const unitJson = await unitReq.json();
-    if (!unitJson.records?.length) return { notFound: true };
-    const unitRec = unitJson.records[0];
+@media (max-width: 767px) {
+    .checklist-inline-group {
+        display: block;
+    }
+    .checklist-field {
+        margin-bottom: 20px;
+    }
+}
 
-    const templateReq = await fetch(`${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/checklist_templates?filterByFormula={type}='Annual'`, {
-        headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
-    });
-    const templateJson = await templateReq.json();
-    const templateRec = templateJson.records[0];
+.checklist-label {
+    display: block;
+    color: #A0ACAF;
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 20px;
+    margin-bottom: 6px;
+}
 
-    const companyReq = await fetch(`${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/maintenance_companies`, {
-      headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
-    });
-    const companyJson = await companyReq.json();
-    const allCompanies = companyJson.records?.map(r => r.fields.company_name).filter(Boolean) || [];
+.input-icon-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
 
-    return {
-      props: {
-        unit: { 
-          serial_number: unitRec.fields.unit_name || unitRec.fields.serial_number, 
-          company: unitRec.fields.company, 
-          record_id: unitRec.id, 
-          public_token: unitRec.fields.public_token 
-        },
-        template: { 
-          id: templateRec.id, 
-          questions: JSON.parse(templateRec.fields.questions_json || "[]") 
-        },
-        allCompanies: allCompanies 
-      },
-    };
-  } catch (err) {
-    console.error(err);
-    return { notFound: true };
-  }
+.input-icon-wrapper i {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #FFFFFF;
+    pointer-events: none; 
+    font-size: 16px;
+    z-index: 10;
+    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free" !important;
+    font-weight: 900 !important;
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.checklist-input,
+.checklist-textarea {
+    width: 100%;
+    background: #27454b;
+    border: 1px solid #27454b;
+    border-radius: 8px;
+    padding: 12px 15px; 
+    color: #e9ebec;
+    font-size: 16px;
+    font-family: "Montserrat", sans-serif;
+    box-sizing: border-box;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+}
+
+.checklist-input::placeholder,
+.checklist-textarea::placeholder {
+    color: #BDC4C6;
+    opacity: 1;
+}
+
+.checklist-input:invalid,
+.checklist-input option[value=""] {
+    color: #BDC4C6 !important;
+}
+
+.checklist-input option {
+    color: #e9ebec;
+    background: #27454b;
+}
+
+.checklist-input::-ms-expand {
+    display: none;
+}
+
+.checklist-input {
+    height: 48px;
+}
+
+.checklist-textarea {
+    resize: none !important; 
+    overflow: hidden;
+    min-height: 72px;
+    display: block;
+    line-height: 1.5;
+}
+
+input[type="date"] {
+    position: relative;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: auto;
+    color: transparent;
+    background: transparent;
+    cursor: pointer;
+}
+
+.checklist-input:focus,
+.checklist-textarea:focus {
+    outline: none;
+    border-color: #01FFF6;
+}
+
+.checklist-submit {
+    display: flex;
+    max-width: fit-content;
+    padding: 8px 16px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 2px solid hsla(0, 0%, 100%, .12);
+    border-radius: 8px;
+    background-color: #01fff6;
+    color: #0d3037;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+    text-transform: none !important;
+    transition: background-color .2s, border-color .2s;
+    margin: 30px 0 0 0;
+    cursor: pointer;
+    font-family: "Montserrat", sans-serif;
+}
+
+.checklist-submit:hover {
+    background-color: #00e5dd;
+    border-color: hsla(0, 0%, 100%, .2);
+}
+
+.checklist-submit:disabled {
+    opacity: 0.6;
+    cursor: default;
 }
