@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import Head from "next/head"; // Added for pre-loading icons
+import Head from "next/head"; 
 import { UploadDropzone } from "../../../utils/uploadthing"; 
 
 function autoGrow(e) {
@@ -110,7 +110,7 @@ export default function Annual({ unit, template, allCompanies = [] }) {
 
                 <div className="checklist-field">
                   <label className="checklist-label">Engineer name</label>
-                  <input className="checklist-input" name="engineer_name" placeholder="Type name..." required />
+                  <input className="checklist-input" name="engineer_name" required />
                 </div>
 
                 <div className="checklist-field">
@@ -136,7 +136,6 @@ export default function Annual({ unit, template, allCompanies = [] }) {
                     className="checklist-textarea" 
                     onInput={autoGrow} 
                     rows={1}
-                    placeholder="Enter details..."
                   />
                 </div>
               ))}
@@ -152,7 +151,7 @@ export default function Annual({ unit, template, allCompanies = [] }) {
               />
 
               <button className="checklist-submit" disabled={submitting}>
-                Submit
+                {submitting ? "Submitting..." : "Submit maintenance"}
               </button>
             </form>
           </div>
@@ -164,38 +163,43 @@ export default function Annual({ unit, template, allCompanies = [] }) {
 
 export async function getServerSideProps({ params }) {
   const token = params.id;
-  const unitReq = await fetch(`${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`, {
+  try {
+    const unitReq = await fetch(`${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`, {
+        headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
+    });
+    const unitJson = await unitReq.json();
+    if (!unitJson.records?.length) return { notFound: true };
+    const unitRec = unitJson.records[0];
+
+    const templateReq = await fetch(`${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/checklist_templates?filterByFormula={type}='Annual'`, {
+        headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
+    });
+    const templateJson = await templateReq.json();
+    const templateRec = templateJson.records[0];
+
+    const companyReq = await fetch(`${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/maintenance_companies`, {
       headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
-  });
-  const unitJson = await unitReq.json();
-  if (!unitJson.records?.length) return { notFound: true };
-  const unitRec = unitJson.records[0];
+    });
+    const companyJson = await companyReq.json();
+    const allCompanies = companyJson.records?.map(r => r.fields.company_name).filter(Boolean) || [];
 
-  const templateReq = await fetch(`${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/checklist_templates?filterByFormula={type}='Annual'`, {
-      headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
-  });
-  const templateJson = await templateReq.json();
-  const templateRec = templateJson.records[0];
-
-  const companyReq = await fetch(`${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/maintenance_companies`, {
-    headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
-  });
-  const companyJson = await companyReq.json();
-  const allCompanies = companyJson.records?.map(r => r.fields.company_name).filter(Boolean) || [];
-
-  return {
-    props: {
-      unit: { 
-        serial_number: unitRec.fields.unit_name || unitRec.fields.serial_number, 
-        company: unitRec.fields.company, 
-        record_id: unitRec.id, 
-        public_token: unitRec.fields.public_token 
+    return {
+      props: {
+        unit: { 
+          serial_number: unitRec.fields.unit_name || unitRec.fields.serial_number, 
+          company: unitRec.fields.company, 
+          record_id: unitRec.id, 
+          public_token: unitRec.fields.public_token 
+        },
+        template: { 
+          id: templateRec.id, 
+          questions: JSON.parse(templateRec.fields.questions_json || "[]") 
+        },
+        allCompanies: allCompanies 
       },
-      template: { 
-        id: templateRec.id, 
-        questions: JSON.parse(templateRec.fields.questions_json || "[]") 
-      },
-      allCompanies: allCompanies 
-    },
-  };
+    };
+  } catch (err) {
+    console.error(err);
+    return { notFound: true };
+  }
 }
