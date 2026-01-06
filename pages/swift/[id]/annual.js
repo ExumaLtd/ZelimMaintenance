@@ -43,7 +43,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const questions = template.questions || [];
   const sortedCompanies = [...allCompanies].sort((a, b) => a.localeCompare(b));
 
-  // Filter engineers based on the selected company
+  // Filter engineers based on the selected company name
   const filteredEngineers = allEngineers
     .filter(eng => !selectedCompany || eng.companyName === selectedCompany)
     .map(eng => eng.name)
@@ -126,10 +126,11 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                     <input 
                       className="checklist-input" 
                       name="engineer_name" 
-                      autoComplete="new-password"
-                      /* Link to list only if company is selected */
+                      autoComplete="off"
+                      // Only attach the list if a company is selected
                       list={selectedCompany ? "engineer-list" : undefined} 
                       required 
+                      placeholder={selectedCompany ? "Type or select" : "Select company first"}
                     />
                     <datalist id="engineer-list">
                       {filteredEngineers.map((name, index) => (
@@ -160,6 +161,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                 endpoint="maintenanceImage"
                 className="bg-slate-800 ut-label:text-lg border-2 border-dashed border-gray-600 p-8 h-48 cursor-pointer mb-4"
                 onClientUploadComplete={(res) => setPhotoUrls(prev => [...prev, ...res.map(f => f.url)])}
+                onUploadError={(error) => alert(`Upload Error: ${error.message}`)}
               />
 
               <button className="checklist-submit" disabled={submitting}>
@@ -193,6 +195,12 @@ export async function getServerSideProps({ params }) {
     const unitRec = uJson.records[0];
     const templateRec = tJson.records[0];
 
+    // Create a map for IDs to Company Names to fix the Linked Record issue
+    const companyIdToName = {};
+    cJson.records?.forEach(r => {
+      companyIdToName[r.id] = r.fields.company_name;
+    });
+
     return {
       props: {
         unit: { 
@@ -205,12 +213,11 @@ export async function getServerSideProps({ params }) {
           id: templateRec.id, 
           questions: JSON.parse(templateRec.fields.questions_json || "[]") 
         },
-        allCompanies: cJson.records?.map(r => r.fields.company_name).filter(Boolean) || [],
+        allCompanies: Object.values(companyIdToName).filter(Boolean),
         allEngineers: eJson.records?.map(r => ({
           name: r.fields.engineer_name,
-          // Using the linked record field. 
-          // If this shows IDs, add a Lookup field in Airtable and use that name here.
-          companyName: r.fields["company"]?.[0] || "" 
+          // Convert the ID array [ "recXXX" ] into the text "Zelim"
+          companyName: companyIdToName[r.fields["company"]?.[0]] || "" 
         })).filter(eng => eng.name) || []
       },
     };
