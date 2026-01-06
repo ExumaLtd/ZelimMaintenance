@@ -88,108 +88,109 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const logo = getClientLogo(unit.company, unit.serial_number);
 
   return (
-    <div className="swift-main-layout-wrapper">
-      <Head>
-        <title>{unit.serial_number} | Annual Maintenance</title>
-        {/* Font Awesome is handled in _app.js, but keeping specific kit link here if needed for icons */}
-      </Head>
-      
-      <div className="page-wrapper">
-        <div className="swift-checklist-container">
-          
-          {logo && (
-            <div className="checklist-logo">
-              <img src={logo.src} alt={logo.alt} />
-            </div>
-          )}
-
-          <h1 className="checklist-hero-title">
-            {unit.serial_number}
-            <span className="break-point">annual maintenance</span>
-          </h1>
-          
-          <div className="checklist-form-card">
-            <form onSubmit={handleSubmit}>
-              
-              <div className="checklist-inline-group">
-                {/* Maintenance Company */}
-                <div className="checklist-field">
-                  <label className="checklist-label">Maintenance company</label>
-                  <select 
-                    name="maintained_by" 
-                    className="checklist-input" 
-                    required 
-                    defaultValue=""
-                    onChange={(e) => setSelectedCompany(e.target.value)}
-                  >
-                    <option value="" disabled hidden>Please select</option>
-                    {sortedCompanies.map((companyName, index) => (
-                      <option key={index} value={companyName}>{companyName}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Engineer Name */}
-                <div className="checklist-field">
-                  <label className="checklist-label">Engineer name</label>
-                  <input 
-                    className="checklist-input" 
-                    name="engineer_name" 
-                    autoComplete="off"
-                    list={selectedCompany ? "engineer-list" : undefined} 
-                    required 
-                    placeholder={selectedCompany ? "Type or select" : "Select company first"}
-                  />
-                  <datalist id="engineer-list">
-                    {filteredEngineers.map((name, index) => (
-                      <option key={index} value={name} />
-                    ))}
-                  </datalist>
-                </div>
-
-                {/* Date */}
-                <div className="checklist-field">
-                  <label className="checklist-label">Date of maintenance</label>
-                  <input 
-                    type="date" 
-                    className="checklist-input" 
-                    name="date_of_maintenance" 
-                    defaultValue={today} 
-                    max={today} 
-                    required 
-                  />
-                </div>
+    <div className="form-scope">
+      <div className="swift-main-layout-wrapper">
+        <Head>
+          <title>{unit.serial_number} | Annual Maintenance</title>
+        </Head>
+        
+        <div className="page-wrapper">
+          <div className="swift-checklist-container">
+            
+            {logo && (
+              <div className="checklist-logo">
+                <img src={logo.src} alt={logo.alt} />
               </div>
+            )}
 
-              {/* Dynamic Questions */}
-              {questions.map((question, i) => (
-                <div key={i}>
-                  <label className="checklist-label">{question}</label>
-                  <textarea 
-                    name={`q${i + 1}`} 
-                    className="checklist-textarea" 
-                    onInput={autoGrow} 
-                    rows={2} 
-                    style={{ height: '72px' }} 
-                  />
+            <h1 className="checklist-hero-title">
+              {unit.serial_number}
+              <span className="break-point">annual maintenance</span>
+            </h1>
+            
+            <div className="checklist-form-card">
+              <form onSubmit={handleSubmit}>
+                
+                <div className="checklist-inline-group">
+                  {/* Maintenance Company */}
+                  <div className="checklist-field">
+                    <label className="checklist-label">Maintenance company</label>
+                    <select 
+                      name="maintained_by" 
+                      className="checklist-input" 
+                      required 
+                      defaultValue=""
+                      onChange={(e) => setSelectedCompany(e.target.value)}
+                    >
+                      <option value="" disabled hidden>Please select</option>
+                      {sortedCompanies.map((companyName, index) => (
+                        <option key={index} value={companyName}>{companyName}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Engineer Name */}
+                  <div className="checklist-field">
+                    <label className="checklist-label">Engineer name</label>
+                    <input 
+                      className="checklist-input" 
+                      name="engineer_name" 
+                      autoComplete="off"
+                      list={selectedCompany ? "engineer-list" : undefined} 
+                      required 
+                      placeholder={selectedCompany ? "Type or select" : "Select company first"}
+                    />
+                    <datalist id="engineer-list">
+                      {filteredEngineers.map((name, index) => (
+                        <option key={index} value={name} />
+                      ))}
+                    </datalist>
+                  </div>
+
+                  {/* Date */}
+                  <div className="checklist-field">
+                    <label className="checklist-label">Date of maintenance</label>
+                    <input 
+                      type="date" 
+                      className="checklist-input" 
+                      name="date_of_maintenance" 
+                      defaultValue={today} 
+                      max={today} 
+                      required 
+                    />
+                  </div>
                 </div>
-              ))}
 
-              {/* File Upload */}
-              <label className="checklist-label">Upload photos</label>
-              <UploadDropzone
-                endpoint="maintenanceImage"
-                className="bg-slate-800 ut-label:text-lg border-2 border-dashed border-gray-600 p-8 h-48 cursor-pointer mb-4"
-                onClientUploadComplete={(res) => setPhotoUrls(prev => [...prev, ...res.map(f => f.url)])}
-                onUploadError={(error) => alert(`Upload Error: ${error.message}`)}
-              />
+                {/* Dynamic Questions */}
+                {questions.map((question, i) => (
+                  <div key={i}>
+                    <label className="checklist-label">{question}</label>
+                    <textarea 
+                      name={`q${i + 1}`} 
+                      className="checklist-textarea" 
+                      onInput={autoGrow} 
+                      rows={2} 
+                      style={{ height: '72px' }} 
+                    />
+                  </div>
+                ))}
 
-              {errorMsg && <p style={{ color: '#ff4d4d', marginTop: '10px' }}>{errorMsg}</p>}
+                {/* File Upload */}
+                <label className="checklist-label">Upload photos</label>
+                <UploadDropzone
+                  endpoint="maintenanceImage"
+                  className="bg-slate-800 ut-label:text-lg border-2 border-dashed border-gray-600 p-8 h-48 cursor-pointer mb-4"
+                  onClientUploadComplete={(res) => setPhotoUrls(prev => [...prev, ...res.map(f => f.url)])}
+                  onUploadError={(error) => alert(`Upload Error: ${error.message}`)}
+                />
 
-              <button className="checklist-submit" disabled={submitting}>
-                {submitting ? "Submitting..." : "Submit maintenance"}
-              </button>
-            </form>
+                {errorMsg && <p style={{ color: '#ff4d4d', marginTop: '10px' }}>{errorMsg}</p>}
+
+                <button className="checklist-submit" disabled={submitting}>
+                  {submitting ? "Submitting..." : "Submit maintenance"}
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </div>
