@@ -115,11 +115,11 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   return (
     <div className="form-scope">
+      <Head>
+        <title>{unit.serial_number} | Annual Maintenance</title>
+      </Head>
+      
       <div className="swift-main-layout-wrapper">
-        <Head>
-          <title>{unit.serial_number} | Annual Maintenance</title>
-        </Head>
-        
         <div className="page-wrapper">
           <div className="swift-checklist-container">
             
@@ -138,7 +138,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
               <form onSubmit={handleSubmit} onChange={handleInputChange}>
                 
                 <div className="checklist-inline-group">
-                  {/* Maintenance Company */}
                   <div className="checklist-field">
                     <label className="checklist-label">Maintenance company</label>
                     <div className="input-icon-wrapper">
@@ -158,7 +157,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                     </div>
                   </div>
 
-                  {/* Engineer Name */}
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer name</label>
                     <input 
@@ -176,7 +174,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                     </datalist>
                   </div>
 
-                  {/* Date of Maintenance */}
                   <div className="checklist-field">
                     <label className="checklist-label">Date of maintenance</label>
                     <div className="input-icon-wrapper">
@@ -188,13 +185,11 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                         max={today} 
                         required 
                       />
-                      {/* Updated Icon Below */}
                       <i className="fa-regular fa-calendar"></i>
                     </div>
                   </div>
                 </div>
 
-                {/* Dynamic Questions */}
                 {questions.map((question, i) => (
                   <div key={i}>
                     <label className="checklist-label">{question}</label>

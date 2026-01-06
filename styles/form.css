@@ -3,12 +3,24 @@
    NAMESPACED VERSION: All rules scoped to .form-scope
 ========================================================================= */
 
+/* Ensure the wrapper takes up enough space and doesn't collapse */
+.form-scope .swift-main-layout-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-scope .page-wrapper {
+    flex: 1;
+    padding-top: 40px; /* Gives the logo area breathing room from the top */
+}
+
 .form-scope .swift-checklist-container {
     width: 100%;
     max-width: 900px;
-    margin: 60px auto 100px auto;
+    margin: 0 auto; /* Centering managed by padding and flex */
     text-align: center;
-    padding: 0 20px;
+    padding: 20px 20px 100px 20px; /* Added bottom padding for the submit area */
     font-family: "Montserrat", sans-serif;
     color: #FFFFFF;
 }
@@ -50,7 +62,7 @@
     border-radius: 20px;
     width: 100%;
     text-align: left;
-    margin: 0 auto 60px;
+    margin: 0 auto 40px;
 }
 
 /* --- TOP ROW DESKTOP LAYOUT --- */
@@ -105,7 +117,7 @@
     transform: translateY(-50%);
     color: #FFFFFF;
     pointer-events: none; 
-    font-size: 16px;
+    font-size: 14px;
     z-index: 10;
 }
 
@@ -181,7 +193,7 @@
 .form-scope .checklist-submit {
     display: flex;
     max-width: fit-content;
-    padding: 8px 16px;
+    padding: 10px 24px; /* Slightly larger button for better tap target */
     align-items: center;
     justify-content: center;
     gap: 6px;
@@ -189,12 +201,12 @@
     border-radius: 8px;
     background-color: #01fff6;
     color: #0d3037;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
     line-height: 20px;
     text-transform: none !important;
     transition: background-color .2s, border-color .2s;
-    margin: 30px 0 0 0;
+    margin: 30px 0 20px 0; /* Margin bottom to prevent hitting screen edge */
     cursor: pointer;
     font-family: "Montserrat", sans-serif;
 }
