@@ -62,7 +62,11 @@ export default function Annual({ unit, template, allCompanies = [] }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (res.ok) router.push(`/swift/${unit.public_token}/annual-complete`);
+      if (res.ok) {
+        router.push(`/swift/${unit.public_token}/annual-complete`);
+      } else {
+        setSubmitting(false);
+      }
     } catch (err) {
       console.error(err);
       setSubmitting(false);
@@ -76,20 +80,28 @@ export default function Annual({ unit, template, allCompanies = [] }) {
       <Head>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
       </Head>
+      
       <div className="page-wrapper">
         <div className="swift-checklist-container">
           {logo && <div className="checklist-logo"><img src={logo.src} alt={logo.alt} /></div>}
-          <h1 className="checklist-hero-title">{unit.serial_number}<span className="break-point">annual maintenance</span></h1>
+          
+          <h1 className="checklist-hero-title">
+            {unit.serial_number}
+            <span className="break-point">annual maintenance</span>
+          </h1>
           
           <div className="checklist-form-card">
             <form onSubmit={handleSubmit}>
+              
               <div className="checklist-inline-group">
                 <div className="checklist-field">
                   <label className="checklist-label">Maintenance company</label>
                   <div className="input-icon-wrapper">
                     <select name="maintained_by" className="checklist-input" required>
                       <option value="">Please select</option>
-                      {sortedCompanies.map((c, i) => <option key={i} value={c}>{c}</option>)}
+                      {sortedCompanies.map((name, i) => (
+                        <option key={i} value={name}>{name}</option>
+                      ))}
                     </select>
                     <i className="fa-solid fa-chevron-down"></i>
                   </div>
@@ -103,7 +115,13 @@ export default function Annual({ unit, template, allCompanies = [] }) {
                 <div className="checklist-field">
                   <label className="checklist-label">Date of maintenance</label>
                   <div className="input-icon-wrapper">
-                    <input type="date" className="checklist-input" name="date_of_maintenance" defaultValue={today} required />
+                    <input 
+                      type="date" 
+                      className="checklist-input" 
+                      name="date_of_maintenance" 
+                      defaultValue={today} 
+                      required 
+                    />
                     <i className="fa-regular fa-calendar"></i>
                   </div>
                 </div>
@@ -112,15 +130,23 @@ export default function Annual({ unit, template, allCompanies = [] }) {
               {questions.map((question, i) => (
                 <div key={i}>
                   <label className="checklist-label">{question}</label>
-                  <textarea name={`q${i + 1}`} className="checklist-textarea" onInput={autoGrow} rows={1} />
+                  <textarea 
+                    name={`q${i + 1}`} 
+                    className="checklist-textarea" 
+                    onInput={autoGrow} 
+                    rows={1}
+                  />
                 </div>
               ))}
 
               <label className="checklist-label" style={{ marginTop: '40px' }}>Upload photos</label>
               <UploadDropzone
                 endpoint="maintenanceImage"
-                className="bg-slate-800 border-2 border-dashed border-gray-600 p-8 h-48 cursor-pointer mb-4"
-                onClientUploadComplete={(res) => setPhotoUrls(prev => [...prev, ...res.map(f => f.url)])}
+                className="bg-slate-800 ut-label:text-lg border-2 border-dashed border-gray-600 p-8 h-48 cursor-pointer mb-4"
+                onClientUploadComplete={(res) => {
+                  setPhotoUrls(prev => [...prev, ...res.map(f => f.url)]);
+                }}
+                onUploadError={(error) => alert(`Upload Error: ${error.message}`)}
               />
 
               <button className="checklist-submit" disabled={submitting}>
@@ -136,6 +162,7 @@ export default function Annual({ unit, template, allCompanies = [] }) {
 
 export async function getServerSideProps({ params }) {
   const token = params.id;
+  
   try {
     const unitReq = await fetch(`${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`, {
         headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
@@ -158,12 +185,21 @@ export async function getServerSideProps({ params }) {
 
     return {
       props: {
-        unit: { serial_number: unitRec.fields.unit_name || unitRec.fields.serial_number, record_id: unitRec.id, public_token: unitRec.fields.public_token },
-        template: { id: templateRec.id, questions: JSON.parse(templateRec.fields.questions_json || "[]") },
-        allCompanies
+        unit: { 
+          serial_number: unitRec.fields.unit_name || unitRec.fields.serial_number, 
+          company: unitRec.fields.company, 
+          record_id: unitRec.id, 
+          public_token: unitRec.fields.public_token 
+        },
+        template: { 
+          id: templateRec.id, 
+          questions: JSON.parse(templateRec.fields.questions_json || "[]") 
+        },
+        allCompanies 
       },
     };
-  } catch (e) {
+  } catch (err) {
+    console.error(err);
     return { notFound: true };
   }
 }
