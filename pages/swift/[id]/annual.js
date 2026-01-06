@@ -50,6 +50,7 @@ export default function Annual({ unit, template, allCompanies = [] }) {
 
     const payload = {
       ...formProps,
+      maintenance_type: "Annual", // Explicitly defined here to fix Airtable missing data
       photoUrls: photoUrls, 
       unit_record_id: unit.record_id,
       checklist_template_id: template.id,
@@ -93,8 +94,6 @@ export default function Annual({ unit, template, allCompanies = [] }) {
           
           <div className="checklist-form-card">
             <form onSubmit={handleSubmit}>
-              {/* Ensures maintenance_type is captured in formProps */}
-              <input type="hidden" name="maintenance_type" value="Annual" />
               
               <div className="checklist-inline-group">
                 <div className="checklist-field">
