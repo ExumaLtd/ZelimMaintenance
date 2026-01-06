@@ -1,8 +1,9 @@
-/* =========================================
-   ROOT LAYOUT
-========================================= */
+/* =========================================================================
+   LANDING PAGE STYLES (landing.css)
+   NAMESPACED VERSION: All rules scoped to .landing-scope
+========================================================================= */
 
-.landing-root {
+.landing-scope .landing-root {
   display: flex;
   min-height: 100vh;
   height: 100%;
@@ -13,7 +14,7 @@
    LEFT HERO (IMAGE)
 ========================================= */
 
-.landing-hero {
+.landing-scope .landing-hero {
   flex: 1 1 50%;
   display: flex;
   align-items: center;
@@ -25,7 +26,7 @@
   height: auto !important;
 }
 
-.landing-hero-inner {
+.landing-scope .landing-hero-inner {
   width: 100%;
   height: 100%;  /* REQUIRED for Next.js Image fill */
   position: relative; /* REQUIRED for next/image fill */
@@ -33,7 +34,7 @@
   overflow: hidden;
 }
 
-.landing-hero-inner img {
+.landing-scope .landing-hero-inner img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -43,7 +44,7 @@
    RIGHT PANEL
 ========================================= */
 
-.landing-content {
+.landing-scope .landing-content {
   flex: 1 1 50%;
   display: flex;
   flex-direction: column;
@@ -52,7 +53,7 @@
   padding: 32px 56px 80px;
 }
 
-.landing-main {
+.landing-scope .landing-main {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -65,14 +66,14 @@
    HEADER TEXT
 ========================================= */
 
-.landing-header {
+.landing-scope .landing-header {
   width: 100%;
   max-width: 360px;
   margin: 0 auto 32px;
   text-align: center;
 }
 
-h1.landing-title {
+.landing-scope h1.landing-title {
   margin: 0;
   display: flex;
   flex-direction: column;
@@ -84,7 +85,7 @@ h1.landing-title {
   line-height: 38px;
 }
 
-.landing-subtitle {
+.landing-scope .landing-subtitle {
   margin: 16px 0 0;
   text-align: center;
   color: #a0acaf;
@@ -98,7 +99,7 @@ h1.landing-title {
    FORM STACK (INPUT + BUTTON)
 ========================================= */
 
-.form-stack {
+.landing-scope .form-stack {
   width: 100%;
   max-width: 360px;
   display: flex;
@@ -107,13 +108,13 @@ h1.landing-title {
   gap: 16px;
 }
 
-.input-wrapper {
+.landing-scope .input-wrapper {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.input-field {
+.landing-scope .input-field {
   width: 100%;
   padding: 12px 20px;
   border-radius: 8px;
@@ -132,21 +133,21 @@ h1.landing-title {
     box-shadow 150ms ease;
 }
 
-.input-field::placeholder {
+.landing-scope .input-field::placeholder {
   color: #bdc4c6;
 }
 
-.input-field:focus {
+.landing-scope .input-field:focus {
   outline: none;
   border-color: #394d54;
   box-shadow: none;
 }
 
-.input-wrapper.has-error .input-field {
+.landing-scope .input-wrapper.has-error .input-field {
   border-color: #d92d20;
 }
 
-.error-text {
+.landing-scope .error-text {
   margin: 0;
   font-size: 14px;
   line-height: 20px;
@@ -158,7 +159,7 @@ h1.landing-title {
    PRIMARY BUTTON
 ========================================= */
 
-.primary-btn {
+.landing-scope .primary-btn {
   width: 100%;
   padding: 12px 16px;
   border-radius: 8px;
@@ -176,7 +177,7 @@ h1.landing-title {
   transition: background-color .2s, border-color .2s;
 }
 
-.primary-btn:hover:not(:disabled) {
+.landing-scope .primary-btn:hover:not(:disabled) {
   background: #01e6dd !important;
 }
 
@@ -184,7 +185,7 @@ h1.landing-title {
    FOOTER LOGO
 ========================================= */
 
-.landing-footer {
+.landing-scope .landing-footer {
   width: 100%;
   display: flex;
   justify-content: center;
@@ -192,16 +193,16 @@ h1.landing-title {
   opacity: 1;
 }
 
-.logo-link {
+.landing-scope .logo-link {
   display: inline-flex;
 }
 
-.zelim-logo {
+.landing-scope .zelim-logo {
   width: 140px;
   opacity: 1;
 }
 
-.zelim-logo:hover {
+.landing-scope .zelim-logo:hover {
   opacity: 1;
 }
 
@@ -210,15 +211,15 @@ h1.landing-title {
 ========================================= */
 
 @media (max-width: 900px) {
-  .landing-root {
+  .landing-scope .landing-root {
     flex-direction: column;
   }
 
-  .landing-hero {
-    display: none; /* Matches your original design */
+  .landing-scope .landing-hero {
+    display: none; 
   }
 
-  .landing-content {
+  .landing-scope .landing-content {
     padding: 32px 24px 80px;
   }
 }
@@ -228,23 +229,23 @@ h1.landing-title {
 ========================================= */
 
 @media (max-height: 780px) {
-  .landing-content {
+  .landing-scope .landing-content {
     padding: 24px 40px 64px;
   }
 
-  .landing-header {
+  .landing-scope .landing-header {
     margin-bottom: 24px;
   }
 
-  .form-stack {
+  .landing-scope .form-stack {
     gap: 20px;
   }
 
-  .landing-footer {
+  .landing-scope .landing-footer {
     margin-top: 24px;
   }
 
-  h1.landing-title {
+  .landing-scope h1.landing-title {
     font-size: 26px;
     line-height: 32px;
   }

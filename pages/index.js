@@ -52,7 +52,7 @@ export default function Home() {
   };
 
   return (
-    <>
+    <div className="landing-scope"> {/* <--- ADDED SCOPE WRAPPER */}
       <Head>
         <title>SWIFT Maintenance Portal</title>
       </Head>
@@ -127,6 +127,6 @@ export default function Home() {
           </footer>
         </div>
       </div>
-    </>
+    </div>
   );
 }
