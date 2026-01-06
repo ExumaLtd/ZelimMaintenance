@@ -90,7 +90,7 @@
     margin-bottom: 6px;
 }
 
-/* --- ICON VISIBILITY FIX --- */
+/* --- ICON & INPUT LOGIC --- */
 .input-icon-wrapper {
     position: relative;
     width: 100%;
@@ -104,16 +104,9 @@
     top: 50%;
     transform: translateY(-50%);
     color: #FFFFFF;
-    pointer-events: none;
+    pointer-events: none; /* Allows clicks to go to the input */
     font-size: 16px;
-    z-index: 10;
-    
-    /* HARD FIX: Force Font Awesome styling immediately */
-    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free" !important;
-    font-weight: 900 !important;
-    display: inline-block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
+    z-index: 5;
 }
 
 .checklist-input,
@@ -127,16 +120,8 @@
     font-size: 16px;
     font-family: "Montserrat", sans-serif;
     box-sizing: border-box;
-    
-    /* KILL NATIVE BROWSER ICONS */
     appearance: none !important;
     -webkit-appearance: none !important;
-    -moz-appearance: none !important;
-}
-
-/* Remove standard dropdown arrow in IE/Edge */
-.checklist-input::-ms-expand {
-    display: none;
 }
 
 .checklist-input {
@@ -151,12 +136,19 @@
     line-height: 1.5;
 }
 
-/* HARD RESET: Kill all native date picker icons */
-input[type="date"]::-webkit-calendar-picker-indicator,
-input[type="date"]::-webkit-inner-spin-button,
-input[type="date"]::-webkit-clear-button {
-    display: none !important;
-    -webkit-appearance: none !important;
+/* Fix for Select Arrows */
+select.checklist-input::-ms-expand { display: none; }
+
+/* FIX: Ensure the native date picker is clickable but invisible */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100%; height: 100%;
+    margin: 0; padding: 0;
+    cursor: pointer;
+    background: transparent;
+    color: transparent;
+    z-index: 10;
 }
 
 .checklist-input:focus,
@@ -165,7 +157,7 @@ input[type="date"]::-webkit-clear-button {
     border-color: #01FFF6;
 }
 
-/* --- SUBMIT BUTTON (Matched to Portal Style) --- */
+/* --- SUBMIT MAINTENANCE BUTTON (Portal Style) --- */
 .checklist-submit {
     display: flex;
     max-width: fit-content;
