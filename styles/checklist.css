@@ -97,7 +97,6 @@
     align-items: center;
 }
 
-/* Fix: pointer-events: none ensures the icon doesn't block the click to the input below */
 .input-icon-wrapper i {
     position: absolute;
     right: 15px;
@@ -109,9 +108,6 @@
     z-index: 10;
     font-family: "Font Awesome 6 Free", "Font Awesome 5 Free" !important;
     font-weight: 900 !important;
-    display: inline-block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
 }
 
 .checklist-input,
@@ -125,44 +121,13 @@
     font-size: 16px;
     font-family: "Montserrat", sans-serif;
     box-sizing: border-box;
-    appearance: none !important;
-    -webkit-appearance: none !important;
-    -moz-appearance: none !important;
-}
-
-.checklist-input::placeholder,
-.checklist-textarea::placeholder {
-    color: #BDC4C6;
-    opacity: 1;
-}
-
-.checklist-input:invalid,
-.checklist-input option[value=""] {
-    color: #BDC4C6 !important;
-}
-
-.checklist-input option {
-    color: #e9ebec;
-    background: #27454b;
-}
-
-.checklist-input::-ms-expand {
-    display: none;
 }
 
 .checklist-input {
     height: 48px;
 }
 
-.checklist-textarea {
-    resize: none !important; 
-    overflow: hidden;
-    min-height: 72px;
-    display: block;
-    line-height: 1.5;
-}
-
-/* Ensure the date input covers the whole area and triggers picker on click */
+/* Specific logic to make date input fully clickable */
 input[type="date"] {
     position: relative;
 }
@@ -178,6 +143,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     color: transparent;
     background: transparent;
     cursor: pointer;
+}
+
+.checklist-textarea {
+    resize: none !important; 
+    overflow: hidden;
+    min-height: 72px;
+    display: block;
+    line-height: 1.5;
 }
 
 .checklist-input:focus,
