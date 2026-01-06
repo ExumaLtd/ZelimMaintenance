@@ -48,13 +48,11 @@ export default function Annual({ unit, template, allCompanies = [] }) {
     const formData = new FormData(e.target);
     const formProps = Object.fromEntries(formData.entries());
 
-    // Explicitly defining the structure to ensure Airtable fields match exactly
     const payload = {
       ...formProps,
       photoUrls: photoUrls, 
       unit_record_id: unit.record_id,
       checklist_template_id: template.id,
-      maintenance_type: "Annual", // Moved to the end to prevent any overwrite
       answers: questions.map((_, i) => ({
         question: `q${i+1}`,
         answer: formProps[`q${i+1}`] || ""
@@ -96,6 +94,9 @@ export default function Annual({ unit, template, allCompanies = [] }) {
           <div className="checklist-form-card">
             <form onSubmit={handleSubmit}>
               
+              {/* This hidden field ensures "Annual" is bundled with the form data */}
+              <input type="hidden" name="maintenance_type" value="Annual" />
+
               <div className="checklist-inline-group">
                 <div className="checklist-field">
                   <label className="checklist-label">Maintenance company</label>
