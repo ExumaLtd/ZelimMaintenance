@@ -90,7 +90,6 @@
     margin-bottom: 6px;
 }
 
-/* --- ICON VISIBILITY FIX --- */
 .input-icon-wrapper {
     position: relative;
     width: 100%;
@@ -114,12 +113,11 @@
     opacity: 1 !important;
 }
 
-/* UPDATED: Background set to solid #27454b */
 .checklist-input,
 .checklist-textarea {
     width: 100%;
     background: #27454b;
-    border: 1px solid #394d54;
+    border: 1px solid #27454b;
     border-radius: 8px;
     padding: 12px 15px; 
     color: #e9ebec;
@@ -131,14 +129,12 @@
     -moz-appearance: none !important;
 }
 
-/* --- PLACEHOLDER COLORS --- */
 .checklist-input::placeholder,
 .checklist-textarea::placeholder {
     color: #BDC4C6;
     opacity: 1;
 }
 
-/* Dropdown color logic */
 .checklist-input:invalid,
 .checklist-input option[value=""] {
     color: #BDC4C6 !important;
@@ -153,14 +149,16 @@
     display: none;
 }
 
+/* Standard fields stay fixed height */
 .checklist-input {
     height: 48px;
 }
 
+/* Checklist questions are flexible */
 .checklist-textarea {
     resize: none !important; 
     overflow: hidden;
-    min-height: 48px;
+    min-height: 72px; /* Starts at 2 lines */
     display: block;
     line-height: 1.5;
 }
@@ -178,7 +176,6 @@ input[type="date"]::-webkit-clear-button {
     border-color: #01FFF6;
 }
 
-/* --- SUBMIT BUTTON --- */
 .checklist-submit {
     display: flex;
     max-width: fit-content;

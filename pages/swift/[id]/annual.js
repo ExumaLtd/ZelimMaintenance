@@ -3,9 +3,10 @@ import { useRouter } from "next/router";
 import Head from "next/head"; 
 import { UploadDropzone } from "../../../utils/uploadthing"; 
 
+// Only used for the checklist questions
 function autoGrow(e) {
   const el = e.target;
-  el.style.height = "48px"; 
+  el.style.height = "72px"; // Reset to 2-line baseline
   const newHeight = el.scrollHeight;
   el.style.height = newHeight + "px";
 }
@@ -111,6 +112,7 @@ export default function Annual({ unit, template, allCompanies = [] }) {
 
                 <div className="checklist-field">
                   <label className="checklist-label">Engineer name</label>
+                  {/* Standard 1-line input */}
                   <input className="checklist-input" name="engineer_name" required />
                 </div>
 
@@ -132,11 +134,13 @@ export default function Annual({ unit, template, allCompanies = [] }) {
               {questions.map((question, i) => (
                 <div key={i}>
                   <label className="checklist-label">{question}</label>
+                  {/* 2-line checklist textarea */}
                   <textarea 
                     name={`q${i + 1}`} 
                     className="checklist-textarea" 
                     onInput={autoGrow} 
-                    rows={1}
+                    rows={2}
+                    style={{ height: '72px' }} 
                   />
                 </div>
               ))}
