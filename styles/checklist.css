@@ -66,12 +66,14 @@
     .checklist-inline-group {
         display: flex;
         gap: 20px;
-        align-items: flex-start;
+        align-items: flex-end; /* Aligns inputs even if labels wrap */
         margin-bottom: 10px;
+        width: 100%;
     }
 
     .checklist-field {
         flex: 1;
+        width: 0; /* Ensures equal distribution */
     }
     
     .checklist-field .checklist-label {
@@ -85,7 +87,7 @@
     }
     
     .checklist-field {
-        margin-bottom: 0px;
+        margin-bottom: 20px;
     }
 }
 
@@ -103,20 +105,22 @@
     margin-top: 0;
 }
 
+/* ICON WRAPPER FIX */
 .input-icon-wrapper {
     position: relative;
     width: 100%;
+    display: block; /* Ensure it takes up space */
 }
 
 .input-icon-wrapper i {
     position: absolute;
-    right: 18px;
+    right: 15px;
     top: 50%;
     transform: translateY(-50%);
     color: #FFFFFF;
     pointer-events: none;
     font-size: 16px;
-    z-index: 2;
+    z-index: 5; /* Ensure it's on top of everything */
 }
 
 .checklist-input,
@@ -130,10 +134,20 @@
     font-size: 16px;
     font-family: "Montserrat", sans-serif;
     text-align: left;
-    transition: border-color 0.15s ease, background-color 0.15s ease;
+    transition: border-color 0.15s ease;
+    
+    /* Standardize height */
+    height: 48px;
+    
+    /* Font Awesome Prep */
     appearance: none !important;
     -webkit-appearance: none !important;
     position: relative;
+}
+
+.checklist-textarea {
+    height: auto;
+    min-height: 60px;
 }
 
 .checklist-input {
@@ -145,7 +159,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     background: transparent;
     bottom: 0; color: transparent; cursor: pointer;
     height: auto; left: 0; position: absolute;
-    right: 0; top: 0; width: auto; z-index: 3;
+    right: 0; top: 0; width: auto; z-index: 6;
 }
 
 .checklist-input:focus,
@@ -155,16 +169,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     box-shadow: none;
 }
 
-.checklist-textarea {
-    resize: none;
-    overflow: hidden;
-    min-height: 48px;
-}
-
 /* --- 7. SUBMIT BUTTON --- */
 .checklist-submit {
     display: inline-block;
-    width: auto;
     padding: 12px 24px;
     margin-top: 20px;
     border-radius: 8px;
@@ -177,34 +184,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     cursor: pointer;
 }
 
-.checklist-submit:disabled {
-    opacity: 0.6;
-    cursor: default;
-}
-
-/* --- 8. ERROR BOX --- */
-.checklist-error {
-    background: rgba(255,0,0,0.25);
-    color: #FFB3B3;
-    padding: 12px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    text-align: center;
-    font-size: 15px;
-}
-
 /* --- MOBILE BREAKPOINTS --- */
 @media (max-width: 600px) {
     .checklist-logo {
         max-width: 225px;
         max-height: 36px;
-        width: 225px;
-        height: 36px;
-        margin-bottom: 24px;
     }
 
     .checklist-form-card {
         padding: 20px;
-        border-radius: 18px;
     }
 }

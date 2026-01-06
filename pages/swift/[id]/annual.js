@@ -86,7 +86,6 @@ export default function Annual({ unit, template, allCompanies = [] }) {
           <div className="checklist-form-card">
             <form onSubmit={handleSubmit}>
               
-              {/* Row 1: Company, Engineer, and Date */}
               <div className="checklist-inline-group">
                 <div className="checklist-field">
                   <label className="checklist-label">Maintenance company</label>
@@ -121,7 +120,6 @@ export default function Annual({ unit, template, allCompanies = [] }) {
                 </div>
               </div>
 
-              {/* Dynamic Questions */}
               {questions.map((question, i) => (
                 <div key={i}>
                   <label className="checklist-label">{question}</label>
