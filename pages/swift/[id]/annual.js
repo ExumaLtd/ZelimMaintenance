@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { UploadDropzone } from "../../../utils/uploadthing"; 
 
-// Robust auto-grow function: resets height then recalculates based on scrollHeight
 function autoGrow(e) {
   const el = e.target;
   el.style.height = "48px"; 
@@ -178,8 +177,16 @@ export async function getServerSideProps({ params }) {
 
   return {
     props: {
-      unit: { serial_number: unitRec.fields.unit_name || unitRec.fields.serial_number, company: unitRec.fields.company, record_id: unitRec.id, public_token: unitRec.fields.public_token },
-      template: { id: templateRec.id, questions: JSON.parse(templateRec.fields.questions_json || "[]") },
+      unit: { 
+        serial_number: unitRec.fields.unit_name || unitRec.fields.serial_number, 
+        company: unitRec.fields.company, 
+        record_id: unitRec.id, 
+        public_token: unitRec.fields.public_token 
+      },
+      template: { 
+        id: templateRec.id, 
+        questions: JSON.parse(templateRec.fields.questions_json || "[]") 
+      },
       allCompanies: allCompanies 
     },
   };

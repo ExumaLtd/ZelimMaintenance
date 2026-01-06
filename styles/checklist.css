@@ -63,7 +63,7 @@
 @media (min-width: 768px) {
     .checklist-inline-group {
         display: flex;
-        gap: 15px;
+        gap: 20px; /* Restored to 20px gap */
         align-items: flex-end; 
         margin-bottom: 10px;
         width: 100%;
@@ -71,7 +71,7 @@
 
     .checklist-field {
         flex: 1;
-        min-width: 0; /* Prevents text overflow from breaking layout */
+        min-width: 0; /* Ensures content doesn't push width out */
     }
     
     .checklist-field .checklist-label {
@@ -103,7 +103,7 @@
     margin-top: 0;
 }
 
-/* ICON WRAPPER */
+/* --- ICON VISIBILITY FIX --- */
 .input-icon-wrapper {
     position: relative;
     width: 100%;
@@ -120,6 +120,14 @@
     pointer-events: none;
     font-size: 16px;
     z-index: 10;
+    
+    /* Force rendering on first load before script finishes */
+    font-style: normal;
+    font-variant: normal;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free";
+    font-weight: 900;
 }
 
 .checklist-input,
@@ -128,7 +136,7 @@
     background: #4f6167;
     border: 1px solid #394d54;
     border-radius: 8px;
-    padding: 12px 15px; /* Reduced right padding to fix text cramping */
+    padding: 12px 15px; /* Clean padding for text room */
     color: #e9ebec;
     font-size: 16px;
     font-family: "Montserrat", sans-serif;
@@ -142,7 +150,7 @@
     height: 48px;
 }
 
-/* FIXED: No manual resize handle. Only text length controls size. */
+/* FIXED: No manual resize handle. Height controlled by JS autoGrow only. */
 .checklist-textarea {
     resize: none !important; 
     overflow: hidden;
@@ -158,7 +166,7 @@
     box-shadow: none;
 }
 
-/* Date picker transparency for icon */
+/* Date picker transparency logic */
 input[type="date"]::-webkit-calendar-picker-indicator {
     background: transparent;
     bottom: 0; color: transparent; cursor: pointer;
@@ -179,6 +187,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.checklist-submit:hover {
+    background: #00e5dd;
 }
 
 .checklist-submit:disabled {
