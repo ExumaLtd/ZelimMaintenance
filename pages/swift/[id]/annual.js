@@ -52,7 +52,6 @@ export default function Annual({ unit, template, allCompanies = [] }) {
       ...formProps,
       photoUrls: photoUrls, 
       unit_record_id: unit.record_id,
-      maintenance_type: "Annual",
       checklist_template_id: template.id,
       answers: questions.map((_, i) => ({
         question: `q${i+1}`,
@@ -94,13 +93,14 @@ export default function Annual({ unit, template, allCompanies = [] }) {
           
           <div className="checklist-form-card">
             <form onSubmit={handleSubmit}>
+              {/* Ensures maintenance_type is captured in formProps */}
+              <input type="hidden" name="maintenance_type" value="Annual" />
               
               <div className="checklist-inline-group">
                 <div className="checklist-field">
                   <label className="checklist-label">Maintenance company</label>
                   <div className="input-icon-wrapper">
                     <select name="maintained_by" className="checklist-input" required defaultValue="">
-                      {/* disabled and hidden keeps it as a label but removes it from the list */}
                       <option value="" disabled hidden>Please select</option>
                       {sortedCompanies.map((companyName, index) => (
                         <option key={index} value={companyName}>{companyName}</option>
