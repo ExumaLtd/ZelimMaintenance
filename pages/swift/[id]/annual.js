@@ -99,8 +99,9 @@ export default function Annual({ unit, template, allCompanies = [] }) {
                 <div className="checklist-field">
                   <label className="checklist-label">Maintenance company</label>
                   <div className="input-icon-wrapper">
-                    <select name="maintained_by" className="checklist-input" required>
-                      <option value="">Please select</option>
+                    <select name="maintained_by" className="checklist-input" required defaultValue="">
+                      {/* disabled and hidden keeps it as a label but removes it from the list */}
+                      <option value="" disabled hidden>Please select</option>
                       {sortedCompanies.map((companyName, index) => (
                         <option key={index} value={companyName}>{companyName}</option>
                       ))}

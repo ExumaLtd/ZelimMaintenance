@@ -127,13 +127,14 @@
     -webkit-appearance: none;
 }
 
-/* FIX: Placeholder and Select "Please select" color */
+/* FIX: Placeholder and "Please select" color */
 .checklist-input::placeholder,
 .checklist-textarea::placeholder {
     color: #BDC4C6;
     opacity: 1;
 }
 
+/* Ensures the disabled/hidden 'Please select' stays the right color */
 .checklist-input:invalid,
 .checklist-input option[value=""] {
     color: #BDC4C6 !important;
