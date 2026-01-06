@@ -1,4 +1,4 @@
-// pages/swift/[id]/index.js – FINAL FULL VERSION (Updated)
+// pages/swift/[id]/index.js – FINAL FULL VERSION (Updated with Scope)
 
 import Head from "next/head";
 import Link from "next/link";
@@ -133,10 +133,9 @@ export default function SwiftUnitPage({
   const logoProps = getClientLogo(companyName, serialNumber);
 
   return (
-    <>
+    <div className="dashboard-scope">
       <Head>
         <title>{companyName} Maintenance Portal</title>
-        {/* CSS is now handled by _app.js */}
       </Head>
 
       <div className="swift-main-layout-wrapper">
@@ -256,6 +255,6 @@ export default function SwiftUnitPage({
           </a>
         </div>
       </div>
-    </>
+    </div>
   );
 }
