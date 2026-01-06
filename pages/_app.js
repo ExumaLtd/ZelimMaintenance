@@ -4,6 +4,7 @@ import "/styles/dashboard.css";
 import "/styles/form.css";
 
 import Head from "next/head";
+import Script from "next/script"; // Import this
 
 export default function MyApp({ Component, pageProps }) {
   return (
@@ -14,14 +15,14 @@ export default function MyApp({ Component, pageProps }) {
           rel="stylesheet"
         />
         <link rel="icon" href="/favicon/ZelimFavicon_192x192.png" />
-        
-        {/* Font Awesome Kit */}
-        <script 
-          src="https://kit.fontawesome.com/7d09bbd1e9.js" 
-          crossOrigin="anonymous" 
-          async
-        ></script>
       </Head>
+
+      {/* Use Next.js Script component for the Font Awesome Kit */}
+      <Script 
+        src="https://kit.fontawesome.com/7d09bbd1e9.js" 
+        crossOrigin="anonymous"
+        strategy="afterInteractive" 
+      />
 
       <Component {...pageProps} />
     </>
