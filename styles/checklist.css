@@ -125,23 +125,27 @@
     height: 48px;
     appearance: none;
     -webkit-appearance: none;
+    accent-color: #172F36; /* Modern browser selection color */
 }
 
-/* FIX: Placeholder and selection color */
+/* Hide datalist arrows and browser search icons */
+input::-webkit-calendar-picker-indicator {
+    display: none !important;
+}
+
 .checklist-input::placeholder,
 .checklist-textarea::placeholder {
     color: #BDC4C6;
     opacity: 1;
 }
 
-/* Change the highlight color of the company dropdown selection */
+/* Style the native dropdown selection */
 .company-dropdown option:checked,
 .company-dropdown option:hover {
     background-color: #172F36 !important;
-    color: #FFFFFF !important;
+    color: white !important;
 }
 
-/* Ensures the disabled/hidden 'Please select' stays the right color */
 .checklist-input:invalid,
 .checklist-input option[value=""] {
     color: #BDC4C6 !important;
@@ -150,26 +154,6 @@
 .checklist-input option {
     color: #e9ebec;
     background: #27454b;
-}
-
-/* Remove default datalist arrow icon in browsers */
-input::-webkit-calendar-picker-indicator {
-    display: none !important;
-}
-
-/* Date Picker Click Overlay */
-input[type="date"]::-webkit-calendar-picker-indicator {
-    display: block !important;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: auto;
-    height: auto;
-    color: transparent;
-    background: transparent;
-    cursor: pointer;
 }
 
 .checklist-textarea {

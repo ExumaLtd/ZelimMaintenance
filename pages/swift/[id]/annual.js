@@ -30,7 +30,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [photoUrls, setPhotoUrls] = useState([]);
   const [today, setToday] = useState("");
   
-  // 1. Track the selected company
+  // Track company selection for filtering
   const [selectedCompany, setSelectedCompany] = useState("");
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const questions = template.questions || [];
   const sortedCompanies = [...allCompanies].sort((a, b) => a.localeCompare(b));
 
-  // 2. Filter engineers based on the selected company
+  // Filter engineers based on the selected company
   const filteredEngineers = allEngineers
     .filter(eng => !selectedCompany || eng.companyName === selectedCompany)
     .map(eng => eng.name)
@@ -109,7 +109,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       className="checklist-input company-dropdown" 
                       required 
                       defaultValue=""
-                      onChange={(e) => setSelectedCompany(e.target.value)} // Update state on change
+                      onChange={(e) => setSelectedCompany(e.target.value)}
                     >
                       <option value="" disabled hidden>Please select</option>
                       {sortedCompanies.map((companyName, index) => (
@@ -126,8 +126,9 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                     <input 
                       className="checklist-input" 
                       name="engineer_name" 
-                      autoComplete="off"
-                      list="engineer-list" 
+                      autoComplete="new-password"
+                      /* Link to list only if company is selected */
+                      list={selectedCompany ? "engineer-list" : undefined} 
                       required 
                     />
                     <datalist id="engineer-list">
@@ -159,7 +160,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                 endpoint="maintenanceImage"
                 className="bg-slate-800 ut-label:text-lg border-2 border-dashed border-gray-600 p-8 h-48 cursor-pointer mb-4"
                 onClientUploadComplete={(res) => setPhotoUrls(prev => [...prev, ...res.map(f => f.url)])}
-                onUploadError={(error) => alert(`Upload Error: ${error.message}`)}
               />
 
               <button className="checklist-submit" disabled={submitting}>
@@ -179,32 +179,19 @@ export async function getServerSideProps({ params }) {
     const headers = { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` };
     const baseId = process.env.AIRTABLE_BASE_ID;
 
-    // Fetch Unit
-    const unitReq = await fetch(`https://api.airtable.com/v0/${baseId}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`, { headers });
-    const unitJson = await unitReq.json();
-    if (!unitJson.records?.length) return { notFound: true };
-    const unitRec = unitJson.records[0];
+    // Fetch everything in parallel
+    const [uReq, tReq, cReq, eReq] = await Promise.all([
+      fetch(`https://api.airtable.com/v0/${baseId}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`, { headers }),
+      fetch(`https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula={type}='Annual'`, { headers }),
+      fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies`, { headers }),
+      fetch(`https://api.airtable.com/v0/${baseId}/engineers`, { headers })
+    ]);
 
-    // Fetch Template
-    const templateReq = await fetch(`https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula={type}='Annual'`, { headers });
-    const templateJson = await templateReq.json();
-    const templateRec = templateJson.records[0];
+    const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cReq.json(), eReq.json()]);
 
-    // Fetch Companies
-    const companyReq = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies`, { headers });
-    const companyJson = await companyReq.json();
-    const allCompanies = companyJson.records?.map(r => r.fields.company_name).filter(Boolean) || [];
-
-    // Fetch Engineers with their linked company name
-    const engineerReq = await fetch(`https://api.airtable.com/v0/${baseId}/engineers`, { headers });
-    const engineerJson = await engineerReq.json();
-    
-    // Map engineers to an object that includes their company name for filtering
-    const allEngineers = engineerJson.records?.map(r => ({
-      name: r.fields.engineer_name,
-      // Assuming 'company_name (from company)' is the lookup field in your Engineers table
-      companyName: r.fields["company_name (from company)"]?.[0] || "" 
-    })).filter(eng => eng.name) || [];
+    if (!uJson.records?.length) return { notFound: true };
+    const unitRec = uJson.records[0];
+    const templateRec = tJson.records[0];
 
     return {
       props: {
@@ -218,8 +205,13 @@ export async function getServerSideProps({ params }) {
           id: templateRec.id, 
           questions: JSON.parse(templateRec.fields.questions_json || "[]") 
         },
-        allCompanies,
-        allEngineers
+        allCompanies: cJson.records?.map(r => r.fields.company_name).filter(Boolean) || [],
+        allEngineers: eJson.records?.map(r => ({
+          name: r.fields.engineer_name,
+          // Using the linked record field. 
+          // If this shows IDs, add a Lookup field in Airtable and use that name here.
+          companyName: r.fields["company"]?.[0] || "" 
+        })).filter(eng => eng.name) || []
       },
     };
   } catch (err) {
