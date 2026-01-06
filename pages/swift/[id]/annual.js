@@ -144,7 +144,7 @@ export default function Annual({ unit, template, allCompanies = [] }) {
               />
 
               <button className="checklist-submit" disabled={submitting}>
-                {submitting ? "Submitting..." : "Submit maintenance"}
+                {submitting ? "Submitting..." : "Submit"}
               </button>
             </form>
           </div>

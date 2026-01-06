@@ -1,9 +1,7 @@
 /* =========================================================================
    CHECKLIST PAGE STYLES
-   Dark Theme – Matches Maintenance Portal Styling
 ========================================================================= */
 
-/* --- 1. BASE LAYOUT WRAPPER --- */
 .swift-checklist-container {
     width: 100%;
     max-width: 900px;
@@ -14,7 +12,6 @@
     color: #FFFFFF;
 }
 
-/* --- 2. LOGO --- */
 .checklist-logo {
     position: relative;
     max-width: 250px;
@@ -31,10 +28,8 @@
     width: 100% !important;
     height: 100% !important;
     object-fit: contain !important;
-    display: block;
 }
 
-/* --- 3. HERO TITLE --- */
 .checklist-hero-title {
     color: #FFFFFF;
     font-size: 30px;
@@ -48,7 +43,6 @@
     text-transform: lowercase;
 }
 
-/* --- 4. FORM CARD --- */
 .checklist-form-card {
     background: #172F36;
     padding: 28px;
@@ -56,15 +50,14 @@
     width: 100%;
     text-align: left;
     margin: 0 auto 60px auto;
-    overflow: hidden;
 }
 
-/* --- 5. INLINE GROUP (Desktop 3-column) --- */
+/* --- TOP ROW DESKTOP LAYOUT --- */
 @media (min-width: 768px) {
     .checklist-inline-group {
         display: flex;
         gap: 20px; /* Restored to 20px */
-        align-items: flex-end; /* FIXED: Aligns input boxes horizontally */
+        align-items: flex-end; /* Keeps input boxes level */
         margin-bottom: 10px;
         width: 100%;
     }
@@ -83,13 +76,11 @@
     .checklist-inline-group {
         display: block;
     }
-    
     .checklist-field {
         margin-bottom: 20px;
     }
 }
 
-/* --- 6. FORM LABELS + INPUT FIELDS --- */
 .checklist-label {
     display: block;
     color: #A0ACAF;
@@ -99,11 +90,7 @@
     margin-bottom: 6px;
 }
 
-.checklist-label:first-of-type {
-    margin-top: 0;
-}
-
-/* --- ICON VISIBILITY FIX --- */
+/* --- ICON & INPUT FIXES --- */
 .input-icon-wrapper {
     position: relative;
     width: 100%;
@@ -121,13 +108,13 @@
     font-size: 16px;
     z-index: 10;
     
-    /* Force rendering on first load */
+    /* ICON VISIBILITY FIX: Forces browser to render font icons immediately */
+    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", sans-serif !important;
+    font-weight: 900 !important;
     font-style: normal;
-    font-variant: normal;
+    display: inline-block;
     text-rendering: auto;
     -webkit-font-smoothing: antialiased;
-    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free";
-    font-weight: 900;
 }
 
 .checklist-input,
@@ -136,13 +123,10 @@
     background: #4f6167;
     border: 1px solid #394d54;
     border-radius: 8px;
-    padding: 12px 15px;
+    padding: 12px 15px; 
     color: #e9ebec;
     font-size: 16px;
     font-family: "Montserrat", sans-serif;
-    transition: border-color 0.15s ease;
-    appearance: none !important;
-    -webkit-appearance: none !important;
     box-sizing: border-box;
 }
 
@@ -150,7 +134,6 @@
     height: 48px;
 }
 
-/* FIXED: No manual resize handle. */
 .checklist-textarea {
     resize: none !important; 
     overflow: hidden;
@@ -163,10 +146,9 @@
 .checklist-textarea:focus {
     outline: none;
     border-color: #01FFF6;
-    box-shadow: none;
 }
 
-/* Date picker transparency */
+/* Date Picker Reset */
 input[type="date"]::-webkit-calendar-picker-indicator {
     background: transparent;
     bottom: 0; color: transparent; cursor: pointer;
@@ -174,39 +156,32 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     right: 0; top: 0; width: auto; z-index: 11;
 }
 
-/* --- 7. SUBMIT BUTTON --- */
+/* --- MATCHING PORTAL BUTTON STYLE --- */
 .checklist-submit {
     display: inline-block;
-    padding: 12px 24px;
-    margin-top: 20px;
-    border-radius: 8px;
-    background: #01FFF6;
-    color: #0D3037;
-    border: 2px solid rgba(255,255,255,0.12);
-    font-family: Montserrat;
+    padding: 12px 32px;
+    margin-top: 30px;
+    border-radius: 10px; /* Matched portal rounding */
+    background: #01FFF6; /* Matched portal Cyan */
+    color: #0D3037; /* Matched portal Dark text */
+    border: none;
+    font-family: "Montserrat", sans-serif;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700; /* Bold weight like 'Start maintenance' */
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: transform 0.1s ease, background-color 0.2s ease;
 }
 
 .checklist-submit:hover {
     background: #00e5dd;
+    transform: translateY(-1px);
+}
+
+.checklist-submit:active {
+    transform: translateY(0px);
 }
 
 .checklist-submit:disabled {
     opacity: 0.6;
     cursor: default;
-}
-
-/* --- MOBILE BREAKPOINTS --- */
-@media (max-width: 600px) {
-    .checklist-logo {
-        max-width: 225px;
-        max-height: 36px;
-    }
-
-    .checklist-form-card {
-        padding: 20px;
-    }
 }
