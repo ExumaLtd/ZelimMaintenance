@@ -23,7 +23,8 @@ const getClientLogo = (companyName, serialNumber) => {
   return null;
 };
 
-export default function Annual({ unit, template, allCompanies = [] }) {
+// Added allEngineers to props
+export default function Annual({ unit, template, allCompanies = [], allEngineers = [] }) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -39,6 +40,7 @@ export default function Annual({ unit, template, allCompanies = [] }) {
 
   const questions = template.questions || [];
   const sortedCompanies = [...allCompanies].sort((a, b) => a.localeCompare(b));
+  const sortedEngineers = [...allEngineers].sort((a, b) => a.localeCompare(b));
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -50,6 +52,7 @@ export default function Annual({ unit, template, allCompanies = [] }) {
 
     const payload = {
       ...formProps,
+      maintenance_type: "Annual",
       photoUrls: photoUrls, 
       unit_record_id: unit.record_id,
       checklist_template_id: template.id,
@@ -93,10 +96,6 @@ export default function Annual({ unit, template, allCompanies = [] }) {
           
           <div className="checklist-form-card">
             <form onSubmit={handleSubmit}>
-              
-              {/* This hidden field ensures "Annual" is bundled with the form data */}
-              <input type="hidden" name="maintenance_type" value="Annual" />
-
               <div className="checklist-inline-group">
                 <div className="checklist-field">
                   <label className="checklist-label">Maintenance company</label>
@@ -113,7 +112,21 @@ export default function Annual({ unit, template, allCompanies = [] }) {
 
                 <div className="checklist-field">
                   <label className="checklist-label">Engineer name</label>
-                  <input className="checklist-input" name="engineer_name" required />
+                  <div className="input-icon-wrapper">
+                    <input 
+                      className="checklist-input" 
+                      name="engineer_name" 
+                      list="engineer-list" 
+                      placeholder="Type or select name"
+                      required 
+                    />
+                    <datalist id="engineer-list">
+                      {sortedEngineers.map((name, index) => (
+                        <option key={index} value={name} />
+                      ))}
+                    </datalist>
+                    <i className="fa-solid fa-user-pen"></i>
+                  </div>
                 </div>
 
                 <div className="checklist-field">
@@ -188,6 +201,13 @@ export async function getServerSideProps({ params }) {
     const companyJson = await companyReq.json();
     const allCompanies = companyJson.records?.map(r => r.fields.company_name).filter(Boolean) || [];
 
+    // NEW: Fetch all existing engineers
+    const engineerReq = await fetch(`${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/engineers`, {
+      headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
+    });
+    const engineerJson = await engineerReq.json();
+    const allEngineers = engineerJson.records?.map(r => r.fields.engineer_name).filter(Boolean) || [];
+
     return {
       props: {
         unit: { 
@@ -200,7 +220,8 @@ export async function getServerSideProps({ params }) {
           id: templateRec.id, 
           questions: JSON.parse(templateRec.fields.questions_json || "[]") 
         },
-        allCompanies: allCompanies 
+        allCompanies: allCompanies,
+        allEngineers: allEngineers // Pass to component
       },
     };
   } catch (err) {
