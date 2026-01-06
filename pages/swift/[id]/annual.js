@@ -4,7 +4,7 @@ import Head from "next/head";
 import { UploadDropzone } from "../../../utils/uploadthing"; 
 
 function autoGrow(e) {
-  const el = e.target || e; // Handle both event and raw element
+  const el = e.target || e; 
   el.style.height = "72px"; 
   const newHeight = el.scrollHeight;
   el.style.height = newHeight + "px";
@@ -29,14 +29,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [errorMsg, setErrorMsg] = useState("");
   const [photoUrls, setPhotoUrls] = useState([]);
   const [today, setToday] = useState("");
-  
-  // Track company selection for filtering
   const [selectedCompany, setSelectedCompany] = useState("");
 
-  // 1. UNIQUE STORAGE KEY
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
-  // 2. LOAD DRAFT & SET DATE ON MOUNT
   useEffect(() => {
     const date = new Date().toISOString().split('T')[0];
     setToday(date);
@@ -45,17 +41,12 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     if (savedDraft) {
       try {
         const data = JSON.parse(savedDraft);
-        
-        // Short timeout ensures the DOM is painted so we can target by name
         setTimeout(() => {
           Object.keys(data).forEach(key => {
             const input = document.getElementsByName(key)[0];
             if (input) {
               input.value = data[key];
-              // Trigger auto-grow for textareas
-              if (input.tagName === "TEXTAREA") {
-                autoGrow(input);
-              }
+              if (input.tagName === "TEXTAREA") autoGrow(input);
             }
           });
           if (data.maintained_by) setSelectedCompany(data.maintained_by);
@@ -66,9 +57,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     }
   }, [storageKey]);
 
-  // 3. AUTO-SAVE HANDLER
   const handleInputChange = (e) => {
-    // Target the form containing the input
     const form = e.currentTarget;
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
@@ -114,10 +103,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
       const json = await res.json();
       if (!json.success) throw new Error(json.error || "Airtable Submission Error");
-      
-      // 4. CLEAR DRAFT ON SUCCESS
       localStorage.removeItem(storageKey);
-      
       router.push(`/swift/${unit.public_token}/annual-complete`);
     } catch (err) {
       setErrorMsg(err.message);
@@ -149,26 +135,30 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             </h1>
             
             <div className="checklist-form-card">
-              {/* Added onChange here to catch every input event */}
               <form onSubmit={handleSubmit} onChange={handleInputChange}>
                 
                 <div className="checklist-inline-group">
+                  {/* Maintenance Company with Icon */}
                   <div className="checklist-field">
                     <label className="checklist-label">Maintenance company</label>
-                    <select 
-                      name="maintained_by" 
-                      className="checklist-input" 
-                      required 
-                      defaultValue=""
-                      onChange={(e) => setSelectedCompany(e.target.value)}
-                    >
-                      <option value="" disabled hidden>Please select</option>
-                      {sortedCompanies.map((companyName, index) => (
-                        <option key={index} value={companyName}>{companyName}</option>
-                      ))}
-                    </select>
+                    <div className="input-icon-wrapper">
+                      <select 
+                        name="maintained_by" 
+                        className="checklist-input" 
+                        required 
+                        defaultValue=""
+                        onChange={(e) => setSelectedCompany(e.target.value)}
+                      >
+                        <option value="" disabled hidden>Please select</option>
+                        {sortedCompanies.map((companyName, index) => (
+                          <option key={index} value={companyName}>{companyName}</option>
+                        ))}
+                      </select>
+                      <i className="fa-solid fa-chevron-down"></i>
+                    </div>
                   </div>
 
+                  {/* Engineer Name */}
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer name</label>
                     <input 
@@ -186,6 +176,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                     </datalist>
                   </div>
 
+                  {/* Date */}
                   <div className="checklist-field">
                     <label className="checklist-label">Date of maintenance</label>
                     <input 
@@ -199,6 +190,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
                 </div>
 
+                {/* Dynamic Questions */}
                 {questions.map((question, i) => (
                   <div key={i}>
                     <label className="checklist-label">{question}</label>

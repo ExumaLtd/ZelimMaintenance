@@ -105,7 +105,7 @@
     transform: translateY(-50%);
     color: #FFFFFF;
     pointer-events: none; 
-    font-size: 16px;
+    font-size: 12px; /* Smaller for chevron */
     z-index: 10;
 }
 
@@ -120,6 +120,7 @@
     font-size: 16px;
     font-family: "Montserrat", sans-serif;
     box-sizing: border-box;
+    transition: border-color 0.2s;
 }
 
 .form-scope .checklist-input {
@@ -127,6 +128,11 @@
     appearance: none;
     -webkit-appearance: none;
     accent-color: #172F36;
+}
+
+/* Ensure icons work with select fields */
+.form-scope .input-icon-wrapper select.checklist-input {
+    padding-right: 40px; /* Space for the chevron */
 }
 
 /* Hide datalist arrows and browser search icons */
@@ -138,18 +144,6 @@
 .form-scope .checklist-textarea::placeholder {
     color: #BDC4C6;
     opacity: 1;
-}
-
-/* Style the native dropdown selection */
-.form-scope .company-dropdown option:checked,
-.form-scope .company-dropdown option:hover {
-    background-color: #172F36 !important;
-    color: white !important;
-}
-
-.form-scope .checklist-input:invalid,
-.form-scope .checklist-input option[value=""] {
-    color: #BDC4C6 !important;
 }
 
 .form-scope .checklist-input option {
