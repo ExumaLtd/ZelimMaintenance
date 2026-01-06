@@ -31,7 +31,6 @@
     left: 0 !important;
     right: 0 !important;
     margin: auto !important;
-
     width: 100% !important;
     height: 100% !important;
     object-fit: contain !important;
@@ -52,9 +51,7 @@
     text-transform: lowercase;
 }
 
-/* =========================================================================
-   4. FORM CARD
-========================================================================= */
+/* --- 4. FORM CARD --- */
 .checklist-form-card {
     background: #172F36;
     padding: 28px;
@@ -64,9 +61,7 @@
     margin: 0 auto 60px auto;
 }
 
-/* =========================================================================
-   5. FORM LABELS + INPUT FIELDS
-========================================================================= */
+/* --- 5. FORM LABELS + INPUT FIELDS --- */
 .checklist-label {
     display: block;
     color: #A0ACAF;
@@ -76,14 +71,25 @@
     margin-bottom: 6px;
 }
 
-/* First label (Maintenance company) should NOT have top margin */
 .checklist-label:first-of-type {
     margin-top: 0;
 }
 
-/* FIX: Apply spacing to all generated question blocks */
-.checklist-form-card > div {
-    margin-top: 24px;
+/* FONT AWESOME WRAPPER LOGIC */
+.input-icon-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.input-icon-wrapper i {
+    position: absolute;
+    right: 18px; /* Position icon inside the input */
+    top: 50%;
+    transform: translateY(-50%);
+    color: #FFFFFF;
+    pointer-events: none; /* Click "passes through" icon to input */
+    font-size: 16px;
+    z-index: 2;
 }
 
 .checklist-input,
@@ -98,6 +104,24 @@
     font-family: "Montserrat", sans-serif;
     text-align: left;
     transition: border-color 0.15s ease, background-color 0.15s ease;
+    
+    /* Font Awesome Prep */
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    position: relative;
+}
+
+/* Make room for the icon on the right */
+.checklist-input {
+    padding-right: 45px !important; 
+}
+
+/* Native Date Picker Hack: Stretches the invisible native icon to cover the whole field */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    background: transparent;
+    bottom: 0; color: transparent; cursor: pointer;
+    height: auto; left: 0; position: absolute;
+    right: 0; top: 0; width: auto; z-index: 3;
 }
 
 .checklist-input::placeholder {
@@ -111,16 +135,13 @@
     box-shadow: none;
 }
 
-/* Auto-expanding textareas */
 .checklist-textarea {
     resize: none;
     overflow: hidden;
     min-height: 48px;
 }
 
-/* =========================================================================
-   6. SIGNATURE PAD
-========================================================================= */
+/* --- 6. SIGNATURE PAD --- */
 .checklist-signature {
     width: 100%;
     background: #0B1E22;
@@ -129,21 +150,7 @@
     margin-top: 10px;
 }
 
-/* =========================================================================
-   7. CLEAR SIGNATURE + SUBMIT BUTTON
-========================================================================= */
-.checklist-clear-btn {
-    background: none;
-    border: none;
-    color: #A0ACAF;
-    text-decoration: none;
-    font-size: 14px;
-    margin-top: 10px;
-    cursor: pointer;
-    font-family: Montserrat;
-}
-
-/* Submit button styled like maintenance portal */
+/* --- 7. SUBMIT BUTTON --- */
 .checklist-submit {
     display: inline-block;
     width: auto;
@@ -153,13 +160,10 @@
     background: #01FFF6;
     color: #0D3037;
     border: 2px solid rgba(255,255,255,0.12);
-
     font-family: Montserrat !important;
     font-size: 16px;
     font-weight: 600;
-
     cursor: pointer;
-    text-transform: none !important;
 }
 
 .checklist-submit:disabled {
@@ -167,9 +171,7 @@
     cursor: default;
 }
 
-/* =========================================================================
-   8. ERROR BOX
-========================================================================= */
+/* --- 8. ERROR BOX --- */
 .checklist-error {
     background: rgba(255,0,0,0.25);
     color: #FFB3B3;
@@ -180,9 +182,7 @@
     font-size: 15px;
 }
 
-/* =========================================================================
-   MOBILE BREAKPOINTS
-========================================================================= */
+/* --- MOBILE BREAKPOINTS --- */
 @media (max-width: 600px) {
     .checklist-logo {
         max-width: 225px;

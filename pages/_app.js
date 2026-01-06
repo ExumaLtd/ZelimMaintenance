@@ -1,5 +1,3 @@
-// pages/_app.js
-
 import "/styles/globals.css";
 import "/styles/landing.css";
 import "/styles/maintenance.css";
@@ -16,6 +14,13 @@ export default function MyApp({ Component, pageProps }) {
           rel="stylesheet"
         />
         <link rel="icon" href="/favicon/ZelimFavicon_192x192.png" />
+        
+        {/* Font Awesome Kit */}
+        <script 
+          src="https://kit.fontawesome.com/7d09bbd1e9.js" 
+          crossOrigin="anonymous" 
+          async
+        ></script>
       </Head>
 
       <Component {...pageProps} />

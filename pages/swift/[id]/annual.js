@@ -66,7 +66,7 @@ export default function Annual({ unit, template, allCompanies = [] }) {
       });
 
       const json = await res.json();
-      if (!json.success) throw new Error(json.error || "Airtable Permission Error");
+      if (!json.success) throw new Error(json.error || "Airtable Submission Error");
       router.push(`/swift/${unit.public_token}/annual-complete`);
     } catch (err) {
       setErrorMsg(err.message);
@@ -86,26 +86,30 @@ export default function Annual({ unit, template, allCompanies = [] }) {
           <div className="checklist-form-card">
             <form onSubmit={handleSubmit}>
               <label className="checklist-label">Maintenance company</label>
-              <select name="maintained_by" className="checklist-input" required>
-                <option value="">Please select</option>
-                {sortedCompanies.map((companyName, index) => (
-                  <option key={index} value={companyName}>
-                    {companyName}
-                  </option>
-                ))}
-              </select>
+              <div className="input-icon-wrapper">
+                <select name="maintained_by" className="checklist-input" required>
+                  <option value="">Please select</option>
+                  {sortedCompanies.map((companyName, index) => (
+                    <option key={index} value={companyName}>{companyName}</option>
+                  ))}
+                </select>
+                <i className="fa-solid fa-chevron-down"></i>
+              </div>
 
               <label className="checklist-label">Engineer name</label>
               <input className="checklist-input" name="engineer_name" required placeholder="Type name..." />
 
               <label className="checklist-label">Date of maintenance</label>
-              <input 
-                type="date" 
-                className="checklist-input" 
-                name="date_of_maintenance" 
-                defaultValue={today} 
-                required 
-              />
+              <div className="input-icon-wrapper">
+                <input 
+                  type="date" 
+                  className="checklist-input" 
+                  name="date_of_maintenance" 
+                  defaultValue={today} 
+                  required 
+                />
+                <i className="fa-regular fa-calendar"></i>
+              </div>
 
               {questions.map((question, i) => (
                 <div key={i}>
@@ -120,9 +124,8 @@ export default function Annual({ unit, template, allCompanies = [] }) {
                 className="bg-slate-800 ut-label:text-lg border-2 border-dashed border-gray-600 p-8 h-48 cursor-pointer mb-4"
                 onClientUploadComplete={(res) => {
                   setPhotoUrls(prev => [...prev, ...res.map(f => f.url)]);
-                  alert("Photos uploaded!");
                 }}
-                onUploadError={(error) => setErrorMsg(`Upload Error: ${error.message}`)}
+                onUploadError={(error) => alert(`Upload Error: ${error.message}`)}
               />
 
               <button className="checklist-submit" disabled={submitting} style={{ marginTop: '20px' }}>
@@ -159,8 +162,16 @@ export async function getServerSideProps({ params }) {
 
   return {
     props: {
-      unit: { serial_number: unitRec.fields.unit_name || unitRec.fields.serial_number, company: unitRec.fields.company, record_id: unitRec.id, public_token: unitRec.fields.public_token },
-      template: { id: templateRec.id, questions: JSON.parse(templateRec.fields.questions_json || "[]") },
+      unit: { 
+        serial_number: unitRec.fields.unit_name || unitRec.fields.serial_number, 
+        company: unitRec.fields.company, 
+        record_id: unitRec.id, 
+        public_token: unitRec.fields.public_token 
+      },
+      template: { 
+        id: templateRec.id, 
+        questions: JSON.parse(templateRec.fields.questions_json || "[]") 
+      },
       allCompanies: allCompanies 
     },
   };
