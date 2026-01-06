@@ -117,13 +117,14 @@ export default function Annual({ unit, template, allCompanies = [] }) {
 
                 <div className="checklist-field">
                   <label className="checklist-label">Date of maintenance</label>
-                  <div className="input-icon-wrapper">
+                  <div className="input-icon-wrapper clickable-date">
                     <input 
                       type="date" 
                       className="checklist-input" 
                       name="date_of_maintenance" 
                       defaultValue={today} 
                       required 
+                      onClick={(e) => e.target.showPicker?.()}
                     />
                     <i className="fa-regular fa-calendar"></i>
                   </div>

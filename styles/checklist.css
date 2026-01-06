@@ -97,13 +97,14 @@
     align-items: center;
 }
 
+/* Fix: pointer-events: none ensures the icon doesn't block the click to the input below */
 .input-icon-wrapper i {
     position: absolute;
     right: 15px;
     top: 50%;
     transform: translateY(-50%);
     color: #FFFFFF;
-    pointer-events: none;
+    pointer-events: none; 
     font-size: 16px;
     z-index: 10;
     font-family: "Font Awesome 6 Free", "Font Awesome 5 Free" !important;
@@ -129,7 +130,6 @@
     -moz-appearance: none !important;
 }
 
-/* Placeholder and Dropdown Colors */
 .checklist-input::placeholder,
 .checklist-textarea::placeholder {
     color: #BDC4C6;
@@ -157,16 +157,27 @@
 .checklist-textarea {
     resize: none !important; 
     overflow: hidden;
-    min-height: 72px; /* Starts at 2 lines for checklist questions */
+    min-height: 72px;
     display: block;
     line-height: 1.5;
 }
 
-input[type="date"]::-webkit-calendar-picker-indicator,
-input[type="date"]::-webkit-inner-spin-button,
-input[type="date"]::-webkit-clear-button {
-    display: none !important;
-    -webkit-appearance: none !important;
+/* Ensure the date input covers the whole area and triggers picker on click */
+input[type="date"] {
+    position: relative;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: auto;
+    color: transparent;
+    background: transparent;
+    cursor: pointer;
 }
 
 .checklist-input:focus,
