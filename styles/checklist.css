@@ -108,13 +108,12 @@
     font-size: 16px;
     z-index: 10;
     
-    /* Force rendering on first load */
-    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", sans-serif !important;
+    /* HARD FIX: Force Font Awesome styling immediately */
+    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free" !important;
     font-weight: 900 !important;
-    font-style: normal;
-    display: inline-block;
-    text-rendering: auto;
-    -webkit-font-smoothing: antialiased;
+    display: inline-block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .checklist-input,
@@ -128,6 +127,16 @@
     font-size: 16px;
     font-family: "Montserrat", sans-serif;
     box-sizing: border-box;
+    
+    /* KILL NATIVE BROWSER ICONS */
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+}
+
+/* Remove standard dropdown arrow in IE/Edge */
+.checklist-input::-ms-expand {
+    display: none;
 }
 
 .checklist-input {
@@ -142,18 +151,18 @@
     line-height: 1.5;
 }
 
+/* HARD RESET: Kill all native date picker icons */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-inner-spin-button,
+input[type="date"]::-webkit-clear-button {
+    display: none !important;
+    -webkit-appearance: none !important;
+}
+
 .checklist-input:focus,
 .checklist-textarea:focus {
     outline: none;
     border-color: #01FFF6;
-}
-
-/* Date Picker Indicator Layering */
-input[type="date"]::-webkit-calendar-picker-indicator {
-    background: transparent;
-    bottom: 0; color: transparent; cursor: pointer;
-    height: auto; left: 0; position: absolute;
-    right: 0; top: 0; width: auto; z-index: 11;
 }
 
 /* --- SUBMIT BUTTON (Matched to Portal Style) --- */

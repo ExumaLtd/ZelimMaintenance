@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import Head from "next/head"; // Added for pre-loading icons
 import { UploadDropzone } from "../../../utils/uploadthing"; 
 
 function autoGrow(e) {
@@ -79,6 +80,12 @@ export default function Annual({ unit, template, allCompanies = [] }) {
 
   return (
     <div className="swift-main-layout-wrapper">
+      <Head>
+        <link 
+          rel="stylesheet" 
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
+        />
+      </Head>
       <div className="page-wrapper">
         <div className="swift-checklist-container">
           {logo && <div className="checklist-logo"><img src={logo.src} alt={logo.alt} /></div>}
@@ -103,7 +110,7 @@ export default function Annual({ unit, template, allCompanies = [] }) {
 
                 <div className="checklist-field">
                   <label className="checklist-label">Engineer name</label>
-                  <input className="checklist-input" name="engineer_name" required />
+                  <input className="checklist-input" name="engineer_name" placeholder="Type name..." required />
                 </div>
 
                 <div className="checklist-field">
@@ -129,6 +136,7 @@ export default function Annual({ unit, template, allCompanies = [] }) {
                     className="checklist-textarea" 
                     onInput={autoGrow} 
                     rows={1}
+                    placeholder="Enter details..."
                   />
                 </div>
               ))}
@@ -144,7 +152,7 @@ export default function Annual({ unit, template, allCompanies = [] }) {
               />
 
               <button className="checklist-submit" disabled={submitting}>
-                {submitting ? "Submitting..." : "Submit"}
+                Submit
               </button>
             </form>
           </div>
