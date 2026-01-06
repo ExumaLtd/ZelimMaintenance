@@ -188,7 +188,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                         max={today} 
                         required 
                       />
-                      <i className="fa-solid fa-calendar-days"></i>
+                      {/* Updated Icon Below */}
+                      <i className="fa-regular fa-calendar"></i>
                     </div>
                   </div>
                 </div>
