@@ -6,13 +6,12 @@ export default function AnnualMaintenance({ unit, template, engineerList }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Error state if the Annual template is missing from Airtable
-  if (!template) {
+  // If the data is still loading or missing, show a loading state instead of crashing
+  if (!unit || !template) {
     return (
-      <div style={{ padding: '40px', color: '#ff4d4d', backgroundColor: '#1a1a1a', minHeight: '100vh', fontFamily: 'sans-serif' }}>
-        <h2>Template Not Found</h2>
-        <p>Could not find a checklist template with the type <strong>Annual</strong>.</p>
-        <p>Please check your <em>checklist_templates</em> table in Airtable.</p>
+      <div style={{ padding: '40px', textAlign: 'center', backgroundColor: '#1a1a1a', color: 'white', minHeight: '100vh' }}>
+        <h2>Loading Maintenance Checklist...</h2>
+        <p>If this takes more than 5 seconds, please check your Airtable connection.</p>
       </div>
     );
   }
@@ -24,8 +23,8 @@ export default function AnnualMaintenance({ unit, template, engineerList }) {
     const formData = new FormData(e.target);
     const answers = {};
     
-    template.questions.forEach(q => {
-      answers[q.id] = formData.get(`q-${q.id}`);
+    template.questions.forEach((q, index) => {
+      answers[index] = formData.get(`q-${index}`);
     });
 
     const payload = {
@@ -60,12 +59,12 @@ export default function AnnualMaintenance({ unit, template, engineerList }) {
   return (
     <div className="checklist-container">
       <Head>
-        <title>Annual Maintenance - {unit?.name || 'Unit'}</title>
+        <title>Annual Maintenance - {unit.name}</title>
       </Head>
 
       <header className="checklist-header">
         <h1>Annual Maintenance</h1>
-        <p className="unit-badge">{unit?.name}</p>
+        <p className="unit-badge">{unit.name}</p>
       </header>
 
       <form onSubmit={handleSubmit} className="checklist-form">
@@ -91,7 +90,7 @@ export default function AnnualMaintenance({ unit, template, engineerList }) {
             list="engineer-options" 
             name="engineer_name" 
             className="checklist-input" 
-            placeholder="Search or type new name..." 
+            placeholder="Search or type new..." 
             required 
             autoComplete="off"
           />
@@ -131,13 +130,13 @@ export async function getServerSideProps(context) {
   const baseId = process.env.AIRTABLE_BASE_ID;
 
   try {
-    // 1. Fetch Unit
+    // 1. Fetch Unit - Using optional chaining to prevent crash
     const unitRes = await fetch(`https://api.airtable.com/v0/${baseId}/swift_units/${id}`, {
       headers: { Authorization: `Bearer ${apiKey}` }
     });
     const unitData = await unitRes.json();
 
-    // 2. Fetch Template specifically filtering for 'Annual' type
+    // 2. Fetch Template (Filtering for Annual type)
     const templateRes = await fetch(`https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula={type}='Annual'`, {
       headers: { Authorization: `Bearer ${apiKey}` }
     });
@@ -156,7 +155,7 @@ export async function getServerSideProps(context) {
 
     return {
       props: {
-        unit: { id: unitData.id, name: unitData.fields.unit_name },
+        unit: unitData.fields ? { id: unitData.id, name: unitData.fields.unit_name } : null,
         template: templateRec ? { 
           id: templateRec.id, 
           questions: JSON.parse(templateRec.fields.questions_json) 
@@ -165,7 +164,7 @@ export async function getServerSideProps(context) {
       }
     };
   } catch (error) {
-    console.error("Fetch Error:", error);
+    console.error("Critical Fetch Error:", error);
     return { props: { unit: null, template: null, engineerList: [] } };
   }
 }
