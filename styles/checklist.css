@@ -1,34 +1,21 @@
 /* =========================================================================
-   GLOBAL RESET & PORTAL GRADIENT BACKGROUND
+   REVERTED PORTAL STYLES
 ========================================================================= */
 
-html {
-    /* Fixed background ensures it doesn't move or "run out" when scrolling */
-    background: radial-gradient(circle at top left, #1e3339 0%, #0d1e23 100%) no-repeat fixed;
-    height: 100%;
+html, body {
     margin: 0;
     padding: 0;
-}
-
-body {
-    margin: 0;
-    padding: 0;
+    width: 100%;
     min-height: 100%;
-    /* Transparent background lets the html gradient show through everywhere */
-    background: transparent !important; 
+    /* Reverting to the solid deep portal color */
+    background-color: #0d1e23 !important;
     font-family: "Montserrat", sans-serif;
-    -webkit-font-smoothing: antialiased;
 }
-
-/* =========================================================================
-   CHECKLIST PAGE STYLES
-========================================================================= */
 
 .swift-main-layout-wrapper {
     min-height: 100vh;
     width: 100%;
-    display: flex;
-    flex-direction: column;
+    background-color: #0d1e23;
     color: #FFFFFF;
 }
 
@@ -37,7 +24,6 @@ body {
     flex-direction: column;
     align-items: center;
     width: 100%;
-    flex-grow: 1;
 }
 
 .swift-checklist-container {
@@ -49,48 +35,37 @@ body {
 }
 
 .checklist-logo {
-    position: relative;
     max-width: 250px;
-    max-height: 40px;
-    width: 250px;
-    height: 40px;
     margin: 0 auto 30px auto;
 }
 
 .checklist-logo img {
     width: 100%;
-    height: 100%;
-    object-fit: contain;
+    height: auto;
 }
 
 .checklist-hero-title {
     color: #FFFFFF;
-    font-size: 32px;
-    line-height: 1.2;
-    font-weight: 700;
-    margin: 0 0 40px 0;
-    letter-spacing: -0.5px;
+    font-size: 30px;
+    font-weight: 600;
+    margin-bottom: 40px;
+    text-transform: none;
 }
 
 .checklist-hero-title .break-point {
     display: block;
     text-transform: lowercase;
-    font-weight: 500;
-    opacity: 0.9;
 }
 
 .checklist-form-card {
     background: #172F36;
-    padding: 32px;
+    padding: 28px;
     border-radius: 20px;
-    width: 100%;
     text-align: left;
-    margin: 0 auto 60px auto;
-    box-sizing: border-box;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 
-/* --- GRID LAYOUT --- */
+/* --- GRID --- */
 @media (min-width: 768px) {
     .checklist-inline-group {
         display: flex;
@@ -98,7 +73,7 @@ body {
         align-items: flex-end; 
         margin-bottom: 10px;
     }
-    .checklist-field { flex: 1; min-width: 0; }
+    .checklist-field { flex: 1; }
     .checklist-field .checklist-label { margin-top: 0 !important; }
 }
 
@@ -106,12 +81,11 @@ body {
     display: block;
     color: #A0ACAF;
     font-size: 14px;
-    font-weight: 600;
     margin-top: 24px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
-/* --- INPUTS & ICONS --- */
+/* --- INPUTS --- */
 .input-icon-wrapper {
     position: relative;
     width: 100%;
@@ -123,13 +97,11 @@ body {
     top: 50%;
     transform: translateY(-50%);
     color: #FFFFFF;
-    pointer-events: none; 
+    pointer-events: none;
     font-size: 16px;
-    z-index: 5;
 }
 
-.checklist-input,
-.checklist-textarea {
+.checklist-input, .checklist-textarea {
     width: 100%;
     background: #4f6167;
     border: 1px solid #394d54;
@@ -138,19 +110,12 @@ body {
     color: #FFFFFF;
     font-size: 16px;
     font-family: "Montserrat", sans-serif;
-    box-sizing: border-box;
 }
 
 .checklist-input { height: 48px; }
+.checklist-textarea { resize: none; min-height: 48px; }
 
-.checklist-textarea {
-    resize: none !important;
-    min-height: 48px;
-    display: block;
-    line-height: 1.5;
-}
-
-/* Date picker indicator covers the whole box for easy clicking */
+/* Calendar fix */
 input[type="date"]::-webkit-calendar-picker-indicator {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -158,31 +123,18 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     cursor: pointer;
     background: transparent;
     color: transparent;
-    z-index: 10;
 }
 
-.checklist-input:focus,
-.checklist-textarea:focus {
-    outline: none;
-    border-color: #01FFF6;
-}
-
-/* --- SUBMIT BUTTON --- */
+/* --- BUTTON --- */
 .checklist-submit {
-    display: flex;
-    padding: 10px 24px;
+    display: inline-flex;
+    padding: 10px 20px;
     background-color: #01fff6;
     color: #0d3037;
     border: none;
     border-radius: 8px;
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 600;
     cursor: pointer;
-    margin-top: 40px;
-    transition: all 0.2s ease;
-}
-
-.checklist-submit:hover {
-    background-color: #00e5dd;
-    transform: translateY(-1px);
+    margin-top: 30px;
 }

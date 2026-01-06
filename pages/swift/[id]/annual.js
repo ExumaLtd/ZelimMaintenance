@@ -3,9 +3,6 @@ import { useRouter } from "next/router";
 import Head from "next/head"; 
 import { UploadDropzone } from "../../../utils/uploadthing"; 
 
-/**
- * Utility to make textareas expand as the user types.
- */
 function autoGrow(e) {
   const el = e.target;
   el.style.height = "48px"; 
@@ -13,18 +10,12 @@ function autoGrow(e) {
   el.style.height = newHeight + "px";
 }
 
-/**
- * Logic to determine which logo to display based on unit data.
- */
 const getClientLogo = (companyName, serialNumber) => {
   if (["SWI001", "SWI002"].includes(serialNumber) || companyName?.includes("Changi")) {
-    return { src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg", alt: "Changi Logo" };
+    return { src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg", alt: "Logo" };
   }
   if (serialNumber === "SWI003" || companyName?.includes("Milford Haven")) {
-    return { src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg", alt: "Milford Haven Logo" };
-  }
-  if (["SWI010", "SWI011"].includes(serialNumber) || companyName?.includes("Hatloy")) {
-    return { src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg", alt: "Hatloy Logo" };
+    return { src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg", alt: "Logo" };
   }
   return null;
 };
@@ -35,7 +26,6 @@ export default function Annual({ unit, template, allCompanies = [] }) {
   const [photoUrls, setPhotoUrls] = useState([]);
   const [today, setToday] = useState("");
 
-  // Set the default date to today's date on mount
   useEffect(() => {
     setToday(new Date().toISOString().split('T')[0]);
   }, []);
@@ -48,20 +38,15 @@ export default function Annual({ unit, template, allCompanies = [] }) {
   async function handleSubmit(e) {
     e.preventDefault();
     setSubmitting(true);
-    
     const formData = new FormData(e.target);
     const formProps = Object.fromEntries(formData.entries());
-
     const payload = {
       ...formProps,
       photoUrls, 
       unit_record_id: unit.record_id,
       maintenance_type: "Annual",
       checklist_template_id: template.id,
-      answers: questions.map((_, i) => ({
-        question: `q${i+1}`,
-        answer: formProps[`q${i+1}`] || ""
-      }))
+      answers: questions.map((_, i) => ({ question: `q${i+1}`, answer: formProps[`q${i+1}`] || "" }))
     };
 
     try {
@@ -70,15 +55,9 @@ export default function Annual({ unit, template, allCompanies = [] }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      
-      if (res.ok) {
-        router.push(`/swift/${unit.public_token}/annual-complete`);
-      } else {
-        setSubmitting(false);
-        alert("There was an error submitting the form. Please try again.");
-      }
+      if (res.ok) router.push(`/swift/${unit.public_token}/annual-complete`);
+      else setSubmitting(false);
     } catch (err) {
-      console.error("Submission Error:", err);
       setSubmitting(false);
     }
   }
@@ -89,18 +68,11 @@ export default function Annual({ unit, template, allCompanies = [] }) {
     <div className="swift-main-layout-wrapper">
       <Head>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-        <title>{unit.serial_number} | Annual Maintenance</title>
       </Head>
       
       <div className="page-wrapper">
         <div className="swift-checklist-container">
-          
-          {/* Top Logo Section */}
-          {logo && (
-            <div className="checklist-logo">
-              <img src={logo.src} alt={logo.alt} />
-            </div>
-          )}
+          {logo && <div className="checklist-logo"><img src={logo.src} alt={logo.alt} /></div>}
           
           <h1 className="checklist-hero-title">
             {unit.serial_number}
@@ -109,17 +81,13 @@ export default function Annual({ unit, template, allCompanies = [] }) {
           
           <div className="checklist-form-card">
             <form onSubmit={handleSubmit}>
-              
-              {/* Header Info Grid */}
               <div className="checklist-inline-group">
                 <div className="checklist-field">
                   <label className="checklist-label">Maintenance company</label>
                   <div className="input-icon-wrapper">
                     <select name="maintained_by" className="checklist-input" required>
                       <option value="">Please select</option>
-                      {sortedCompanies.map((name, i) => (
-                        <option key={i} value={name}>{name}</option>
-                      ))}
+                      {sortedCompanies.map((name, i) => <option key={i} value={name}>{name}</option>)}
                     </select>
                     <i className="fa-solid fa-chevron-down"></i>
                   </div>
@@ -127,53 +95,30 @@ export default function Annual({ unit, template, allCompanies = [] }) {
 
                 <div className="checklist-field">
                   <label className="checklist-label">Engineer name</label>
-                  <input 
-                    className="checklist-input" 
-                    name="engineer_name" 
-                    placeholder="Type name..." 
-                    required 
-                  />
+                  <input className="checklist-input" name="engineer_name" required placeholder="Type name..." />
                 </div>
 
                 <div className="checklist-field">
                   <label className="checklist-label">Date of maintenance</label>
                   <div className="input-icon-wrapper">
-                    <input 
-                      type="date" 
-                      className="checklist-input" 
-                      name="date_of_maintenance" 
-                      defaultValue={today} 
-                      required 
-                    />
-                    {/* Regular Outline Calendar Icon */}
+                    <input type="date" className="checklist-input" name="date_of_maintenance" defaultValue={today} required />
                     <i className="fa-regular fa-calendar"></i>
                   </div>
                 </div>
               </div>
 
-              {/* Dynamic Checklist Questions */}
-              {questions.map((question, i) => (
+              {questions.map((q, i) => (
                 <div key={i}>
-                  <label className="checklist-label">{question}</label>
-                  <textarea 
-                    name={`q${i + 1}`} 
-                    className="checklist-textarea" 
-                    onInput={autoGrow} 
-                    rows={1}
-                    placeholder="Enter details..."
-                  />
+                  <label className="checklist-label">{q}</label>
+                  <textarea name={`q${i+1}`} className="checklist-textarea" onInput={autoGrow} rows={1} placeholder="Enter details..." />
                 </div>
               ))}
 
-              {/* Photo Upload Section */}
               <label className="checklist-label" style={{ marginTop: '40px' }}>Upload photos</label>
               <UploadDropzone
                 endpoint="maintenanceImage"
-                className="bg-slate-800 border-2 border-dashed border-gray-600 p-8 h-48 cursor-pointer mb-4 ut-button:bg-[#01fff6] ut-button:text-[#0d3037]"
-                onClientUploadComplete={(res) => {
-                  setPhotoUrls(prev => [...prev, ...res.map(f => f.url)]);
-                }}
-                onUploadError={(error) => alert(`Upload Error: ${error.message}`)}
+                className="bg-slate-800 border-2 border-dashed border-gray-600 p-8 h-48 cursor-pointer mb-4"
+                onClientUploadComplete={(res) => setPhotoUrls(prev => [...prev, ...res.map(f => f.url)])}
               />
 
               <button className="checklist-submit" disabled={submitting}>
@@ -189,24 +134,19 @@ export default function Annual({ unit, template, allCompanies = [] }) {
 
 export async function getServerSideProps({ params }) {
   const token = params.id;
-  
   try {
-    // 1. Fetch Unit Data
     const unitReq = await fetch(`${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`, {
         headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
     });
     const unitJson = await unitReq.json();
-    if (!unitJson.records?.length) return { notFound: true };
     const unitRec = unitJson.records[0];
 
-    // 2. Fetch Annual Template
     const templateReq = await fetch(`${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/checklist_templates?filterByFormula={type}='Annual'`, {
         headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
     });
     const templateJson = await templateReq.json();
     const templateRec = templateJson.records[0];
 
-    // 3. Fetch Maintenance Companies for Dropdown
     const companyReq = await fetch(`${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/maintenance_companies`, {
       headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
     });
@@ -215,21 +155,12 @@ export async function getServerSideProps({ params }) {
 
     return {
       props: {
-        unit: { 
-          serial_number: unitRec.fields.unit_name || unitRec.fields.serial_number, 
-          company: unitRec.fields.company, 
-          record_id: unitRec.id, 
-          public_token: unitRec.fields.public_token 
-        },
-        template: { 
-          id: templateRec.id, 
-          questions: JSON.parse(templateRec.fields.questions_json || "[]") 
-        },
+        unit: { serial_number: unitRec.fields.unit_name || unitRec.fields.serial_number, company: unitRec.fields.company, record_id: unitRec.id, public_token: unitRec.fields.public_token },
+        template: { id: templateRec.id, questions: JSON.parse(templateRec.fields.questions_json || "[]") },
         allCompanies 
       },
     };
   } catch (err) {
-    console.error("Server Fetch Error:", err);
     return { notFound: true };
   }
 }
