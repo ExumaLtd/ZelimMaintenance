@@ -40,7 +40,9 @@ export default function Annual({ unit, template }) {
     const formProps = Object.fromEntries(formData.entries());
 
     const payload = {
-      ...formProps,
+      maintained_by: formProps.maintained_by,
+      engineer_name: formProps.engineer_name,
+      date_of_maintenance: formProps.date_of_maintenance,
       photoUrls: photoUrls, 
       unit_record_id: unit.record_id,
       maintenance_type: "Annual",
@@ -59,7 +61,7 @@ export default function Annual({ unit, template }) {
       });
 
       const json = await res.json();
-      if (!json.success) throw new Error(json.error || "Airtable Permission Error");
+      if (!json.success) throw new Error(json.error || "Airtable Submission Error");
       router.push(`/swift/${unit.public_token}/annual-complete`);
     } catch (err) {
       setErrorMsg(err.message);
@@ -76,12 +78,6 @@ export default function Annual({ unit, template }) {
           {logo && <div className="checklist-logo"><img src={logo.src} alt={logo.alt} /></div>}
           <h1 className="checklist-hero-title">{unit.serial_number}<span className="break-point">annual maintenance</span></h1>
           
-          {errorMsg && (
-            <div className="checklist-error" style={{ border: '1px solid #ff4d4d', background: 'rgba(255, 77, 77, 0.1)', padding: '15px', borderRadius: '8px', color: '#ff4d4d', marginBottom: '20px' }}>
-              <strong>Submission Error:</strong> {errorMsg}
-            </div>
-          )}
-
           <div className="checklist-form-card">
             <form onSubmit={handleSubmit}>
               <label className="checklist-label">Maintenance company</label>
@@ -92,7 +88,7 @@ export default function Annual({ unit, template }) {
               </select>
 
               <label className="checklist-label">Engineer name</label>
-              <input className="checklist-input" name="engineer_name" required />
+              <input className="checklist-input" name="engineer_name" required placeholder="Type name..." />
 
               <label className="checklist-label">Date of maintenance</label>
               <input type="date" className="checklist-input" name="date_of_maintenance" required />
@@ -114,14 +110,6 @@ export default function Annual({ unit, template }) {
                 }}
                 onUploadError={(error) => setErrorMsg(`Upload Error: ${error.message}`)}
               />
-
-              {photoUrls.length > 0 && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '10px', marginBottom: '20px' }}>
-                    {photoUrls.map((url, index) => (
-                      <img key={index} src={url} style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '8px' }} />
-                    ))}
-                </div>
-              )}
 
               <button className="checklist-submit" disabled={submitting} style={{ marginTop: '20px' }}>
                 {submitting ? "Submitting..." : "Submit maintenance"}
