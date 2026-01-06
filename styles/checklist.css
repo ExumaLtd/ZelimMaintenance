@@ -127,11 +127,18 @@
     -webkit-appearance: none;
 }
 
-/* FIX: Placeholder and "Please select" color */
+/* FIX: Placeholder and selection color */
 .checklist-input::placeholder,
 .checklist-textarea::placeholder {
     color: #BDC4C6;
     opacity: 1;
+}
+
+/* Change the highlight color of the company dropdown selection */
+.company-dropdown option:checked,
+.company-dropdown option:hover {
+    background-color: #172F36 !important;
+    color: #FFFFFF !important;
 }
 
 /* Ensures the disabled/hidden 'Please select' stays the right color */
@@ -145,8 +152,14 @@
     background: #27454b;
 }
 
+/* Remove default datalist arrow icon in browsers */
+input::-webkit-calendar-picker-indicator {
+    display: none !important;
+}
+
 /* Date Picker Click Overlay */
 input[type="date"]::-webkit-calendar-picker-indicator {
+    display: block !important;
     position: absolute;
     top: 0;
     left: 0;

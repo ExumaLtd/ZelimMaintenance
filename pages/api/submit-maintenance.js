@@ -1,13 +1,12 @@
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  // 1. ADDED maintenance_type TO DESTRUCTURING
   const { 
     unit_record_id, 
     maintained_by, 
     engineer_name, 
     date_of_maintenance, 
-    maintenance_type, // <--- Catching the value from the frontend
+    maintenance_type,
     answers, 
     photoUrls, 
     checklist_template_id 
@@ -17,12 +16,14 @@ export default async function handler(req, res) {
   const baseId = process.env.AIRTABLE_BASE_ID;
 
   try {
+    // 1. Get the Company Record ID
     const compRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies?filterByFormula={company_name}='${maintained_by}'`, {
       headers: { Authorization: `Bearer ${apiKey}` }
     });
     const compData = await compRes.json();
     const companyRecordId = compData.records?.[0]?.id;
 
+    // 2. Find or Create the Engineer
     const engRes = await fetch(`https://api.airtable.com/v0/${baseId}/engineers?filterByFormula={engineer_name}='${engineer_name}'`, {
       headers: { Authorization: `Bearer ${apiKey}` }
     });
@@ -54,7 +55,7 @@ export default async function handler(req, res) {
       engineerRecordId = newEngData.id;
     }
 
-    // 2. UPDATED FINAL SUBMISSION
+    // 3. Final Submission
     const checkRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_checks`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
@@ -64,7 +65,7 @@ export default async function handler(req, res) {
           "maintained_by": companyRecordId ? [companyRecordId] : [],
           "engineer_name": [engineerRecordId],
           "date_of_maintenance": date_of_maintenance,
-          "maintenance_type": maintenance_type, // <--- NOW SENDING TO AIRTABLE
+          "maintenance_type": maintenance_type,
           "checklist_template": [checklist_template_id],
           "checklist_json": JSON.stringify(answers),
           "photos": photoUrls ? photoUrls.map(url => ({ url })) : []

@@ -23,7 +23,6 @@ const getClientLogo = (companyName, serialNumber) => {
   return null;
 };
 
-// Added allEngineers to props
 export default function Annual({ unit, template, allCompanies = [], allEngineers = [] }) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
@@ -100,7 +99,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                 <div className="checklist-field">
                   <label className="checklist-label">Maintenance company</label>
                   <div className="input-icon-wrapper">
-                    <select name="maintained_by" className="checklist-input" required defaultValue="">
+                    {/* Added company-dropdown class for styling */}
+                    <select name="maintained_by" className="checklist-input company-dropdown" required defaultValue="">
                       <option value="" disabled hidden>Please select</option>
                       {sortedCompanies.map((companyName, index) => (
                         <option key={index} value={companyName}>{companyName}</option>
@@ -117,15 +117,15 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       className="checklist-input" 
                       name="engineer_name" 
                       list="engineer-list" 
-                      placeholder="Type or select name"
                       required 
+                      autoComplete="off"
                     />
                     <datalist id="engineer-list">
                       {sortedEngineers.map((name, index) => (
                         <option key={index} value={name} />
                       ))}
                     </datalist>
-                    <i className="fa-solid fa-user-pen"></i>
+                    {/* Icon and Placeholder removed as requested */}
                   </div>
                 </div>
 
@@ -201,7 +201,6 @@ export async function getServerSideProps({ params }) {
     const companyJson = await companyReq.json();
     const allCompanies = companyJson.records?.map(r => r.fields.company_name).filter(Boolean) || [];
 
-    // NEW: Fetch all existing engineers
     const engineerReq = await fetch(`${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/engineers`, {
       headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
     });
@@ -220,8 +219,8 @@ export async function getServerSideProps({ params }) {
           id: templateRec.id, 
           questions: JSON.parse(templateRec.fields.questions_json || "[]") 
         },
-        allCompanies: allCompanies,
-        allEngineers: allEngineers // Pass to component
+        allCompanies,
+        allEngineers 
       },
     };
   } catch (err) {
