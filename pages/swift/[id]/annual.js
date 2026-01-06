@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { UploadDropzone } from "../../../utils/uploadthing"; 
 
+// Robust auto-grow function: resets height then recalculates based on scrollHeight
 function autoGrow(e) {
   const el = e.target;
-  el.style.height = "auto";
-  el.style.height = el.scrollHeight + "px";
+  el.style.height = "48px"; 
+  const newHeight = el.scrollHeight;
+  el.style.height = newHeight + "px";
 }
 
 const getClientLogo = (companyName, serialNumber) => {
@@ -123,11 +125,16 @@ export default function Annual({ unit, template, allCompanies = [] }) {
               {questions.map((question, i) => (
                 <div key={i}>
                   <label className="checklist-label">{question}</label>
-                  <textarea name={`q${i + 1}`} className="checklist-textarea" rows={2} onInput={autoGrow} />
+                  <textarea 
+                    name={`q${i + 1}`} 
+                    className="checklist-textarea" 
+                    onInput={autoGrow} 
+                    rows={1}
+                  />
                 </div>
               ))}
 
-              <label className="checklist-label">Upload photos</label>
+              <label className="checklist-label" style={{ marginTop: '40px' }}>Upload photos</label>
               <UploadDropzone
                 endpoint="maintenanceImage"
                 className="bg-slate-800 ut-label:text-lg border-2 border-dashed border-gray-600 p-8 h-48 cursor-pointer mb-4"
@@ -137,7 +144,7 @@ export default function Annual({ unit, template, allCompanies = [] }) {
                 onUploadError={(error) => alert(`Upload Error: ${error.message}`)}
               />
 
-              <button className="checklist-submit" disabled={submitting} style={{ marginTop: '20px' }}>
+              <button className="checklist-submit" disabled={submitting}>
                 {submitting ? "Submitting..." : "Submit maintenance"}
               </button>
             </form>

@@ -1,5 +1,5 @@
 /* =========================================================================
-   CHECKLIST PAGE STYLES (Annual + Depth)
+   CHECKLIST PAGE STYLES
    Dark Theme – Matches Maintenance Portal Styling
 ========================================================================= */
 
@@ -26,10 +26,7 @@
 
 .checklist-logo img {
     position: absolute !important;
-    top: 0 !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
+    top: 0; bottom: 0; left: 0; right: 0;
     margin: auto !important;
     width: 100% !important;
     height: 100% !important;
@@ -59,21 +56,22 @@
     width: 100%;
     text-align: left;
     margin: 0 auto 60px auto;
+    overflow: hidden;
 }
 
 /* --- 5. INLINE GROUP (Desktop 3-column) --- */
 @media (min-width: 768px) {
     .checklist-inline-group {
         display: flex;
-        gap: 20px;
-        align-items: flex-end; /* Aligns inputs even if labels wrap */
+        gap: 15px;
+        align-items: flex-end; 
         margin-bottom: 10px;
         width: 100%;
     }
 
     .checklist-field {
         flex: 1;
-        width: 0; /* Ensures equal distribution */
+        min-width: 0; /* Prevents text overflow from breaking layout */
     }
     
     .checklist-field .checklist-label {
@@ -105,11 +103,12 @@
     margin-top: 0;
 }
 
-/* ICON WRAPPER FIX */
+/* ICON WRAPPER */
 .input-icon-wrapper {
     position: relative;
     width: 100%;
-    display: block; /* Ensure it takes up space */
+    display: flex;
+    align-items: center;
 }
 
 .input-icon-wrapper i {
@@ -120,7 +119,7 @@
     color: #FFFFFF;
     pointer-events: none;
     font-size: 16px;
-    z-index: 5; /* Ensure it's on top of everything */
+    z-index: 10;
 }
 
 .checklist-input,
@@ -129,37 +128,27 @@
     background: #4f6167;
     border: 1px solid #394d54;
     border-radius: 8px;
-    padding: 12px 20px;
+    padding: 12px 15px; /* Reduced right padding to fix text cramping */
     color: #e9ebec;
     font-size: 16px;
     font-family: "Montserrat", sans-serif;
-    text-align: left;
     transition: border-color 0.15s ease;
-    
-    /* Standardize height */
-    height: 48px;
-    
-    /* Font Awesome Prep */
     appearance: none !important;
     -webkit-appearance: none !important;
-    position: relative;
-}
-
-.checklist-textarea {
-    height: auto;
-    min-height: 60px;
+    box-sizing: border-box;
 }
 
 .checklist-input {
-    padding-right: 45px !important; 
+    height: 48px;
 }
 
-/* Native Date Picker Hack */
-input[type="date"]::-webkit-calendar-picker-indicator {
-    background: transparent;
-    bottom: 0; color: transparent; cursor: pointer;
-    height: auto; left: 0; position: absolute;
-    right: 0; top: 0; width: auto; z-index: 6;
+/* FIXED: No manual resize handle. Only text length controls size. */
+.checklist-textarea {
+    resize: none !important; 
+    overflow: hidden;
+    min-height: 48px;
+    display: block;
+    line-height: 1.5;
 }
 
 .checklist-input:focus,
@@ -167,6 +156,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     outline: none;
     border-color: #01FFF6;
     box-shadow: none;
+}
+
+/* Date picker transparency for icon */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    background: transparent;
+    bottom: 0; color: transparent; cursor: pointer;
+    height: auto; left: 0; position: absolute;
+    right: 0; top: 0; width: auto; z-index: 11;
 }
 
 /* --- 7. SUBMIT BUTTON --- */
@@ -178,10 +175,15 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     background: #01FFF6;
     color: #0D3037;
     border: 2px solid rgba(255,255,255,0.12);
-    font-family: Montserrat !important;
+    font-family: Montserrat;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
+}
+
+.checklist-submit:disabled {
+    opacity: 0.6;
+    cursor: default;
 }
 
 /* --- MOBILE BREAKPOINTS --- */
