@@ -138,7 +138,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
               <form onSubmit={handleSubmit} onChange={handleInputChange}>
                 
                 <div className="checklist-inline-group">
-                  {/* Maintenance Company with Icon */}
+                  {/* Maintenance Company */}
                   <div className="checklist-field">
                     <label className="checklist-label">Maintenance company</label>
                     <div className="input-icon-wrapper">
@@ -176,17 +176,20 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                     </datalist>
                   </div>
 
-                  {/* Date */}
+                  {/* Date of Maintenance */}
                   <div className="checklist-field">
                     <label className="checklist-label">Date of maintenance</label>
-                    <input 
-                      type="date" 
-                      className="checklist-input" 
-                      name="date_of_maintenance" 
-                      defaultValue={today} 
-                      max={today} 
-                      required 
-                    />
+                    <div className="input-icon-wrapper">
+                      <input 
+                        type="date" 
+                        className="checklist-input" 
+                        name="date_of_maintenance" 
+                        defaultValue={today} 
+                        max={today} 
+                        required 
+                      />
+                      <i className="fa-solid fa-calendar-days"></i>
+                    </div>
                   </div>
                 </div>
 

@@ -105,7 +105,7 @@
     transform: translateY(-50%);
     color: #FFFFFF;
     pointer-events: none; 
-    font-size: 12px; /* Smaller for chevron */
+    font-size: 14px;
     z-index: 10;
 }
 
@@ -130,14 +130,28 @@
     accent-color: #172F36;
 }
 
-/* Ensure icons work with select fields */
 .form-scope .input-icon-wrapper select.checklist-input {
-    padding-right: 40px; /* Space for the chevron */
+    padding-right: 40px;
 }
 
-/* Hide datalist arrows and browser search icons */
-.form-scope input::-webkit-calendar-picker-indicator {
-    display: none !important;
+/* --- DATE PICKER FIXES --- */
+.form-scope .checklist-input[type="date"] {
+    position: relative;
+    cursor: pointer;
+}
+
+/* Make the entire box clickable for the calendar */
+.form-scope .checklist-input::-webkit-calendar-picker-indicator {
+    display: block !important;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
 }
 
 .form-scope .checklist-input::placeholder,
