@@ -26,13 +26,11 @@ const getClientLogo = (companyName, serialNumber) => {
 export default function Annual({ unit, template, allCompanies = [] }) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
   const [photoUrls, setPhotoUrls] = useState([]);
   const [today, setToday] = useState("");
 
   useEffect(() => {
-    const date = new Date().toISOString().split('T')[0];
-    setToday(date);
+    setToday(new Date().toISOString().split('T')[0]);
   }, []);
 
   if (!unit || !template) return <div className="p-8 text-white">Loading...</div>;
@@ -42,15 +40,13 @@ export default function Annual({ unit, template, allCompanies = [] }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setErrorMsg("");
     setSubmitting(true);
-
     const formData = new FormData(e.target);
     const formProps = Object.fromEntries(formData.entries());
 
     const payload = {
       ...formProps,
-      photoUrls: photoUrls, 
+      photoUrls, 
       unit_record_id: unit.record_id,
       maintenance_type: "Annual",
       checklist_template_id: template.id,
@@ -66,12 +62,9 @@ export default function Annual({ unit, template, allCompanies = [] }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error || "Airtable Submission Error");
-      router.push(`/swift/${unit.public_token}/annual-complete`);
+      if (res.ok) router.push(`/swift/${unit.public_token}/annual-complete`);
     } catch (err) {
-      setErrorMsg(err.message);
+      console.error(err);
       setSubmitting(false);
     }
   }
@@ -81,10 +74,7 @@ export default function Annual({ unit, template, allCompanies = [] }) {
   return (
     <div className="swift-main-layout-wrapper">
       <Head>
-        <link 
-          rel="stylesheet" 
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
-        />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
       </Head>
       <div className="page-wrapper">
         <div className="swift-checklist-container">
@@ -93,16 +83,13 @@ export default function Annual({ unit, template, allCompanies = [] }) {
           
           <div className="checklist-form-card">
             <form onSubmit={handleSubmit}>
-              
               <div className="checklist-inline-group">
                 <div className="checklist-field">
                   <label className="checklist-label">Maintenance company</label>
                   <div className="input-icon-wrapper">
                     <select name="maintained_by" className="checklist-input" required>
                       <option value="">Please select</option>
-                      {sortedCompanies.map((companyName, index) => (
-                        <option key={index} value={companyName}>{companyName}</option>
-                      ))}
+                      {sortedCompanies.map((c, i) => <option key={i} value={c}>{c}</option>)}
                     </select>
                     <i className="fa-solid fa-chevron-down"></i>
                   </div>
@@ -116,13 +103,7 @@ export default function Annual({ unit, template, allCompanies = [] }) {
                 <div className="checklist-field">
                   <label className="checklist-label">Date of maintenance</label>
                   <div className="input-icon-wrapper">
-                    <input 
-                      type="date" 
-                      className="checklist-input" 
-                      name="date_of_maintenance" 
-                      defaultValue={today} 
-                      required 
-                    />
+                    <input type="date" className="checklist-input" name="date_of_maintenance" defaultValue={today} required />
                     <i className="fa-regular fa-calendar"></i>
                   </div>
                 </div>
@@ -131,23 +112,15 @@ export default function Annual({ unit, template, allCompanies = [] }) {
               {questions.map((question, i) => (
                 <div key={i}>
                   <label className="checklist-label">{question}</label>
-                  <textarea 
-                    name={`q${i + 1}`} 
-                    className="checklist-textarea" 
-                    onInput={autoGrow} 
-                    rows={1}
-                  />
+                  <textarea name={`q${i + 1}`} className="checklist-textarea" onInput={autoGrow} rows={1} />
                 </div>
               ))}
 
               <label className="checklist-label" style={{ marginTop: '40px' }}>Upload photos</label>
               <UploadDropzone
                 endpoint="maintenanceImage"
-                className="bg-slate-800 ut-label:text-lg border-2 border-dashed border-gray-600 p-8 h-48 cursor-pointer mb-4"
-                onClientUploadComplete={(res) => {
-                  setPhotoUrls(prev => [...prev, ...res.map(f => f.url)]);
-                }}
-                onUploadError={(error) => alert(`Upload Error: ${error.message}`)}
+                className="bg-slate-800 border-2 border-dashed border-gray-600 p-8 h-48 cursor-pointer mb-4"
+                onClientUploadComplete={(res) => setPhotoUrls(prev => [...prev, ...res.map(f => f.url)])}
               />
 
               <button className="checklist-submit" disabled={submitting}>
@@ -159,4 +132,38 @@ export default function Annual({ unit, template, allCompanies = [] }) {
       </div>
     </div>
   );
+}
+
+export async function getServerSideProps({ params }) {
+  const token = params.id;
+  try {
+    const unitReq = await fetch(`${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`, {
+        headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
+    });
+    const unitJson = await unitReq.json();
+    if (!unitJson.records?.length) return { notFound: true };
+    const unitRec = unitJson.records[0];
+
+    const templateReq = await fetch(`${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/checklist_templates?filterByFormula={type}='Annual'`, {
+        headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
+    });
+    const templateJson = await templateReq.json();
+    const templateRec = templateJson.records[0];
+
+    const companyReq = await fetch(`${process.env.AIRTABLE_API_URL}/${process.env.AIRTABLE_BASE_ID}/maintenance_companies`, {
+      headers: { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` },
+    });
+    const companyJson = await companyReq.json();
+    const allCompanies = companyJson.records?.map(r => r.fields.company_name).filter(Boolean) || [];
+
+    return {
+      props: {
+        unit: { serial_number: unitRec.fields.unit_name || unitRec.fields.serial_number, record_id: unitRec.id, public_token: unitRec.fields.public_token },
+        template: { id: templateRec.id, questions: JSON.parse(templateRec.fields.questions_json || "[]") },
+        allCompanies
+      },
+    };
+  } catch (e) {
+    return { notFound: true };
+  }
 }
