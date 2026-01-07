@@ -29,8 +29,8 @@ export default async function handler(req, res) {
     const companyRecordId = compData.records?.[0]?.id;
 
     // 2. Handle Engineer (Anchor: Name)
-    // We search by name. If found, we update email/phone with latest submission.
-    const engFormula = `{engineer_name}='${engineer_name}'`;
+    // FIX: Using double quotes handles apostrophes in names like O'Mara
+    const engFormula = `{engineer_name}="${engineer_name}"`;
     const engRes = await fetch(`https://api.airtable.com/v0/${baseId}/engineers?filterByFormula=${encodeURIComponent(engFormula)}`, {
       headers: { Authorization: `Bearer ${apiKey}` }
     });
@@ -45,15 +45,15 @@ export default async function handler(req, res) {
     };
 
     if (engData.records?.length > 0) {
+      // Name matched! Update existing record with latest contact info
       engineerRecordId = engData.records[0].id;
-      // UPDATE existing engineer with newest contact info
       await fetch(`https://api.airtable.com/v0/${baseId}/engineers/${engineerRecordId}`, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ fields: engineerFields })
       });
     } else {
-      // CREATE new engineer
+      // Name not found: Create new record
       const newEng = await fetch(`https://api.airtable.com/v0/${baseId}/engineers`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
@@ -63,7 +63,7 @@ export default async function handler(req, res) {
       engineerRecordId = newEngData.id;
     }
 
-    // 3. Submit Check
+    // 3. Submit Maintenance Check
     const finalTown = location_town || location_display || "";
 
     const checkRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_checks`, {

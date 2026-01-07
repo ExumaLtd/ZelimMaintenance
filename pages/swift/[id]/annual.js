@@ -42,7 +42,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
-  // 1. Detect Location on Load
+  // 1. Detect Location on Load with UK formatting
   useEffect(() => {
     if (!navigator.geolocation) return;
 
@@ -57,8 +57,12 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             const specific = data.address.suburb || data.address.village || data.address.neighbourhood || data.address.town || data.address.city;
             const broader = data.address.city || data.address.town || data.address.county;
             const country = data.address.country;
+            
+            // Re-apply formatting: "Town, Country"
+            const countryCode = data.address.country_code === 'gb' ? 'UK' : (country || "");
+            const displayValue = specific ? `${specific}, ${countryCode}` : countryCode;
 
-            setLocationDisplay(specific || "");
+            setLocationDisplay(displayValue);
             setDetectedTown(broader || "");
             setDetectedCountry(country || "");
           }
@@ -100,7 +104,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     localStorage.setItem(storageKey, JSON.stringify(data));
   };
 
-  // Logic to clear engineer details when company changes
   const handleCompanyChange = (e) => {
     const newCompany = e.target.value;
     setSelectedCompany(newCompany);
@@ -273,9 +276,7 @@ export async function getServerSideProps({ params }) {
     ]);
     const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cReq.json(), eReq.json()]);
     
-    if (!uJson.records || uJson.records.length === 0) {
-      return { notFound: true };
-    }
+    if (!uJson.records || uJson.records.length === 0) return { notFound: true };
 
     const companyIdToName = {};
     cJson.records?.forEach(r => { companyIdToName[r.id] = r.fields.company_name; });
