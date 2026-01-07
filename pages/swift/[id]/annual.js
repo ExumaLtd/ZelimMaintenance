@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import Head from "next/head"; 
 import { UploadDropzone } from "../../../utils/uploadthing"; 
 
-// Using your Vercel environment variable
+// Match this EXACTLY to your Vercel Environment Variable
 const W3W_API_KEY = process.env.NEXT_PUBLIC_W3W;
 
 function autoGrow(e) {
@@ -33,6 +33,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [photoUrls, setPhotoUrls] = useState([]);
   const [today, setToday] = useState("");
   
+  // Form State
   const [selectedCompany, setSelectedCompany] = useState("");
   const [locationValue, setLocationValue] = useState("");
   const [w3wAddress, setW3wAddress] = useState("");
@@ -40,35 +41,55 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [engEmail, setEngEmail] = useState("");
   const [engPhone, setEngPhone] = useState("");
 
+  // Debug State (Displayed as placeholder in the Location input)
+  const [locStatus, setLocStatus] = useState("Waiting for location...");
+
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
-  // 1. LOCATION CAPTURE
+  // 1. LOCATION LOGIC WITH VISUAL DEBUGGING
   useEffect(() => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      setLocStatus("Geolocation not supported");
+      return;
+    }
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
+        
         if (!W3W_API_KEY) {
-            console.error("W3W Key missing: Check Vercel for NEXT_PUBLIC_W3W");
+            console.error("Missing Vercel Env Var: NEXT_PUBLIC_W3W");
+            setLocStatus("Error: API Key Missing");
             return;
         }
+
         try {
+          setLocStatus("Fetching address...");
           const res = await fetch(`https://api.what3words.com/v3/convert-to-3wa?key=${W3W_API_KEY}&coordinates=${latitude},${longitude}`);
           const data = await res.json();
           
           if (data.words) {
+            // Success!
             setLocationValue(data.nearestPlace || "Location Detected");
             setW3wAddress(`///${data.words}`);
+            setLocStatus(""); // Clear status so it looks clean
           } else if (data.error) {
-            console.error("W3W API Error:", data.error.message);
+            console.error("W3W Error:", data.error);
+            setLocStatus(`API Error: ${data.error.code}`);
           }
         } catch (err) {
           console.error("Fetch Error:", err);
+          setLocStatus("Connection Error");
         }
       },
-      (err) => console.warn("Location permission denied"),
-      { enableHighAccuracy: true, timeout: 10000 }
+      (err) => {
+        // Handle Permission Denied
+        console.warn("Location Denied:", err);
+        if (err.code === 1) setLocStatus("Location Permission Denied");
+        else if (err.code === 2) setLocStatus("Location Unavailable");
+        else setLocStatus("Location Timeout");
+      },
+      { enableHighAccuracy: true, timeout: 15000 }
     );
   }, []);
 
@@ -190,7 +211,15 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
                   <div className="checklist-field">
                     <label className="checklist-label" style={{ marginTop: '0' }}>Location</label>
-                    <input className="checklist-input" name="location" required value={locationValue} onChange={(e) => setLocationValue(e.target.value)} placeholder="" />
+                    {/* Visual Debugging: placeholder shows status */}
+                    <input 
+                      className="checklist-input" 
+                      name="location" 
+                      required 
+                      value={locationValue} 
+                      onChange={(e) => setLocationValue(e.target.value)} 
+                      placeholder={locStatus} 
+                    />
                   </div>
 
                   <div className="checklist-field">
@@ -202,7 +231,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
                 </div>
 
-                {/* ROW 2 - Corrected to 24px */}
+                {/* ROW 2 - Correctly spaced at 24px */}
                 <div className="checklist-inline-group" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginTop: '24px' }}>
                   <div className="checklist-field">
                     <label className="checklist-label" style={{ marginTop: '0' }}>Engineer name</label>
@@ -221,7 +250,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
                 </div>
 
-                {/* QUESTIONS */}
+                {/* Questions */}
                 {(template.questions || []).map((q, i) => (
                   <div key={i}>
                     <label className="checklist-label">{q}</label>
@@ -229,12 +258,13 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
                 ))}
 
-                {/* UPLOAD SECTION */}
+                {/* Upload */}
                 <div>
                     <label className="checklist-label">Upload photos</label>
                     <UploadDropzone endpoint="maintenanceImage" onClientUploadComplete={(res) => setPhotoUrls(prev => [...prev, ...res.map(f => f.url)])} />
                 </div>
 
+                {/* Submit - Spaced at 24px */}
                 <button className="checklist-submit" disabled={submitting} style={{ marginTop: '24px' }}>
                     {submitting ? "Submitting..." : "Submit maintenance"}
                 </button>
