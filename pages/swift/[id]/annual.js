@@ -54,9 +54,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           const data = await res.json();
           
           if (data.address) {
-            // Specific name (e.g., Christleton)
             const specific = data.address.suburb || data.address.village || data.address.neighbourhood || data.address.town || data.address.city;
-            // Broader name (e.g., Chester)
             const broader = data.address.city || data.address.town || data.address.county;
             const country = data.address.country;
 
@@ -100,6 +98,15 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const handleInputChange = (e) => {
     const data = Object.fromEntries(new FormData(e.currentTarget).entries());
     localStorage.setItem(storageKey, JSON.stringify(data));
+  };
+
+  // Logic to clear engineer details when company changes
+  const handleCompanyChange = (e) => {
+    const newCompany = e.target.value;
+    setSelectedCompany(newCompany);
+    setEngName("");
+    setEngEmail("");
+    setEngPhone("");
   };
 
   const handleEngineerChange = (e) => {
@@ -179,7 +186,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                         className="checklist-input" 
                         required 
                         value={selectedCompany} 
-                        onChange={(e) => setSelectedCompany(e.target.value)}
+                        onChange={handleCompanyChange}
                         style={{ color: selectedCompany ? 'white' : 'rgba(255,255,255,0.4)' }}
                       >
                         <option value="" disabled>Please select</option>
