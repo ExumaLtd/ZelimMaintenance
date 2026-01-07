@@ -54,15 +54,20 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           const data = await res.json();
           
           if (data.address) {
-            // Specific name for the UI (Christleton)
             const specific = data.address.suburb || data.address.village || data.address.neighbourhood || data.address.town || data.address.city;
-            // Broader name for the DB (Chester)
             const broader = data.address.city || data.address.town || data.address.county;
-            const country = data.address.country;
+            const countryFull = data.address.country;
+            
+            // Map 'gb' to 'UK' specifically, otherwise uppercase the code
+            const rawCode = data.address.country_code || "";
+            const countryCode = rawCode.toLowerCase() === 'gb' ? 'UK' : rawCode.toUpperCase();
 
-            setLocationDisplay(specific || "");
+            // Set Display as "Christleton, UK"
+            const displayStr = specific ? `${specific}, ${countryCode}` : countryCode;
+
+            setLocationDisplay(displayStr);
             setDetectedTown(broader || "");
-            setDetectedCountry(country || "");
+            setDetectedCountry(countryFull || "");
           }
         } catch (err) {
           console.error("Location detection failed:", err);
@@ -121,14 +126,15 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     const formData = new FormData(e.target);
     const formProps = Object.fromEntries(formData.entries());
 
-    // Deduplicate: If they manually typed "Chester" and detected town is "Chester", send town as empty
-    const finalTown = (locationDisplay.trim().toLowerCase() === detectedTown.trim().toLowerCase()) ? "" : detectedTown;
+    // Deduplication logic: ignore the ", UK" suffix for the comparison
+    const baseDisplay = locationDisplay.split(',')[0].trim().toLowerCase();
+    const finalTown = (baseDisplay === detectedTown.trim().toLowerCase()) ? "" : detectedTown;
 
     const payload = {
       ...formProps,
-      location_display: locationDisplay, 
-      location_town: finalTown,          
-      location_country: detectedCountry,
+      location_display: locationDisplay, // e.g., "Christleton, UK"
+      location_town: finalTown,          // e.g., "Chester"
+      location_country: detectedCountry, // e.g., "United Kingdom"
       maintenance_type: "Annual",
       photoUrls, 
       unit_record_id: unit.record_id,
@@ -199,7 +205,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       required 
                       value={locationDisplay} 
                       onChange={(e) => setLocationDisplay(e.target.value)} 
-                      placeholder="Detecting..." 
+                      placeholder="" 
                     />
                   </div>
 
@@ -266,7 +272,7 @@ export async function getServerSideProps({ params }) {
       fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies`, { headers }),
       fetch(`https://api.airtable.com/v0/${baseId}/engineers`, { headers })
     ]);
-    const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cReq.json(), eReq.json()]);
+    const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cJson.records ? cJson : {records:[]}, eJson.records ? eJson : {records:[]}]);
     const companyIdToName = {};
     cJson.records?.forEach(r => { companyIdToName[r.id] = r.fields.company_name; });
     return {
