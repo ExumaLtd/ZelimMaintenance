@@ -3,7 +3,7 @@ export default async function handler(req, res) {
 
   const { 
     unit_record_id, 
-    maintained_by, 
+    maintained_by, // This is the company name string
     engineer_name, 
     engineer_email,
     engineer_phone,
@@ -27,8 +27,10 @@ export default async function handler(req, res) {
     const compData = await compRes.json();
     const companyRecordId = compData.records?.[0]?.id;
 
-    // 2. Find or Create the Engineer
-    const engRes = await fetch(`https://api.airtable.com/v0/${baseId}/engineers?filterByFormula={engineer_name}='${engineer_name}'`, {
+    // 2. Find or Create the Engineer (Scoped to the Company)
+    // We check for name AND company to avoid overwriting engineers with the same name at different firms
+    const engFormula = `AND({engineer_name}='${engineer_name}', {company}='${maintained_by}')`;
+    const engRes = await fetch(`https://api.airtable.com/v0/${baseId}/engineers?filterByFormula=${encodeURIComponent(engFormula)}`, {
       headers: { Authorization: `Bearer ${apiKey}` }
     });
     const engData = await engRes.json();
@@ -44,18 +46,18 @@ export default async function handler(req, res) {
 
     if (engData.records?.length > 0) {
       engineerRecordId = engData.records[0].id;
-      // Update existing engineer info (Email/Phone/Company)
+      // Update existing engineer info (Email/Phone)
       await fetch(`https://api.airtable.com/v0/${baseId}/engineers/${engineerRecordId}`, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ fields: engineerFields })
       });
     } else {
-      // Create new engineer
+      // Create new engineer record
       const newEng = await fetch(`https://api.airtable.com/v0/${baseId}/engineers`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fields: engineerFields })
+        body: JSON.stringify({ fields: { ...engineerFields } })
       });
       const newEngData = await newEng.json();
       engineerRecordId = newEngData.id;
@@ -69,11 +71,11 @@ export default async function handler(req, res) {
         fields: {
           "unit": [unit_record_id],
           "maintained_by": companyRecordId ? [companyRecordId] : [],
-          "engineer_name": [engineerRecordId],
+          "engineer_name": [engineerRecordId], // Linked record
           "date_of_maintenance": date_of_maintenance,
           "maintenance_type": maintenance_type,
-          "location_town": location_town,
-          "location_what3words": location_what3words,
+          "location_town": location_town || "",
+          "location_what3words": location_what3words || "",
           "checklist_template": [checklist_template_id],
           "checklist_json": JSON.stringify(answers),
           "photos": photoUrls ? photoUrls.map(url => ({ url })) : []

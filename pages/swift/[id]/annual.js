@@ -3,7 +3,8 @@ import { useRouter } from "next/router";
 import Head from "next/head"; 
 import { UploadDropzone } from "../../../utils/uploadthing"; 
 
-const W3W_API_KEY = "MGELXQ7K";
+// Using the updated Vercel environment variable name
+const W3W_API_KEY = process.env.NEXT_PUBLIC_W3W;
 
 function autoGrow(e) {
   const el = e.target || e; 
@@ -31,9 +32,9 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [errorMsg, setErrorMsg] = useState("");
   const [photoUrls, setPhotoUrls] = useState([]);
   const [today, setToday] = useState("");
-  const [selectedCompany, setSelectedCompany] = useState("");
   
-  // Row 1 & 2 State
+  // Form States
+  const [selectedCompany, setSelectedCompany] = useState("");
   const [locationValue, setLocationValue] = useState("");
   const [w3wAddress, setW3wAddress] = useState("");
   const [engName, setEngName] = useState("");
@@ -42,34 +43,29 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
-  // 1. ACTIVE LOCATION WATCHER
+  // 1. SILENT LOCATION CAPTURE
   useEffect(() => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation || !W3W_API_KEY) return;
 
-    // watchPosition is more aggressive and will fire as soon as permission is granted
-    const watchId = navigator.geolocation.watchPosition(
+    navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
         try {
-          // Fixed the template literal syntax error here:
-          const res = await fetch(
-            `https://api.what3words.com/v3/convert-to-3wa?key=${W3W_API_KEY}&coordinates=${latitude},${longitude}`
-          );
+          const res = await fetch(`https://api.what3words.com/v3/convert-to-3wa?key=${W3W_API_KEY}&coordinates=${latitude},${longitude}`);
           const data = await res.json();
-          if (data.words && !locationValue) { // Only auto-fill if the user hasn't typed anything yet
+          if (data.words) {
+            // Populate the field immediately upon success
             setLocationValue(data.nearestPlace || "Location Detected");
             setW3wAddress(`///${data.words}`);
           }
         } catch (err) {
-          console.error("W3W Error:", err);
+          console.error("W3W Fetch Error:", err);
         }
       },
-      (err) => console.warn("Location access not yet granted or available."),
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      (err) => console.warn("Location permission not granted"),
+      { enableHighAccuracy: true }
     );
-
-    return () => navigator.geolocation.clearWatch(watchId);
-  }, [locationValue]); // Added dependency to prevent overwriting manual user input
+  }, []);
 
   // 2. DRAFT & DATE SETUP
   useEffect(() => {
@@ -79,14 +75,13 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     if (savedDraft) {
       try {
         const data = JSON.parse(savedDraft);
+        if (data.maintained_by) setSelectedCompany(data.maintained_by);
+        if (data.location) setLocationValue(data.location);
+        if (data.engineer_name) setEngName(data.engineer_name);
+        if (data.engineer_email) setEngEmail(data.engineer_email);
+        if (data.engineer_phone) setEngPhone(data.engineer_phone);
+        
         setTimeout(() => {
-          if (data.engineer_name) setEngName(data.engineer_name);
-          if (data.engineer_email) setEngEmail(data.engineer_email);
-          if (data.engineer_phone) setEngPhone(data.engineer_phone);
-          if (data.location) setLocationValue(data.location);
-          if (data.maintained_by) setSelectedCompany(data.maintained_by);
-          
-          // Re-populate textareas and trigger growth
           Object.keys(data).forEach(key => {
             const input = document.getElementsByName(key)[0];
             if (input && input.tagName === "TEXTAREA") autoGrow(input);
@@ -113,14 +108,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setErrorMsg("");
-    
-    if (!locationValue) {
-      setErrorMsg("Please provide a location.");
-      return;
-    }
-
+    if (submitting) return;
     setSubmitting(true);
+    setErrorMsg("");
+
     const formData = new FormData(e.target);
     const formProps = Object.fromEntries(formData.entries());
 
@@ -172,13 +163,20 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             <div className="checklist-form-card">
               <form onSubmit={handleSubmit} onChange={handleInputChange}>
                 
-                {/* ROW 1: Company, Location, Date */}
+                {/* ROW 1 */}
                 <div className="checklist-inline-group" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
                   <div className="checklist-field">
                     <label className="checklist-label">Maintenance company</label>
                     <div className="input-icon-wrapper">
-                      <select name="maintained_by" className="checklist-input" required defaultValue="" onChange={(e) => setSelectedCompany(e.target.value)} style={{ color: !selectedCompany ? 'rgba(255,255,255,0.4)' : 'white' }}>
-                        <option value="" disabled hidden>Please select</option>
+                      <select 
+                        name="maintained_by" 
+                        className="checklist-input" 
+                        required 
+                        value={selectedCompany} 
+                        onChange={(e) => setSelectedCompany(e.target.value)} 
+                        style={{ color: selectedCompany ? 'white' : 'rgba(255,255,255,0.4)' }}
+                      >
+                        <option value="" disabled>Please select</option>
                         {sortedCompanies.map((name, i) => <option key={i} value={name} style={{ color: 'black' }}>{name}</option>)}
                       </select>
                       <i className="fa-solid fa-chevron-down"></i>
@@ -192,7 +190,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       name="location" 
                       required 
                       value={locationValue} 
-                      onChange={(e) => setLocationValue(e.target.value)}
+                      onChange={(e) => setLocationValue(e.target.value)} 
                       placeholder=""
                     />
                   </div>
@@ -206,22 +204,22 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
                 </div>
 
-                {/* ROW 2: Engineer Name, Email, Phone */}
+                {/* ROW 2 */}
                 <div className="checklist-inline-group" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer name</label>
-                    <input className="checklist-input" name="engineer_name" autoComplete="off" list="engineer-list" required value={engName} onChange={handleEngineerChange} />
+                    <input className="checklist-input" name="engineer_name" autoComplete="off" list="engineer-list" required value={engName} onChange={handleEngineerChange} placeholder="" />
                     <datalist id="engineer-list">
                       {filteredEngineers.map((eng, i) => <option key={i} value={eng.name} />)}
                     </datalist>
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer email</label>
-                    <input type="email" className="checklist-input" name="engineer_email" required value={engEmail} onChange={(e) => setEngEmail(e.target.value)} />
+                    <input type="email" className="checklist-input" name="engineer_email" required value={engEmail} onChange={(e) => setEngEmail(e.target.value)} placeholder="" />
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer phone</label>
-                    <input type="tel" className="checklist-input" name="engineer_phone" value={engPhone} onChange={(e) => setEngPhone(e.target.value)} />
+                    <input type="tel" className="checklist-input" name="engineer_phone" value={engPhone} onChange={(e) => setEngPhone(e.target.value)} placeholder="" />
                   </div>
                 </div>
 
@@ -233,10 +231,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                 ))}
 
                 <label className="checklist-label">Upload photos</label>
-                <UploadDropzone endpoint="maintenanceImage" className="bg-slate-800 border-2 border-dashed border-gray-600 p-8 h-48 mb-4" onClientUploadComplete={(res) => setPhotoUrls(prev => [...prev, ...res.map(f => f.url)])} />
+                <UploadDropzone endpoint="maintenanceImage" onClientUploadComplete={(res) => setPhotoUrls(prev => [...prev, ...res.map(f => f.url)])} />
 
                 <button className="checklist-submit" disabled={submitting}>{submitting ? "Submitting..." : "Submit maintenance"}</button>
-                {errorMsg && <p style={{ color: "rgb(255, 77, 77)", marginTop: "26px", fontSize: "14px", fontWeight: "500" }}>{errorMsg}</p>}
+                {errorMsg && <p style={{ color: "red", marginTop: "10px" }}>{errorMsg}</p>}
               </form>
             </div>
           </div>
