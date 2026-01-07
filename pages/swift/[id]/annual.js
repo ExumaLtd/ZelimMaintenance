@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import Head from "next/head"; 
 import { UploadDropzone } from "../../../utils/uploadthing"; 
 
-// Using the updated Vercel environment variable name
+// Using your Vercel environment variable
 const W3W_API_KEY = process.env.NEXT_PUBLIC_W3W;
 
 function autoGrow(e) {
@@ -33,7 +33,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [photoUrls, setPhotoUrls] = useState([]);
   const [today, setToday] = useState("");
   
-  // Form States
   const [selectedCompany, setSelectedCompany] = useState("");
   const [locationValue, setLocationValue] = useState("");
   const [w3wAddress, setW3wAddress] = useState("");
@@ -43,27 +42,33 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
-  // 1. SILENT LOCATION CAPTURE
+  // 1. LOCATION CAPTURE
   useEffect(() => {
-    if (!navigator.geolocation || !W3W_API_KEY) return;
+    if (!navigator.geolocation) return;
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
+        if (!W3W_API_KEY) {
+            console.error("W3W Key missing: Check Vercel for NEXT_PUBLIC_W3W");
+            return;
+        }
         try {
           const res = await fetch(`https://api.what3words.com/v3/convert-to-3wa?key=${W3W_API_KEY}&coordinates=${latitude},${longitude}`);
           const data = await res.json();
+          
           if (data.words) {
-            // Populate the field immediately upon success
             setLocationValue(data.nearestPlace || "Location Detected");
             setW3wAddress(`///${data.words}`);
+          } else if (data.error) {
+            console.error("W3W API Error:", data.error.message);
           }
         } catch (err) {
-          console.error("W3W Fetch Error:", err);
+          console.error("Fetch Error:", err);
         }
       },
-      (err) => console.warn("Location permission not granted"),
-      { enableHighAccuracy: true }
+      (err) => console.warn("Location permission denied"),
+      { enableHighAccuracy: true, timeout: 10000 }
     );
   }, []);
 
@@ -166,7 +171,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                 {/* ROW 1 */}
                 <div className="checklist-inline-group" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
                   <div className="checklist-field">
-                    <label className="checklist-label">Maintenance company</label>
+                    <label className="checklist-label" style={{ marginTop: '0' }}>Maintenance company</label>
                     <div className="input-icon-wrapper">
                       <select 
                         name="maintained_by" 
@@ -184,19 +189,12 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
 
                   <div className="checklist-field">
-                    <label className="checklist-label">Location</label>
-                    <input 
-                      className="checklist-input" 
-                      name="location" 
-                      required 
-                      value={locationValue} 
-                      onChange={(e) => setLocationValue(e.target.value)} 
-                      placeholder=""
-                    />
+                    <label className="checklist-label" style={{ marginTop: '0' }}>Location</label>
+                    <input className="checklist-input" name="location" required value={locationValue} onChange={(e) => setLocationValue(e.target.value)} placeholder="" />
                   </div>
 
                   <div className="checklist-field">
-                    <label className="checklist-label">Date of maintenance</label>
+                    <label className="checklist-label" style={{ marginTop: '0' }}>Date of maintenance</label>
                     <div className="input-icon-wrapper">
                       <input type="date" className="checklist-input" name="date_of_maintenance" defaultValue={today} max={today} required />
                       <i className="fa-regular fa-calendar"></i>
@@ -204,25 +202,26 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
                 </div>
 
-                {/* ROW 2 */}
-                <div className="checklist-inline-group" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+                {/* ROW 2 - Corrected to 24px */}
+                <div className="checklist-inline-group" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginTop: '24px' }}>
                   <div className="checklist-field">
-                    <label className="checklist-label">Engineer name</label>
-                    <input className="checklist-input" name="engineer_name" autoComplete="off" list="engineer-list" required value={engName} onChange={handleEngineerChange} placeholder="" />
+                    <label className="checklist-label" style={{ marginTop: '0' }}>Engineer name</label>
+                    <input className="checklist-input" name="engineer_name" autoComplete="off" list="engineer-list" required value={engName} onChange={handleEngineerChange} />
                     <datalist id="engineer-list">
                       {filteredEngineers.map((eng, i) => <option key={i} value={eng.name} />)}
                     </datalist>
                   </div>
                   <div className="checklist-field">
-                    <label className="checklist-label">Engineer email</label>
-                    <input type="email" className="checklist-input" name="engineer_email" required value={engEmail} onChange={(e) => setEngEmail(e.target.value)} placeholder="" />
+                    <label className="checklist-label" style={{ marginTop: '0' }}>Engineer email</label>
+                    <input type="email" className="checklist-input" name="engineer_email" required value={engEmail} onChange={(e) => setEngEmail(e.target.value)} />
                   </div>
                   <div className="checklist-field">
-                    <label className="checklist-label">Engineer phone</label>
-                    <input type="tel" className="checklist-input" name="engineer_phone" value={engPhone} onChange={(e) => setEngPhone(e.target.value)} placeholder="" />
+                    <label className="checklist-label" style={{ marginTop: '0' }}>Engineer phone</label>
+                    <input type="tel" className="checklist-input" name="engineer_phone" value={engPhone} onChange={(e) => setEngPhone(e.target.value)} />
                   </div>
                 </div>
 
+                {/* QUESTIONS */}
                 {(template.questions || []).map((q, i) => (
                   <div key={i}>
                     <label className="checklist-label">{q}</label>
@@ -230,10 +229,16 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
                 ))}
 
-                <label className="checklist-label">Upload photos</label>
-                <UploadDropzone endpoint="maintenanceImage" onClientUploadComplete={(res) => setPhotoUrls(prev => [...prev, ...res.map(f => f.url)])} />
+                {/* UPLOAD SECTION */}
+                <div>
+                    <label className="checklist-label">Upload photos</label>
+                    <UploadDropzone endpoint="maintenanceImage" onClientUploadComplete={(res) => setPhotoUrls(prev => [...prev, ...res.map(f => f.url)])} />
+                </div>
 
-                <button className="checklist-submit" disabled={submitting}>{submitting ? "Submitting..." : "Submit maintenance"}</button>
+                <button className="checklist-submit" disabled={submitting} style={{ marginTop: '24px' }}>
+                    {submitting ? "Submitting..." : "Submit maintenance"}
+                </button>
+                
                 {errorMsg && <p style={{ color: "red", marginTop: "10px" }}>{errorMsg}</p>}
               </form>
             </div>
