@@ -42,7 +42,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
-  // 1. Detect Location on Load (Silent Fail for Quota)
+  // 1. Detect Location on Load
   useEffect(() => {
     if (!navigator.geolocation) return;
 
@@ -53,25 +53,19 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=14&addressdetails=1`);
           const data = await res.json();
           
-          // Only populate if we have a successful address and no quota error
-          if (data.address && !data.error) {
+          if (data.address) {
+            // Specific name for the UI (Christleton)
             const specific = data.address.suburb || data.address.village || data.address.neighbourhood || data.address.town || data.address.city;
+            // Broader name for the DB (Chester)
             const broader = data.address.city || data.address.town || data.address.county;
-            const countryFull = data.address.country;
-            
-            // Map 'gb' to 'UK' specifically, otherwise uppercase the code
-            const rawCode = data.address.country_code || "";
-            const countryCode = rawCode.toLowerCase() === 'gb' ? 'UK' : rawCode.toUpperCase();
+            const country = data.address.country;
 
-            // Form Display: "Christleton, UK"
-            const displayStr = specific ? `${specific}, ${countryCode}` : countryCode;
-
-            setLocationDisplay(displayStr);
+            setLocationDisplay(specific || "");
             setDetectedTown(broader || "");
-            setDetectedCountry(countryFull || "");
+            setDetectedCountry(country || "");
           }
         } catch (err) {
-          console.error("Location detection blocked or failed:", err);
+          console.error("Location detection failed:", err);
         }
       },
       null,
@@ -127,9 +121,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     const formData = new FormData(e.target);
     const formProps = Object.fromEntries(formData.entries());
 
-    // Deduplicate: ignore the ", UK" suffix for the comparison
-    const baseDisplay = locationDisplay.split(',')[0].trim().toLowerCase();
-    const finalTown = (baseDisplay === detectedTown.trim().toLowerCase()) ? "" : detectedTown;
+    // Deduplicate: If they manually typed "Chester" and detected town is "Chester", send town as empty
+    const finalTown = (locationDisplay.trim().toLowerCase() === detectedTown.trim().toLowerCase()) ? "" : detectedTown;
 
     const payload = {
       ...formProps,
@@ -206,7 +199,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       required 
                       value={locationDisplay} 
                       onChange={(e) => setLocationDisplay(e.target.value)} 
-                      placeholder="" 
+                      placeholder="Detecting..." 
                     />
                   </div>
 
@@ -273,30 +266,15 @@ export async function getServerSideProps({ params }) {
       fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies`, { headers }),
       fetch(`https://api.airtable.com/v0/${baseId}/engineers`, { headers })
     ]);
-    const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cJson, eJson]);
-    
+    const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cReq.json(), eReq.json()]);
     const companyIdToName = {};
     cJson.records?.forEach(r => { companyIdToName[r.id] = r.fields.company_name; });
-    
     return {
       props: {
-        unit: { 
-          serial_number: uJson.records[0].fields.unit_name || uJson.records[0].fields.serial_number, 
-          company: uJson.records[0].fields.company, 
-          record_id: uJson.records[0].id, 
-          public_token: uJson.records[0].fields.public_token 
-        },
-        template: { 
-          id: tJson.records[0].id, 
-          questions: JSON.parse(tJson.records[0].fields.questions_json || "[]") 
-        },
+        unit: { serial_number: uJson.records[0].fields.unit_name || uJson.records[0].fields.serial_number, company: uJson.records[0].fields.company, record_id: uJson.records[0].id, public_token: uJson.records[0].fields.public_token },
+        template: { id: tJson.records[0].id, questions: JSON.parse(tJson.records[0].fields.questions_json || "[]") },
         allCompanies: Object.values(companyIdToName).filter(Boolean),
-        allEngineers: eJson.records?.map(r => ({ 
-          name: r.fields.engineer_name, 
-          email: r.fields.email || "", 
-          phone: r.fields.phone || "", 
-          companyName: companyIdToName[r.fields["company"]?.[0]] || "" 
-        })).filter(eng => eng.name) || []
+        allEngineers: eJson.records?.map(r => ({ name: r.fields.engineer_name, email: r.fields.email || "", phone: r.fields.phone || "", companyName: companyIdToName[r.fields["company"]?.[0]] || "" })).filter(eng => eng.name) || []
       },
     };
   } catch (err) { return { notFound: true }; }
