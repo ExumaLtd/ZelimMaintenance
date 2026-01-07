@@ -60,7 +60,10 @@ export default async function handler(req, res) {
       engineerRecordId = newEngData.id;
     }
 
-    // 3. Submit Check
+    // 3. Submit Check with Location Fallbacks
+    // If location_town is empty (common on deduplication), we use the manual location_display entry
+    const finalTown = location_town || location_display || "";
+
     const checkRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_checks`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
@@ -72,7 +75,7 @@ export default async function handler(req, res) {
           "date_of_maintenance": date_of_maintenance,
           "maintenance_type": maintenance_type,
           "location_display": location_display || "",
-          "location_town": location_town || "",
+          "location_town": finalTown,
           "location_country": location_country || "",
           "checklist_template": [checklist_template_id],
           "checklist_json": JSON.stringify(answers),

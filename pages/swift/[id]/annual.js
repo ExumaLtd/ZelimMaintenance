@@ -42,7 +42,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
-  // 1. Detect Location on Load
+  // 1. Detect Location on Load (Silent Fail for Quota)
   useEffect(() => {
     if (!navigator.geolocation) return;
 
@@ -53,7 +53,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=14&addressdetails=1`);
           const data = await res.json();
           
-          if (data.address) {
+          // Only populate if we have a successful address and no quota error
+          if (data.address && !data.error) {
             const specific = data.address.suburb || data.address.village || data.address.neighbourhood || data.address.town || data.address.city;
             const broader = data.address.city || data.address.town || data.address.county;
             const countryFull = data.address.country;
@@ -62,7 +63,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             const rawCode = data.address.country_code || "";
             const countryCode = rawCode.toLowerCase() === 'gb' ? 'UK' : rawCode.toUpperCase();
 
-            // Set Display as "Christleton, UK"
+            // Form Display: "Christleton, UK"
             const displayStr = specific ? `${specific}, ${countryCode}` : countryCode;
 
             setLocationDisplay(displayStr);
@@ -70,7 +71,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             setDetectedCountry(countryFull || "");
           }
         } catch (err) {
-          console.error("Location detection failed:", err);
+          console.error("Location detection blocked or failed:", err);
         }
       },
       null,
@@ -126,15 +127,15 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     const formData = new FormData(e.target);
     const formProps = Object.fromEntries(formData.entries());
 
-    // Deduplication logic: ignore the ", UK" suffix for the comparison
+    // Deduplicate: ignore the ", UK" suffix for the comparison
     const baseDisplay = locationDisplay.split(',')[0].trim().toLowerCase();
     const finalTown = (baseDisplay === detectedTown.trim().toLowerCase()) ? "" : detectedTown;
 
     const payload = {
       ...formProps,
-      location_display: locationDisplay, // e.g., "Christleton, UK"
-      location_town: finalTown,          // e.g., "Chester"
-      location_country: detectedCountry, // e.g., "United Kingdom"
+      location_display: locationDisplay, 
+      location_town: finalTown,          
+      location_country: detectedCountry,
       maintenance_type: "Annual",
       photoUrls, 
       unit_record_id: unit.record_id,
@@ -272,15 +273,30 @@ export async function getServerSideProps({ params }) {
       fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies`, { headers }),
       fetch(`https://api.airtable.com/v0/${baseId}/engineers`, { headers })
     ]);
-    const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cJson.records ? cJson : {records:[]}, eJson.records ? eJson : {records:[]}]);
+    const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cJson, eJson]);
+    
     const companyIdToName = {};
     cJson.records?.forEach(r => { companyIdToName[r.id] = r.fields.company_name; });
+    
     return {
       props: {
-        unit: { serial_number: uJson.records[0].fields.unit_name || uJson.records[0].fields.serial_number, company: uJson.records[0].fields.company, record_id: uJson.records[0].id, public_token: uJson.records[0].fields.public_token },
-        template: { id: tJson.records[0].id, questions: JSON.parse(tJson.records[0].fields.questions_json || "[]") },
+        unit: { 
+          serial_number: uJson.records[0].fields.unit_name || uJson.records[0].fields.serial_number, 
+          company: uJson.records[0].fields.company, 
+          record_id: uJson.records[0].id, 
+          public_token: uJson.records[0].fields.public_token 
+        },
+        template: { 
+          id: tJson.records[0].id, 
+          questions: JSON.parse(tJson.records[0].fields.questions_json || "[]") 
+        },
         allCompanies: Object.values(companyIdToName).filter(Boolean),
-        allEngineers: eJson.records?.map(r => ({ name: r.fields.engineer_name, email: r.fields.email || "", phone: r.fields.phone || "", companyName: companyIdToName[r.fields["company"]?.[0]] || "" })).filter(eng => eng.name) || []
+        allEngineers: eJson.records?.map(r => ({ 
+          name: r.fields.engineer_name, 
+          email: r.fields.email || "", 
+          phone: r.fields.phone || "", 
+          companyName: companyIdToName[r.fields["company"]?.[0]] || "" 
+        })).filter(eng => eng.name) || []
       },
     };
   } catch (err) { return { notFound: true }; }
