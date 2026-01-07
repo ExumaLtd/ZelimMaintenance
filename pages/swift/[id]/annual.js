@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import Head from "next/head"; 
 import { UploadDropzone } from "../../../utils/uploadthing"; 
 
-// what3words API Configuration
+// what3words API Key
 const W3W_API_KEY = "MGELXQ7K";
 
 function autoGrow(e) {
@@ -29,7 +29,6 @@ const getClientLogo = (companyName, serialNumber) => {
 export default function Annual({ unit, template, allCompanies = [], allEngineers = [] }) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
-  const [locationLoaded, setLocationLoaded] = useState(false); // Validates if GPS was captured
   const [errorMsg, setErrorMsg] = useState("");
   const [photoUrls, setPhotoUrls] = useState([]);
   const [today, setToday] = useState("");
@@ -37,43 +36,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
-  // --- 1. AUTOMATED LOCATION CAPTURE ---
-  useEffect(() => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(async (position) => {
-        const { latitude, longitude } = position.coords;
-        try {
-          const res = await fetch(
-            `https://api.what3words.com/v3/convert-to-3wa?key=${W3W_API_KEY}&coordinates=${latitude},${longitude}`
-          );
-          const data = await res.json();
-          if (data.words) {
-            const townInput = document.getElementsByName("location_town")[0];
-            const w3wInput = document.getElementsByName("location_what3words")[0];
-            
-            if (townInput) townInput.value = data.nearestPlace || "";
-            if (w3wInput) w3wInput.value = `///${data.words}`;
-
-            setLocationLoaded(true);
-
-            // Update local draft with the new location data
-            const form = document.querySelector('form');
-            if (form) {
-                const formData = new FormData(form);
-                const draftData = Object.fromEntries(formData.entries());
-                localStorage.setItem(storageKey, JSON.stringify(draftData));
-            }
-          }
-        } catch (err) {
-          console.error("Location lookup failed:", err);
-        }
-      }, (err) => {
-          console.warn("Geolocation denied by user.");
-      }, { enableHighAccuracy: true });
-    }
-  }, [storageKey]);
-
-  // --- 2. DRAFT LOADING ---
+  // Load draft on mount
   useEffect(() => {
     const date = new Date().toISOString().split('T')[0];
     setToday(date);
@@ -91,9 +54,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             }
           });
           if (data.maintained_by) setSelectedCompany(data.maintained_by);
-          
-          // If draft already has location values, mark as loaded
-          if (data.location_what3words) setLocationLoaded(true);
         }, 100);
       } catch (e) {
         console.error("Error loading draft", e);
@@ -108,31 +68,57 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     localStorage.setItem(storageKey, JSON.stringify(data));
   };
 
-  if (!unit || !template) return <div className="p-8 text-white">Loading...</div>;
+  // Helper to trigger GPS
+  const getCoordinates = () => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error("Geolocation not supported"));
+      }
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      });
+    });
+  };
 
-  const questions = template.questions || [];
-  const sortedCompanies = [...allCompanies].sort((a, b) => a.localeCompare(b));
-  const filteredEngineers = allEngineers
-    .filter(eng => !selectedCompany || eng.companyName === selectedCompany)
-    .map(eng => eng.name)
-    .sort((a, b) => a.localeCompare(b));
-
-  // --- 3. SUBMIT HANDLER WITH VALIDATION ---
   async function handleSubmit(e) {
     e.preventDefault();
     setErrorMsg("");
+    setSubmitting(true);
 
-    if (!locationLoaded) {
+    let location_town = "";
+    let location_what3words = "";
+
+    try {
+      // 1. Trigger GPS capture on Submit
+      const position = await getCoordinates();
+      const { latitude, longitude } = position.coords;
+
+      // 2. Fetch w3w and Town silently
+      const w3wRes = await fetch(
+        `https://api.what3words.com/v3/convert-to-3wa?key=${W3W_API_KEY}&coordinates=${latitude},${longitude}`
+      );
+      const data = await w3wRes.json();
+      
+      if (data.words) {
+        location_town = data.nearestPlace || "";
+        location_what3words = `///${data.words}`;
+      }
+    } catch (err) {
+      // 3. Reject submission if GPS fails
       setErrorMsg("Location is mandatory for the maintenance submission. Please refresh the page, accept the location request, and submit. Your answers will not be lost.");
-      return;
+      setSubmitting(false);
+      return; 
     }
 
-    setSubmitting(true);
     const formData = new FormData(e.target);
     const formProps = Object.fromEntries(formData.entries());
 
     const payload = {
       ...formProps,
+      location_town, 
+      location_what3words,
       maintenance_type: "Annual",
       photoUrls: photoUrls, 
       unit_record_id: unit.record_id,
@@ -160,6 +146,15 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     }
   }
 
+  if (!unit || !template) return <div className="p-8 text-white">Loading...</div>;
+
+  const questions = template.questions || [];
+  const sortedCompanies = [...allCompanies].sort((a, b) => a.localeCompare(b));
+  const filteredEngineers = allEngineers
+    .filter(eng => !selectedCompany || eng.companyName === selectedCompany)
+    .map(eng => eng.name)
+    .sort((a, b) => a.localeCompare(b));
+
   const logo = getClientLogo(unit.company, unit.serial_number);
 
   return (
@@ -176,7 +171,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                 <img src={logo.src} alt={logo.alt} />
               </div>
             )}
-
             <h1 className="checklist-hero-title">
               {unit.serial_number}
               <span className="break-point">annual maintenance</span>
@@ -189,13 +183,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   <div className="checklist-field">
                     <label className="checklist-label">Maintenance company</label>
                     <div className="input-icon-wrapper">
-                      <select 
-                        name="maintained_by" 
-                        className="checklist-input" 
-                        required 
-                        defaultValue=""
-                        onChange={(e) => setSelectedCompany(e.target.value)}
-                      >
+                      <select name="maintained_by" className="checklist-input" required defaultValue="" onChange={(e) => setSelectedCompany(e.target.value)}>
                         <option value="" disabled hidden>Please select</option>
                         {sortedCompanies.map((name, index) => (
                           <option key={index} value={name}>{name}</option>
@@ -207,14 +195,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer name</label>
-                    <input 
-                      className="checklist-input" 
-                      name="engineer_name" 
-                      autoComplete="off"
-                      list={selectedCompany ? "engineer-list" : undefined} 
-                      required 
-                      placeholder={selectedCompany ? "Type or select" : "Select company first"}
-                    />
+                    <input className="checklist-input" name="engineer_name" autoComplete="off" list={selectedCompany ? "engineer-list" : undefined} required placeholder={selectedCompany ? "Type or select" : "Select company first"} />
                     <datalist id="engineer-list">
                       {filteredEngineers.map((name, index) => (
                         <option key={index} value={name} />
@@ -225,53 +206,16 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   <div className="checklist-field">
                     <label className="checklist-label">Date of maintenance</label>
                     <div className="input-icon-wrapper">
-                      <input 
-                        type="date" 
-                        className="checklist-input" 
-                        name="date_of_maintenance" 
-                        defaultValue={today} 
-                        max={today} 
-                        required 
-                      />
+                      <input type="date" className="checklist-input" name="date_of_maintenance" defaultValue={today} max={today} required />
                       <i className="fa-regular fa-calendar"></i>
                     </div>
-                  </div>
-                </div>
-
-                {/* --- AUTO-LOCATION FIELDS --- */}
-                <div className="location-inline-group">
-                  <div className="checklist-field">
-                    <label className="checklist-label">Location town (nearest)</label>
-                    <input 
-                      className="checklist-input" 
-                      name="location_town" 
-                      readOnly 
-                      placeholder="Detecting..." 
-                      required 
-                    />
-                  </div>
-                  <div className="checklist-field">
-                    <label className="checklist-label">Location what3words</label>
-                    <input 
-                      className="checklist-input" 
-                      name="location_what3words" 
-                      readOnly 
-                      placeholder="Detecting..." 
-                      required 
-                    />
                   </div>
                 </div>
 
                 {questions.map((question, i) => (
                   <div key={i}>
                     <label className="checklist-label">{question}</label>
-                    <textarea 
-                      name={`q${i + 1}`} 
-                      className="checklist-textarea" 
-                      onInput={autoGrow} 
-                      rows={2} 
-                      style={{ height: '72px' }} 
-                    />
+                    <textarea name={`q${i + 1}`} className="checklist-textarea" onInput={autoGrow} rows={2} style={{ height: '72px' }} />
                   </div>
                 ))}
 
@@ -289,11 +233,11 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
                 {errorMsg && (
                   <p style={{ 
-                    color: '#ff4d4d', 
-                    marginTop: '15px', 
-                    fontSize: '14px', 
-                    fontWeight: '600',
-                    lineHeight: '1.4' 
+                    color: "rgb(255, 77, 77)",
+                    marginTop: "26px",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    lineHeight: "1.4"
                   }}>
                     {errorMsg}
                   </p>
