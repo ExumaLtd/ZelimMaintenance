@@ -54,9 +54,9 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           const data = await res.json();
           
           if (data.address) {
-            // Specific name for the UI (Christleton)
+            // Specific name (e.g., Christleton)
             const specific = data.address.suburb || data.address.village || data.address.neighbourhood || data.address.town || data.address.city;
-            // Broader name for the DB (Chester)
+            // Broader name (e.g., Chester)
             const broader = data.address.city || data.address.town || data.address.county;
             const country = data.address.country;
 
@@ -95,7 +95,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
         }, 100);
       } catch (e) { console.error(e); }
     }
-  }, [storageKey]);
+  }, [storageKey, unit?.serial_number]);
 
   const handleInputChange = (e) => {
     const data = Object.fromEntries(new FormData(e.currentTarget).entries());
@@ -121,13 +121,11 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     const formData = new FormData(e.target);
     const formProps = Object.fromEntries(formData.entries());
 
-    // Deduplicate: If they manually typed "Chester" and detected town is "Chester", send town as empty
-    const finalTown = (locationDisplay.trim().toLowerCase() === detectedTown.trim().toLowerCase()) ? "" : detectedTown;
-
     const payload = {
       ...formProps,
+      maintained_by: selectedCompany,
       location_display: locationDisplay, 
-      location_town: finalTown,          
+      location_town: detectedTown,          
       location_country: detectedCountry,
       maintenance_type: "Annual",
       photoUrls, 
@@ -267,15 +265,36 @@ export async function getServerSideProps({ params }) {
       fetch(`https://api.airtable.com/v0/${baseId}/engineers`, { headers })
     ]);
     const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cReq.json(), eReq.json()]);
+    
+    if (!uJson.records || uJson.records.length === 0) {
+      return { notFound: true };
+    }
+
     const companyIdToName = {};
     cJson.records?.forEach(r => { companyIdToName[r.id] = r.fields.company_name; });
+    
     return {
       props: {
-        unit: { serial_number: uJson.records[0].fields.unit_name || uJson.records[0].fields.serial_number, company: uJson.records[0].fields.company, record_id: uJson.records[0].id, public_token: uJson.records[0].fields.public_token },
-        template: { id: tJson.records[0].id, questions: JSON.parse(tJson.records[0].fields.questions_json || "[]") },
+        unit: { 
+          serial_number: uJson.records[0].fields.unit_name || uJson.records[0].fields.serial_number, 
+          company: uJson.records[0].fields.company, 
+          record_id: uJson.records[0].id, 
+          public_token: uJson.records[0].fields.public_token 
+        },
+        template: { 
+          id: tJson.records[0].id, 
+          questions: JSON.parse(tJson.records[0].fields.questions_json || "[]") 
+        },
         allCompanies: Object.values(companyIdToName).filter(Boolean),
-        allEngineers: eJson.records?.map(r => ({ name: r.fields.engineer_name, email: r.fields.email || "", phone: r.fields.phone || "", companyName: companyIdToName[r.fields["company"]?.[0]] || "" })).filter(eng => eng.name) || []
+        allEngineers: eJson.records?.map(r => ({ 
+          name: r.fields.engineer_name, 
+          email: r.fields.email || "", 
+          phone: r.fields.phone || "", 
+          companyName: companyIdToName[r.fields["company"]?.[0]] || "" 
+        })).filter(eng => eng.name) || []
       },
     };
-  } catch (err) { return { notFound: true }; }
+  } catch (err) { 
+    return { notFound: true }; 
+  }
 }

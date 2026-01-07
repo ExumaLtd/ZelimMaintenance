@@ -28,8 +28,9 @@ export default async function handler(req, res) {
     const compData = await compRes.json();
     const companyRecordId = compData.records?.[0]?.id;
 
-    // 2. Handle Engineer
-    const engFormula = `AND({engineer_name}='${engineer_name}', {company}='${maintained_by}')`;
+    // 2. Handle Engineer (Anchor: Name)
+    // We search by name. If found, we update email/phone with latest submission.
+    const engFormula = `{engineer_name}='${engineer_name}'`;
     const engRes = await fetch(`https://api.airtable.com/v0/${baseId}/engineers?filterByFormula=${encodeURIComponent(engFormula)}`, {
       headers: { Authorization: `Bearer ${apiKey}` }
     });
@@ -37,31 +38,32 @@ export default async function handler(req, res) {
     
     let engineerRecordId;
     const engineerFields = {
-      "engineer_name": engineer_name,
-      "email": engineer_email,
-      "phone": engineer_phone,
+      "engineer_name": engineer_name, 
+      "email": engineer_email,        
+      "phone": engineer_phone,        
       "company": companyRecordId ? [companyRecordId] : []
     };
 
     if (engData.records?.length > 0) {
       engineerRecordId = engData.records[0].id;
+      // UPDATE existing engineer with newest contact info
       await fetch(`https://api.airtable.com/v0/${baseId}/engineers/${engineerRecordId}`, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ fields: engineerFields })
       });
     } else {
+      // CREATE new engineer
       const newEng = await fetch(`https://api.airtable.com/v0/${baseId}/engineers`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fields: { ...engineerFields } })
+        body: JSON.stringify({ fields: engineerFields })
       });
       const newEngData = await newEng.json();
       engineerRecordId = newEngData.id;
     }
 
-    // 3. Submit Check with Location Fallbacks
-    // If location_town is empty (common on deduplication), we use the manual location_display entry
+    // 3. Submit Check
     const finalTown = location_town || location_display || "";
 
     const checkRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_checks`, {
