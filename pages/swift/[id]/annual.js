@@ -32,15 +32,16 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [photoUrls, setPhotoUrls] = useState([]);
   const [today, setToday] = useState("");
   const [selectedCompany, setSelectedCompany] = useState("");
+  
+  // Location & Engineer States
   const [capturedLocation, setCapturedLocation] = useState({ town: "", w3w: "", success: false });
-
-  // Fields for Row 2
   const [engName, setEngName] = useState("");
   const [engEmail, setEngEmail] = useState("");
   const [engPhone, setEngPhone] = useState("");
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
+  // 1. SILENT CAPTURE ON PAGE LOAD
   useEffect(() => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(async (position) => {
@@ -49,13 +50,20 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           const res = await fetch(`https://api.what3words.com/v3/convert-to-3wa?key=${W3W_API_KEY}&coordinates=${latitude},${longitude}`);
           const data = await res.json();
           if (data.words) {
-            setCapturedLocation({ town: data.nearestPlace || "Unknown", w3w: `///${data.words}`, success: true });
+            setCapturedLocation({
+              town: data.nearestPlace || "Detected Location",
+              w3w: `///${data.words}`,
+              success: true
+            });
           }
-        } catch (err) { console.error(err); }
-      }, null, { enableHighAccuracy: true });
+        } catch (err) { console.error("W3W Error:", err); }
+      }, (err) => {
+        console.warn("Location permission denied.");
+      }, { enableHighAccuracy: true });
     }
   }, []);
 
+  // 2. DRAFT & DATE SETUP
   useEffect(() => {
     const date = new Date().toISOString().split('T')[0];
     setToday(date);
@@ -71,6 +79,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
               if (key === "engineer_name") setEngName(data[key]);
               if (key === "engineer_email") setEngEmail(data[key]);
               if (key === "engineer_phone") setEngPhone(data[key]);
+              if (key === "location_town") setCapturedLocation(prev => ({ ...prev, town: data[key] }));
               if (input.tagName === "TEXTAREA") autoGrow(input); 
             }
           });
@@ -85,12 +94,9 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     localStorage.setItem(storageKey, JSON.stringify(data));
   };
 
-  // NEW: Handle Auto-population
   const handleEngineerChange = (e) => {
     const name = e.target.value;
     setEngName(name);
-    
-    // Look for exact match in our engineer list
     const existingEng = allEngineers.find(eng => eng.name === name);
     if (existingEng) {
       setEngEmail(existingEng.email || "");
@@ -101,8 +107,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   async function handleSubmit(e) {
     e.preventDefault();
     setErrorMsg("");
-    if (!capturedLocation.success) {
-      setErrorMsg("Location is mandatory. Please refresh and accept location permissions.");
+    
+    // Only block if we have NO town name (either auto or manual)
+    if (!capturedLocation.town) {
+      setErrorMsg("Location is mandatory. Please ensure your browser location is enabled and refresh.");
       return;
     }
 
@@ -158,8 +166,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             <div className="checklist-form-card">
               <form onSubmit={handleSubmit} onChange={handleInputChange}>
                 
-                {/* ROW 1 */}
-                <div className="checklist-inline-group">
+                {/* ROW 1: Company, Location, Date */}
+                <div className="checklist-inline-group" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
                   <div className="checklist-field">
                     <label className="checklist-label">Maintenance company</label>
                     <div className="input-icon-wrapper">
@@ -170,6 +178,19 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       <i className="fa-solid fa-chevron-down"></i>
                     </div>
                   </div>
+
+                  <div className="checklist-field">
+                    <label className="checklist-label">Location</label>
+                    <input 
+                      className="checklist-input" 
+                      name="location_town" 
+                      required 
+                      value={capturedLocation.town} 
+                      onChange={(e) => setCapturedLocation(prev => ({ ...prev, town: e.target.value }))}
+                      placeholder="Waiting for location..."
+                    />
+                  </div>
+
                   <div className="checklist-field">
                     <label className="checklist-label">Date of maintenance</label>
                     <div className="input-icon-wrapper">
@@ -179,7 +200,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
                 </div>
 
-                {/* ROW 2 */}
+                {/* ROW 2: Engineer Name, Email, Phone */}
                 <div className="checklist-inline-group" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer name</label>
@@ -191,6 +212,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       required 
                       value={engName}
                       onChange={handleEngineerChange}
+                      placeholder=""
                     />
                     <datalist id="engineer-list">
                       {filteredEngineers.map((eng, i) => <option key={i} value={eng.name} />)}
@@ -205,6 +227,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       required 
                       value={engEmail} 
                       onChange={(e) => setEngEmail(e.target.value)} 
+                      placeholder=""
                     />
                   </div>
                   <div className="checklist-field">
@@ -215,6 +238,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       name="engineer_phone" 
                       value={engPhone} 
                       onChange={(e) => setEngPhone(e.target.value)} 
+                      placeholder=""
                     />
                   </div>
                 </div>
@@ -230,7 +254,17 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                 <UploadDropzone endpoint="maintenanceImage" className="bg-slate-800 border-2 border-dashed border-gray-600 p-8 h-48 mb-4" onClientUploadComplete={(res) => setPhotoUrls(prev => [...prev, ...res.map(f => f.url)])} />
 
                 <button className="checklist-submit" disabled={submitting}>{submitting ? "Submitting..." : "Submit maintenance"}</button>
-                {errorMsg && <p style={{ color: "rgb(255, 77, 77)", marginTop: "26px", fontSize: "14px", fontWeight: "500" }}>{errorMsg}</p>}
+                {errorMsg && (
+                   <p style={{ 
+                    color: "rgb(255, 77, 77)",
+                    marginTop: "26px",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    lineHeight: "1.4"
+                  }}>
+                    {errorMsg}
+                  </p>
+                )}
               </form>
             </div>
           </div>
