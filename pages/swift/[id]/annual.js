@@ -3,6 +3,9 @@ import { useRouter } from "next/router";
 import Head from "next/head"; 
 import { UploadDropzone } from "../../../utils/uploadthing"; 
 
+// what3words API Configuration
+const W3W_API_KEY = "MGELXQ7K";
+
 function autoGrow(e) {
   const el = e.target || e; 
   el.style.height = "72px"; 
@@ -26,6 +29,7 @@ const getClientLogo = (companyName, serialNumber) => {
 export default function Annual({ unit, template, allCompanies = [], allEngineers = [] }) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
+  const [locationLoaded, setLocationLoaded] = useState(false); // Validates if GPS was captured
   const [errorMsg, setErrorMsg] = useState("");
   const [photoUrls, setPhotoUrls] = useState([]);
   const [today, setToday] = useState("");
@@ -33,6 +37,43 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
+  // --- 1. AUTOMATED LOCATION CAPTURE ---
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const res = await fetch(
+            `https://api.what3words.com/v3/convert-to-3wa?key=${W3W_API_KEY}&coordinates=${latitude},${longitude}`
+          );
+          const data = await res.json();
+          if (data.words) {
+            const townInput = document.getElementsByName("location_town")[0];
+            const w3wInput = document.getElementsByName("location_what3words")[0];
+            
+            if (townInput) townInput.value = data.nearestPlace || "";
+            if (w3wInput) w3wInput.value = `///${data.words}`;
+
+            setLocationLoaded(true);
+
+            // Update local draft with the new location data
+            const form = document.querySelector('form');
+            if (form) {
+                const formData = new FormData(form);
+                const draftData = Object.fromEntries(formData.entries());
+                localStorage.setItem(storageKey, JSON.stringify(draftData));
+            }
+          }
+        } catch (err) {
+          console.error("Location lookup failed:", err);
+        }
+      }, (err) => {
+          console.warn("Geolocation denied by user.");
+      }, { enableHighAccuracy: true });
+    }
+  }, [storageKey]);
+
+  // --- 2. DRAFT LOADING ---
   useEffect(() => {
     const date = new Date().toISOString().split('T')[0];
     setToday(date);
@@ -50,6 +91,9 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             }
           });
           if (data.maintained_by) setSelectedCompany(data.maintained_by);
+          
+          // If draft already has location values, mark as loaded
+          if (data.location_what3words) setLocationLoaded(true);
         }, 100);
       } catch (e) {
         console.error("Error loading draft", e);
@@ -68,17 +112,22 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const questions = template.questions || [];
   const sortedCompanies = [...allCompanies].sort((a, b) => a.localeCompare(b));
-
   const filteredEngineers = allEngineers
     .filter(eng => !selectedCompany || eng.companyName === selectedCompany)
     .map(eng => eng.name)
     .sort((a, b) => a.localeCompare(b));
 
+  // --- 3. SUBMIT HANDLER WITH VALIDATION ---
   async function handleSubmit(e) {
     e.preventDefault();
     setErrorMsg("");
-    setSubmitting(true);
 
+    if (!locationLoaded) {
+      setErrorMsg("Location is mandatory for the maintenance submission. Please refresh the page, accept the location request, and submit. Your answers will not be lost.");
+      return;
+    }
+
+    setSubmitting(true);
     const formData = new FormData(e.target);
     const formProps = Object.fromEntries(formData.entries());
 
@@ -122,7 +171,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       <div className="swift-main-layout-wrapper">
         <div className="page-wrapper">
           <div className="swift-checklist-container">
-            
             {logo && (
               <div className="checklist-logo">
                 <img src={logo.src} alt={logo.alt} />
@@ -149,8 +197,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                         onChange={(e) => setSelectedCompany(e.target.value)}
                       >
                         <option value="" disabled hidden>Please select</option>
-                        {sortedCompanies.map((companyName, index) => (
-                          <option key={index} value={companyName}>{companyName}</option>
+                        {sortedCompanies.map((name, index) => (
+                          <option key={index} value={name}>{name}</option>
                         ))}
                       </select>
                       <i className="fa-solid fa-chevron-down"></i>
@@ -190,6 +238,30 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
                 </div>
 
+                {/* --- AUTO-LOCATION FIELDS --- */}
+                <div className="location-inline-group">
+                  <div className="checklist-field">
+                    <label className="checklist-label">Location town (nearest)</label>
+                    <input 
+                      className="checklist-input" 
+                      name="location_town" 
+                      readOnly 
+                      placeholder="Detecting..." 
+                      required 
+                    />
+                  </div>
+                  <div className="checklist-field">
+                    <label className="checklist-label">Location what3words</label>
+                    <input 
+                      className="checklist-input" 
+                      name="location_what3words" 
+                      readOnly 
+                      placeholder="Detecting..." 
+                      required 
+                    />
+                  </div>
+                </div>
+
                 {questions.map((question, i) => (
                   <div key={i}>
                     <label className="checklist-label">{question}</label>
@@ -211,11 +283,21 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   onUploadError={(error) => alert(`Upload Error: ${error.message}`)}
                 />
 
-                {errorMsg && <p style={{ color: '#ff4d4d', marginTop: '10px' }}>{errorMsg}</p>}
-
                 <button className="checklist-submit" disabled={submitting}>
                   {submitting ? "Submitting..." : "Submit maintenance"}
                 </button>
+
+                {errorMsg && (
+                  <p style={{ 
+                    color: '#ff4d4d', 
+                    marginTop: '15px', 
+                    fontSize: '14px', 
+                    fontWeight: '600',
+                    lineHeight: '1.4' 
+                  }}>
+                    {errorMsg}
+                  </p>
+                )}
               </form>
             </div>
           </div>
