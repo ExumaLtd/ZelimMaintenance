@@ -3,14 +3,15 @@ export default async function handler(req, res) {
 
   const { 
     unit_record_id, 
-    maintained_by, // This is the company name string
+    maintained_by, 
     engineer_name, 
     engineer_email,
     engineer_phone,
     date_of_maintenance, 
     maintenance_type,
+    location_display,
     location_town,
-    location_what3words,
+    location_country,
     answers, 
     photoUrls, 
     checklist_template_id 
@@ -20,15 +21,14 @@ export default async function handler(req, res) {
   const baseId = process.env.AIRTABLE_BASE_ID;
 
   try {
-    // 1. Get the Company Record ID
+    // 1. Get Company ID
     const compRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies?filterByFormula={company_name}='${maintained_by}'`, {
       headers: { Authorization: `Bearer ${apiKey}` }
     });
     const compData = await compRes.json();
     const companyRecordId = compData.records?.[0]?.id;
 
-    // 2. Find or Create the Engineer (Scoped to the Company)
-    // We check for name AND company to avoid overwriting engineers with the same name at different firms
+    // 2. Handle Engineer
     const engFormula = `AND({engineer_name}='${engineer_name}', {company}='${maintained_by}')`;
     const engRes = await fetch(`https://api.airtable.com/v0/${baseId}/engineers?filterByFormula=${encodeURIComponent(engFormula)}`, {
       headers: { Authorization: `Bearer ${apiKey}` }
@@ -36,7 +36,6 @@ export default async function handler(req, res) {
     const engData = await engRes.json();
     
     let engineerRecordId;
-
     const engineerFields = {
       "engineer_name": engineer_name,
       "email": engineer_email,
@@ -46,14 +45,12 @@ export default async function handler(req, res) {
 
     if (engData.records?.length > 0) {
       engineerRecordId = engData.records[0].id;
-      // Update existing engineer info (Email/Phone)
       await fetch(`https://api.airtable.com/v0/${baseId}/engineers/${engineerRecordId}`, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ fields: engineerFields })
       });
     } else {
-      // Create new engineer record
       const newEng = await fetch(`https://api.airtable.com/v0/${baseId}/engineers`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
@@ -63,7 +60,7 @@ export default async function handler(req, res) {
       engineerRecordId = newEngData.id;
     }
 
-    // 3. Final Submission to maintenance_checks
+    // 3. Submit Check
     const checkRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_checks`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
@@ -71,11 +68,12 @@ export default async function handler(req, res) {
         fields: {
           "unit": [unit_record_id],
           "maintained_by": companyRecordId ? [companyRecordId] : [],
-          "engineer_name": [engineerRecordId], // Linked record
+          "engineer_name": [engineerRecordId],
           "date_of_maintenance": date_of_maintenance,
           "maintenance_type": maintenance_type,
+          "location_display": location_display || "",
           "location_town": location_town || "",
-          "location_what3words": location_what3words || "",
+          "location_country": location_country || "",
           "checklist_template": [checklist_template_id],
           "checklist_json": JSON.stringify(answers),
           "photos": photoUrls ? photoUrls.map(url => ({ url })) : []

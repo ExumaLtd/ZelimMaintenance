@@ -3,9 +3,6 @@ import { useRouter } from "next/router";
 import Head from "next/head"; 
 import { UploadDropzone } from "../../../utils/uploadthing"; 
 
-// Match this EXACTLY to your Vercel Environment Variable
-const W3W_API_KEY = process.env.NEXT_PUBLIC_W3W;
-
 function autoGrow(e) {
   const el = e.target || e; 
   el.style.height = "72px"; 
@@ -33,67 +30,50 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [photoUrls, setPhotoUrls] = useState([]);
   const [today, setToday] = useState("");
   
-  // Form State
+  // Location States
+  const [locationDisplay, setLocationDisplay] = useState(""); 
+  const [detectedTown, setDetectedTown] = useState("");       
+  const [detectedCountry, setDetectedCountry] = useState(""); 
+  
   const [selectedCompany, setSelectedCompany] = useState("");
-  const [locationValue, setLocationValue] = useState("");
-  const [w3wAddress, setW3wAddress] = useState("");
   const [engName, setEngName] = useState("");
   const [engEmail, setEngEmail] = useState("");
   const [engPhone, setEngPhone] = useState("");
 
-  // Debug State (Displayed as placeholder in the Location input)
-  const [locStatus, setLocStatus] = useState("Waiting for location...");
-
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
-  // 1. LOCATION LOGIC WITH VISUAL DEBUGGING
+  // 1. Detect Location on Load
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setLocStatus("Geolocation not supported");
-      return;
-    }
+    if (!navigator.geolocation) return;
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
-        
-        if (!W3W_API_KEY) {
-            console.error("Missing Vercel Env Var: NEXT_PUBLIC_W3W");
-            setLocStatus("Error: API Key Missing");
-            return;
-        }
-
         try {
-          setLocStatus("Fetching address...");
-          const res = await fetch(`https://api.what3words.com/v3/convert-to-3wa?key=${W3W_API_KEY}&coordinates=${latitude},${longitude}`);
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=14&addressdetails=1`);
           const data = await res.json();
           
-          if (data.words) {
-            // Success!
-            setLocationValue(data.nearestPlace || "Location Detected");
-            setW3wAddress(`///${data.words}`);
-            setLocStatus(""); // Clear status so it looks clean
-          } else if (data.error) {
-            console.error("W3W Error:", data.error);
-            setLocStatus(`API Error: ${data.error.code}`);
+          if (data.address) {
+            // Specific name for the UI (Christleton)
+            const specific = data.address.suburb || data.address.village || data.address.neighbourhood || data.address.town || data.address.city;
+            // Broader name for the DB (Chester)
+            const broader = data.address.city || data.address.town || data.address.county;
+            const country = data.address.country;
+
+            setLocationDisplay(specific || "");
+            setDetectedTown(broader || "");
+            setDetectedCountry(country || "");
           }
         } catch (err) {
-          console.error("Fetch Error:", err);
-          setLocStatus("Connection Error");
+          console.error("Location detection failed:", err);
         }
       },
-      (err) => {
-        // Handle Permission Denied
-        console.warn("Location Denied:", err);
-        if (err.code === 1) setLocStatus("Location Permission Denied");
-        else if (err.code === 2) setLocStatus("Location Unavailable");
-        else setLocStatus("Location Timeout");
-      },
-      { enableHighAccuracy: true, timeout: 15000 }
+      null,
+      { enableHighAccuracy: true }
     );
   }, []);
 
-  // 2. DRAFT & DATE SETUP
+  // 2. Load Drafts and Set Date
   useEffect(() => {
     const date = new Date().toISOString().split('T')[0];
     setToday(date);
@@ -102,7 +82,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       try {
         const data = JSON.parse(savedDraft);
         if (data.maintained_by) setSelectedCompany(data.maintained_by);
-        if (data.location) setLocationValue(data.location);
+        if (data.location_display) setLocationDisplay(data.location_display);
         if (data.engineer_name) setEngName(data.engineer_name);
         if (data.engineer_email) setEngEmail(data.engineer_email);
         if (data.engineer_phone) setEngPhone(data.engineer_phone);
@@ -141,10 +121,14 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     const formData = new FormData(e.target);
     const formProps = Object.fromEntries(formData.entries());
 
+    // Deduplicate: If they manually typed "Chester" and detected town is "Chester", send town as empty
+    const finalTown = (locationDisplay.trim().toLowerCase() === detectedTown.trim().toLowerCase()) ? "" : detectedTown;
+
     const payload = {
       ...formProps,
-      location_town: locationValue, 
-      location_what3words: w3wAddress,
+      location_display: locationDisplay, 
+      location_town: finalTown,          
+      location_country: detectedCountry,
       maintenance_type: "Annual",
       photoUrls, 
       unit_record_id: unit.record_id,
@@ -188,8 +172,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             
             <div className="checklist-form-card">
               <form onSubmit={handleSubmit} onChange={handleInputChange}>
-                
-                {/* ROW 1 */}
                 <div className="checklist-inline-group" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
                   <div className="checklist-field">
                     <label className="checklist-label" style={{ marginTop: '0' }}>Maintenance company</label>
@@ -199,7 +181,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                         className="checklist-input" 
                         required 
                         value={selectedCompany} 
-                        onChange={(e) => setSelectedCompany(e.target.value)} 
+                        onChange={(e) => setSelectedCompany(e.target.value)}
                         style={{ color: selectedCompany ? 'white' : 'rgba(255,255,255,0.4)' }}
                       >
                         <option value="" disabled>Please select</option>
@@ -211,14 +193,13 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
                   <div className="checklist-field">
                     <label className="checklist-label" style={{ marginTop: '0' }}>Location</label>
-                    {/* Visual Debugging: placeholder shows status */}
                     <input 
                       className="checklist-input" 
-                      name="location" 
+                      name="location_display" 
                       required 
-                      value={locationValue} 
-                      onChange={(e) => setLocationValue(e.target.value)} 
-                      placeholder={locStatus} 
+                      value={locationDisplay} 
+                      onChange={(e) => setLocationDisplay(e.target.value)} 
+                      placeholder="Detecting..." 
                     />
                   </div>
 
@@ -231,7 +212,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
                 </div>
 
-                {/* ROW 2 - Correctly spaced at 24px */}
                 <div className="checklist-inline-group" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginTop: '24px' }}>
                   <div className="checklist-field">
                     <label className="checklist-label" style={{ marginTop: '0' }}>Engineer name</label>
@@ -250,7 +230,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
                 </div>
 
-                {/* Questions */}
                 {(template.questions || []).map((q, i) => (
                   <div key={i}>
                     <label className="checklist-label">{q}</label>
@@ -258,17 +237,14 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
                 ))}
 
-                {/* Upload */}
                 <div>
                     <label className="checklist-label">Upload photos</label>
                     <UploadDropzone endpoint="maintenanceImage" onClientUploadComplete={(res) => setPhotoUrls(prev => [...prev, ...res.map(f => f.url)])} />
                 </div>
 
-                {/* Submit - Spaced at 24px */}
                 <button className="checklist-submit" disabled={submitting} style={{ marginTop: '24px' }}>
                     {submitting ? "Submitting..." : "Submit maintenance"}
                 </button>
-                
                 {errorMsg && <p style={{ color: "red", marginTop: "10px" }}>{errorMsg}</p>}
               </form>
             </div>
