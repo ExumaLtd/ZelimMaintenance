@@ -33,35 +33,43 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [today, setToday] = useState("");
   const [selectedCompany, setSelectedCompany] = useState("");
   
-  // Location & Engineer States
-  const [capturedLocation, setCapturedLocation] = useState({ town: "", w3w: "", success: false });
+  // Row 1 & 2 State
+  const [locationValue, setLocationValue] = useState("");
+  const [w3wAddress, setW3wAddress] = useState("");
   const [engName, setEngName] = useState("");
   const [engEmail, setEngEmail] = useState("");
   const [engPhone, setEngPhone] = useState("");
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
-  // 1. SILENT CAPTURE ON PAGE LOAD
+  // 1. ACTIVE LOCATION WATCHER
   useEffect(() => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(async (position) => {
+    if (!navigator.geolocation) return;
+
+    // watchPosition is more aggressive and will fire as soon as permission is granted
+    const watchId = navigator.geolocation.watchPosition(
+      async (position) => {
         const { latitude, longitude } = position.coords;
         try {
-          const res = await fetch(`https://api.what3words.com/v3/convert-to-3wa?key=${W3W_API_KEY}&coordinates=${latitude},${longitude}`);
+          // Fixed the template literal syntax error here:
+          const res = await fetch(
+            `https://api.what3words.com/v3/convert-to-3wa?key=${W3W_API_KEY}&coordinates=${latitude},${longitude}`
+          );
           const data = await res.json();
-          if (data.words) {
-            setCapturedLocation({
-              town: data.nearestPlace || "Detected Location",
-              w3w: `///${data.words}`,
-              success: true
-            });
+          if (data.words && !locationValue) { // Only auto-fill if the user hasn't typed anything yet
+            setLocationValue(data.nearestPlace || "Location Detected");
+            setW3wAddress(`///${data.words}`);
           }
-        } catch (err) { console.error("W3W Error:", err); }
-      }, (err) => {
-        console.warn("Location permission denied.");
-      }, { enableHighAccuracy: true });
-    }
-  }, []);
+        } catch (err) {
+          console.error("W3W Error:", err);
+        }
+      },
+      (err) => console.warn("Location access not yet granted or available."),
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [locationValue]); // Added dependency to prevent overwriting manual user input
 
   // 2. DRAFT & DATE SETUP
   useEffect(() => {
@@ -72,18 +80,17 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       try {
         const data = JSON.parse(savedDraft);
         setTimeout(() => {
+          if (data.engineer_name) setEngName(data.engineer_name);
+          if (data.engineer_email) setEngEmail(data.engineer_email);
+          if (data.engineer_phone) setEngPhone(data.engineer_phone);
+          if (data.location) setLocationValue(data.location);
+          if (data.maintained_by) setSelectedCompany(data.maintained_by);
+          
+          // Re-populate textareas and trigger growth
           Object.keys(data).forEach(key => {
             const input = document.getElementsByName(key)[0];
-            if (input) { 
-              input.value = data[key];
-              if (key === "engineer_name") setEngName(data[key]);
-              if (key === "engineer_email") setEngEmail(data[key]);
-              if (key === "engineer_phone") setEngPhone(data[key]);
-              if (key === "location_town") setCapturedLocation(prev => ({ ...prev, town: data[key] }));
-              if (input.tagName === "TEXTAREA") autoGrow(input); 
-            }
+            if (input && input.tagName === "TEXTAREA") autoGrow(input);
           });
-          if (data.maintained_by) setSelectedCompany(data.maintained_by);
         }, 100);
       } catch (e) { console.error(e); }
     }
@@ -108,9 +115,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     e.preventDefault();
     setErrorMsg("");
     
-    // Only block if we have NO town name (either auto or manual)
-    if (!capturedLocation.town) {
-      setErrorMsg("Location is mandatory. Please ensure your browser location is enabled and refresh.");
+    if (!locationValue) {
+      setErrorMsg("Please provide a location.");
       return;
     }
 
@@ -120,8 +126,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
     const payload = {
       ...formProps,
-      location_town: capturedLocation.town, 
-      location_what3words: capturedLocation.w3w,
+      location_town: locationValue, 
+      location_what3words: w3wAddress,
       maintenance_type: "Annual",
       photoUrls, 
       unit_record_id: unit.record_id,
@@ -138,7 +144,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("Airtable Submission Error");
+      if (!res.ok) throw new Error("Submission Failed");
       localStorage.removeItem(storageKey);
       router.push(`/swift/${unit.public_token}/annual-complete`);
     } catch (err) {
@@ -183,11 +189,11 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                     <label className="checklist-label">Location</label>
                     <input 
                       className="checklist-input" 
-                      name="location_town" 
+                      name="location" 
                       required 
-                      value={capturedLocation.town} 
-                      onChange={(e) => setCapturedLocation(prev => ({ ...prev, town: e.target.value }))}
-                      placeholder="Waiting for location..."
+                      value={locationValue} 
+                      onChange={(e) => setLocationValue(e.target.value)}
+                      placeholder=""
                     />
                   </div>
 
@@ -204,42 +210,18 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                 <div className="checklist-inline-group" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer name</label>
-                    <input 
-                      className="checklist-input" 
-                      name="engineer_name" 
-                      autoComplete="off" 
-                      list="engineer-list" 
-                      required 
-                      value={engName}
-                      onChange={handleEngineerChange}
-                      placeholder=""
-                    />
+                    <input className="checklist-input" name="engineer_name" autoComplete="off" list="engineer-list" required value={engName} onChange={handleEngineerChange} />
                     <datalist id="engineer-list">
                       {filteredEngineers.map((eng, i) => <option key={i} value={eng.name} />)}
                     </datalist>
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer email</label>
-                    <input 
-                      type="email" 
-                      className="checklist-input" 
-                      name="engineer_email" 
-                      required 
-                      value={engEmail} 
-                      onChange={(e) => setEngEmail(e.target.value)} 
-                      placeholder=""
-                    />
+                    <input type="email" className="checklist-input" name="engineer_email" required value={engEmail} onChange={(e) => setEngEmail(e.target.value)} />
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer phone</label>
-                    <input 
-                      type="tel" 
-                      className="checklist-input" 
-                      name="engineer_phone" 
-                      value={engPhone} 
-                      onChange={(e) => setEngPhone(e.target.value)} 
-                      placeholder=""
-                    />
+                    <input type="tel" className="checklist-input" name="engineer_phone" value={engPhone} onChange={(e) => setEngPhone(e.target.value)} />
                   </div>
                 </div>
 
@@ -254,17 +236,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                 <UploadDropzone endpoint="maintenanceImage" className="bg-slate-800 border-2 border-dashed border-gray-600 p-8 h-48 mb-4" onClientUploadComplete={(res) => setPhotoUrls(prev => [...prev, ...res.map(f => f.url)])} />
 
                 <button className="checklist-submit" disabled={submitting}>{submitting ? "Submitting..." : "Submit maintenance"}</button>
-                {errorMsg && (
-                   <p style={{ 
-                    color: "rgb(255, 77, 77)",
-                    marginTop: "26px",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    lineHeight: "1.4"
-                  }}>
-                    {errorMsg}
-                  </p>
-                )}
+                {errorMsg && <p style={{ color: "rgb(255, 77, 77)", marginTop: "26px", fontSize: "14px", fontWeight: "500" }}>{errorMsg}</p>}
               </form>
             </div>
           </div>
@@ -279,29 +251,21 @@ export async function getServerSideProps({ params }) {
   try {
     const headers = { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` };
     const baseId = process.env.AIRTABLE_BASE_ID;
-    
     const [uReq, tReq, cReq, eReq] = await Promise.all([
       fetch(`https://api.airtable.com/v0/${baseId}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`, { headers }),
       fetch(`https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula={type}='Annual'`, { headers }),
       fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies`, { headers }),
       fetch(`https://api.airtable.com/v0/${baseId}/engineers`, { headers })
     ]);
-    
     const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cReq.json(), eReq.json()]);
     const companyIdToName = {};
     cJson.records?.forEach(r => { companyIdToName[r.id] = r.fields.company_name; });
-    
     return {
       props: {
         unit: { serial_number: uJson.records[0].fields.unit_name || uJson.records[0].fields.serial_number, company: uJson.records[0].fields.company, record_id: uJson.records[0].id, public_token: uJson.records[0].fields.public_token },
         template: { id: tJson.records[0].id, questions: JSON.parse(tJson.records[0].fields.questions_json || "[]") },
         allCompanies: Object.values(companyIdToName).filter(Boolean),
-        allEngineers: eJson.records?.map(r => ({ 
-          name: r.fields.engineer_name, 
-          email: r.fields.email || "", 
-          phone: r.fields.phone || "",
-          companyName: companyIdToName[r.fields["company"]?.[0]] || "" 
-        })).filter(eng => eng.name) || []
+        allEngineers: eJson.records?.map(r => ({ name: r.fields.engineer_name, email: r.fields.email || "", phone: r.fields.phone || "", companyName: companyIdToName[r.fields["company"]?.[0]] || "" })).filter(eng => eng.name) || []
       },
     };
   } catch (err) { return { notFound: true }; }
