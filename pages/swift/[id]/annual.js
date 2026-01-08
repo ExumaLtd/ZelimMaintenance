@@ -94,11 +94,15 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     }
   }, [storageKey]);
 
-  const handleInputChange = (e) => {
-  if (e.target.name === "location_display") return;
-
+const handleInputChange = (e) => {
   const formData = new FormData(e.currentTarget);
   const data = Object.fromEntries(formData.entries());
+
+  // ✅ FORCE the authoritative React value
+  if (locationDisplay && !data.location_display) {
+    data.location_display = locationDisplay;
+  }
+
   data.photoUrls = photoUrls;
   localStorage.setItem(storageKey, JSON.stringify(data));
   
