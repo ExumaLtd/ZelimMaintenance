@@ -1,6 +1,6 @@
 /* =========================================================================
    DASHBOARD SCOPE (dashboard.css)
-   V40: FULL RESTORATION + CENTRAL LOGO + MOBILE PADDING + CORNER RADIUS
+   V42: FULL RESTORATION + CENTRAL LOGO + TYPOGRAPHY UPDATES
 ========================================================================= */
 
 /* --- 1. BASE AND LAYOUT --- */
@@ -104,6 +104,8 @@
     height: 100% !important;
     object-fit: contain !important;
     display: block;
+    max-width: 100%; 
+    max-height: 100%;
 }
 
 .dashboard-scope .portal-title {
@@ -176,7 +178,7 @@
 .dashboard-scope .maintenance-group-wrapper {
     background: #152A31;
     width: 100%;
-    border-radius: 20px; /* FIXED: Radius applied globally to keep mobile rounded */
+    border-radius: 20px; /* Radius applied globally */
 }
 
 .dashboard-scope .maintenance-group-wrapper {
@@ -198,12 +200,13 @@
     min-width: 0;
 }
 
-.dashboard-scope .maintenance-card h3,
-.dashboard-scope .downloads-card h3 {
-    color: #F7F7F7;
-    font-size: 22px;
+/* AMENDED TYPOGRAPHY */
+.dashboard-scope .downloads-card h3, 
+.dashboard-scope .maintenance-card h3 {
+    color: #f7f7f7;
+    font-size: 20px;
     font-weight: 600;
-    line-height: 28px;
+    line-height: 26px;
     margin: 0 0 8px;
 }
 
@@ -275,10 +278,11 @@
     flex-shrink: 0;
 }
 
+/* AMENDED TYPOGRAPHY */
 .dashboard-scope .download-link p {
-    color: #F7F7F7;
+    color: #f7f7f7;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 500;
     line-height: 16px;
     margin: 0;
 }
@@ -337,7 +341,7 @@
         width: 100% !important;
         max-width: 100% !important;
         margin: 0 auto;
-        padding: 0 20px !important; /* FIXED: Mobile side padding */
+        padding: 0 20px !important; 
     }
 
     .dashboard-scope .swift-dashboard-container {
@@ -365,7 +369,7 @@
     }
     
     .dashboard-scope .logo-section {
-        margin: 0 auto 40px auto !important; /* FIXED: Centered container */
+        margin: 0 auto 40px auto !important; /* AMENDED: CENTRAL LOGO CONTAINER */
         display: block !important;
     }
     
@@ -424,7 +428,7 @@
         flex-direction: column;
     }
     .dashboard-scope .downloads-card {
-        padding: 24px 20px 20px; /* Restored historical padding */
+        padding: 24px 20px 20px; 
     }
 
     .dashboard-scope .logo-section {
@@ -432,8 +436,7 @@
         max-height: 36px; 
         width: 225px;
         height: 36px;
-        margin-left: auto !important;
-        margin-right: auto !important;
+        margin: 0 auto 30px auto !important; /* AMENDED: CENTRAL LOGO CONTAINER */
         display: block !important;
     }
     
