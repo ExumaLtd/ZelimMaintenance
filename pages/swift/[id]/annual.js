@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head"; 
 import { UploadDropzone } from "../../../utils/uploadthing"; 
@@ -27,6 +27,7 @@ const getClientLogo = (companyName, serialNumber) => {
 
 export default function Annual({ unit, template, allCompanies = [], allEngineers = [] }) {
   const router = useRouter();
+  const dropdownRef = useRef(null);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [photoUrls, setPhotoUrls] = useState([]);
@@ -38,18 +39,34 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [engEmail, setEngEmail] = useState("");
   const [engPhone, setEngPhone] = useState("");
   const [answers, setAnswers] = useState({});
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
   const filteredEngineers = useMemo(() => {
-    if (!selectedCompany) return allEngineers;
-    return allEngineers.filter(e => e.companyName === selectedCompany);
-  }, [selectedCompany, allEngineers]);
+    let list = allEngineers;
+    if (selectedCompany) {
+      list = list.filter(e => e.companyName === selectedCompany);
+    }
+    if (engName.trim() !== "") {
+      list = list.filter(e => e.name.toLowerCase().includes(engName.toLowerCase()));
+    }
+    return list;
+  }, [selectedCompany, engName, allEngineers]);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const date = new Date().toISOString().split('T')[0];
     setToday(date);
-    
     const savedDraft = localStorage.getItem(storageKey);
     if (savedDraft) {
       try {
@@ -60,33 +77,12 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
         if (data.engineer_email) setEngEmail(data.engineer_email);
         if (data.engineer_phone) setEngPhone(data.engineer_phone);
         if (data.photoUrls) setPhotoUrls(data.photoUrls);
-        
         const draftAnswers = {};
-        Object.keys(data).forEach(key => {
-          if (key.startsWith('q')) draftAnswers[key] = data[key];
-        });
+        Object.keys(data).forEach(key => { if (key.startsWith('q')) draftAnswers[key] = data[key]; });
         setAnswers(draftAnswers);
       } catch (e) { console.error("Draft load error:", e); }
     }
   }, [storageKey]);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || !navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14`, {
-          headers: { 'Accept-Language': 'en' }
-        });
-        const data = await res.json();
-        if (data && data.address) {
-          const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
-          const country = data.address.country_code === 'gb' ? 'UK' : (data.address.country || "");
-          const combined = loc ? `${loc}, ${country}` : country;
-          setLocationDisplay(prev => (!prev || prev.trim() === "") ? combined : prev);
-        }
-      } catch (err) { console.error("Geo fetch error", err); }
-    }, null, { enableHighAccuracy: true, timeout: 8000 });
-  }, []);
 
   useEffect(() => {
     const draftData = {
@@ -101,20 +97,11 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     localStorage.setItem(storageKey, JSON.stringify(draftData));
   }, [selectedCompany, locationDisplay, engName, engEmail, engPhone, photoUrls, answers, storageKey]);
 
-  const handleCompanyChange = (e) => {
-    const val = e.target.value;
-    setSelectedCompany(val);
-    setEngName(""); setEngEmail(""); setEngPhone("");
-  };
-
-  const handleEngineerChange = (e) => {
-    const name = e.target.value;
-    setEngName(name);
-    const found = allEngineers.find(x => x.name === name);
-    if (found) {
-      setEngEmail(found.email || "");
-      setEngPhone(found.phone || "");
-    }
+  const selectEngineer = (engineer) => {
+    setEngName(engineer.name);
+    setEngEmail(engineer.email || "");
+    setEngPhone(engineer.phone || "");
+    setShowDropdown(false);
   };
 
   async function handleSubmit(e) {
@@ -154,6 +141,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     <div className="form-scope">
       <Head>
         <title>{unit?.serial_number} | Annual Maintenance</title>
+        {/* Font Awesome 6 CDN */}
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
         <style>{`
           .form-scope .checklist-form-card {
             background: #152a31 !important;
@@ -167,32 +156,78 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             background-color: #27454b !important;
             color: #f7f7f7 !important;
             border: 1px solid transparent !important;
+            padding-right: 40px !important; /* Make room for icons */
           }
-          
           .form-scope .checklist-input:focus,
           .form-scope .checklist-textarea:focus {
             border-color: #00FFF6 !important;
             border-width: 1px !important;
+            outline: none;
+          }
+          
+          /* Icon Positioning */
+          .form-scope .field-icon-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+          }
+          .form-scope .field-icon-wrapper i {
+            position: absolute;
+            right: 16px;
+            color: #00FFF6;
+            pointer-events: none;
+            font-size: 14px;
           }
 
           .form-scope .checklist-input:-webkit-autofill {
             -webkit-box-shadow: 0 0 0 1000px #27454b inset !important;
             -webkit-text-fill-color: #f7f7f7 !important;
           }
+
+          /* Reset native date/select icons so they don't clash with FontAwesome */
+          .form-scope input[type="date"]::-webkit-calendar-picker-indicator {
+            background: transparent;
+            bottom: 0;
+            color: transparent;
+            cursor: pointer;
+            height: auto;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: auto;
+          }
           .form-scope select.checklist-input {
             appearance: none;
             -webkit-appearance: none;
-            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E") !important;
-            background-repeat: no-repeat !important;
-            background-position: right 16px center !important;
-            background-size: 12px !important;
           }
 
-          /* This helps prevent the browser from misaligning the datalist popup */
-          .datalist-wrapper {
-            position: relative;
-            width: 100%;
+          /* Custom Dropdown Styling */
+          .custom-dropdown-container { position: relative; width: 100%; }
+          .custom-dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #27454b;
+            border: 1px solid #00FFF6;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            z-index: 1000;
+            max-height: 200px;
+            overflow-y: auto;
           }
+          .custom-dropdown-item {
+            padding: 12px 16px;
+            color: #f7f7f7;
+            cursor: pointer;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+          }
+          .custom-dropdown-item:hover { background: #152a31; }
 
           @media (max-width: 600px) {
             .form-scope .checklist-form-card { padding: 30px 24px !important; }
@@ -203,11 +238,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       <div className="swift-main-layout-wrapper">
         <div className="page-wrapper">
           <div className="swift-checklist-container">
-            {logo && (
-              <div className="checklist-logo">
-                <img src={logo.src} alt={logo.alt} />
-              </div>
-            )}
+            {logo && <div className="checklist-logo"><img src={logo.src} alt={logo.alt} /></div>}
 
             <h1 className="checklist-hero-title">
               {unit?.serial_number}
@@ -219,57 +250,60 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                 <div className="checklist-inline-group">
                   <div className="checklist-field">
                     <label className="checklist-label">Maintenance company</label>
-                    <select 
-                      name="maintained_by" 
-                      className="checklist-input" 
-                      required 
-                      value={selectedCompany} 
-                      onChange={handleCompanyChange}
-                      style={{ color: selectedCompany ? '#F7F7F7' : '#7d8f93' }}
-                    >
-                      <option value="" disabled hidden>Please select</option>
-                      {allCompanies.sort().map((c, i) => <option key={i} value={c}>{c}</option>)}
-                    </select>
+                    <div className="field-icon-wrapper">
+                        <select 
+                        name="maintained_by" 
+                        className="checklist-input" 
+                        required 
+                        value={selectedCompany} 
+                        onChange={(e) => { setSelectedCompany(e.target.value); setEngName(""); }}
+                        style={{ color: selectedCompany ? '#F7F7F7' : '#7d8f93' }}
+                        >
+                        <option value="" disabled hidden>Please select</option>
+                        {allCompanies.sort().map((c, i) => <option key={i} value={c}>{c}</option>)}
+                        </select>
+                        <i className="fa-solid fa-chevron-down"></i>
+                    </div>
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Location</label>
-                    <input 
-                      className="checklist-input" 
-                      name="location_display" 
-                      required 
-                      value={locationDisplay} 
-                      onChange={(e) => setLocationDisplay(e.target.value)} 
-                    />
+                    <input className="checklist-input" name="location_display" required value={locationDisplay} onChange={(e) => setLocationDisplay(e.target.value)} />
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Date</label>
-                    <input type="date" className="checklist-input" name="date_of_maintenance" defaultValue={today} required />
+                    <div className="field-icon-wrapper">
+                        <input type="date" className="checklist-input" name="date_of_maintenance" defaultValue={today} required />
+                        <i className="fa-regular fa-calendar"></i>
+                    </div>
                   </div>
                 </div>
 
                 <div className="checklist-inline-group" style={{ marginTop: '24px' }}>
-                  <div className="checklist-field">
+                  <div className="checklist-field" ref={dropdownRef}>
                     <label className="checklist-label">Engineer name</label>
-                    <div className="datalist-wrapper">
-                      <input 
-                        className="checklist-input" 
-                        name="engineer_name" 
-                        list="eng-data-list" 
-                        required 
-                        value={engName} 
-                        onChange={handleEngineerChange}
-                        autoComplete="off"
-                        onClick={(e) => {
-                          const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-                          if (isTouch) {
-                            e.target.setAttribute('list', '');
-                            setTimeout(() => e.target.setAttribute('list', 'eng-data-list'), 10);
-                          }
-                        }}
-                      />
-                      <datalist id="eng-data-list">
-                        {filteredEngineers.map((e, i) => <option key={i} value={e.name} />)}
-                      </datalist>
+                    <div className="custom-dropdown-container">
+                      <div className="field-icon-wrapper">
+                        <input 
+                            className="checklist-input" 
+                            name="engineer_name" 
+                            required 
+                            value={engName} 
+                            autoComplete="off"
+                            onFocus={() => setShowDropdown(true)}
+                            onChange={(e) => { setEngName(e.target.value); setShowDropdown(true); }}
+                            style={{ borderRadius: (showDropdown && filteredEngineers.length > 0) ? '8px 8px 0 0' : '8px' }}
+                        />
+                        <i className={showDropdown ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}></i>
+                      </div>
+                      {showDropdown && filteredEngineers.length > 0 && (
+                        <ul className="custom-dropdown-list">
+                          {filteredEngineers.map((eng, i) => (
+                            <li key={i} className="custom-dropdown-item" onClick={() => selectEngineer(eng)}>
+                              {eng.name}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   </div>
                   <div className="checklist-field">
@@ -303,7 +337,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                 </div>
 
                 {errorMsg && <p style={{ color: '#ff4d4d', marginTop: '16px' }}>{errorMsg}</p>}
-
                 <button className="checklist-submit" disabled={submitting}>
                   {submitting ? "Submitting..." : "Submit maintenance"}
                 </button>
