@@ -1,6 +1,6 @@
 /* =========================================================================
    DASHBOARD SCOPE (dashboard.css)
-   V48: SYNCED 32PX MOBILE MARGIN + LOGO CONSISTENCY
+   V49: UPDATED 26PX MOBILE MARGIN + LOGO CONSISTENCY
 ========================================================================= */
 
 /* --- 1. BASE AND LAYOUT --- */
@@ -343,7 +343,7 @@
 
     .dashboard-scope .swift-dashboard-container {
         grid-template-columns: 1fr !important;
-        margin-top: 32px !important; 
+        margin-top: 26px !important; /* Updated to 26px */
     }
     .dashboard-scope .swift-dashboard-container::after {
         display: none;
