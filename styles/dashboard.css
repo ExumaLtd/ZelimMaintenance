@@ -1,6 +1,6 @@
 /* =========================================================================
    DASHBOARD SCOPE (dashboard.css)
-   V34: FULL RESTORATION WITH GUTTER & HOVER FIXES
+   V35: FIXED MOBILE PADDING & FINAL HOVER STATES
 ========================================================================= */
 
 /* --- 1. BASE AND LAYOUT --- */
@@ -18,7 +18,7 @@
 
 .dashboard-scope body {
     margin: 0;
-    padding: 0; 
+    padding: 0 40px; /* Base desktop padding */
     background: transparent; 
     font-family: 'Montserrat', sans-serif; 
     color: #ffffff;
@@ -267,7 +267,7 @@
 }
 
 .dashboard-scope .download-link:hover {
-    background: #324e54; /* RESTORED CORRECT HOVER */
+    background: #324e54; 
     cursor: pointer;
 }
 
@@ -339,7 +339,7 @@
 
 @media (max-width: 900px) {
     .dashboard-scope body {
-        padding: 0 20px; /* RESTORED PADDING */
+        padding: 0 20px; /* FIXED: Restored mobile side padding */
     }
 
     .dashboard-scope .page-wrapper {
@@ -424,7 +424,7 @@
 
 @media (max-width: 600px) {
     .dashboard-scope body {
-        padding: 0 20px; /* RESTORED PADDING */
+        padding: 0 20px; /* FIXED: Mobile side padding */
     }
     .dashboard-scope .page-wrapper {
         min-height: calc(100dvh - 80px);
