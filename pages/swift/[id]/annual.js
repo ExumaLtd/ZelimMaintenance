@@ -47,15 +47,18 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
+  // ENGINEER LOGIC: Filter out the selected name from the list below
   const filteredEngineers = useMemo(() => {
     if (!selectedCompany) return [];
     let list = allEngineers.filter(e => e.companyName === selectedCompany);
     
+    // Remove current selection from the list to avoid repetition
+    list = list.filter(e => e.name !== engName);
+    
     if (engName && engName !== "Please select" && engName.trim() !== "") {
       const search = engName.toLowerCase();
       const matches = list.filter(e => e.name.toLowerCase().includes(search));
-      if (matches.length > 0) return matches;
-      return []; 
+      return matches; 
     }
     return list;
   }, [selectedCompany, engName, allEngineers]);
@@ -182,9 +185,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const logo = getClientLogo(unit?.company, unit?.serial_number);
 
+  // ENGINEER DROPDOWN VISIBILITY LOGIC
   const hasEngineerResults = filteredEngineers.length > 0;
-  const hasClearDetails = engName && engName !== "Please select" && engName !== "";
-  const shouldShowEngDropdown = showEngineerDropdown && (hasEngineerResults || hasClearDetails);
+  const hasClearEng = engName && engName !== "Please select" && engName !== "";
+  const shouldShowEngDropdown = showEngineerDropdown && (hasEngineerResults || hasClearEng);
 
   return (
     <div className="form-scope">
@@ -359,26 +363,22 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                           style={{ 
                             color: (engName === "Please select" || !engName) ? '#7d8f93' : '#F7F7F7',
                             borderColor: shouldShowEngDropdown ? '#00FFF6' : 'transparent',
-                            paddingRight: (selectedCompany && hasEngineerResults) ? '40px' : '16px'
+                            paddingRight: (selectedCompany && (hasEngineerResults || hasClearEng)) ? '40px' : '16px'
                           }}
                         />
-                        {(selectedCompany && hasEngineerResults) && (
+                        {(selectedCompany && (hasEngineerResults || hasClearEng)) && (
                            <i className={showEngineerDropdown ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}></i>
                         )}
                       </div>
                       {shouldShowEngDropdown && (
                         <ul className="custom-dropdown-list">
-                          {hasClearDetails && (
+                          {hasClearEng && (
                             <li className="custom-dropdown-item" onClick={clearEngineer}>
                                Clear details
                             </li>
                           )}
                           {filteredEngineers.map((eng, i) => (
-                            <li 
-                              key={i} 
-                              className={`custom-dropdown-item ${engName === eng.name ? 'active' : ''}`} 
-                              onClick={() => selectEngineer(eng)}
-                            >
+                            <li key={i} className="custom-dropdown-item" onClick={() => selectEngineer(eng)}>
                               {eng.name}
                             </li>
                           ))}
