@@ -95,15 +95,17 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   }, [storageKey]);
 
   const handleInputChange = (e) => {
-    const formData = new FormData(e.currentTarget);
-    const data = Object.fromEntries(formData.entries());
-    data.photoUrls = photoUrls;
-    localStorage.setItem(storageKey, JSON.stringify(data));
-    
-    if (e.target.name.startsWith('q')) {
-      setAnswers(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    }
-  };
+  if (e.target.name === "location_display") return;
+
+  const formData = new FormData(e.currentTarget);
+  const data = Object.fromEntries(formData.entries());
+  data.photoUrls = photoUrls;
+  localStorage.setItem(storageKey, JSON.stringify(data));
+  
+  if (e.target.name.startsWith('q')) {
+    setAnswers(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  }
+};
 
   const handleCompanyChange = (e) => {
     const val = e.target.value;
