@@ -54,7 +54,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     return list;
   }, [selectedCompany, engName, allEngineers]);
 
-  // Handle Click Outside Dropdown
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -65,7 +64,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Set Date and Load Draft
   useEffect(() => {
     const date = new Date().toISOString().split('T')[0];
     setToday(date);
@@ -86,7 +84,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     }
   }, [storageKey]);
 
-  // Geolocation Lookup
   useEffect(() => {
     if (typeof window === "undefined" || !navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -105,7 +102,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     }, null, { enableHighAccuracy: true, timeout: 8000 });
   }, []);
 
-  // Save Draft to LocalStorage
   useEffect(() => {
     const draftData = {
       maintained_by: selectedCompany,
@@ -210,28 +206,36 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           .custom-dropdown-container { position: relative; width: 100%; }
           .custom-dropdown-list {
             position: absolute;
-            top: 100%;
+            top: calc(100% + 5px);
             left: 0;
             right: 0;
-            background: #27454b;
-            border: 1px solid #00FFF6;
-            border-top: none;
-            border-radius: 0 0 8px 8px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             margin: 0;
-            padding: 0;
+            padding: 8px 0;
             list-style: none;
             z-index: 1000;
-            max-height: 200px;
+            max-height: 250px;
             overflow-y: auto;
           }
+          .custom-dropdown-list::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 20px;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-bottom: 6px solid #ffffff;
+          }
           .custom-dropdown-item {
-            padding: 12px 16px;
-            color: #f7f7f7;
+            padding: 10px 18px;
+            color: #152a31;
             cursor: pointer;
             font-size: 14px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-weight: 500;
           }
-          .custom-dropdown-item:hover { background: #152a31; }
+          .custom-dropdown-item:hover { background: #f0f4f5; }
 
           .form-scope select.checklist-input { appearance: none; -webkit-appearance: none; }
           .form-scope input[type="date"]::-webkit-calendar-picker-indicator {
@@ -300,7 +304,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                           autoComplete="off"
                           onFocus={() => setShowDropdown(true)}
                           onChange={(e) => { setEngName(e.target.value); setShowDropdown(true); }}
-                          style={{ borderRadius: (showDropdown && filteredEngineers.length > 0) ? '8px 8px 0 0' : '8px' }}
                         />
                         <i className={showDropdown ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}></i>
                       </div>
@@ -369,7 +372,10 @@ export async function getServerSideProps({ params }) {
       fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies`, { headers }),
       fetch(`https://api.airtable.com/v0/${baseId}/engineers`, { headers })
     ]);
-    const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cReq.json(), eJson.json()]);
+    
+    // TYPO FIXED HERE: eReq.json() instead of eJson.json()
+    const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cReq.json(), eReq.json()]);
+    
     if (!uJson.records?.[0]) return { notFound: true };
 
     const companyMap = {};
