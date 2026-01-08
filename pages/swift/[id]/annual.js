@@ -50,8 +50,13 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const filteredEngineers = useMemo(() => {
     if (!selectedCompany) return [];
     let list = allEngineers.filter(e => e.companyName === selectedCompany);
+    
+    // Hide the currently selected name from the list and filter by search text
     if (engName && engName !== "Please select" && engName.trim() !== "") {
-      list = list.filter(e => e.name.toLowerCase().includes(engName.toLowerCase()));
+      list = list.filter(e => 
+        e.name !== engName && 
+        e.name.toLowerCase().includes(engName.toLowerCase())
+      );
     }
     return list;
   }, [selectedCompany, engName, allEngineers]);
@@ -134,10 +139,17 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     setShowEngineerDropdown(false);
   };
 
+  const clearEngineer = () => {
+    setEngName("");
+    setEngEmail("");
+    setEngPhone("");
+    setShowEngineerDropdown(false);
+  };
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (submitting) return;
-    if (!selectedCompany || engName === "Please select") {
+    if (!selectedCompany || engName === "Please select" || !engName) {
       setErrorMsg("Please select both a company and an engineer.");
       return;
     }
@@ -230,7 +242,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             overflow-y: auto;
           }
           .custom-dropdown-item {
-            padding: 12px 18px;
+            padding: 10px 18px;
             color: #F7F7F7;
             cursor: pointer;
             font-size: 16px;
@@ -339,13 +351,25 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                            <i className={showEngineerDropdown ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}></i>
                         )}
                       </div>
-                      {showEngineerDropdown && filteredEngineers.length > 0 && (
+                      {showEngineerDropdown && (
                         <ul className="custom-dropdown-list">
-                          {filteredEngineers.map((eng, i) => (
-                            <li key={i} className="custom-dropdown-item" onClick={() => selectEngineer(eng)}>
-                              {eng.name}
+                          {/* Replace current name with Clear Details if already selected */}
+                          {(engName && engName !== "Please select") && (
+                            <li className="custom-dropdown-item" onClick={clearEngineer} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                               Clear details
                             </li>
-                          ))}
+                          )}
+                          {filteredEngineers.length > 0 ? (
+                            filteredEngineers.map((eng, i) => (
+                              <li key={i} className="custom-dropdown-item" onClick={() => selectEngineer(eng)}>
+                                {eng.name}
+                              </li>
+                            ))
+                          ) : (
+                            !(engName && engName !== "Please select") && (
+                              <li className="custom-dropdown-item" style={{ cursor: 'default', opacity: 0.6 }}>No engineers found</li>
+                            )
+                          )}
                         </ul>
                       )}
                     </div>
@@ -408,18 +432,14 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
 export async function getServerSideProps({ params }) {
   const token = params.id;
-  
   try {
     const apiKey = process.env.AIRTABLE_API_KEY;
     const baseId = process.env.AIRTABLE_BASE_ID;
     const tableName = process.env.AIRTABLE_SWIFT_TABLE || "swift_units"; 
     
-    if (!apiKey || !baseId) {
-        throw new Error("Missing Airtable Environment Variables");
-    }
+    if (!apiKey || !baseId) throw new Error("Missing Airtable Env");
 
     const headers = { Authorization: `Bearer ${apiKey}` };
-
     const unitFormula = encodeURIComponent(`{public_token}='${token}'`);
     const templateFormula = encodeURIComponent(`{type}='Annual'`);
 
@@ -433,22 +453,14 @@ export async function getServerSideProps({ params }) {
     const responses = await Promise.all(urls.map(url => fetch(url, { headers })));
     const results = await Promise.all(responses.map(res => res.json()));
     
-    const unitData = results[0];
-    const templateData = results[1];
-    const companyData = results[2];
-    const engineerData = results[3];
+    const [unitData, templateData, companyData, engineerData] = results;
     
-    if (!unitData.records || unitData.records.length === 0) {
-      console.error(`Airtable: No record found for token ${token}`);
-      return { notFound: true };
-    }
+    if (!unitData.records || unitData.records.length === 0) return { notFound: true };
 
     const unitRecord = unitData.records[0];
     const companyLookup = {};
     if (companyData.records) {
-      companyData.records.forEach(r => {
-        if (r.fields.company_name) companyLookup[r.id] = r.fields.company_name;
-      });
+      companyData.records.forEach(r => { if (r.fields.company_name) companyLookup[r.id] = r.fields.company_name; });
     }
     
     return {
@@ -461,23 +473,19 @@ export async function getServerSideProps({ params }) {
         },
         template: { 
           id: templateData.records?.[0]?.id || "", 
-          questions: templateData.records?.[0]?.fields.questions_json 
-            ? JSON.parse(templateData.records[0].fields.questions_json) 
-            : []
+          questions: templateData.records?.[0]?.fields.questions_json ? JSON.parse(templateData.records[0].fields.questions_json) : []
         },
         allCompanies: Object.values(companyLookup).filter(Boolean),
         allEngineers: engineerData.records?.map(r => ({ 
           name: r.fields.engineer_name, 
           email: r.fields.email || "", 
           phone: r.fields.phone || "", 
-          companyName: (r.fields["company"] && r.fields["company"][0]) 
-            ? companyLookup[r.fields["company"][0]] 
-            : "" 
+          companyName: (r.fields["company"] && r.fields["company"][0]) ? companyLookup[r.fields["company"][0]] : "" 
         })).filter(e => e.name) || []
       }
     };
   } catch (err) { 
-    console.error("Server Side Error (Detailed):", err.message);
+    console.error("Server Error:", err.message);
     return { notFound: true }; 
   }
 }
