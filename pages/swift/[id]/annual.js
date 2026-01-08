@@ -166,7 +166,16 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           .form-scope .checklist-textarea {
             background-color: #27454b !important;
             color: #f7f7f7 !important;
+            border: 1px solid transparent !important; /* Base state */
           }
+          
+          /* Updated focus outline to 1px teal */
+          .form-scope .checklist-input:focus,
+          .form-scope .checklist-textarea:focus {
+            border-color: #00FFF6 !important;
+            border-width: 1px !important;
+          }
+
           .form-scope .checklist-input:-webkit-autofill {
             -webkit-box-shadow: 0 0 0 1000px #27454b inset !important;
             -webkit-text-fill-color: #f7f7f7 !important;
@@ -244,8 +253,11 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       onChange={handleEngineerChange}
                       autoComplete="off"
                       onClick={(e) => {
-                        e.target.setAttribute('list', '');
-                        setTimeout(() => e.target.setAttribute('list', 'eng-data-list'), 10);
+                        const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+                        if (isTouch) {
+                          e.target.setAttribute('list', '');
+                          setTimeout(() => e.target.setAttribute('list', 'eng-data-list'), 10);
+                        }
                       }}
                     />
                     <datalist id="eng-data-list">
