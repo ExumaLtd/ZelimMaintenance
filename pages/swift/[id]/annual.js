@@ -188,9 +188,12 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           .form-scope .checklist-textarea {
             background-color: #27454b !important;
             border: 1px solid transparent !important;
+            padding: 14px 16px !important;
             padding-right: 40px !important;
             font-family: 'Montserrat', sans-serif;
             border-radius: 8px !important;
+            width: 100%;
+            display: block;
           }
           .form-scope .checklist-input:focus,
           .form-scope .checklist-textarea:focus {
@@ -222,7 +225,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             margin: 0;
-            padding: 8px 0;
+            padding: 8px 4px; /* Added horizontal padding for the selection highlight */
             list-style: none;
             z-index: 1000;
             max-height: 250px;
@@ -238,16 +241,17 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             border-bottom: 6px solid #ffffff;
           }
           .custom-dropdown-item {
-            padding: 10px 10px;
+            padding: 12px 18px;
             color: #152a31;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 400;
+            border-radius: 6px; /* 6px border radius on item */
+            transition: background 0.15s ease, color 0.15s ease;
           }
           .custom-dropdown-item:hover { 
-            background: #27454B; 
+            background: #324e54; 
             color: #F7F7F7;
-            font-weight: 500;
           }
 
           .form-scope input[type="date"]::-webkit-calendar-picker-indicator {
@@ -430,7 +434,7 @@ export async function getServerSideProps({ params }) {
       fetch(`https://api.airtable.com/v0/${baseId}/engineers`, { headers })
     ]);
     
-    const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cReq.json(), eReq.json()]);
+    const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cJson.json(), eJson.json()]);
     
     if (!uJson.records?.[0]) return { notFound: true };
 
