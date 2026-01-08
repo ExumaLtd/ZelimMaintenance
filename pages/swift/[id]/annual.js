@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"; // Added useRef
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head"; 
 import { UploadDropzone } from "../../../utils/uploadthing"; 
@@ -41,7 +41,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [answers, setAnswers] = useState({});
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
-  const engineerInputRef = useRef(null); // Ref for the focus fix
+  const engineerInputRef = useRef(null);
 
   // FIX: Force Mobile Autofill Suggestion Bar
   useEffect(() => {
@@ -140,7 +140,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       photoUrls,
       unit_record_id: unit.record_id,
       checklist_template_id: template.id,
-      answers: (template.questions || []).map((_, i) => ({
+      answers: (template?.questions || []).map((_, i) => ({
         question: `q${i+1}`,
         answer: props[`q${i+1}`] || ""
       }))
@@ -164,60 +164,36 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       <Head>
         <title>{unit?.serial_number} | Annual Maintenance</title>
         <style>{`
-          /* === THEME & LAYOUT === */
           .form-scope .checklist-form-card {
             background: #152A31 !important;
             padding: 38px !important;
             width: 100%;
             text-align: left;
           }
-
           @media (max-width: 600px) {
-            .form-scope .checklist-form-card {
-               padding: 30px 24px 30px 24px !important;
-            }
+            .form-scope .checklist-form-card { padding: 30px 24px 30px 24px !important; }
           }
-
           @media (min-width: 901px) {
-            .form-scope .checklist-form-card {
-              border-radius: 20px !important;
-            }
+            .form-scope .checklist-form-card { border-radius: 20px !important; }
           }
-          
-          /* === INPUT STYLING & ICONS === */
-          .form-scope .checklist-input, 
-          .form-scope .checklist-textarea {
+          .form-scope .checklist-input, .form-scope .checklist-textarea {
             background-color: #27454B;
-            /* FIX: 2px transparent border prevents layout shift on focus */
             border: 2px solid transparent !important; 
             border-radius: 8px;
             color: #F7F7F7;
             padding: 10px 16px;
             font-family: 'Montserrat', sans-serif;
-            /* FIX: 16px font prevents iOS auto-zoom shift */
             font-size: 16px !important; 
             box-sizing: border-box;
             outline: none !important;
             -webkit-tap-highlight-color: transparent;
           }
-
-          .form-scope .checklist-input:focus, 
-          .form-scope .checklist-textarea:focus {
-            border-color: #00FFF6 !important;
-          }
-
-          /* Prevent yellow/white background on autofill */
+          .form-scope .checklist-input:focus, .form-scope .checklist-textarea:focus { border-color: #00FFF6 !important; }
           .form-scope .checklist-input:-webkit-autofill {
             -webkit-box-shadow: 0 0 0 50px #27454b inset !important;
             -webkit-text-fill-color: #e9ebec !important;
           }
-
-          .checklist-input::placeholder, 
-          .checklist-textarea::placeholder {
-            color: #7d8f93 !important;
-            opacity: 1;
-          }
-
+          .checklist-input::placeholder, .checklist-textarea::placeholder { color: #7d8f93 !important; opacity: 1; }
           .form-scope select.checklist-input {
             appearance: none;
             -webkit-appearance: none;
@@ -227,7 +203,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             background-size: 12px;
             padding-right: 40px;
           }
-
           .form-scope input[type="date"].checklist-input::-webkit-calendar-picker-indicator {
             filter: invert(1);
             cursor: pointer;
@@ -300,7 +275,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
                 </div>
 
-                {(template.questions || []).map((q, i) => (
+                {/* DYNAMIC QUESTIONS - FIXED WITH OPTIONAL CHAINING FOR BUILD */}
+                {(template?.questions || []).map((q, i) => (
                   <div key={i} style={{ marginTop: '24px' }}>
                     <label className="checklist-label">{q}</label>
                     <textarea 
@@ -335,4 +311,43 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   );
 }
 
-// ... getServerSideProps remains the same ...
+export async function getServerSideProps({ params }) {
+  const token = params.id;
+  try {
+    const headers = { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` };
+    const baseId = process.env.AIRTABLE_BASE_ID;
+    const [uReq, tReq, cReq, eReq] = await Promise.all([
+      fetch(`https://api.airtable.com/v0/${baseId}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`, { headers }),
+      fetch(`https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula={type}='Annual'`, { headers }),
+      fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies`, { headers }),
+      fetch(`https://api.airtable.com/v0/${baseId}/engineers`, { headers })
+    ]);
+    const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cReq.json(), eReq.json()]);
+    if (!uJson.records?.[0]) return { notFound: true };
+
+    const companyMap = {};
+    cJson.records?.forEach(r => companyMap[r.id] = r.fields.company_name);
+    
+    return {
+      props: {
+        unit: { 
+          serial_number: uJson.records[0].fields.unit_name || uJson.records[0].fields.serial_number, 
+          company: uJson.records[0].fields.company || "",
+          record_id: uJson.records[0].id, 
+          public_token: uJson.records[0].fields.public_token 
+        },
+        template: { 
+          id: tJson.records?.[0]?.id || "", 
+          questions: JSON.parse(tJson.records?.[0]?.fields.questions_json || "[]") 
+        },
+        allCompanies: Object.values(companyMap).filter(Boolean),
+        allEngineers: eJson.records?.map(r => ({ 
+          name: r.fields.engineer_name, 
+          email: r.fields.email || "", 
+          phone: r.fields.phone || "", 
+          companyName: companyMap[r.fields["company"]?.[0]] || "" 
+        })).filter(e => e.name) || []
+      }
+    };
+  } catch (err) { return { notFound: true }; }
+}
