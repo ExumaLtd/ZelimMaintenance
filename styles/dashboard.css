@@ -1,6 +1,6 @@
 /* =========================================================================
    DASHBOARD SCOPE (dashboard.css)
-   V36: RESTORED MOBILE CONTENT PADDING
+   V40: FULL RESTORATION + CENTRAL LOGO + MOBILE PADDING + CORNER RADIUS
 ========================================================================= */
 
 /* --- 1. BASE AND LAYOUT --- */
@@ -95,17 +95,15 @@
 
 .dashboard-scope .logo-section img {
     position: absolute !important;
-    left: 0 !important;
-    right: auto !important; 
-    width: auto !important; 
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto !important;
+    width: 100% !important;
     height: 100% !important;
     object-fit: contain !important;
-    top: 0 !important; 
-    bottom: 0 !important;
     display: block;
-    max-width: 100%; 
-    max-height: 100%;
-    margin: 0; 
 }
 
 .dashboard-scope .portal-title {
@@ -178,6 +176,7 @@
 .dashboard-scope .maintenance-group-wrapper {
     background: #152A31;
     width: 100%;
+    border-radius: 20px; /* FIXED: Radius applied globally to keep mobile rounded */
 }
 
 .dashboard-scope .maintenance-group-wrapper {
@@ -318,14 +317,6 @@
 
 /* --- 7. MEDIA QUERIES --- */
 
-/* Desktop Only Corner Radius */
-@media (min-width: 901px) {
-    .dashboard-scope .maintenance-group-wrapper,
-    .dashboard-scope .downloads-card {
-        border-radius: 20px;
-    }
-}
-
 @media (max-height: 650px) {
     .dashboard-scope .fixed-zelim-logo {
         position: static !important;
@@ -346,7 +337,7 @@
         width: 100% !important;
         max-width: 100% !important;
         margin: 0 auto;
-        padding: 0 20px !important; /* RESTORED: Mobile side padding */
+        padding: 0 20px !important; /* FIXED: Mobile side padding */
     }
 
     .dashboard-scope .swift-dashboard-container {
@@ -374,9 +365,7 @@
     }
     
     .dashboard-scope .logo-section {
-        margin: 0 0 40px 0 !important;
-        margin-left: 0 !important; 
-        margin-right: auto !important; 
+        margin: 0 auto 40px auto !important; /* FIXED: Centered container */
         display: block !important;
     }
     
@@ -428,14 +417,14 @@
     }
     .dashboard-scope .page-wrapper {
         min-height: calc(100dvh - 80px);
-        padding: 0 20px !important; /* Ensure padding persists on small mobile */
+        padding: 0 20px !important; 
     }
     
     .dashboard-scope .maintenance-group-wrapper {
         flex-direction: column;
     }
     .dashboard-scope .downloads-card {
-        padding: 15px 20px 20px;
+        padding: 24px 20px 20px; /* Restored historical padding */
     }
 
     .dashboard-scope .logo-section {
@@ -446,17 +435,6 @@
         margin-left: auto !important;
         margin-right: auto !important;
         display: block !important;
-    }
-
-    .dashboard-scope .logo-section img {
-        position: absolute !important;
-        left: 0 !important;
-        right: 0 !important; 
-        width: 100% !important; 
-        height: 100% !important;
-        object-fit: contain !important;
-        top: 0 !important; 
-        bottom: 0 !important;
     }
     
     .dashboard-scope .detail-panel {
