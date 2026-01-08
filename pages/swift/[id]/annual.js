@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head"; 
 import { UploadDropzone } from "../../../utils/uploadthing"; 
@@ -31,9 +31,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [today, setToday] = useState("");
   
   const [locationDisplay, setLocationDisplay] = useState(""); 
-  const [detectedTown, setDetectedTown] = useState("");       
-  const [detectedCountry, setDetectedCountry] = useState(""); 
-  
   const [selectedCompany, setSelectedCompany] = useState("");
   const [engName, setEngName] = useState("");
   const [engEmail, setEngEmail] = useState("");
@@ -41,6 +38,12 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [answers, setAnswers] = useState({});
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
+
+  // OPTIMIZATION: Memoize filtered engineers to prevent delay
+  const filteredEngineers = useMemo(() => {
+    if (!selectedCompany) return allEngineers;
+    return allEngineers.filter(e => e.companyName === selectedCompany);
+  }, [selectedCompany, allEngineers]);
 
   // 1. PERSISTENCE: Load Draft on Mount
   useEffect(() => {
@@ -89,8 +92,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           const loc = data.address.suburb || data.address.village || data.address.town || data.address.city;
           const country = data.address.country_code === 'gb' ? 'UK' : data.address.country;
           setLocationDisplay(loc ? `${loc}, ${country}` : country);
-          setDetectedTown(data.address.city || data.address.town || "");
-          setDetectedCountry(data.address.country || "");
         }
       } catch (err) { console.error(err); }
     });
@@ -98,14 +99,20 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const handleCompanyChange = (e) => {
     setSelectedCompany(e.target.value);
-    setEngName(""); setEngEmail(""); setEngPhone("");
+    // Fast Reset
+    setEngName(""); 
+    setEngEmail(""); 
+    setEngPhone("");
   };
 
   const handleEngineerChange = (e) => {
     const name = e.target.value;
     setEngName(name);
     const eng = allEngineers.find(x => x.name === name);
-    if (eng) { setEngEmail(eng.email || ""); setEngPhone(eng.phone || ""); }
+    if (eng) { 
+      setEngEmail(eng.email || ""); 
+      setEngPhone(eng.phone || ""); 
+    }
   };
 
   async function handleSubmit(e) {
@@ -152,7 +159,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             text-align: left;
           }
           @media (max-width: 600px) {
-            .form-scope .checklist-form-card { padding: 30px 24px 30px 24px !important; }
+            .form-scope .checklist-form-card { padding: 30px 24px !important; }
           }
           @media (min-width: 901px) {
             .form-scope .checklist-form-card { border-radius: 20px !important; }
@@ -167,19 +174,15 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             font-size: 16px !important; 
             box-sizing: border-box;
             outline: none !important;
-            -webkit-tap-highlight-color: transparent;
           }
           .form-scope .checklist-input:focus, .form-scope .checklist-textarea:focus { border-color: #00FFF6 !important; }
           
-          .form-scope .checklist-input:-webkit-autofill,
-          .form-scope .checklist-input:-webkit-autofill:hover,
-          .form-scope .checklist-input:-webkit-autofill:focus {
+          .form-scope .checklist-input:-webkit-autofill {
             -webkit-box-shadow: 0 0 0 1000px #27454b inset !important;
             -webkit-text-fill-color: #e9ebec !important;
-            transition: background-color 5000s ease-in-out 0s;
           }
           
-          .checklist-input::placeholder, .checklist-textarea::placeholder { color: #7d8f93 !important; opacity: 1; }
+          .checklist-input::placeholder { color: #7d8f93 !important; opacity: 1; }
           .form-scope select.checklist-input {
             appearance: none;
             -webkit-appearance: none;
@@ -192,7 +195,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           .form-scope input[type="date"].checklist-input::-webkit-calendar-picker-indicator {
             filter: invert(1);
             cursor: pointer;
-            display: block !important;
           }
         `}</style>
       </Head>
@@ -244,12 +246,11 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       required 
                       value={engName} 
                       onChange={handleEngineerChange} 
-                      /* one-time-code is the best way to bypass Chrome's address autofill while keeping datalist */
                       autoComplete="one-time-code"
                       inputMode="text"
                     />
                     <datalist id="eng-list">
-                      {allEngineers.filter(e => !selectedCompany || e.companyName === selectedCompany).map((e, i) => <option key={i} value={e.name} />)}
+                      {filteredEngineers.map((e, i) => <option key={i} value={e.name} />)}
                     </datalist>
                   </div>
                   <div className="checklist-field">
