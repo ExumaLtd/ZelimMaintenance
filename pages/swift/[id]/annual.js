@@ -122,7 +122,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const selectCompany = (company) => {
     setSelectedCompany(company);
-    setEngName("Please select"); // Auto-set to Please Select
+    setEngName("Please select"); 
     setEngEmail("");
     setEngPhone("");
     setShowCompanyDropdown(false);
@@ -187,7 +187,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           .form-scope .checklist-input, 
           .form-scope .checklist-textarea {
             background-color: #27454b !important;
-            color: #f7f7f7 !important;
             border: 1px solid transparent !important;
             padding-right: 40px !important;
             font-family: 'Montserrat', sans-serif;
@@ -279,7 +278,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                           className="checklist-input" 
                           value={selectedCompany || "Please select"}
                           onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
-                          style={{ color: selectedCompany ? '#F7F7F7' : '#7d8f93', cursor: 'pointer' }}
+                          style={{ 
+                            color: selectedCompany ? '#F7F7F7' : '#7d8f93', 
+                            cursor: 'pointer' 
+                          }}
                         />
                         <i className={showCompanyDropdown ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}></i>
                       </div>
@@ -297,12 +299,27 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
                   <div className="checklist-field">
                     <label className="checklist-label">Location</label>
-                    <input className="checklist-input" name="location_display" required value={locationDisplay} onChange={(e) => setLocationDisplay(e.target.value)} />
+                    <input 
+                      className="checklist-input" 
+                      name="location_display" 
+                      required 
+                      value={locationDisplay} 
+                      onChange={(e) => setLocationDisplay(e.target.value)}
+                      style={{ color: '#F7F7F7' }}
+                    />
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Date</label>
                     <div className="field-icon-wrapper">
-                      <input type="date" className="checklist-input" name="date_of_maintenance" defaultValue={today} max={today} required />
+                      <input 
+                        type="date" 
+                        className="checklist-input" 
+                        name="date_of_maintenance" 
+                        defaultValue={today} 
+                        max={today} 
+                        required 
+                        style={{ color: '#F7F7F7' }}
+                      />
                       <i className="fa-regular fa-calendar"></i>
                     </div>
                   </div>
@@ -340,11 +357,26 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer email</label>
-                    <input type="email" className="checklist-input" name="engineer_email" required value={engEmail} onChange={(e) => setEngEmail(e.target.value)} />
+                    <input 
+                      type="email" 
+                      className="checklist-input" 
+                      name="engineer_email" 
+                      required 
+                      value={engEmail} 
+                      onChange={(e) => setEngEmail(e.target.value)} 
+                      style={{ color: '#F7F7F7' }}
+                    />
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer phone</label>
-                    <input type="tel" className="checklist-input" name="engineer_phone" value={engPhone} onChange={(e) => setEngPhone(e.target.value)} />
+                    <input 
+                      type="tel" 
+                      className="checklist-input" 
+                      name="engineer_phone" 
+                      value={engPhone} 
+                      onChange={(e) => setEngPhone(e.target.value)} 
+                      style={{ color: '#F7F7F7' }}
+                    />
                   </div>
                 </div>
 
@@ -357,6 +389,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       onInput={autoGrow} 
                       value={answers[`q${i+1}`] || ""}
                       onChange={(e) => setAnswers(prev => ({ ...prev, [e.target.name]: e.target.value }))}
+                      style={{ color: '#F7F7F7' }}
                     />
                   </div>
                 ))}
@@ -392,7 +425,9 @@ export async function getServerSideProps({ params }) {
       fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies`, { headers }),
       fetch(`https://api.airtable.com/v0/${baseId}/engineers`, { headers })
     ]);
+    
     const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cReq.json(), eReq.json()]);
+    
     if (!uJson.records?.[0]) return { notFound: true };
 
     const companyMap = {};
