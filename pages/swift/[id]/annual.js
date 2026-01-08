@@ -408,58 +408,78 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
 export async function getServerSideProps({ params }) {
   const token = params.id;
+  
   try {
-    const headers = { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` };
+    const apiKey = process.env.AIRTABLE_API_KEY;
     const baseId = process.env.AIRTABLE_BASE_ID;
     const tableName = process.env.AIRTABLE_SWIFT_TABLE || "swift_units"; 
-
-    // Encode filters to prevent breakage
-    const unitFilter = encodeURIComponent(`{public_token}='${token}'`);
-    const templateFilter = encodeURIComponent(`{type}='Annual'`);
-
-    const [uReq, tReq, cReq, eReq] = await Promise.all([
-      fetch(`https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${unitFilter}`, { headers }),
-      fetch(`https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula=${templateFilter}`, { headers }),
-      fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies`, { headers }),
-      fetch(`https://api.airtable.com/v0/${baseId}/engineers`, { headers })
-    ]);
     
-    const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cJson.json(), eJson.json()]);
+    if (!apiKey || !baseId) {
+        throw new Error("Missing Airtable Environment Variables");
+    }
+
+    const headers = { Authorization: `Bearer ${apiKey}` };
+
+    // Explicitly define filters to avoid initialization errors
+    const unitFormula = encodeURIComponent(`{public_token}='${token}'`);
+    const templateFormula = encodeURIComponent(`{type}='Annual'`);
+
+    const urls = [
+      `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${unitFormula}`,
+      `https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula=${templateFormula}`,
+      `https://api.airtable.com/v0/${baseId}/maintenance_companies`,
+      `https://api.airtable.com/v0/${baseId}/engineers`
+    ];
+
+    const responses = await Promise.all(urls.map(url => fetch(url, { headers })));
+    const results = await Promise.all(responses.map(res => res.json()));
     
-    if (!uJson.records?.[0]) {
-      console.error(`404: No record for token ${token} in ${tableName}`);
+    const unitData = results[0];
+    const templateData = results[1];
+    const companyData = results[2];
+    const engineerData = results[3];
+    
+    if (!unitData.records || unitData.records.length === 0) {
+      console.error(`Airtable: No record found for token ${token}`);
       return { notFound: true };
     }
 
-    const unitRecord = uJson.records[0];
-    const companyMap = {};
-    cJson.records?.forEach(r => {
-      if (r.fields.company_name) companyMap[r.id] = r.fields.company_name;
-    });
+    const unitRecord = unitData.records[0];
+    
+    const companyLookup = {};
+    if (companyData.records) {
+      companyData.records.forEach(r => {
+        if (r.fields.company_name) companyLookup[r.id] = r.fields.company_name;
+      });
+    }
     
     return {
       props: {
         unit: { 
-          serial_number: unitRecord.fields.unit_name || unitRecord.fields.serial_number || "Unknown Unit", 
+          serial_number: unitRecord.fields.unit_name || unitRecord.fields.serial_number || "Unit", 
           company: unitRecord.fields.company || "",
           record_id: unitRecord.id, 
           public_token: unitRecord.fields.public_token || token 
         },
         template: { 
-          id: tJson.records?.[0]?.id || "", 
-          questions: tJson.records?.[0]?.fields.questions_json ? JSON.parse(tJson.records[0].fields.questions_json) : []
+          id: templateData.records?.[0]?.id || "", 
+          questions: templateData.records?.[0]?.fields.questions_json 
+            ? JSON.parse(templateData.records[0].fields.questions_json) 
+            : []
         },
-        allCompanies: Object.values(companyMap).filter(Boolean),
-        allEngineers: eJson.records?.map(r => ({ 
+        allCompanies: Object.values(companyLookup).filter(Boolean),
+        allEngineers: engineerData.records?.map(r => ({ 
           name: r.fields.engineer_name, 
           email: r.fields.email || "", 
           phone: r.fields.phone || "", 
-          companyName: r.fields["company"] ? companyMap[r.fields["company"][0]] : "" 
+          companyName: (r.fields["company"] && r.fields["company"][0]) 
+            ? companyLookup[r.fields["company"][0]] 
+            : "" 
         })).filter(e => e.name) || []
       }
     };
   } catch (err) { 
-    console.error("Critical Server Side Error:", err);
+    console.error("Server Side Error (Detailed):", err.message);
     return { notFound: true }; 
   }
 }
