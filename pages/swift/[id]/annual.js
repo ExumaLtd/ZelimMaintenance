@@ -47,15 +47,16 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
+  // Filter list but keep current selection visible to apply "active" styling
   const filteredEngineers = useMemo(() => {
     if (!selectedCompany) return [];
     let list = allEngineers.filter(e => e.companyName === selectedCompany);
     
+    // Only filter by search text if user is typing and it's not the current selection
     if (engName && engName !== "Please select" && engName.trim() !== "") {
-      list = list.filter(e => 
-        e.name !== engName && 
-        e.name.toLowerCase().includes(engName.toLowerCase())
-      );
+      const search = engName.toLowerCase();
+      // We keep the exact match in the list so it can be highlighted as active
+      list = list.filter(e => e.name.toLowerCase().includes(search));
     }
     return list;
   }, [selectedCompany, engName, allEngineers]);
@@ -250,7 +251,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             border-radius: 6px;
             transition: background 0.15s ease, color 0.15s ease;
           }
-          .custom-dropdown-item:hover { 
+          .custom-dropdown-item:hover,
+          .custom-dropdown-item.active { 
             background: #476166;
             color: #F7F7F7;
           }
@@ -290,8 +292,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                           style={{ 
                             color: selectedCompany ? '#F7F7F7' : '#7d8f93', 
                             cursor: 'pointer',
-                            borderColor: showCompanyDropdown ? '#00FFF6' : 'transparent',
-                            borderWidth: showCompanyDropdown ? '1px' : '1px'
+                            borderColor: showCompanyDropdown ? '#00FFF6' : 'transparent'
                           }}
                         />
                         <i className={showCompanyDropdown ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}></i>
@@ -299,7 +300,11 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       {showCompanyDropdown && (
                         <ul className="custom-dropdown-list">
                           {allCompanies.sort().map((c, i) => (
-                            <li key={i} className="custom-dropdown-item" onClick={() => selectCompany(c)}>
+                            <li 
+                                key={i} 
+                                className={`custom-dropdown-item ${selectedCompany === c ? 'active' : ''}`} 
+                                onClick={() => selectCompany(c)}
+                            >
                               {c}
                             </li>
                           ))}
@@ -349,8 +354,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                           onChange={(e) => { setEngName(e.target.value); if(selectedCompany) setShowEngineerDropdown(true); }}
                           style={{ 
                             color: (engName === "Please select" || !engName) ? '#7d8f93' : '#F7F7F7',
-                            borderColor: showEngineerDropdown ? '#00FFF6' : 'transparent',
-                            borderWidth: showEngineerDropdown ? '1px' : '1px'
+                            borderColor: showEngineerDropdown ? '#00FFF6' : 'transparent'
                           }}
                         />
                         {selectedCompany && (
@@ -366,7 +370,11 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                           )}
                           {filteredEngineers.length > 0 ? (
                             filteredEngineers.map((eng, i) => (
-                              <li key={i} className="custom-dropdown-item" onClick={() => selectEngineer(eng)}>
+                              <li 
+                                key={i} 
+                                className={`custom-dropdown-item ${engName === eng.name ? 'active' : ''}`} 
+                                onClick={() => selectEngineer(eng)}
+                              >
                                 {eng.name}
                               </li>
                             ))
