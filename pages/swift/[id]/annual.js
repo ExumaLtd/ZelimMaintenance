@@ -32,6 +32,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [photoUrls, setPhotoUrls] = useState([]);
   const [today, setToday] = useState("");
   
+  // Controlled States
   const [locationDisplay, setLocationDisplay] = useState(""); 
   const [selectedCompany, setSelectedCompany] = useState("");
   const [engName, setEngName] = useState("");
@@ -41,26 +42,27 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
+  // Filter engineers based on selected company
   const filteredEngineers = useMemo(() => {
     if (!selectedCompany) return allEngineers;
     return allEngineers.filter(e => e.companyName === selectedCompany);
   }, [selectedCompany, allEngineers]);
 
-  // 1. COMBINED INITIALIZATION (Fixes Desktop Race Condition)
+  // 1. INITIAL LOAD: Load Draft & Trigger Geolocation
   useEffect(() => {
     const date = new Date().toISOString().split('T')[0];
     setToday(date);
     
     const savedDraft = localStorage.getItem(storageKey);
-    let existingLocation = "";
+    let draftHasLocation = false;
 
     if (savedDraft) {
       try {
         const data = JSON.parse(savedDraft);
         if (data.maintained_by) setSelectedCompany(data.maintained_by);
         if (data.location_display) {
-            existingLocation = data.location_display;
             setLocationDisplay(data.location_display);
+            draftHasLocation = true;
         }
         if (data.engineer_name) setEngName(data.engineer_name);
         if (data.engineer_email) setEngEmail(data.engineer_email);
@@ -72,11 +74,11 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           if (key.startsWith('q')) draftAnswers[key] = data[key];
         });
         setAnswers(draftAnswers);
-      } catch (e) { console.error("Draft load error:", e); }
+      } catch (e) { console.error("Draft parse error", e); }
     }
 
-    // ONLY detect location if the draft didn't have one
-    if (!existingLocation && navigator.geolocation) {
+    // Geolocation: Only run if no location was found in the draft
+    if (!draftHasLocation && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(async (pos) => {
         try {
           const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14`, {
@@ -90,30 +92,28 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             setLocationDisplay(combined);
           }
         } catch (err) { console.error("Geo fetch error", err); }
-      }, null, { enableHighAccuracy: true, timeout: 5000 });
+      }, null, { enableHighAccuracy: true, timeout: 8000 });
     }
   }, [storageKey]);
 
-const handleInputChange = (e) => {
-  const formData = new FormData(e.currentTarget);
-  const data = Object.fromEntries(formData.entries());
-
-  // ✅ FORCE the authoritative React value
-  if (locationDisplay && !data.location_display) {
-    data.location_display = locationDisplay;
-  }
-
-  data.photoUrls = photoUrls;
-  localStorage.setItem(storageKey, JSON.stringify(data));
-  
-  if (e.target.name.startsWith('q')) {
-    setAnswers(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  }
-};
+  // 2. AUTOSAVE: Sync state to localStorage whenever any value changes
+  useEffect(() => {
+    const draftData = {
+      maintained_by: selectedCompany,
+      location_display: locationDisplay,
+      engineer_name: engName,
+      engineer_email: engEmail,
+      engineer_phone: engPhone,
+      photoUrls,
+      ...answers
+    };
+    localStorage.setItem(storageKey, JSON.stringify(draftData));
+  }, [selectedCompany, locationDisplay, engName, engEmail, engPhone, photoUrls, answers, storageKey]);
 
   const handleCompanyChange = (e) => {
     const val = e.target.value;
     setSelectedCompany(val);
+    // Reset engineer info if company changes
     setEngName(""); 
     setEngEmail(""); 
     setEngPhone("");
@@ -133,30 +133,36 @@ const handleInputChange = (e) => {
     e.preventDefault();
     if (submitting) return;
     setSubmitting(true);
-    const formData = new FormData(e.target);
-    const props = Object.fromEntries(formData.entries());
+
     const payload = {
-      ...props,
       maintained_by: selectedCompany,
       location_display: locationDisplay,
+      date_of_maintenance: e.target.date_of_maintenance.value,
+      engineer_name: engName,
+      engineer_email: engEmail,
+      engineer_phone: engPhone,
       photoUrls,
       unit_record_id: unit?.record_id,
       checklist_template_id: template?.id,
       answers: (template?.questions || []).map((_, i) => ({
         question: `q${i+1}`,
-        answer: props[`q${i+1}`] || ""
+        answer: answers[`q${i+1}`] || ""
       }))
     };
+
     try {
       const res = await fetch("/api/submit-maintenance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) throw new Error("Failed to submit");
       localStorage.removeItem(storageKey);
       router.push(`/swift/${unit.public_token}/annual-complete`);
-    } catch (err) { setErrorMsg(err.message); setSubmitting(false); }
+    } catch (err) { 
+      setErrorMsg(err.message); 
+      setSubmitting(false); 
+    }
   }
 
   const logo = getClientLogo(unit?.company, unit?.serial_number);
@@ -214,7 +220,7 @@ const handleInputChange = (e) => {
             <h1 className="checklist-hero-title">{unit?.serial_number}<span className="break-point">annual maintenance</span></h1>
             
             <div className="checklist-form-card">
-              <form onSubmit={handleSubmit} onChange={handleInputChange} autoComplete="none">
+              <form onSubmit={handleSubmit} autoComplete="off">
                 <div className="checklist-inline-group">
                   <div className="checklist-field">
                     <label className="checklist-label">Maintenance company</label>
@@ -265,11 +271,11 @@ const handleInputChange = (e) => {
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer email</label>
-                    <input type="email" className="checklist-input" name="engineer_email" required value={engEmail} onChange={(e) => setEngEmail(e.target.value)} autoComplete="off" />
+                    <input type="email" className="checklist-input" name="engineer_email" required value={engEmail} onChange={(e) => setEngEmail(e.target.value)} />
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer phone</label>
-                    <input type="tel" className="checklist-input" name="engineer_phone" value={engPhone} onChange={(e) => setEngPhone(e.target.value)} autoComplete="off" />
+                    <input type="tel" className="checklist-input" name="engineer_phone" value={engPhone} onChange={(e) => setEngPhone(e.target.value)} />
                   </div>
                 </div>
 
@@ -288,12 +294,10 @@ const handleInputChange = (e) => {
 
                 <div style={{ marginTop: '24px' }}>
                   <label className="checklist-label">Upload photos</label>
-                  <UploadDropzone endpoint="maintenanceImage" onClientUploadComplete={(res) => {
-                    const newUrls = [...photoUrls, ...res.map(f => f.url)];
-                    setPhotoUrls(newUrls);
-                    const draft = JSON.parse(localStorage.getItem(storageKey) || "{}");
-                    localStorage.setItem(storageKey, JSON.stringify({ ...draft, photoUrls: newUrls }));
-                  }} />
+                  <UploadDropzone 
+                    endpoint="maintenanceImage" 
+                    onClientUploadComplete={(res) => setPhotoUrls(prev => [...prev, ...res.map(f => f.url)])} 
+                  />
                 </div>
 
                 {errorMsg && <p style={{ color: '#ff4d4d', marginTop: '16px' }}>{errorMsg}</p>}
@@ -315,13 +319,16 @@ export async function getServerSideProps({ params }) {
   try {
     const headers = { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` };
     const baseId = process.env.AIRTABLE_BASE_ID;
+    
     const [uReq, tReq, cReq, eReq] = await Promise.all([
       fetch(`https://api.airtable.com/v0/${baseId}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`, { headers }),
       fetch(`https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula={type}='Annual'`, { headers }),
       fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies`, { headers }),
       fetch(`https://api.airtable.com/v0/${baseId}/engineers`, { headers })
     ]);
+    
     const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cReq.json(), eReq.json()]);
+    
     if (!uJson.records?.[0]) return { notFound: true };
 
     const companyMap = {};
@@ -331,7 +338,6 @@ export async function getServerSideProps({ params }) {
       props: {
         unit: { 
           serial_number: uJson.records[0].fields.unit_name || uJson.records[0].fields.serial_number, 
-          company: uJson.records[0].fields.company || "",
           record_id: uJson.records[0].id, 
           public_token: uJson.records[0].fields.public_token 
         },
@@ -348,5 +354,7 @@ export async function getServerSideProps({ params }) {
         })).filter(e => e.name) || []
       }
     };
-  } catch (err) { return { notFound: true }; }
+  } catch (err) { 
+    return { notFound: true }; 
+  }
 }
