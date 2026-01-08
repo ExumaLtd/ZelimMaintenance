@@ -1,6 +1,6 @@
 /* =========================================================================
    CHECKLIST PAGE STYLES (form.css)
-   NAMESPACED VERSION: All rules scoped to .form-scope
+   V48: SYNCED MOBILE LOGO & H1 WITH DASHBOARD
 ========================================================================= */
 
 /* Ensure the wrapper takes up enough space and doesn't collapse */
@@ -25,13 +25,14 @@
     color: #FFFFFF;
 }
 
+/* --- LOGO SECTION (SYNCED WITH DASHBOARD) --- */
 .form-scope .checklist-logo {
     position: relative;
     max-width: 250px;
     max-height: 40px;
     width: 250px;
     height: 40px;
-    margin: 0 auto 30px auto;
+    margin: 0 auto 40px auto; /* Increased bottom margin to match dashboard */
 }
 
 .form-scope .checklist-logo img {
@@ -41,14 +42,16 @@
     width: 100% !important;
     height: 100% !important;
     object-fit: contain !important;
+    object-position: center !important; /* Centered by default for checklist */
 }
 
+/* --- HERO TITLE (SYNCED WITH DASHBOARD) --- */
 .form-scope .checklist-hero-title {
     color: #FFFFFF;
     font-size: 30px;
     line-height: 38px;
     font-weight: 600;
-    margin: 0 0 40px 0;
+    margin: 0 0 34px 0; /* Synced with dashboard portal-title margin */
 }
 
 .form-scope .checklist-hero-title .break-point {
@@ -109,7 +112,6 @@
     align-items: center;
 }
 
-/* Base styling for all icons - set to 16px */
 .form-scope .input-icon-wrapper i {
     position: absolute;
     right: 15px;
@@ -121,7 +123,6 @@
     z-index: 10;
 }
 
-/* Specific override for the calendar icon - set to 18px */
 .form-scope .input-icon-wrapper i.fa-calendar,
 .form-scope .input-icon-wrapper i.fa-calendar-days {
     font-size: 18px;
@@ -177,11 +178,6 @@
     opacity: 1;
 }
 
-.form-scope .checklist-input option {
-    color: #e9ebec;
-    background: #27454b;
-}
-
 .form-scope .checklist-textarea {
     resize: none !important; 
     overflow: hidden;
@@ -193,9 +189,10 @@
 .form-scope .checklist-input:focus,
 .form-scope .checklist-textarea:focus {
     outline: none;
-    border-color: #01FFF6;
+    border-color: #00FFF6; /* UPDATED COLOR */
 }
 
+/* --- BRAND BUTTONS (SYNCED WITH DASHBOARD) --- */
 .form-scope .checklist-submit {
     display: flex;
     max-width: fit-content;
@@ -203,9 +200,9 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    border: 2px solid hsla(0, 0%, 100%, .12);
+    border: 2px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
-    background-color: #01fff6;
+    background-color: #00FFF6 !important; /* UPDATED COLOR */
     color: #0d3037;
     font-size: 15px;
     font-weight: 600;
@@ -218,11 +215,44 @@
 }
 
 .form-scope .checklist-submit:hover {
-    background-color: #00e5dd;
-    border-color: hsla(0, 0%, 100%, .2);
+    background-color: #00f2ea !important; /* UPDATED HOVER */
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .form-scope .checklist-submit:disabled {
     opacity: 0.6;
     cursor: default;
+}
+
+/* --- MOBILE SPECIFIC OVERRIDES (SYNCED WITH DASHBOARD) --- */
+@media (max-width: 600px) {
+    .form-scope .swift-checklist-container {
+        padding: 0 20px 100px 20px !important;
+    }
+
+    .form-scope .checklist-logo {
+        max-width: 225px; 
+        max-height: 36px; 
+        width: 225px;
+        height: 36px;
+        margin: 0 auto 30px auto !important; /* Matches Dashboard mobile margin */
+    }
+
+    .form-scope .checklist-logo img {
+        object-position: center !important;
+    }
+
+    .form-scope .checklist-hero-title {
+        font-size: 22px; /* Matches Dashboard mobile portal-title */
+        line-height: 28px;
+        margin: 0 0 24px 0; /* Reduced margin for mobile */
+    }
+
+    .form-scope .checklist-form-card {
+        padding: 24px 20px; /* Tighter padding for mobile screens */
+    }
+    
+    .form-scope .checklist-submit {
+        margin: 30px auto 0 auto; /* Center button on mobile */
+    }
 }
