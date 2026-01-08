@@ -53,8 +53,9 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     
     if (engName && engName !== "Please select" && engName.trim() !== "") {
       const search = engName.toLowerCase();
-      // Keep only one instance of the selected name if it matches the search
-      list = list.filter(e => e.name.toLowerCase().includes(search));
+      const matches = list.filter(e => e.name.toLowerCase().includes(search));
+      if (matches.length > 0) return matches;
+      return []; 
     }
     return list;
   }, [selectedCompany, engName, allEngineers]);
@@ -181,6 +182,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const logo = getClientLogo(unit?.company, unit?.serial_number);
 
+  const hasEngineerResults = filteredEngineers.length > 0;
+  const hasClearDetails = engName && engName !== "Please select" && engName !== "";
+  const shouldShowEngDropdown = showEngineerDropdown && (hasEngineerResults || hasClearDetails);
+
   return (
     <div className="form-scope">
       <Head>
@@ -198,7 +203,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             background-color: #27454b !important;
             border: 1px solid transparent !important;
             padding: 14px 16px !important;
-            padding-right: 40px !important;
             font-family: 'Montserrat', sans-serif;
             border-radius: 8px !important;
             width: 100%;
@@ -290,7 +294,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                           style={{ 
                             color: selectedCompany ? '#F7F7F7' : '#7d8f93', 
                             cursor: 'pointer',
-                            borderColor: showCompanyDropdown ? '#00FFF6' : 'transparent'
+                            borderColor: showCompanyDropdown ? '#00FFF6' : 'transparent',
+                            paddingRight: '40px'
                           }}
                         />
                         <i className={showCompanyDropdown ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}></i>
@@ -331,6 +336,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                         defaultValue={today} 
                         max={today} 
                         required 
+                        style={{ paddingRight: '40px' }}
                       />
                       <i className="fa-regular fa-calendar"></i>
                     </div>
@@ -352,35 +358,30 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                           onChange={(e) => { setEngName(e.target.value); if(selectedCompany) setShowEngineerDropdown(true); }}
                           style={{ 
                             color: (engName === "Please select" || !engName) ? '#7d8f93' : '#F7F7F7',
-                            borderColor: showEngineerDropdown ? '#00FFF6' : 'transparent'
+                            borderColor: shouldShowEngDropdown ? '#00FFF6' : 'transparent',
+                            paddingRight: (selectedCompany && hasEngineerResults) ? '40px' : '16px'
                           }}
                         />
-                        {selectedCompany && (
+                        {(selectedCompany && hasEngineerResults) && (
                            <i className={showEngineerDropdown ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}></i>
                         )}
                       </div>
-                      {showEngineerDropdown && (
+                      {shouldShowEngDropdown && (
                         <ul className="custom-dropdown-list">
-                          {(engName && engName !== "Please select" && engName !== "") && (
+                          {hasClearDetails && (
                             <li className="custom-dropdown-item" onClick={clearEngineer}>
                                Clear details
                             </li>
                           )}
-                          {filteredEngineers.length > 0 ? (
-                            filteredEngineers.map((eng, i) => (
-                              <li 
-                                key={i} 
-                                className={`custom-dropdown-item ${engName === eng.name ? 'active' : ''}`} 
-                                onClick={() => selectEngineer(eng)}
-                              >
-                                {eng.name}
-                              </li>
-                            ))
-                          ) : (
-                            !(engName && engName !== "Please select" && engName !== "") && (
-                              <li className="custom-dropdown-item" style={{ cursor: 'default', opacity: 0.6 }}>No engineers found</li>
-                            )
-                          )}
+                          {filteredEngineers.map((eng, i) => (
+                            <li 
+                              key={i} 
+                              className={`custom-dropdown-item ${engName === eng.name ? 'active' : ''}`} 
+                              onClick={() => selectEngineer(eng)}
+                            >
+                              {eng.name}
+                            </li>
+                          ))}
                         </ul>
                       )}
                     </div>
