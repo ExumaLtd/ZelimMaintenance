@@ -51,7 +51,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     if (!selectedCompany) return [];
     let list = allEngineers.filter(e => e.companyName === selectedCompany);
     
-    // Hide the currently selected name from the list and filter by search text
     if (engName && engName !== "Please select" && engName.trim() !== "") {
       list = list.filter(e => 
         e.name !== engName && 
@@ -242,7 +241,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             overflow-y: auto;
           }
           .custom-dropdown-item {
-            padding: 10px 18px;
+            padding: 8px 16px;
             color: #F7F7F7;
             cursor: pointer;
             font-size: 16px;
@@ -353,9 +352,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       </div>
                       {showEngineerDropdown && (
                         <ul className="custom-dropdown-list">
-                          {/* Replace current name with Clear Details if already selected */}
                           {(engName && engName !== "Please select") && (
-                            <li className="custom-dropdown-item" onClick={clearEngineer} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                            <li className="custom-dropdown-item" onClick={clearEngineer}>
                                Clear details
                             </li>
                           )}
