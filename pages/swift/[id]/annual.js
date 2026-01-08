@@ -53,6 +53,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     
     if (engName && engName !== "Please select" && engName.trim() !== "") {
       const search = engName.toLowerCase();
+      // Keep only one instance of the selected name if it matches the search
       list = list.filter(e => e.name.toLowerCase().includes(search));
     }
     return list;
@@ -360,7 +361,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       </div>
                       {showEngineerDropdown && (
                         <ul className="custom-dropdown-list">
-                          {(engName && engName !== "Please select") && (
+                          {(engName && engName !== "Please select" && engName !== "") && (
                             <li className="custom-dropdown-item" onClick={clearEngineer}>
                                Clear details
                             </li>
@@ -376,7 +377,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                               </li>
                             ))
                           ) : (
-                            !(engName && engName !== "Please select") && (
+                            !(engName && engName !== "Please select" && engName !== "") && (
                               <li className="custom-dropdown-item" style={{ cursor: 'default', opacity: 0.6 }}>No engineers found</li>
                             )
                           )}
