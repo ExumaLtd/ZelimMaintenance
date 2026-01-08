@@ -77,23 +77,27 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       } catch (e) { console.error("Draft parse error", e); }
     }
 
-    // Geolocation: Only run if no location was found in the draft
-    if (!draftHasLocation && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(async (pos) => {
-        try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14`, {
-            headers: { 'Accept-Language': 'en' }
-          });
-          const data = await res.json();
-          if (data && data.address) {
-            const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
-            const country = data.address.country_code === 'gb' ? 'UK' : (data.address.country || "");
-            const combined = loc ? `${loc}, ${country}` : country;
-            setLocationDisplay(combined);
-          }
-        } catch (err) { console.error("Geo fetch error", err); }
-      }, null, { enableHighAccuracy: true, timeout: 8000 });
-    }
+    // Geolocation: Slight delay to ensure state is settled
+    const timer = setTimeout(() => {
+        if (!draftHasLocation && navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(async (pos) => {
+            try {
+              const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14`, {
+                headers: { 'Accept-Language': 'en' }
+              });
+              const data = await res.json();
+              if (data && data.address) {
+                const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
+                const country = data.address.country_code === 'gb' ? 'UK' : (data.address.country || "");
+                const combined = loc ? `${loc}, ${country}` : country;
+                setLocationDisplay(combined);
+              }
+            } catch (err) { console.error("Geo fetch error", err); }
+          }, null, { enableHighAccuracy: true, timeout: 8000 });
+        }
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [storageKey]);
 
   // 2. AUTOSAVE: Sync state to localStorage whenever any value changes
@@ -113,7 +117,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const handleCompanyChange = (e) => {
     const val = e.target.value;
     setSelectedCompany(val);
-    // Reset engineer info if company changes
     setEngName(""); 
     setEngEmail(""); 
     setEngPhone("");
@@ -171,28 +174,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     <div className="form-scope">
       <Head>
         <title>{unit?.serial_number} | Annual Maintenance</title>
+        {/* We keep only the essential theme-fixes here so they don't fight your form.css */}
         <style>{`
-          .form-scope .checklist-form-card {
-            background: #152A31 !important;
-            padding: 38px !important;
-            width: 100%;
-          }
-          @media (max-width: 600px) {
-            .form-scope .checklist-form-card { padding: 30px 24px !important; }
-          }
-          .form-scope .checklist-input, .form-scope .checklist-textarea {
-            background-color: #27454B;
-            border: 2px solid transparent !important; 
-            border-radius: 8px;
-            color: #F7F7F7;
-            padding: 10px 16px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 16px !important;
-            box-sizing: border-box;
-            outline: none !important;
-            width: 100%;
-          }
-          .form-scope .checklist-input:focus { border-color: #00FFF6 !important; }
           .form-scope .checklist-input:-webkit-autofill {
             -webkit-box-shadow: 0 0 0 1000px #27454b inset !important;
             -webkit-text-fill-color: #F7F7F7 !important;
@@ -205,7 +188,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             background-position: right 16px center;
             background-size: 12px;
           }
-          .form-scope input[type="date"].checklist-input::-webkit-calendar-picker-indicator { filter: invert(1); }
         `}</style>
       </Head>
 
@@ -214,10 +196,14 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           <div className="swift-checklist-container">
             {logo && (
               <div className="checklist-logo">
-                <img src={logo.src} alt={logo.alt} style={{ maxHeight: '40px', marginBottom: '40px' }} />
+                <img src={logo.src} alt={logo.alt} />
               </div>
             )}
-            <h1 className="checklist-hero-title">{unit?.serial_number}<span className="break-point">annual maintenance</span></h1>
+            
+            <h1 className="checklist-hero-title">
+                {unit?.serial_number}
+                <span className="break-point">annual maintenance</span>
+            </h1>
             
             <div className="checklist-form-card">
               <form onSubmit={handleSubmit} autoComplete="off">
@@ -302,7 +288,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
                 {errorMsg && <p style={{ color: '#ff4d4d', marginTop: '16px' }}>{errorMsg}</p>}
 
-                <button className="checklist-submit" disabled={submitting} style={{ marginTop: '32px' }}>
+                <button className="checklist-submit" disabled={submitting}>
                   {submitting ? "Submitting..." : "Submit maintenance"}
                 </button>
               </form>
