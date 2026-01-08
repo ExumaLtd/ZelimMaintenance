@@ -42,7 +42,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
   const filteredEngineers = useMemo(() => {
-    if (!selectedCompany) return allEngineers;
+    if (!selectedCompany) return [];
     return allEngineers.filter(e => e.companyName === selectedCompany);
   }, [selectedCompany, allEngineers]);
 
@@ -178,7 +178,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             outline: none;
           }
 
-          /* Field Icon Wrapper for FA Icons */
           .form-scope .field-icon-wrapper {
             position: relative;
             display: flex;
@@ -200,7 +199,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             -webkit-text-fill-color: #f7f7f7 !important;
           }
 
-          /* Hide native UI elements to favor FA Icons */
           .form-scope select.checklist-input {
             appearance: none;
             -webkit-appearance: none;
@@ -281,28 +279,37 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                 <div className="checklist-inline-group" style={{ marginTop: '24px' }}>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer name</label>
-                    <div className="field-icon-wrapper">
+                    {selectedCompany ? (
+                      <div className="field-icon-wrapper">
+                        <input 
+                          className="checklist-input" 
+                          name="engineer_name" 
+                          list="eng-data-list" 
+                          required 
+                          value={engName} 
+                          onChange={handleEngineerChange}
+                          autoComplete="off"
+                          onClick={(e) => {
+                            const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+                            if (isTouch) {
+                              e.target.setAttribute('list', '');
+                              setTimeout(() => e.target.setAttribute('list', 'eng-data-list'), 10);
+                            }
+                          }}
+                        />
+                        <i className="fa-solid fa-chevron-down"></i>
+                        <datalist id="eng-data-list">
+                          {filteredEngineers.map((e, i) => <option key={i} value={e.name} />)}
+                        </datalist>
+                      </div>
+                    ) : (
                       <input 
                         className="checklist-input" 
-                        name="engineer_name" 
-                        list="eng-data-list" 
-                        required 
-                        value={engName} 
-                        onChange={handleEngineerChange}
-                        autoComplete="off"
-                        onClick={(e) => {
-                          const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-                          if (isTouch) {
-                            e.target.setAttribute('list', '');
-                            setTimeout(() => e.target.setAttribute('list', 'eng-data-list'), 10);
-                          }
-                        }}
+                        placeholder="Select company first..." 
+                        disabled 
+                        style={{ opacity: 0.6, cursor: 'not-allowed' }}
                       />
-                      <i className="fa-solid fa-chevron-down"></i>
-                    </div>
-                    <datalist id="eng-data-list">
-                      {filteredEngineers.map((e, i) => <option key={i} value={e.name} />)}
-                    </datalist>
+                    )}
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer email</label>
