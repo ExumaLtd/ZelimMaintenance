@@ -46,17 +46,22 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     return allEngineers.filter(e => e.companyName === selectedCompany);
   }, [selectedCompany, allEngineers]);
 
-  // 1. PERSISTENCE & INITIAL LOAD
+  // 1. COMBINED INITIALIZATION (Fixes Desktop Race Condition)
   useEffect(() => {
     const date = new Date().toISOString().split('T')[0];
     setToday(date);
     
     const savedDraft = localStorage.getItem(storageKey);
+    let existingLocation = "";
+
     if (savedDraft) {
       try {
         const data = JSON.parse(savedDraft);
         if (data.maintained_by) setSelectedCompany(data.maintained_by);
-        if (data.location_display) setLocationDisplay(data.location_display);
+        if (data.location_display) {
+            existingLocation = data.location_display;
+            setLocationDisplay(data.location_display);
+        }
         if (data.engineer_name) setEngName(data.engineer_name);
         if (data.engineer_email) setEngEmail(data.engineer_email);
         if (data.engineer_phone) setEngPhone(data.engineer_phone);
@@ -69,36 +74,25 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
         setAnswers(draftAnswers);
       } catch (e) { console.error("Draft load error:", e); }
     }
-  }, [storageKey]);
 
-  // 2. GEOLOCATION - Aggressive Desktop Support
-  useEffect(() => {
-    if (typeof window === "undefined" || !navigator.geolocation) return;
-
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14`, {
-          headers: { 'Accept-Language': 'en' }
-        });
-        const data = await res.json();
-        if (data && data.address) {
-          const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
-          const country = data.address.country_code === 'gb' ? 'UK' : (data.address.country || "");
-          const combined = loc ? `${loc}, ${country}` : country;
-          
-          // Fix: If the current state is empty, fill it. This handles the Desktop race condition.
-          setLocationDisplay(prev => {
-            if (!prev || prev.trim() === "") return combined;
-            return prev;
+    // ONLY detect location if the draft didn't have one
+    if (!existingLocation && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14`, {
+            headers: { 'Accept-Language': 'en' }
           });
-        }
-      } catch (err) { console.error("Geo fetch error", err); }
-    }, (err) => console.warn("Geo error", err), {
-      enableHighAccuracy: true,
-      timeout: 8000,
-      maximumAge: 0
-    });
-  }, []);
+          const data = await res.json();
+          if (data && data.address) {
+            const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
+            const country = data.address.country_code === 'gb' ? 'UK' : (data.address.country || "");
+            const combined = loc ? `${loc}, ${country}` : country;
+            setLocationDisplay(combined);
+          }
+        } catch (err) { console.error("Geo fetch error", err); }
+      }, null, { enableHighAccuracy: true, timeout: 5000 });
+    }
+  }, [storageKey]);
 
   const handleInputChange = (e) => {
     const formData = new FormData(e.currentTarget);
