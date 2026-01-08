@@ -231,6 +231,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             left: 0;
             right: 0;
             background: #27454B;
+            border: 1px solid #00FFF6 !important;
             border-radius: 8px;
             box-shadow: 0 10px 25px rgba(21, 42, 49, 0.4);
             margin: 0;
@@ -288,7 +289,9 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                           onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
                           style={{ 
                             color: selectedCompany ? '#F7F7F7' : '#7d8f93', 
-                            cursor: 'pointer' 
+                            cursor: 'pointer',
+                            borderColor: showCompanyDropdown ? '#00FFF6' : 'transparent',
+                            borderWidth: showCompanyDropdown ? '1px' : '1px'
                           }}
                         />
                         <i className={showCompanyDropdown ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}></i>
@@ -344,7 +347,11 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                           autoComplete="off"
                           onFocus={() => { if(selectedCompany) setShowEngineerDropdown(true); }}
                           onChange={(e) => { setEngName(e.target.value); if(selectedCompany) setShowEngineerDropdown(true); }}
-                          style={{ color: (engName === "Please select" || !engName) ? '#7d8f93' : '#F7F7F7' }}
+                          style={{ 
+                            color: (engName === "Please select" || !engName) ? '#7d8f93' : '#F7F7F7',
+                            borderColor: showEngineerDropdown ? '#00FFF6' : 'transparent',
+                            borderWidth: showEngineerDropdown ? '1px' : '1px'
+                          }}
                         />
                         {selectedCompany && (
                            <i className={showEngineerDropdown ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}></i>
