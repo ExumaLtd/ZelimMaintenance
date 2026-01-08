@@ -1,6 +1,6 @@
 /* =========================================================================
    DASHBOARD SCOPE (dashboard.css)
-   V30: GROUPED BACKGROUNDS AND DESKTOP-ONLY RADIUS
+   V31: UPDATED HOVER STATES AND THEME COLORS
 ========================================================================= */
 
 /* --- 1. BASE AND LAYOUT --- */
@@ -267,7 +267,7 @@
 }
 
 .dashboard-scope .download-link:hover {
-    background: #45595E;
+    background: #324e54; /* Updated hover color */
     cursor: pointer;
 }
 
