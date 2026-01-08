@@ -38,6 +38,9 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [engName, setEngName] = useState("");
   const [engEmail, setEngEmail] = useState("");
   const [engPhone, setEngPhone] = useState("");
+  
+  // State for dynamic checklist answers to ensure persistence
+  const [answers, setAnswers] = useState({});
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
@@ -72,6 +75,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     );
   }, []);
 
+  // LOAD DRAFT (Including checklist and photos)
   useEffect(() => {
     const date = new Date().toISOString().split('T')[0];
     setToday(date);
@@ -84,14 +88,32 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
         if (data.engineer_name) setEngName(data.engineer_name);
         if (data.engineer_email) setEngEmail(data.engineer_email);
         if (data.engineer_phone) setEngPhone(data.engineer_phone);
+        if (data.photoUrls) setPhotoUrls(data.photoUrls);
+        
+        // Extract q1, q2, etc. from the draft
+        const draftAnswers = {};
+        Object.keys(data).forEach(key => {
+          if (key.startsWith('q')) draftAnswers[key] = data[key];
+        });
+        setAnswers(draftAnswers);
       } catch (e) { console.error(e); }
     }
   }, [storageKey]);
 
+  // SAVE DRAFT (Updated to include all fields)
   const handleInputChange = (e) => {
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries());
+    
+    // Merge photo URLs into the storage data manually
+    data.photoUrls = photoUrls;
+    
     localStorage.setItem(storageKey, JSON.stringify(data));
+    
+    // Sync state for dynamic fields
+    if (e.target.name.startsWith('q')) {
+      setAnswers(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    }
   };
 
   const handleCompanyChange = (e) => {
@@ -239,13 +261,27 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                 {(template.questions || []).map((q, i) => (
                   <div key={i}>
                     <label className="checklist-label">{q}</label>
-                    <textarea name={`q${i + 1}`} className="checklist-textarea" onInput={autoGrow} rows={2} style={{ height: '72px' }} />
+                    <textarea 
+                      name={`q${i + 1}`} 
+                      className="checklist-textarea" 
+                      onInput={autoGrow} 
+                      rows={2} 
+                      style={{ height: '72px' }} 
+                      value={answers[`q${i+1}`] || ""}
+                      onChange={(e) => setAnswers(prev => ({ ...prev, [e.target.name]: e.target.value }))}
+                    />
                   </div>
                 ))}
 
                 <div>
                     <label className="checklist-label">Upload photos</label>
-                    <UploadDropzone endpoint="maintenanceImage" onClientUploadComplete={(res) => setPhotoUrls(prev => [...prev, ...res.map(f => f.url)])} />
+                    <UploadDropzone endpoint="maintenanceImage" onClientUploadComplete={(res) => {
+                      const newUrls = [...photoUrls, ...res.map(f => f.url)];
+                      setPhotoUrls(newUrls);
+                      // Update localStorage immediately when photos are added
+                      const savedDraft = JSON.parse(localStorage.getItem(storageKey) || "{}");
+                      localStorage.setItem(storageKey, JSON.stringify({ ...savedDraft, photoUrls: newUrls }));
+                    }} />
                 </div>
 
                 <button className="checklist-submit" disabled={submitting} style={{ marginTop: '24px' }}>
