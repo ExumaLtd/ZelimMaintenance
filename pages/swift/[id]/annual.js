@@ -70,7 +70,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   }, []);
 
   useEffect(() => {
-    const date = new Date().toLocaleDateString('en-GB'); 
     setToday(new Date().toISOString().split('T')[0]);
     const savedDraft = localStorage.getItem(storageKey);
     if (savedDraft) {
@@ -414,42 +413,53 @@ export async function getServerSideProps({ params }) {
     const baseId = process.env.AIRTABLE_BASE_ID;
     const tableName = process.env.AIRTABLE_SWIFT_TABLE || "swift_units"; 
 
+    // Encode filters to prevent breakage
+    const unitFilter = encodeURIComponent(`{public_token}='${token}'`);
+    const templateFilter = encodeURIComponent(`{type}='Annual'`);
+
     const [uReq, tReq, cReq, eReq] = await Promise.all([
-      fetch(`https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula={public_token}='${token}'`, { headers }),
-      fetch(`https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula={type}='Annual'`, { headers }),
+      fetch(`https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${unitFilter}`, { headers }),
+      fetch(`https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula=${templateFilter}`, { headers }),
       fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies`, { headers }),
       fetch(`https://api.airtable.com/v0/${baseId}/engineers`, { headers })
     ]);
     
     const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cJson.json(), eJson.json()]);
     
-    if (!uJson.records?.[0]) return { notFound: true };
+    if (!uJson.records?.[0]) {
+      console.error(`404: No record for token ${token} in ${tableName}`);
+      return { notFound: true };
+    }
 
+    const unitRecord = uJson.records[0];
     const companyMap = {};
-    cJson.records?.forEach(r => companyMap[r.id] = r.fields.company_name);
+    cJson.records?.forEach(r => {
+      if (r.fields.company_name) companyMap[r.id] = r.fields.company_name;
+    });
     
     return {
       props: {
         unit: { 
-          serial_number: uJson.records[0].fields.unit_name || uJson.records[0].fields.serial_number, 
-          company: uJson.records[0].fields.company || "",
-          record_id: uJson.records[0].id, 
-          public_token: uJson.records[0].fields.public_token 
+          serial_number: unitRecord.fields.unit_name || unitRecord.fields.serial_number || "Unknown Unit", 
+          company: unitRecord.fields.company || "",
+          record_id: unitRecord.id, 
+          public_token: unitRecord.fields.public_token || token 
         },
         template: { 
           id: tJson.records?.[0]?.id || "", 
-          questions: JSON.parse(tJson.records?.[0]?.fields.questions_json || "[]") 
+          questions: tJson.records?.[0]?.fields.questions_json ? JSON.parse(tJson.records[0].fields.questions_json) : []
         },
         allCompanies: Object.values(companyMap).filter(Boolean),
         allEngineers: eJson.records?.map(r => ({ 
           name: r.fields.engineer_name, 
           email: r.fields.email || "", 
           phone: r.fields.phone || "", 
-          companyName: companyMap[r.fields["company"]?.[0]] || "" 
+          companyName: r.fields["company"] ? companyMap[r.fields["company"][0]] : "" 
         })).filter(e => e.name) || []
       }
     };
   } catch (err) { 
+    console.error("Critical Server Side Error:", err);
     return { notFound: true }; 
   }
 }
