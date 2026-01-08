@@ -47,15 +47,12 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
-  // Filter list but keep current selection visible to apply "active" styling
   const filteredEngineers = useMemo(() => {
     if (!selectedCompany) return [];
     let list = allEngineers.filter(e => e.companyName === selectedCompany);
     
-    // Only filter by search text if user is typing and it's not the current selection
     if (engName && engName !== "Please select" && engName.trim() !== "") {
       const search = engName.toLowerCase();
-      // We keep the exact match in the list so it can be highlighted as active
       list = list.filter(e => e.name.toLowerCase().includes(search));
     }
     return list;
@@ -243,12 +240,12 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             overflow-y: auto;
           }
           .custom-dropdown-item {
-            padding: 8px 16px;
+            padding: 6px 16px;
             color: #F7F7F7;
             cursor: pointer;
             font-size: 16px;
             font-weight: 400;
-            border-radius: 6px;
+            border-radius: 4px;
             transition: background 0.15s ease, color 0.15s ease;
           }
           .custom-dropdown-item:hover,
