@@ -32,7 +32,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [photoUrls, setPhotoUrls] = useState([]);
   const [today, setToday] = useState("");
   
-  // Controlled States
   const [locationDisplay, setLocationDisplay] = useState(""); 
   const [selectedCompany, setSelectedCompany] = useState("");
   const [engName, setEngName] = useState("");
@@ -42,28 +41,22 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
-  // Filter engineers based on selected company
   const filteredEngineers = useMemo(() => {
     if (!selectedCompany) return allEngineers;
     return allEngineers.filter(e => e.companyName === selectedCompany);
   }, [selectedCompany, allEngineers]);
 
-  // 1. INITIAL LOAD: Load Draft & Trigger Geolocation
+  // 1. PERSISTENCE & INITIAL LOAD
   useEffect(() => {
     const date = new Date().toISOString().split('T')[0];
     setToday(date);
     
     const savedDraft = localStorage.getItem(storageKey);
-    let draftHasLocation = false;
-
     if (savedDraft) {
       try {
         const data = JSON.parse(savedDraft);
         if (data.maintained_by) setSelectedCompany(data.maintained_by);
-        if (data.location_display) {
-            setLocationDisplay(data.location_display);
-            draftHasLocation = true;
-        }
+        if (data.location_display) setLocationDisplay(data.location_display);
         if (data.engineer_name) setEngName(data.engineer_name);
         if (data.engineer_email) setEngEmail(data.engineer_email);
         if (data.engineer_phone) setEngPhone(data.engineer_phone);
@@ -74,33 +67,39 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           if (key.startsWith('q')) draftAnswers[key] = data[key];
         });
         setAnswers(draftAnswers);
-      } catch (e) { console.error("Draft parse error", e); }
+      } catch (e) { console.error("Draft load error:", e); }
     }
-
-    // Geolocation: Slight delay to ensure state is settled
-    const timer = setTimeout(() => {
-        if (!draftHasLocation && navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(async (pos) => {
-            try {
-              const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14`, {
-                headers: { 'Accept-Language': 'en' }
-              });
-              const data = await res.json();
-              if (data && data.address) {
-                const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
-                const country = data.address.country_code === 'gb' ? 'UK' : (data.address.country || "");
-                const combined = loc ? `${loc}, ${country}` : country;
-                setLocationDisplay(combined);
-              }
-            } catch (err) { console.error("Geo fetch error", err); }
-          }, null, { enableHighAccuracy: true, timeout: 8000 });
-        }
-    }, 100);
-
-    return () => clearTimeout(timer);
   }, [storageKey]);
 
-  // 2. AUTOSAVE: Sync state to localStorage whenever any value changes
+  // 2. GEOLOCATION - Aggressive Desktop Support
+  useEffect(() => {
+    if (typeof window === "undefined" || !navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14`, {
+          headers: { 'Accept-Language': 'en' }
+        });
+        const data = await res.json();
+        if (data && data.address) {
+          const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
+          const country = data.address.country_code === 'gb' ? 'UK' : (data.address.country || "");
+          const combined = loc ? `${loc}, ${country}` : country;
+          
+          setLocationDisplay(prev => {
+            if (!prev || prev.trim() === "") return combined;
+            return prev;
+          });
+        }
+      } catch (err) { console.error("Geo fetch error", err); }
+    }, (err) => console.warn("Geo error", err), {
+      enableHighAccuracy: true,
+      timeout: 8000,
+      maximumAge: 0
+    });
+  }, []);
+
+  // 3. STATE SYNC (AUTOSAVE)
   useEffect(() => {
     const draftData = {
       maintained_by: selectedCompany,
@@ -136,7 +135,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     e.preventDefault();
     if (submitting) return;
     setSubmitting(true);
-
     const payload = {
       maintained_by: selectedCompany,
       location_display: locationDisplay,
@@ -152,20 +150,16 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
         answer: answers[`q${i+1}`] || ""
       }))
     };
-
     try {
       const res = await fetch("/api/submit-maintenance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("Failed to submit");
+      if (!res.ok) throw new Error("Failed");
       localStorage.removeItem(storageKey);
       router.push(`/swift/${unit.public_token}/annual-complete`);
-    } catch (err) { 
-      setErrorMsg(err.message); 
-      setSubmitting(false); 
-    }
+    } catch (err) { setErrorMsg(err.message); setSubmitting(false); }
   }
 
   const logo = getClientLogo(unit?.company, unit?.serial_number);
@@ -174,7 +168,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     <div className="form-scope">
       <Head>
         <title>{unit?.serial_number} | Annual Maintenance</title>
-        {/* We keep only the essential theme-fixes here so they don't fight your form.css */}
         <style>{`
           .form-scope .checklist-input:-webkit-autofill {
             -webkit-box-shadow: 0 0 0 1000px #27454b inset !important;
@@ -194,15 +187,16 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       <div className="swift-main-layout-wrapper">
         <div className="page-wrapper">
           <div className="swift-checklist-container">
+            {/* NO INLINE STYLES HERE - Matches form.css exactly */}
             {logo && (
               <div className="checklist-logo">
                 <img src={logo.src} alt={logo.alt} />
               </div>
             )}
-            
+
             <h1 className="checklist-hero-title">
-                {unit?.serial_number}
-                <span className="break-point">annual maintenance</span>
+              {unit?.serial_number}
+              <span className="break-point">annual maintenance</span>
             </h1>
             
             <div className="checklist-form-card">
@@ -230,7 +224,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       required 
                       value={locationDisplay} 
                       onChange={(e) => setLocationDisplay(e.target.value)} 
-                      autoComplete="off" 
                     />
                   </div>
                   <div className="checklist-field">
@@ -249,7 +242,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       required 
                       value={engName} 
                       onChange={handleEngineerChange} 
-                      autoComplete="off"
                     />
                     <datalist id="eng-data-list">
                       {filteredEngineers.map((e, i) => <option key={i} value={e.name} />)}
@@ -280,10 +272,9 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
                 <div style={{ marginTop: '24px' }}>
                   <label className="checklist-label">Upload photos</label>
-                  <UploadDropzone 
-                    endpoint="maintenanceImage" 
-                    onClientUploadComplete={(res) => setPhotoUrls(prev => [...prev, ...res.map(f => f.url)])} 
-                  />
+                  <UploadDropzone endpoint="maintenanceImage" onClientUploadComplete={(res) => {
+                    setPhotoUrls(prev => [...prev, ...res.map(f => f.url)]);
+                  }} />
                 </div>
 
                 {errorMsg && <p style={{ color: '#ff4d4d', marginTop: '16px' }}>{errorMsg}</p>}
@@ -305,16 +296,13 @@ export async function getServerSideProps({ params }) {
   try {
     const headers = { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` };
     const baseId = process.env.AIRTABLE_BASE_ID;
-    
     const [uReq, tReq, cReq, eReq] = await Promise.all([
       fetch(`https://api.airtable.com/v0/${baseId}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`, { headers }),
       fetch(`https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula={type}='Annual'`, { headers }),
       fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies`, { headers }),
       fetch(`https://api.airtable.com/v0/${baseId}/engineers`, { headers })
     ]);
-    
     const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cReq.json(), eReq.json()]);
-    
     if (!uJson.records?.[0]) return { notFound: true };
 
     const companyMap = {};
@@ -324,6 +312,7 @@ export async function getServerSideProps({ params }) {
       props: {
         unit: { 
           serial_number: uJson.records[0].fields.unit_name || uJson.records[0].fields.serial_number, 
+          company: uJson.records[0].fields.company || "",
           record_id: uJson.records[0].id, 
           public_token: uJson.records[0].fields.public_token 
         },
@@ -340,7 +329,5 @@ export async function getServerSideProps({ params }) {
         })).filter(e => e.name) || []
       }
     };
-  } catch (err) { 
-    return { notFound: true }; 
-  }
+  } catch (err) { return { notFound: true }; }
 }
