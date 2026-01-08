@@ -1,6 +1,6 @@
 /* =========================================================================
    DASHBOARD SCOPE (dashboard.css)
-   V45: FINAL LOGO CENTERING FIX & BRAND COLORS
+   V47: FULL RESTORATION + DESKTOP LEFT/MOBILE CENTER LOGO + BRAND COLORS
 ========================================================================= */
 
 /* --- 1. BASE AND LAYOUT --- */
@@ -82,7 +82,7 @@
     position: static; 
 }
 
-/* DESKTOP LOGO CONTAINER */
+/* DESKTOP LOGO CONTAINER (LEFT ALIGNED) */
 .dashboard-scope .logo-section {
     position: relative; 
     max-width: 250px;
@@ -97,13 +97,13 @@
     position: absolute !important;
     top: 0;
     bottom: 0;
-    left: 0;
-    right: 0;
-    margin: auto !important;
+    left: 0; /* Standard desktop left */
+    right: auto;
+    margin: 0 !important;
     width: 100% !important;
     height: 100% !important;
     object-fit: contain !important;
-    object-position: center !important; /* FORCED CENTERING */
+    object-position: left !important; /* Standard desktop left */
     display: block;
 }
 
@@ -228,7 +228,7 @@
     gap: 6px;
     border: 2px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
-    background-color: #00FFF6; /* UPDATED BRAND COLOR */
+    background-color: #00FFF6 !important; /* UPDATED BRAND COLOR */
     color: #0D3037;
     font-size: 14px;
     font-weight: 600;
@@ -240,7 +240,7 @@
 
 .dashboard-scope .maintenance-card .start-btn:hover,
 .dashboard-scope .maintenance-card .primary-btn:hover {
-    background-color: #00f2ea; /* UPDATED HOVER */
+    background-color: #00f2ea !important; /* UPDATED HOVER */
     cursor: pointer;
 }
 
@@ -369,6 +369,13 @@
         margin: 0 auto 40px auto !important; 
         display: block !important;
     }
+
+    .dashboard-scope .logo-section img {
+        left: 0;
+        right: 0;
+        margin: auto !important;
+        object-position: center !important;
+    }
     
     .dashboard-scope .portal-title {
         font-size: 28px;
@@ -448,7 +455,7 @@
         width: 100% !important;
         height: 100% !important;
         object-fit: contain !important;
-        object-position: center !important; /* FIXED CENTERING */
+        object-position: center !important; /* FIXED CENTERING ON MOBILE */
     }
     
     .dashboard-scope .detail-panel {
