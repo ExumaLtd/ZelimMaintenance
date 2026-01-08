@@ -177,15 +177,15 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       <Head>
         <title>{unit?.serial_number} | Annual Maintenance</title>
         <style>{`
-          .form-scope .checklist-form-card {
+          .checklist-form-card {
             background: #152a31 !important;
             padding: 38px !important;
             border-radius: 20px !important;
             width: 100%;
             text-align: left;
           }
-          .form-scope .checklist-input, 
-          .form-scope .checklist-textarea {
+          .checklist-input, 
+          .checklist-textarea {
             background-color: #27454b !important;
             border: 1px solid transparent !important;
             padding: 14px 16px !important;
@@ -194,26 +194,25 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             border-radius: 8px !important;
             width: 100%;
             display: block;
+            color: #F7F7F7;
           }
-          .form-scope .checklist-input:focus,
-          .form-scope .checklist-textarea:focus {
+          .checklist-input:focus,
+          .checklist-textarea:focus {
             border-color: #00FFF6 !important;
             border-width: 1px !important;
             outline: none;
           }
-          .form-scope .field-icon-wrapper {
+          .field-icon-wrapper {
             position: relative;
             display: flex;
             align-items: center;
           }
-          .form-scope .field-icon-wrapper i {
+          .field-icon-wrapper i {
             position: absolute;
             right: 16px;
             color: #f7f7f7;
             pointer-events: none;
           }
-          .form-scope .fa-chevron-down, .form-scope .fa-chevron-up { font-size: 14px; }
-          .form-scope .fa-calendar { font-size: 18px; }
 
           .custom-dropdown-container { position: relative; width: 100%; }
           .custom-dropdown-list {
@@ -225,7 +224,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             border-radius: 12px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             margin: 0;
-            padding: 8px 4px; /* Added horizontal padding for the selection highlight */
+            padding: 8px 4px;
             list-style: none;
             z-index: 1000;
             max-height: 250px;
@@ -246,7 +245,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             cursor: pointer;
             font-size: 16px;
             font-weight: 400;
-            border-radius: 6px; /* 6px border radius on item */
+            border-radius: 6px;
             transition: background 0.15s ease, color 0.15s ease;
           }
           .custom-dropdown-item:hover { 
@@ -254,12 +253,12 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             color: #F7F7F7;
           }
 
-          .form-scope input[type="date"]::-webkit-calendar-picker-indicator {
+          input[type="date"]::-webkit-calendar-picker-indicator {
             background: transparent; bottom: 0; color: transparent; cursor: pointer;
             height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto;
           }
           @media (max-width: 600px) {
-            .form-scope .checklist-form-card { padding: 30px 24px !important; }
+            .checklist-form-card { padding: 30px 24px !important; }
           }
         `}</style>
       </Head>
@@ -313,7 +312,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       required 
                       value={locationDisplay} 
                       onChange={(e) => setLocationDisplay(e.target.value)}
-                      style={{ color: '#F7F7F7' }}
                     />
                   </div>
                   <div className="checklist-field">
@@ -326,7 +324,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                         defaultValue={today} 
                         max={today} 
                         required 
-                        style={{ color: '#F7F7F7' }}
                       />
                       <i className="fa-regular fa-calendar"></i>
                     </div>
@@ -372,7 +369,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       required 
                       value={engEmail} 
                       onChange={(e) => setEngEmail(e.target.value)} 
-                      style={{ color: '#F7F7F7' }}
                     />
                   </div>
                   <div className="checklist-field">
@@ -383,7 +379,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       name="engineer_phone" 
                       value={engPhone} 
                       onChange={(e) => setEngPhone(e.target.value)} 
-                      style={{ color: '#F7F7F7' }}
                     />
                   </div>
                 </div>
@@ -397,7 +392,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       onInput={autoGrow} 
                       value={answers[`q${i+1}`] || ""}
                       onChange={(e) => setAnswers(prev => ({ ...prev, [e.target.name]: e.target.value }))}
-                      style={{ color: '#F7F7F7' }}
                     />
                   </div>
                 ))}
