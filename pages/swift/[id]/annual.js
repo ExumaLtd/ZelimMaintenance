@@ -41,23 +41,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [answers, setAnswers] = useState({});
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
-  const engineerInputRef = useRef(null);
-
-  // FIXED: No-Jump Touch Handler
-  useEffect(() => {
-    const input = engineerInputRef.current;
-    if (!input) return;
-
-    const handleTouchFix = () => {
-      if (document.activeElement !== input) {
-        // Removed .blur() to prevent focus jumping to other fields
-        input.focus();
-      }
-    };
-
-    input.addEventListener('touchstart', handleTouchFix);
-    return () => input.removeEventListener('touchstart', handleTouchFix);
-  }, []);
 
   // 1. PERSISTENCE: Load Draft on Mount
   useEffect(() => {
@@ -188,11 +171,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           }
           .form-scope .checklist-input:focus, .form-scope .checklist-textarea:focus { border-color: #00FFF6 !important; }
           
-          /* FIXED: Input Dark Theme with Autofill */
           .form-scope .checklist-input:-webkit-autofill,
           .form-scope .checklist-input:-webkit-autofill:hover,
           .form-scope .checklist-input:-webkit-autofill:focus {
-            -webkit-box-shadow: 0 0 0 50px #27454b inset !important;
+            -webkit-box-shadow: 0 0 0 1000px #27454b inset !important;
             -webkit-text-fill-color: #e9ebec !important;
             transition: background-color 5000s ease-in-out 0s;
           }
@@ -256,15 +238,15 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer name</label>
                     <input 
-                      ref={engineerInputRef}
                       className="checklist-input" 
                       name="engineer_name" 
                       list="eng-list" 
                       required 
                       value={engName} 
                       onChange={handleEngineerChange} 
-                      /* FIXED: autoComplete="off" allows datalist to be seen over Chrome autofill */
-                      autoComplete="off"
+                      /* one-time-code is the best way to bypass Chrome's address autofill while keeping datalist */
+                      autoComplete="one-time-code"
+                      inputMode="text"
                     />
                     <datalist id="eng-list">
                       {allEngineers.filter(e => !selectedCompany || e.companyName === selectedCompany).map((e, i) => <option key={i} value={e.name} />)}
@@ -280,7 +262,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
                 </div>
 
-                {/* DYNAMIC QUESTIONS - FIXED WITH OPTIONAL CHAINING FOR BUILD */}
                 {(template?.questions || []).map((q, i) => (
                   <div key={i} style={{ marginTop: '24px' }}>
                     <label className="checklist-label">{q}</label>
