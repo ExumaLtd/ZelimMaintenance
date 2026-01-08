@@ -70,8 +70,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   }, []);
 
   useEffect(() => {
-    const date = new Date().toISOString().split('T')[0];
-    setToday(date);
+    const date = new Date().toLocaleDateString('en-GB'); // Match your screenshot format DD/MM/YYYY
+    setToday(new Date().toISOString().split('T')[0]);
     const savedDraft = localStorage.getItem(storageKey);
     if (savedDraft) {
       try {
@@ -188,7 +188,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           .checklist-textarea {
             background-color: #27454b !important;
             border: 1px solid transparent !important;
-            padding: 14px 16px !important;
+            padding: 14px 16px !important; /* Internal padding fix */
             padding-right: 40px !important;
             font-family: 'Montserrat', sans-serif;
             border-radius: 8px !important;
@@ -230,26 +230,17 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             max-height: 250px;
             overflow-y: auto;
           }
-          .custom-dropdown-list::before {
-            content: '';
-            position: absolute;
-            top: -6px;
-            left: 20px;
-            border-left: 6px solid transparent;
-            border-right: 6px solid transparent;
-            border-bottom: 6px solid #ffffff;
-          }
           .custom-dropdown-item {
             padding: 12px 18px;
             color: #152a31;
             cursor: pointer;
             font-size: 16px;
-            font-weight: 400;
-            border-radius: 6px;
+            font-weight: 400; /* Removed hover font-weight change */
+            border-radius: 6px; /* 6px radius for selection */
             transition: background 0.15s ease, color 0.15s ease;
           }
           .custom-dropdown-item:hover { 
-            background: #324e54; 
+            background: #324e54; /* Updated hover colour */
             color: #F7F7F7;
           }
 
@@ -421,16 +412,24 @@ export async function getServerSideProps({ params }) {
   try {
     const headers = { Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}` };
     const baseId = process.env.AIRTABLE_BASE_ID;
+    
+    // Check if the table name environment variable is set
+    const tableName = process.env.AIRTABLE_SWIFT_TABLE || "swift_units"; 
+
     const [uReq, tReq, cReq, eReq] = await Promise.all([
-      fetch(`https://api.airtable.com/v0/${baseId}/${process.env.AIRTABLE_SWIFT_TABLE}?filterByFormula={public_token}='${token}'`, { headers }),
+      fetch(`https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula={public_token}='${token}'`, { headers }),
       fetch(`https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula={type}='Annual'`, { headers }),
       fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies`, { headers }),
       fetch(`https://api.airtable.com/v0/${baseId}/engineers`, { headers })
     ]);
     
-    const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cJson.json(), eJson.json()]);
+    const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cReq.json(), eReq.json()]);
     
-    if (!uJson.records?.[0]) return { notFound: true };
+    // If Airtable finds no records, it returns 404
+    if (!uJson.records?.[0]) {
+      console.error("404 Error: No record found for token", token);
+      return { notFound: true };
+    }
 
     const companyMap = {};
     cJson.records?.forEach(r => companyMap[r.id] = r.fields.company_name);
@@ -456,5 +455,8 @@ export async function getServerSideProps({ params }) {
         })).filter(e => e.name) || []
       }
     };
-  } catch (err) { return { notFound: true }; }
+  } catch (err) { 
+    console.error("Server Side Props Error:", err);
+    return { notFound: true }; 
+  }
 }
