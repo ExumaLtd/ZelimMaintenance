@@ -1,6 +1,6 @@
 /* =========================================================================
    DASHBOARD SCOPE (dashboard.css)
-   V31: UPDATED HOVER STATES AND THEME COLORS
+   V34: FULL RESTORATION WITH GUTTER & HOVER FIXES
 ========================================================================= */
 
 /* --- 1. BASE AND LAYOUT --- */
@@ -267,7 +267,7 @@
 }
 
 .dashboard-scope .download-link:hover {
-    background: #324e54; /* Updated hover color */
+    background: #324e54; /* RESTORED CORRECT HOVER */
     cursor: pointer;
 }
 
@@ -339,7 +339,7 @@
 
 @media (max-width: 900px) {
     .dashboard-scope body {
-        padding: 0 20px;
+        padding: 0 20px; /* RESTORED PADDING */
     }
 
     .dashboard-scope .page-wrapper {
@@ -424,7 +424,7 @@
 
 @media (max-width: 600px) {
     .dashboard-scope body {
-        padding: 0 20px;
+        padding: 0 20px; /* RESTORED PADDING */
     }
     .dashboard-scope .page-wrapper {
         min-height: calc(100dvh - 80px);
