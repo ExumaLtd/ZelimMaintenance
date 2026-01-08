@@ -1,6 +1,6 @@
 /* =========================================================================
    DASHBOARD SCOPE (dashboard.css)
-   V47: FULL RESTORATION + DESKTOP LEFT/MOBILE CENTER LOGO + BRAND COLORS
+   V48: SYNCED 32PX MOBILE MARGIN + LOGO CONSISTENCY
 ========================================================================= */
 
 /* --- 1. BASE AND LAYOUT --- */
@@ -228,7 +228,7 @@
     gap: 6px;
     border: 2px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
-    background-color: #00FFF6 !important; /* UPDATED BRAND COLOR */
+    background-color: #00FFF6 !important; 
     color: #0D3037;
     font-size: 14px;
     font-weight: 600;
@@ -240,7 +240,7 @@
 
 .dashboard-scope .maintenance-card .start-btn:hover,
 .dashboard-scope .maintenance-card .primary-btn:hover {
-    background-color: #00f2ea !important; /* UPDATED HOVER */
+    background-color: #00f2ea !important; 
     cursor: pointer;
 }
 
@@ -343,7 +343,7 @@
 
     .dashboard-scope .swift-dashboard-container {
         grid-template-columns: 1fr !important;
-        margin-top: 40px; 
+        margin-top: 32px !important; /* SYNCED WITH FORM PAGE */
     }
     .dashboard-scope .swift-dashboard-container::after {
         display: none;
@@ -366,7 +366,11 @@
     }
     
     .dashboard-scope .logo-section {
-        margin: 0 auto 40px auto !important; 
+        max-width: 225px; /* Identical scaling */
+        max-height: 36px;
+        width: 225px;
+        height: 36px;
+        margin: 0 auto 30px auto !important; 
         display: block !important;
     }
 
@@ -378,9 +382,10 @@
     }
     
     .dashboard-scope .portal-title {
-        font-size: 28px;
-        line-height: 36px;
+        font-size: 22px; /* Identical scaling */
+        line-height: 28px;
         margin: 0 0 24px;
+        text-align: center;
     }
 
     .dashboard-scope .maintenance-details {
@@ -455,7 +460,7 @@
         width: 100% !important;
         height: 100% !important;
         object-fit: contain !important;
-        object-position: center !important; /* FIXED CENTERING ON MOBILE */
+        object-position: center !important; 
     }
     
     .dashboard-scope .detail-panel {
@@ -463,10 +468,6 @@
         justify-self: center; 
         align-self: start;
         display: block;
-    }
-    .dashboard-scope .portal-title {
-        font-size: 22px;
-        line-height: 28px;
     }
     
     .dashboard-scope .maintenance-details {

@@ -1,6 +1,6 @@
 /* =========================================================================
    CHECKLIST PAGE STYLES (form.css)
-   V51: MOBILE PADDING 30PX + REMOVED TOP MARGINS + 16PX FIELD GAP
+   V54: FULL RESTORATION + SYNCED MOBILE TOP MARGIN + CUSTOM PADDING
 ========================================================================= */
 
 /* Ensure the wrapper takes up enough space and doesn't collapse */
@@ -223,13 +223,19 @@
 }
 
 /* --- MOBILE SPECIFIC OVERRIDES --- */
+@media (max-width: 900px) {
+    .form-scope .swift-checklist-container {
+        margin-top: 32px !important; /* Replicated from Dashboard mobile change */
+    }
+}
+
 @media (max-width: 600px) {
     .form-scope .page-wrapper {
         padding: 0 20px !important;
     }
 
     .form-scope .swift-checklist-container {
-        padding: 40px 0 100px 0 !important;
+        padding: 0 0 100px 0 !important;
         text-align: center;
     }
 
@@ -255,15 +261,16 @@
     }
 
     .form-scope .checklist-form-card {
-        padding: 30px !important; /* Updated to 30px */
+        padding: 30px 24px 24px 24px !important; /* 30px Top, 24px Left/Right/Bottom */
     }
 
-    /* Remove 24px margin top on mobile labels */
+    /* Remove 24px margin top on ALL mobile labels */
     .form-scope .checklist-label {
         margin-top: 0 !important;
     }
     
+    /* Left align submit on mobile */
     .form-scope .checklist-submit {
-        margin: 30px auto 0 auto;
+        margin: 30px 0 0 0 !important;
     }
 }
