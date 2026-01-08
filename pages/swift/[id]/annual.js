@@ -190,7 +190,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                         onChange={handleCompanyChange}
                         style={{ color: selectedCompany ? 'white' : '#7d8f93' }}
                       >
-                        <option value="" disabled>Please select</option>
+                        <option value="" disabled style={{ display: 'none' }}>Please select</option>
                         {sortedCompanies.map((name, i) => <option key={i} value={name} style={{ color: 'black' }}>{name}</option>)}
                       </select>
                       <i className="fa-solid fa-chevron-down"></i>
