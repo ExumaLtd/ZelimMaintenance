@@ -145,7 +145,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       <Head>
         <title>{unit?.serial_number} | Annual Maintenance</title>
         <style>{`
-          /* INTEGRATED THEME UPDATES */
+          /* THEME & CARD UPDATES */
           .form-scope .checklist-form-card {
             background: #152A31 !important;
             padding: 38px !important;
@@ -157,6 +157,22 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             .form-scope .checklist-form-card {
               border-radius: 20px !important;
             }
+          }
+
+          /* RESTORE DROPDOWN CHEVRON */
+          .form-scope select.checklist-input {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23A0ACAF' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: calc(100% - 15px) center;
+            padding-right: 40px !important;
+          }
+
+          /* RESTORE CALENDAR ICON */
+          .form-scope input[type="date"].checklist-input::-webkit-calendar-picker-indicator {
+            filter: invert(74%) sepia(9%) saturate(191%) hue-rotate(145deg) brightness(92%) contrast(89%);
+            cursor: pointer;
           }
 
           .checklist-input::placeholder, .checklist-textarea::placeholder {
