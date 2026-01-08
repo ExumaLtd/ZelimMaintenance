@@ -46,7 +46,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     return allEngineers.filter(e => e.companyName === selectedCompany);
   }, [selectedCompany, allEngineers]);
 
-  // 1. PERSISTENCE & INITIAL LOAD
   useEffect(() => {
     const date = new Date().toISOString().split('T')[0];
     setToday(date);
@@ -71,10 +70,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     }
   }, [storageKey]);
 
-  // 2. GEOLOCATION - Aggressive Desktop Support
   useEffect(() => {
     if (typeof window === "undefined" || !navigator.geolocation) return;
-
     navigator.geolocation.getCurrentPosition(async (pos) => {
       try {
         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14`, {
@@ -85,21 +82,12 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
           const country = data.address.country_code === 'gb' ? 'UK' : (data.address.country || "");
           const combined = loc ? `${loc}, ${country}` : country;
-          
-          setLocationDisplay(prev => {
-            if (!prev || prev.trim() === "") return combined;
-            return prev;
-          });
+          setLocationDisplay(prev => (!prev || prev.trim() === "") ? combined : prev);
         }
       } catch (err) { console.error("Geo fetch error", err); }
-    }, (err) => console.warn("Geo error", err), {
-      enableHighAccuracy: true,
-      timeout: 8000,
-      maximumAge: 0
-    });
+    }, null, { enableHighAccuracy: true, timeout: 8000 });
   }, []);
 
-  // 3. STATE SYNC (AUTOSAVE)
   useEffect(() => {
     const draftData = {
       maintained_by: selectedCompany,
@@ -116,9 +104,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const handleCompanyChange = (e) => {
     const val = e.target.value;
     setSelectedCompany(val);
-    setEngName(""); 
-    setEngEmail(""); 
-    setEngPhone("");
+    setEngName(""); setEngEmail(""); setEngPhone("");
   };
 
   const handleEngineerChange = (e) => {
@@ -169,17 +155,40 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       <Head>
         <title>{unit?.serial_number} | Annual Maintenance</title>
         <style>{`
+          /* Restoration of Checklist Card Styles */
+          .form-scope .checklist-form-card {
+            background: #152a31 !important;
+            padding: 38px !important;
+            border-radius: 20px !important;
+            width: 100%;
+            text-align: left;
+          }
+
+          /* Input and Autofill overrides */
+          .form-scope .checklist-input, 
+          .form-scope .checklist-textarea {
+            background-color: #27454b !important;
+            color: #f7f7f7 !important;
+          }
+
           .form-scope .checklist-input:-webkit-autofill {
             -webkit-box-shadow: 0 0 0 1000px #27454b inset !important;
-            -webkit-text-fill-color: #F7F7F7 !important;
+            -webkit-text-fill-color: #f7f7f7 !important;
           }
+
           .form-scope select.checklist-input {
             appearance: none;
             -webkit-appearance: none;
-            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-            background-repeat: no-repeat;
-            background-position: right 16px center;
-            background-size: 12px;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 16px center !important;
+            background-size: 12px !important;
+          }
+
+          @media (max-width: 600px) {
+            .form-scope .checklist-form-card {
+                padding: 30px 24px !important;
+            }
           }
         `}</style>
       </Head>
@@ -187,7 +196,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       <div className="swift-main-layout-wrapper">
         <div className="page-wrapper">
           <div className="swift-checklist-container">
-            {/* NO INLINE STYLES HERE - Matches form.css exactly */}
             {logo && (
               <div className="checklist-logo">
                 <img src={logo.src} alt={logo.alt} />
