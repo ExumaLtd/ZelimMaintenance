@@ -155,7 +155,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       <Head>
         <title>{unit?.serial_number} | Annual Maintenance</title>
         <style>{`
-          /* Restoration of Checklist Card Styles */
           .form-scope .checklist-form-card {
             background: #152a31 !important;
             padding: 38px !important;
@@ -163,19 +162,15 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             width: 100%;
             text-align: left;
           }
-
-          /* Input and Autofill overrides */
           .form-scope .checklist-input, 
           .form-scope .checklist-textarea {
             background-color: #27454b !important;
             color: #f7f7f7 !important;
           }
-
           .form-scope .checklist-input:-webkit-autofill {
             -webkit-box-shadow: 0 0 0 1000px #27454b inset !important;
             -webkit-text-fill-color: #f7f7f7 !important;
           }
-
           .form-scope select.checklist-input {
             appearance: none;
             -webkit-appearance: none;
@@ -184,11 +179,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             background-position: right 16px center !important;
             background-size: 12px !important;
           }
-
           @media (max-width: 600px) {
-            .form-scope .checklist-form-card {
-                padding: 30px 24px !important;
-            }
+            .form-scope .checklist-form-card { padding: 30px 24px !important; }
           }
         `}</style>
       </Head>
@@ -249,7 +241,12 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       list="eng-data-list" 
                       required 
                       value={engName} 
-                      onChange={handleEngineerChange} 
+                      onChange={handleEngineerChange}
+                      autoComplete="off"
+                      onClick={(e) => {
+                        e.target.setAttribute('list', '');
+                        setTimeout(() => e.target.setAttribute('list', 'eng-data-list'), 10);
+                      }}
                     />
                     <datalist id="eng-data-list">
                       {filteredEngineers.map((e, i) => <option key={i} value={e.name} />)}
