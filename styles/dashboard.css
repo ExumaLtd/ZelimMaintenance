@@ -1,6 +1,6 @@
 /* =========================================================================
    DASHBOARD SCOPE (dashboard.css)
-   V29: UPDATED BACKGROUNDS AND DESKTOP-ONLY RADIUS
+   V30: GROUPED BACKGROUNDS AND DESKTOP-ONLY RADIUS
 ========================================================================= */
 
 /* --- 1. BASE AND LAYOUT --- */
@@ -121,7 +121,6 @@
     width: 100% !important;
 }
 
-
 .dashboard-scope .maintenance-details {
     display: flex;
     flex-direction: column;
@@ -174,13 +173,17 @@
     text-align: left;
 }
 
+/* Grouped Background Logic */
+.dashboard-scope .downloads-card, 
 .dashboard-scope .maintenance-group-wrapper {
-    background: #152A31; /* Updated background */
+    background: #152A31;
+    width: 100%;
+}
+
+.dashboard-scope .maintenance-group-wrapper {
     padding: 20px;
     display: flex;
     gap: 20px;
-    width: 100%;
-    /* border-radius handled in media query at bottom */
 }
 
 .dashboard-scope .maintenance-card {
@@ -192,11 +195,8 @@
 }
 
 .dashboard-scope .downloads-card {
-    background: #152A31; /* Updated background */
     padding: 24px 30px 30px;
-    width: 100%;
     min-width: 0;
-    /* border-radius handled in media query at bottom */
 }
 
 .dashboard-scope .maintenance-card h3,
@@ -318,7 +318,7 @@
 
 /* --- 7. MEDIA QUERIES --- */
 
-/* Desktop Only: Radius Update */
+/* Desktop Only Corner Radius */
 @media (min-width: 901px) {
     .dashboard-scope .maintenance-group-wrapper,
     .dashboard-scope .downloads-card {
