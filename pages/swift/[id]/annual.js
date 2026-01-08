@@ -238,13 +238,17 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             border-bottom: 6px solid #ffffff;
           }
           .custom-dropdown-item {
-            padding: 10px 18px;
+            padding: 10px 10px;
             color: #152a31;
             cursor: pointer;
             font-size: 14px;
+            font-weight: 400;
+          }
+          .custom-dropdown-item:hover { 
+            background: #27454B; 
+            color: #F7F7F7;
             font-weight: 500;
           }
-          .custom-dropdown-item:hover { background: #f0f4f5; }
 
           .form-scope input[type="date"]::-webkit-calendar-picker-indicator {
             background: transparent; bottom: 0; color: transparent; cursor: pointer;
