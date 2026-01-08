@@ -7,7 +7,7 @@
   display: flex;
   min-height: 100vh;
   height: 100%;
-  align-items: stretch !important; /* ❤️ FIX: ensures hero + content stretch full height */
+  align-items: stretch !important;
 }
 
 /* =========================================
@@ -20,16 +20,14 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-
-  /* ❤️ FIX: force full vertical height */
   min-height: 100vh !important;
   height: auto !important;
 }
 
 .landing-scope .landing-hero-inner {
   width: 100%;
-  height: 100%;  /* REQUIRED for Next.js Image fill */
-  position: relative; /* REQUIRED for next/image fill */
+  height: 100%;
+  position: relative;
   border-radius: 20px;
   overflow: hidden;
 }
@@ -118,33 +116,41 @@
   width: 100%;
   padding: 12px 20px;
   border-radius: 8px;
-  border: 1px solid #394d54;
-  background: #4f6167;
+  
+  /* Matches Annual Form colors */
+  border: 1px solid #27454b;
+  background: #27454b;
+  
   font-family: Montserrat;
   font-size: 16px;
   line-height: 24px;
   font-weight: 400;
   color: #e9ebec;
   text-align: center;
-  transition:
-    border-color 150ms ease,
-    background-color 150ms ease,
-    color 150ms ease,
-    box-shadow 150ms ease;
+  
+  /* Smooth transitions for focus effect */
+  transition: 
+    border-color 0.2s ease, 
+    background-color 0.2s ease, 
+    box-shadow 0.2s ease;
 }
 
 .landing-scope .input-field::placeholder {
-  color: #bdc4c6;
+  color: #7d8f93;
+  opacity: 1;
 }
 
+/* Focus / On-Click State */
 .landing-scope .input-field:focus {
   outline: none;
-  border-color: #394d54;
-  box-shadow: none;
+  background: #2d4e55; /* Subtle lighten */
+  border-color: #01fff6; /* Cyan accent matching your button */
+  box-shadow: 0 0 0 4px rgba(1, 255, 246, 0.1); /* Soft glow */
 }
 
 .landing-scope .input-wrapper.has-error .input-field {
   border-color: #d92d20;
+  background: rgba(217, 45, 32, 0.05);
 }
 
 .landing-scope .error-text {
@@ -174,11 +180,15 @@
 
   cursor: pointer;
   text-transform: none !important;
-  transition: background-color .2s, border-color .2s;
+  transition: background-color .2s, border-color .2s, transform 0.1s ease;
 }
 
 .landing-scope .primary-btn:hover:not(:disabled) {
   background: #01e6dd !important;
+}
+
+.landing-scope .primary-btn:active:not(:disabled) {
+  transform: scale(0.98); /* Tactile press effect */
 }
 
 /* =========================================
@@ -202,10 +212,6 @@
   opacity: 1;
 }
 
-.landing-scope .zelim-logo:hover {
-  opacity: 1;
-}
-
 /* =========================================
    RESPONSIVE (≤900px)
 ========================================= */
@@ -221,6 +227,7 @@
 
   .landing-scope .landing-content {
     padding: 32px 24px 80px;
+    min-height: 100vh;
   }
 }
 
