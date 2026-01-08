@@ -27,7 +27,9 @@ const getClientLogo = (companyName, serialNumber) => {
 
 export default function Annual({ unit, template, allCompanies = [], allEngineers = [] }) {
   const router = useRouter();
-  const dropdownRef = useRef(null);
+  const companyDropdownRef = useRef(null);
+  const engineerDropdownRef = useRef(null);
+  
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [photoUrls, setPhotoUrls] = useState([]);
@@ -39,14 +41,16 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [engEmail, setEngEmail] = useState("");
   const [engPhone, setEngPhone] = useState("");
   const [answers, setAnswers] = useState({});
-  const [showDropdown, setShowDropdown] = useState(false);
+  
+  const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
+  const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
   const filteredEngineers = useMemo(() => {
     if (!selectedCompany) return [];
     let list = allEngineers.filter(e => e.companyName === selectedCompany);
-    if (engName.trim() !== "") {
+    if (engName && engName !== "Please select" && engName.trim() !== "") {
       list = list.filter(e => e.name.toLowerCase().includes(engName.toLowerCase()));
     }
     return list;
@@ -54,8 +58,11 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowDropdown(false);
+      if (companyDropdownRef.current && !companyDropdownRef.current.contains(event.target)) {
+        setShowCompanyDropdown(false);
+      }
+      if (engineerDropdownRef.current && !engineerDropdownRef.current.contains(event.target)) {
+        setShowEngineerDropdown(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -113,23 +120,28 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     localStorage.setItem(storageKey, JSON.stringify(draftData));
   }, [selectedCompany, locationDisplay, engName, engEmail, engPhone, photoUrls, answers, storageKey]);
 
-  const handleCompanyChange = (e) => {
-    setSelectedCompany(e.target.value);
-    setEngName(""); 
+  const selectCompany = (company) => {
+    setSelectedCompany(company);
+    setEngName("Please select"); // Auto-set to Please Select
     setEngEmail("");
     setEngPhone("");
+    setShowCompanyDropdown(false);
   };
 
   const selectEngineer = (engineer) => {
     setEngName(engineer.name);
     setEngEmail(engineer.email || "");
     setEngPhone(engineer.phone || "");
-    setShowDropdown(false);
+    setShowEngineerDropdown(false);
   };
 
   async function handleSubmit(e) {
     e.preventDefault();
     if (submitting) return;
+    if (!selectedCompany || engName === "Please select") {
+      setErrorMsg("Please select both a company and an engineer.");
+      return;
+    }
     setSubmitting(true);
     const payload = {
       maintained_by: selectedCompany,
@@ -235,7 +247,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           }
           .custom-dropdown-item:hover { background: #f0f4f5; }
 
-          .form-scope select.checklist-input { appearance: none; -webkit-appearance: none; }
           .form-scope input[type="date"]::-webkit-calendar-picker-indicator {
             background: transparent; bottom: 0; color: transparent; cursor: pointer;
             height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto;
@@ -259,23 +270,31 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             <div className="checklist-form-card">
               <form onSubmit={handleSubmit} autoComplete="off">
                 <div className="checklist-inline-group">
-                  <div className="checklist-field">
+                  <div className="checklist-field" ref={companyDropdownRef}>
                     <label className="checklist-label">Maintenance company</label>
-                    <div className="field-icon-wrapper">
-                      <select 
-                        name="maintained_by" 
-                        className="checklist-input" 
-                        required 
-                        value={selectedCompany} 
-                        onChange={handleCompanyChange}
-                        style={{ color: selectedCompany ? '#F7F7F7' : '#7d8f93' }}
-                      >
-                        <option value="" disabled hidden>Please select</option>
-                        {allCompanies.sort().map((c, i) => <option key={i} value={c}>{c}</option>)}
-                      </select>
-                      <i className="fa-solid fa-chevron-down"></i>
+                    <div className="custom-dropdown-container">
+                      <div className="field-icon-wrapper">
+                        <input 
+                          readOnly
+                          className="checklist-input" 
+                          value={selectedCompany || "Please select"}
+                          onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
+                          style={{ color: selectedCompany ? '#F7F7F7' : '#7d8f93', cursor: 'pointer' }}
+                        />
+                        <i className={showCompanyDropdown ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}></i>
+                      </div>
+                      {showCompanyDropdown && (
+                        <ul className="custom-dropdown-list">
+                          {allCompanies.sort().map((c, i) => (
+                            <li key={i} className="custom-dropdown-item" onClick={() => selectCompany(c)}>
+                              {c}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   </div>
+
                   <div className="checklist-field">
                     <label className="checklist-label">Location</label>
                     <input className="checklist-input" name="location_display" required value={locationDisplay} onChange={(e) => setLocationDisplay(e.target.value)} />
@@ -290,7 +309,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                 </div>
 
                 <div className="checklist-inline-group" style={{ marginTop: '24px' }}>
-                  <div className="checklist-field" ref={dropdownRef}>
+                  <div className="checklist-field" ref={engineerDropdownRef}>
                     <label className="checklist-label">Engineer name</label>
                     <div className="custom-dropdown-container">
                       <div className="field-icon-wrapper">
@@ -300,14 +319,15 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                           required 
                           value={engName} 
                           autoComplete="off"
-                          onFocus={() => { if(selectedCompany) setShowDropdown(true); }}
-                          onChange={(e) => { setEngName(e.target.value); if(selectedCompany) setShowDropdown(true); }}
+                          onFocus={() => { if(selectedCompany) setShowEngineerDropdown(true); }}
+                          onChange={(e) => { setEngName(e.target.value); if(selectedCompany) setShowEngineerDropdown(true); }}
+                          style={{ color: (engName === "Please select" || !engName) ? '#7d8f93' : '#F7F7F7' }}
                         />
                         {selectedCompany && (
-                           <i className={showDropdown ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}></i>
+                           <i className={showEngineerDropdown ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}></i>
                         )}
                       </div>
-                      {showDropdown && filteredEngineers.length > 0 && (
+                      {showEngineerDropdown && filteredEngineers.length > 0 && (
                         <ul className="custom-dropdown-list">
                           {filteredEngineers.map((eng, i) => (
                             <li key={i} className="custom-dropdown-item" onClick={() => selectEngineer(eng)}>
