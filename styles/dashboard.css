@@ -1,6 +1,6 @@
 /* =========================================================================
    DASHBOARD SCOPE (dashboard.css)
-   V35: FIXED MOBILE PADDING & FINAL HOVER STATES
+   V36: RESTORED MOBILE CONTENT PADDING
 ========================================================================= */
 
 /* --- 1. BASE AND LAYOUT --- */
@@ -339,14 +339,14 @@
 
 @media (max-width: 900px) {
     .dashboard-scope body {
-        padding: 0 20px; /* FIXED: Restored mobile side padding */
+        padding: 0; /* Clear body padding for mobile */
     }
 
     .dashboard-scope .page-wrapper {
         width: 100% !important;
         max-width: 100% !important;
         margin: 0 auto;
-        padding: 0 !important; 
+        padding: 0 20px !important; /* RESTORED: Mobile side padding */
     }
 
     .dashboard-scope .swift-dashboard-container {
@@ -424,10 +424,11 @@
 
 @media (max-width: 600px) {
     .dashboard-scope body {
-        padding: 0 20px; /* FIXED: Mobile side padding */
+        padding: 0;
     }
     .dashboard-scope .page-wrapper {
         min-height: calc(100dvh - 80px);
+        padding: 0 20px !important; /* Ensure padding persists on small mobile */
     }
     
     .dashboard-scope .maintenance-group-wrapper {

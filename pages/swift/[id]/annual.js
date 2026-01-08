@@ -145,7 +145,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       <Head>
         <title>{unit?.serial_number} | Annual Maintenance</title>
         <style>{`
-          /* THEME & CARD UPDATES */
+          /* === THEME & LAYOUT === */
           .form-scope .checklist-form-card {
             background: #152A31 !important;
             padding: 38px !important;
@@ -158,20 +158,45 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
               border-radius: 20px !important;
             }
           }
-
-          /* RESTORE FONT AWESOME BY REMOVING APPEARANCE: NONE */
-          /* NO overrides here that strip browser defaults for icons */
-
-          /* RESTORE CALENDAR ICON COLOR */
-          .form-scope input[type="date"].checklist-input::-webkit-calendar-picker-indicator {
-            filter: invert(74%) sepia(9%) saturate(191%) hue-rotate(145deg) brightness(92%) contrast(89%);
-            cursor: pointer;
-            display: block !important;
+          
+          /* === INPUT STYLING & ICONS === */
+          /* Ensure inputs have the dark theme if not picked up globally */
+          .form-scope .checklist-input, 
+          .form-scope .checklist-textarea {
+            background-color: #27454B;
+            border: 1px solid #365D65;
+            border-radius: 8px;
+            color: #F7F7F7;
+            padding: 12px 16px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
           }
 
-          .checklist-input::placeholder, .checklist-textarea::placeholder {
+          /* Placeholder text color */
+          .checklist-input::placeholder, 
+          .checklist-textarea::placeholder {
             color: #7d8f93 !important;
             opacity: 1;
+          }
+
+          /* --- DROPDOWN ARROW FIX --- */
+          /* Replaces invisible native arrow with a WHITE SVG chevron */
+          .form-scope select.checklist-input {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 12px;
+            padding-right: 40px; /* Space for the icon */
+          }
+
+          /* --- DATE PICKER ICON --- */
+          /* Invert(1) ensures the icon is White */
+          .form-scope input[type="date"].checklist-input::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+            display: block !important;
           }
         `}</style>
       </Head>
@@ -192,10 +217,18 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                 <div className="checklist-inline-group">
                   <div className="checklist-field">
                     <label className="checklist-label">Maintenance company</label>
-                    <select name="maintained_by" className="checklist-input" required value={selectedCompany} onChange={handleCompanyChange}>
-                      {/* FIXED: Placeholder is now hidden from the list once opened */}
-                      <option value="" disabled hidden>Select Company</option>
-                      {allCompanies.sort().map((c, i) => <option key={i} value={c}>{c}</option>)}
+                    <select 
+                      name="maintained_by" 
+                      className="checklist-input" 
+                      required 
+                      value={selectedCompany} 
+                      onChange={handleCompanyChange}
+                      /* FIX: Changes text color to mimic placeholder if empty */
+                      style={{ color: selectedCompany ? '#F7F7F7' : '#7d8f93' }}
+                    >
+                      {/* FIXED: Text says 'Please select', disabled & hidden from dropdown */}
+                      <option value="" disabled hidden>Please select</option>
+                      {allCompanies.sort().map((c, i) => <option key={i} value={c} style={{ color: '#F7F7F7' }}>{c}</option>)}
                     </select>
                   </div>
                   <div className="checklist-field">
