@@ -44,10 +44,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
   const filteredEngineers = useMemo(() => {
-    let list = allEngineers;
-    if (selectedCompany) {
-      list = list.filter(e => e.companyName === selectedCompany);
-    }
+    if (!selectedCompany) return [];
+    let list = allEngineers.filter(e => e.companyName === selectedCompany);
     if (engName.trim() !== "") {
       list = list.filter(e => e.name.toLowerCase().includes(engName.toLowerCase()));
     }
@@ -285,7 +283,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   <div className="checklist-field">
                     <label className="checklist-label">Date</label>
                     <div className="field-icon-wrapper">
-                      <input type="date" className="checklist-input" name="date_of_maintenance" defaultValue={today} required />
+                      <input type="date" className="checklist-input" name="date_of_maintenance" defaultValue={today} max={today} required />
                       <i className="fa-regular fa-calendar"></i>
                     </div>
                   </div>
@@ -302,10 +300,12 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                           required 
                           value={engName} 
                           autoComplete="off"
-                          onFocus={() => setShowDropdown(true)}
-                          onChange={(e) => { setEngName(e.target.value); setShowDropdown(true); }}
+                          onFocus={() => { if(selectedCompany) setShowDropdown(true); }}
+                          onChange={(e) => { setEngName(e.target.value); if(selectedCompany) setShowDropdown(true); }}
                         />
-                        <i className={showDropdown ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}></i>
+                        {selectedCompany && (
+                           <i className={showDropdown ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}></i>
+                        )}
                       </div>
                       {showDropdown && filteredEngineers.length > 0 && (
                         <ul className="custom-dropdown-list">
@@ -372,10 +372,7 @@ export async function getServerSideProps({ params }) {
       fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies`, { headers }),
       fetch(`https://api.airtable.com/v0/${baseId}/engineers`, { headers })
     ]);
-    
-    // TYPO FIXED HERE: eReq.json() instead of eJson.json()
     const [uJson, tJson, cJson, eJson] = await Promise.all([uReq.json(), tReq.json(), cReq.json(), eReq.json()]);
-    
     if (!uJson.records?.[0]) return { notFound: true };
 
     const companyMap = {};
