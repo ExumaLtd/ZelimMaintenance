@@ -1,6 +1,6 @@
 /* =========================================================================
    CHECKLIST PAGE STYLES (form.css)
-   V50: FULL RESTORATION + MOBILE PADDING & FIRST-FIELD MARGIN FIX
+   V51: MOBILE PADDING 30PX + REMOVED TOP MARGINS + 16PX FIELD GAP
 ========================================================================= */
 
 /* Ensure the wrapper takes up enough space and doesn't collapse */
@@ -25,14 +25,14 @@
     color: #FFFFFF;
 }
 
-/* --- LOGO SECTION (SYNCED WITH DASHBOARD) --- */
+/* --- LOGO SECTION --- */
 .form-scope .checklist-logo {
     position: relative;
     max-width: 250px;
     max-height: 40px;
     width: 250px;
     height: 40px;
-    margin: 0 0 40px 0 !important; /* Left aligned on Desktop */
+    margin: 0 0 40px 0 !important; /* Left on Desktop */
 }
 
 .form-scope .checklist-logo img {
@@ -45,14 +45,14 @@
     object-position: left !important;
 }
 
-/* --- HERO TITLE (SYNCED WITH DASHBOARD) --- */
+/* --- HERO TITLE --- */
 .form-scope .checklist-hero-title {
     color: #FFFFFF;
     font-size: 30px;
     line-height: 38px;
     font-weight: 600;
     margin: 0 0 34px 0;
-    text-align: left; /* Left aligned on Desktop */
+    text-align: left; /* Left on Desktop */
 }
 
 .form-scope .checklist-hero-title .break-point {
@@ -88,12 +88,13 @@
     }
 }
 
+/* --- MOBILE FIELD SPACING --- */
 @media (max-width: 767px) {
     .form-scope .checklist-inline-group {
         display: block;
     }
     .form-scope .checklist-field {
-        margin-bottom: 20px;
+        margin-bottom: 16px; /* Updated to 16px */
     }
 }
 
@@ -102,7 +103,7 @@
     color: #a0acaf;
     font-size: 14px;
     font-weight: 500;
-    margin-top: 24px;
+    margin-top: 24px; /* Desktop margin maintained */
     margin-bottom: 6px;
 }
 
@@ -221,15 +222,10 @@
     border-color: rgba(255, 255, 255, 0.2);
 }
 
-.form-scope .checklist-submit:disabled {
-    opacity: 0.6;
-    cursor: default;
-}
-
 /* --- MOBILE SPECIFIC OVERRIDES --- */
 @media (max-width: 600px) {
     .form-scope .page-wrapper {
-        padding: 0 20px !important; /* Sync with dashboard mobile */
+        padding: 0 20px !important;
     }
 
     .form-scope .swift-checklist-container {
@@ -242,7 +238,7 @@
         max-height: 36px; 
         width: 225px;
         height: 36px;
-        margin: 0 auto 30px auto !important; /* Center logo on mobile */
+        margin: 0 auto 30px auto !important; /* Centered on mobile */
     }
 
     .form-scope .checklist-logo img {
@@ -252,23 +248,22 @@
     }
 
     .form-scope .checklist-hero-title {
-        font-size: 22px; /* Sync with dashboard mobile H1 */
+        font-size: 22px; 
         line-height: 28px;
         margin: 0 0 24px 0;
-        text-align: center; /* Center text on mobile */
+        text-align: center; /* Centered on mobile */
     }
 
     .form-scope .checklist-form-card {
-        padding: 20px !important; /* Mobile padding set to 20px */
+        padding: 30px !important; /* Updated to 30px */
     }
 
-    /* Remove margin top on mobile for the first form field */
-    .form-scope .checklist-form-card .checklist-field:first-child .checklist-label,
-    .form-scope .checklist-form-card .checklist-inline-group:first-child .checklist-field:first-child .checklist-label {
+    /* Remove 24px margin top on mobile labels */
+    .form-scope .checklist-label {
         margin-top: 0 !important;
     }
     
     .form-scope .checklist-submit {
-        margin: 30px auto 0 auto; /* Center submit button on mobile */
+        margin: 30px auto 0 auto;
     }
 }
