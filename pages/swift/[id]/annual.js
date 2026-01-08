@@ -32,11 +32,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [photoUrls, setPhotoUrls] = useState([]);
   const [today, setToday] = useState("");
   
-  // Location States
   const [locationDisplay, setLocationDisplay] = useState(""); 
-  const [detectedTown, setDetectedTown] = useState("");       
-  const [detectedCountry, setDetectedCountry] = useState(""); 
-  
   const [selectedCompany, setSelectedCompany] = useState("");
   const [engName, setEngName] = useState("");
   const [engEmail, setEngEmail] = useState("");
@@ -45,16 +41,16 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
-  // Pre-filter engineers for speed
   const filteredEngineers = useMemo(() => {
     if (!selectedCompany) return allEngineers;
     return allEngineers.filter(e => e.companyName === selectedCompany);
   }, [selectedCompany, allEngineers]);
 
-  // 1. PERSISTENCE: Load Draft
+  // 1. PERSISTENCE & INITIAL LOAD
   useEffect(() => {
     const date = new Date().toISOString().split('T')[0];
     setToday(date);
+    
     const savedDraft = localStorage.getItem(storageKey);
     if (savedDraft) {
       try {
@@ -65,6 +61,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
         if (data.engineer_email) setEngEmail(data.engineer_email);
         if (data.engineer_phone) setEngPhone(data.engineer_phone);
         if (data.photoUrls) setPhotoUrls(data.photoUrls);
+        
         const draftAnswers = {};
         Object.keys(data).forEach(key => {
           if (key.startsWith('q')) draftAnswers[key] = data[key];
@@ -74,26 +71,33 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     }
   }, [storageKey]);
 
-  // 2. GEOLOCATION: Detect Location
+  // 2. GEOLOCATION - Aggressive Desktop Support
   useEffect(() => {
-    if (!navigator.geolocation) return;
+    if (typeof window === "undefined" || !navigator.geolocation) return;
+
     navigator.geolocation.getCurrentPosition(async (pos) => {
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14`);
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14`, {
+          headers: { 'Accept-Language': 'en' }
+        });
         const data = await res.json();
         if (data && data.address) {
           const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
           const country = data.address.country_code === 'gb' ? 'UK' : (data.address.country || "");
-          
           const combined = loc ? `${loc}, ${country}` : country;
           
-          // Only auto-fill if the user hasn't typed anything yet or if there's no saved draft location
-          setLocationDisplay(prev => prev === "" ? combined : prev);
-          setDetectedTown(loc);
-          setDetectedCountry(country);
+          // Fix: If the current state is empty, fill it. This handles the Desktop race condition.
+          setLocationDisplay(prev => {
+            if (!prev || prev.trim() === "") return combined;
+            return prev;
+          });
         }
-      } catch (err) { console.error("Geolocation error:", err); }
-    }, (err) => console.log("User denied location or error:", err));
+      } catch (err) { console.error("Geo fetch error", err); }
+    }, (err) => console.warn("Geo error", err), {
+      enableHighAccuracy: true,
+      timeout: 8000,
+      maximumAge: 0
+    });
   }, []);
 
   const handleInputChange = (e) => {
@@ -108,8 +112,11 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   };
 
   const handleCompanyChange = (e) => {
-    setSelectedCompany(e.target.value);
-    setEngName(""); setEngEmail(""); setEngPhone("");
+    const val = e.target.value;
+    setSelectedCompany(val);
+    setEngName(""); 
+    setEngEmail(""); 
+    setEngPhone("");
   };
 
   const handleEngineerChange = (e) => {
@@ -163,7 +170,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             background: #152A31 !important;
             padding: 38px !important;
             width: 100%;
-            text-align: left;
           }
           @media (max-width: 600px) {
             .form-scope .checklist-form-card { padding: 30px 24px !important; }
@@ -178,22 +184,22 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             font-size: 16px !important;
             box-sizing: border-box;
             outline: none !important;
+            width: 100%;
           }
-          .form-scope .checklist-input:focus, .form-scope .checklist-textarea:focus { border-color: #00FFF6 !important; }
-          
+          .form-scope .checklist-input:focus { border-color: #00FFF6 !important; }
           .form-scope .checklist-input:-webkit-autofill {
             -webkit-box-shadow: 0 0 0 1000px #27454b inset !important;
-            -webkit-text-fill-color: #e9ebec !important;
+            -webkit-text-fill-color: #F7F7F7 !important;
           }
           .form-scope select.checklist-input {
             appearance: none;
+            -webkit-appearance: none;
             background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
             background-repeat: no-repeat;
             background-position: right 16px center;
             background-size: 12px;
-            padding-right: 40px;
           }
-          .form-scope input[type="date"].checklist-input::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+          .form-scope input[type="date"].checklist-input::-webkit-calendar-picker-indicator { filter: invert(1); }
         `}</style>
       </Head>
 
@@ -208,7 +214,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             <h1 className="checklist-hero-title">{unit?.serial_number}<span className="break-point">annual maintenance</span></h1>
             
             <div className="checklist-form-card">
-              <form onSubmit={handleSubmit} onChange={handleInputChange} autoComplete="off">
+              <form onSubmit={handleSubmit} onChange={handleInputChange} autoComplete="none">
                 <div className="checklist-inline-group">
                   <div className="checklist-field">
                     <label className="checklist-label">Maintenance company</label>
@@ -226,7 +232,14 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Location</label>
-                    <input className="checklist-input" name="location_display" required value={locationDisplay} onChange={(e) => setLocationDisplay(e.target.value)} />
+                    <input 
+                      className="checklist-input" 
+                      name="location_display" 
+                      required 
+                      value={locationDisplay} 
+                      onChange={(e) => setLocationDisplay(e.target.value)} 
+                      autoComplete="off" 
+                    />
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Date</label>
@@ -240,23 +253,23 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                     <input 
                       className="checklist-input" 
                       name="engineer_name" 
-                      list="engineer-data-list" 
+                      list="eng-data-list" 
                       required 
                       value={engName} 
                       onChange={handleEngineerChange} 
                       autoComplete="off"
                     />
-                    <datalist id="engineer-data-list">
+                    <datalist id="eng-data-list">
                       {filteredEngineers.map((e, i) => <option key={i} value={e.name} />)}
                     </datalist>
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer email</label>
-                    <input type="email" className="checklist-input" name="engineer_email" required value={engEmail} onChange={(e) => setEngEmail(e.target.value)} />
+                    <input type="email" className="checklist-input" name="engineer_email" required value={engEmail} onChange={(e) => setEngEmail(e.target.value)} autoComplete="off" />
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer phone</label>
-                    <input type="tel" className="checklist-input" name="engineer_phone" value={engPhone} onChange={(e) => setEngPhone(e.target.value)} />
+                    <input type="tel" className="checklist-input" name="engineer_phone" value={engPhone} onChange={(e) => setEngPhone(e.target.value)} autoComplete="off" />
                   </div>
                 </div>
 
