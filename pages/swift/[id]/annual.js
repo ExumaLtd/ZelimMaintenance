@@ -216,14 +216,14 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           .custom-dropdown-container { position: relative; width: 100%; }
           .custom-dropdown-list {
             position: absolute;
-            top: calc(100% + 5px);
+            top: calc(100% + 8px);
             left: 0;
             right: 0;
             background: #27454B;
             border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 25px rgba(21, 42, 49, 0.4);
             margin: 0;
-            padding: 8px 6px;
+            padding: 6px 6px;
             list-style: none;
             z-index: 1000;
             max-height: 250px;
@@ -239,7 +239,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             transition: background 0.15s ease, color 0.15s ease;
           }
           .custom-dropdown-item:hover { 
-            background: #324e54;
+            background: #476166;
             color: #F7F7F7;
           }
 
@@ -420,7 +420,6 @@ export async function getServerSideProps({ params }) {
 
     const headers = { Authorization: `Bearer ${apiKey}` };
 
-    // Explicitly define filters to avoid initialization errors
     const unitFormula = encodeURIComponent(`{public_token}='${token}'`);
     const templateFormula = encodeURIComponent(`{type}='Annual'`);
 
@@ -445,7 +444,6 @@ export async function getServerSideProps({ params }) {
     }
 
     const unitRecord = unitData.records[0];
-    
     const companyLookup = {};
     if (companyData.records) {
       companyData.records.forEach(r => {
