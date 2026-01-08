@@ -1,6 +1,6 @@
 /* =========================================================================
    CHECKLIST PAGE STYLES (form.css)
-   V48: SYNCED MOBILE LOGO & H1 WITH DASHBOARD
+   V50: FULL RESTORATION + MOBILE PADDING & FIRST-FIELD MARGIN FIX
 ========================================================================= */
 
 /* Ensure the wrapper takes up enough space and doesn't collapse */
@@ -32,17 +32,17 @@
     max-height: 40px;
     width: 250px;
     height: 40px;
-    margin: 0 auto 40px auto; /* Increased bottom margin to match dashboard */
+    margin: 0 0 40px 0 !important; /* Left aligned on Desktop */
 }
 
 .form-scope .checklist-logo img {
     position: absolute !important;
-    top: 0; bottom: 0; left: 0; right: 0;
-    margin: auto !important;
-    width: 100% !important;
+    top: 0; bottom: 0; left: 0;
+    margin: 0 !important;
+    width: auto !important;
     height: 100% !important;
     object-fit: contain !important;
-    object-position: center !important; /* Centered by default for checklist */
+    object-position: left !important;
 }
 
 /* --- HERO TITLE (SYNCED WITH DASHBOARD) --- */
@@ -51,7 +51,8 @@
     font-size: 30px;
     line-height: 38px;
     font-weight: 600;
-    margin: 0 0 34px 0; /* Synced with dashboard portal-title margin */
+    margin: 0 0 34px 0;
+    text-align: left; /* Left aligned on Desktop */
 }
 
 .form-scope .checklist-hero-title .break-point {
@@ -105,6 +106,7 @@
     margin-bottom: 6px;
 }
 
+/* --- INPUTS & ICONS --- */
 .form-scope .input-icon-wrapper {
     position: relative;
     width: 100%;
@@ -189,10 +191,10 @@
 .form-scope .checklist-input:focus,
 .form-scope .checklist-textarea:focus {
     outline: none;
-    border-color: #00FFF6; /* UPDATED COLOR */
+    border-color: #00FFF6;
 }
 
-/* --- BRAND BUTTONS (SYNCED WITH DASHBOARD) --- */
+/* --- BRAND BUTTONS --- */
 .form-scope .checklist-submit {
     display: flex;
     max-width: fit-content;
@@ -202,7 +204,7 @@
     gap: 6px;
     border: 2px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
-    background-color: #00FFF6 !important; /* UPDATED COLOR */
+    background-color: #00FFF6 !important;
     color: #0d3037;
     font-size: 15px;
     font-weight: 600;
@@ -215,7 +217,7 @@
 }
 
 .form-scope .checklist-submit:hover {
-    background-color: #00f2ea !important; /* UPDATED HOVER */
+    background-color: #00f2ea !important;
     border-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -224,10 +226,15 @@
     cursor: default;
 }
 
-/* --- MOBILE SPECIFIC OVERRIDES (SYNCED WITH DASHBOARD) --- */
+/* --- MOBILE SPECIFIC OVERRIDES --- */
 @media (max-width: 600px) {
+    .form-scope .page-wrapper {
+        padding: 0 20px !important; /* Sync with dashboard mobile */
+    }
+
     .form-scope .swift-checklist-container {
-        padding: 0 20px 100px 20px !important;
+        padding: 40px 0 100px 0 !important;
+        text-align: center;
     }
 
     .form-scope .checklist-logo {
@@ -235,24 +242,33 @@
         max-height: 36px; 
         width: 225px;
         height: 36px;
-        margin: 0 auto 30px auto !important; /* Matches Dashboard mobile margin */
+        margin: 0 auto 30px auto !important; /* Center logo on mobile */
     }
 
     .form-scope .checklist-logo img {
+        left: 0; right: 0;
+        margin: auto !important;
         object-position: center !important;
     }
 
     .form-scope .checklist-hero-title {
-        font-size: 22px; /* Matches Dashboard mobile portal-title */
+        font-size: 22px; /* Sync with dashboard mobile H1 */
         line-height: 28px;
-        margin: 0 0 24px 0; /* Reduced margin for mobile */
+        margin: 0 0 24px 0;
+        text-align: center; /* Center text on mobile */
     }
 
     .form-scope .checklist-form-card {
-        padding: 24px 20px; /* Tighter padding for mobile screens */
+        padding: 20px !important; /* Mobile padding set to 20px */
+    }
+
+    /* Remove margin top on mobile for the first form field */
+    .form-scope .checklist-form-card .checklist-field:first-child .checklist-label,
+    .form-scope .checklist-form-card .checklist-inline-group:first-child .checklist-field:first-child .checklist-label {
+        margin-top: 0 !important;
     }
     
     .form-scope .checklist-submit {
-        margin: 30px auto 0 auto; /* Center button on mobile */
+        margin: 30px auto 0 auto; /* Center submit button on mobile */
     }
 }
