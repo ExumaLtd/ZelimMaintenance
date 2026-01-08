@@ -1,6 +1,6 @@
 /* =========================================================================
    CHECKLIST PAGE STYLES (form.css)
-   V61: 26PX TOP MARGIN + STANDARDIZED 16PX FIELD SPACING
+   V65: INTEGRATED NO-SHIFT FIX + 30PX MOBILE PADDING + 26PX TOP MARGIN
 ========================================================================= */
 
 /* Ensure the wrapper takes up enough space and doesn't collapse */
@@ -116,7 +116,7 @@
     margin-bottom: 6px;
 }
 
-/* --- INPUTS & ICONS --- */
+/* --- INPUTS & ICONS (PREVENT JUMPING/ZOOMING) --- */
 .form-scope .input-icon-wrapper {
     position: relative;
     width: 100%;
@@ -135,30 +135,32 @@
     z-index: 10;
 }
 
-.form-scope .input-icon-wrapper i.fa-calendar,
-.form-scope .input-icon-wrapper i.fa-calendar-days {
-    font-size: 18px;
-}
-
 .form-scope .checklist-input,
 .form-scope .checklist-textarea {
     width: 100%;
     background: #27454b;
-    border: 1px solid #27454b;
+    /* Static border prevents 1px shift on focus */
+    border: 2px solid transparent; 
     border-radius: 8px;
-    padding: 12px 15px; 
+    padding: 10px 15px; 
     color: #e9ebec;
-    font-size: 16px;
+    /* 16px is the minimum to prevent iOS auto-zoom shift */
+    font-size: 16px !important; 
     font-family: "Montserrat", sans-serif;
     box-sizing: border-box;
     transition: border-color 0.2s;
+    outline: none !important;
 }
 
 .form-scope .checklist-input {
     height: 48px;
     appearance: none;
     -webkit-appearance: none;
-    accent-color: #172F36;
+}
+
+.form-scope .checklist-input:focus,
+.form-scope .checklist-textarea:focus {
+    border-color: #00FFF6 !important;
 }
 
 .form-scope .input-icon-wrapper select.checklist-input {
@@ -196,12 +198,6 @@
     min-height: 72px;
     display: block;
     line-height: 1.5;
-}
-
-.form-scope .checklist-input:focus,
-.form-scope .checklist-textarea:focus {
-    outline: none;
-    border-color: #00FFF6;
 }
 
 /* --- BRAND BUTTONS --- */
@@ -274,7 +270,7 @@
     }
 
     .form-scope .checklist-form-card {
-        padding: 30px 24px 24px 24px !important;
+        padding: 30px 24px 30px 24px !important; /* Updated with 30px bottom padding */
     }
     
     .form-scope .checklist-submit {
