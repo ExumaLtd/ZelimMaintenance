@@ -116,23 +116,15 @@
   width: 100%;
   padding: 12px 20px;
   border-radius: 8px;
-  
-  /* Matches Annual Form colors */
   border: 1px solid #27454b;
   background: #27454b;
-  
   font-family: Montserrat;
   font-size: 16px;
   line-height: 24px;
   font-weight: 400;
   color: #e9ebec;
   text-align: center;
-  
-  /* Smooth transitions for focus effect */
-  transition: 
-    border-color 0.2s ease, 
-    background-color 0.2s ease, 
-    box-shadow 0.2s ease;
+  transition: border-color 0.15s ease;
 }
 
 .landing-scope .input-field::placeholder {
@@ -140,17 +132,14 @@
   opacity: 1;
 }
 
-/* Focus / On-Click State */
 .landing-scope .input-field:focus {
   outline: none;
-  background: #2d4e55; /* Subtle lighten */
-  border-color: #01fff6; /* Cyan accent matching your button */
-  box-shadow: 0 0 0 4px rgba(1, 255, 246, 0.1); /* Soft glow */
+  border-color: #01fff6;
+  box-shadow: none;
 }
 
 .landing-scope .input-wrapper.has-error .input-field {
   border-color: #d92d20;
-  background: rgba(217, 45, 32, 0.05);
 }
 
 .landing-scope .error-text {
@@ -172,23 +161,17 @@
   border: 2px solid hsla(0,0%,100%,.12);
   background-color: #01fff6;
   color: #0d3037;
-
   font-family: Montserrat !important;
   font-size: 16px;
   line-height: 24px;
   font-weight: 600;
-
   cursor: pointer;
   text-transform: none !important;
-  transition: background-color .2s, border-color .2s, transform 0.1s ease;
+  transition: background-color .2s, border-color .2s;
 }
 
 .landing-scope .primary-btn:hover:not(:disabled) {
   background: #01e6dd !important;
-}
-
-.landing-scope .primary-btn:active:not(:disabled) {
-  transform: scale(0.98); /* Tactile press effect */
 }
 
 /* =========================================
@@ -227,7 +210,6 @@
 
   .landing-scope .landing-content {
     padding: 32px 24px 80px;
-    min-height: 100vh;
   }
 }
 

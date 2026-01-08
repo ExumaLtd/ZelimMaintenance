@@ -30,7 +30,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [photoUrls, setPhotoUrls] = useState([]);
   const [today, setToday] = useState("");
   
-  // Location States
   const [locationDisplay, setLocationDisplay] = useState(""); 
   const [detectedTown, setDetectedTown] = useState("");       
   const [detectedCountry, setDetectedCountry] = useState(""); 
@@ -42,7 +41,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
-  // 1. Detect Location on Load with UK formatting
   useEffect(() => {
     if (!navigator.geolocation) return;
 
@@ -58,7 +56,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             const broader = data.address.city || data.address.town || data.address.county;
             const country = data.address.country;
             
-            // Re-apply formatting: "Town, Country"
             const countryCode = data.address.country_code === 'gb' ? 'UK' : (country || "");
             const displayValue = specific ? `${specific}, ${countryCode}` : countryCode;
 
@@ -75,7 +72,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     );
   }, []);
 
-  // 2. Load Drafts and Set Date
   useEffect(() => {
     const date = new Date().toISOString().split('T')[0];
     setToday(date);
@@ -88,19 +84,13 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
         if (data.engineer_name) setEngName(data.engineer_name);
         if (data.engineer_email) setEngEmail(data.engineer_email);
         if (data.engineer_phone) setEngPhone(data.engineer_phone);
-        
-        setTimeout(() => {
-          Object.keys(data).forEach(key => {
-            const input = document.getElementsByName(key)[0];
-            if (input && input.tagName === "TEXTAREA") autoGrow(input);
-          });
-        }, 100);
       } catch (e) { console.error(e); }
     }
-  }, [storageKey, unit?.serial_number]);
+  }, [storageKey]);
 
   const handleInputChange = (e) => {
-    const data = Object.fromEntries(new FormData(e.currentTarget).entries());
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
     localStorage.setItem(storageKey, JSON.stringify(data));
   };
 
@@ -171,7 +161,15 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   return (
     <div className="form-scope">
-      <Head><title>{unit?.serial_number} | Annual Maintenance</title></Head>
+      <Head>
+        <title>{unit?.serial_number} | Annual Maintenance</title>
+        <style>{`
+          .checklist-input::placeholder, .checklist-textarea::placeholder {
+            color: #7d8f93 !important;
+            opacity: 1;
+          }
+        `}</style>
+      </Head>
       <div className="swift-main-layout-wrapper">
         <div className="page-wrapper">
           <div className="swift-checklist-container">
@@ -190,7 +188,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                         required 
                         value={selectedCompany} 
                         onChange={handleCompanyChange}
-                        style={{ color: selectedCompany ? 'white' : 'rgba(255,255,255,0.4)' }}
+                        style={{ color: selectedCompany ? 'white' : '#7d8f93' }}
                       >
                         <option value="" disabled>Please select</option>
                         {sortedCompanies.map((name, i) => <option key={i} value={name} style={{ color: 'black' }}>{name}</option>)}
@@ -207,7 +205,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       required 
                       value={locationDisplay} 
                       onChange={(e) => setLocationDisplay(e.target.value)} 
-                      placeholder="Detecting..." 
+                      placeholder="Detecting..."
                     />
                   </div>
 
