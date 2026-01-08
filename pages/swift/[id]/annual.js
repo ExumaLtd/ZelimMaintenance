@@ -31,7 +31,11 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [errorMsg, setErrorMsg] = useState("");
   const [photoUrls, setPhotoUrls] = useState([]);
   const [today, setToday] = useState("");
+  
+  // Location States
   const [locationDisplay, setLocationDisplay] = useState(""); 
+  const [detectedTown, setDetectedTown] = useState("");       
+  const [detectedCountry, setDetectedCountry] = useState(""); 
   
   const [selectedCompany, setSelectedCompany] = useState("");
   const [engName, setEngName] = useState("");
@@ -41,12 +45,13 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
-  // Optimization: Pre-filter engineers to prevent UI hang
+  // Pre-filter engineers for speed
   const filteredEngineers = useMemo(() => {
     if (!selectedCompany) return allEngineers;
     return allEngineers.filter(e => e.companyName === selectedCompany);
   }, [selectedCompany, allEngineers]);
 
+  // 1. PERSISTENCE: Load Draft
   useEffect(() => {
     const date = new Date().toISOString().split('T')[0];
     setToday(date);
@@ -69,32 +74,41 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     }
   }, [storageKey]);
 
-  const handleInputChange = (e) => {
-    if (submitting) return;
-    const formData = new FormData(e.currentTarget);
-    const data = Object.fromEntries(formData.entries());
-    data.photoUrls = photoUrls;
-    localStorage.setItem(storageKey, JSON.stringify(data));
-  };
-
+  // 2. GEOLOCATION: Detect Location
   useEffect(() => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(async (pos) => {
       try {
         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14`);
         const data = await res.json();
-        if (data.address) {
-          const loc = data.address.suburb || data.address.village || data.address.town || data.address.city;
-          const country = data.address.country_code === 'gb' ? 'UK' : data.address.country;
-          setLocationDisplay(loc ? `${loc}, ${country}` : country);
+        if (data && data.address) {
+          const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
+          const country = data.address.country_code === 'gb' ? 'UK' : (data.address.country || "");
+          
+          const combined = loc ? `${loc}, ${country}` : country;
+          
+          // Only auto-fill if the user hasn't typed anything yet or if there's no saved draft location
+          setLocationDisplay(prev => prev === "" ? combined : prev);
+          setDetectedTown(loc);
+          setDetectedCountry(country);
         }
-      } catch (err) { console.error(err); }
-    });
+      } catch (err) { console.error("Geolocation error:", err); }
+    }, (err) => console.log("User denied location or error:", err));
   }, []);
 
+  const handleInputChange = (e) => {
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+    data.photoUrls = photoUrls;
+    localStorage.setItem(storageKey, JSON.stringify(data));
+    
+    if (e.target.name.startsWith('q')) {
+      setAnswers(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    }
+  };
+
   const handleCompanyChange = (e) => {
-    const val = e.target.value;
-    setSelectedCompany(val);
+    setSelectedCompany(e.target.value);
     setEngName(""); setEngEmail(""); setEngPhone("");
   };
 
@@ -132,13 +146,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("Submission failed");
+      if (!res.ok) throw new Error("Failed");
       localStorage.removeItem(storageKey);
       router.push(`/swift/${unit.public_token}/annual-complete`);
-    } catch (err) { 
-      setErrorMsg(err.message); 
-      setSubmitting(false); 
-    }
+    } catch (err) { setErrorMsg(err.message); setSubmitting(false); }
   }
 
   const logo = getClientLogo(unit?.company, unit?.serial_number);
@@ -168,9 +179,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             box-sizing: border-box;
             outline: none !important;
           }
-          .form-scope .checklist-input:focus, .form-scope .checklist-textarea:focus { 
-            border-color: #00FFF6 !important; 
-          }
+          .form-scope .checklist-input:focus, .form-scope .checklist-textarea:focus { border-color: #00FFF6 !important; }
+          
           .form-scope .checklist-input:-webkit-autofill {
             -webkit-box-shadow: 0 0 0 1000px #27454b inset !important;
             -webkit-text-fill-color: #e9ebec !important;
@@ -183,6 +193,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             background-size: 12px;
             padding-right: 40px;
           }
+          .form-scope input[type="date"].checklist-input::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
         `}</style>
       </Head>
 
