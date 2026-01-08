@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head"; 
 import { UploadDropzone } from "../../../utils/uploadthing"; 
@@ -27,7 +27,6 @@ const getClientLogo = (companyName, serialNumber) => {
 
 export default function Annual({ unit, template, allCompanies = [], allEngineers = [] }) {
   const router = useRouter();
-  const dropdownRef = useRef(null);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [photoUrls, setPhotoUrls] = useState([]);
@@ -39,34 +38,18 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [engEmail, setEngEmail] = useState("");
   const [engPhone, setEngPhone] = useState("");
   const [answers, setAnswers] = useState({});
-  const [showDropdown, setShowDropdown] = useState(false);
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
   const filteredEngineers = useMemo(() => {
-    let list = allEngineers;
-    if (selectedCompany) {
-      list = list.filter(e => e.companyName === selectedCompany);
-    }
-    if (engName.trim() !== "") {
-      list = list.filter(e => e.name.toLowerCase().includes(engName.toLowerCase()));
-    }
-    return list;
-  }, [selectedCompany, engName, allEngineers]);
-
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowDropdown(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    if (!selectedCompany) return allEngineers;
+    return allEngineers.filter(e => e.companyName === selectedCompany);
+  }, [selectedCompany, allEngineers]);
 
   useEffect(() => {
     const date = new Date().toISOString().split('T')[0];
     setToday(date);
+    
     const savedDraft = localStorage.getItem(storageKey);
     if (savedDraft) {
       try {
@@ -77,12 +60,33 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
         if (data.engineer_email) setEngEmail(data.engineer_email);
         if (data.engineer_phone) setEngPhone(data.engineer_phone);
         if (data.photoUrls) setPhotoUrls(data.photoUrls);
+        
         const draftAnswers = {};
-        Object.keys(data).forEach(key => { if (key.startsWith('q')) draftAnswers[key] = data[key]; });
+        Object.keys(data).forEach(key => {
+          if (key.startsWith('q')) draftAnswers[key] = data[key];
+        });
         setAnswers(draftAnswers);
       } catch (e) { console.error("Draft load error:", e); }
     }
   }, [storageKey]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14`, {
+          headers: { 'Accept-Language': 'en' }
+        });
+        const data = await res.json();
+        if (data && data.address) {
+          const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
+          const country = data.address.country_code === 'gb' ? 'UK' : (data.address.country || "");
+          const combined = loc ? `${loc}, ${country}` : country;
+          setLocationDisplay(prev => (!prev || prev.trim() === "") ? combined : prev);
+        }
+      } catch (err) { console.error("Geo fetch error", err); }
+    }, null, { enableHighAccuracy: true, timeout: 8000 });
+  }, []);
 
   useEffect(() => {
     const draftData = {
@@ -97,11 +101,20 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     localStorage.setItem(storageKey, JSON.stringify(draftData));
   }, [selectedCompany, locationDisplay, engName, engEmail, engPhone, photoUrls, answers, storageKey]);
 
-  const selectEngineer = (engineer) => {
-    setEngName(engineer.name);
-    setEngEmail(engineer.email || "");
-    setEngPhone(engineer.phone || "");
-    setShowDropdown(false);
+  const handleCompanyChange = (e) => {
+    const val = e.target.value;
+    setSelectedCompany(val);
+    setEngName(""); setEngEmail(""); setEngPhone("");
+  };
+
+  const handleEngineerChange = (e) => {
+    const name = e.target.value;
+    setEngName(name);
+    const found = allEngineers.find(x => x.name === name);
+    if (found) {
+      setEngEmail(found.email || "");
+      setEngPhone(found.phone || "");
+    }
   };
 
   async function handleSubmit(e) {
@@ -141,8 +154,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     <div className="form-scope">
       <Head>
         <title>{unit?.serial_number} | Annual Maintenance</title>
-        {/* Font Awesome 6 CDN */}
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
         <style>{`
           .form-scope .checklist-form-card {
             background: #152a31 !important;
@@ -156,35 +167,45 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             background-color: #27454b !important;
             color: #f7f7f7 !important;
             border: 1px solid transparent !important;
-            padding-right: 40px !important; /* Make room for icons */
+            padding-right: 40px !important;
+            font-family: 'Montserrat', sans-serif;
           }
+          
           .form-scope .checklist-input:focus,
           .form-scope .checklist-textarea:focus {
             border-color: #00FFF6 !important;
             border-width: 1px !important;
             outline: none;
           }
-          
-          /* Icon Positioning */
+
+          /* Field Icon Wrapper for FA Icons */
           .form-scope .field-icon-wrapper {
             position: relative;
             display: flex;
             align-items: center;
           }
+
           .form-scope .field-icon-wrapper i {
             position: absolute;
             right: 16px;
-            color: #00FFF6;
+            color: #f7f7f7;
             pointer-events: none;
-            font-size: 14px;
           }
+
+          .form-scope .fa-chevron-down { font-size: 14px; }
+          .form-scope .fa-calendar { font-size: 18px; }
 
           .form-scope .checklist-input:-webkit-autofill {
             -webkit-box-shadow: 0 0 0 1000px #27454b inset !important;
             -webkit-text-fill-color: #f7f7f7 !important;
           }
 
-          /* Reset native date/select icons so they don't clash with FontAwesome */
+          /* Hide native UI elements to favor FA Icons */
+          .form-scope select.checklist-input {
+            appearance: none;
+            -webkit-appearance: none;
+          }
+
           .form-scope input[type="date"]::-webkit-calendar-picker-indicator {
             background: transparent;
             bottom: 0;
@@ -197,37 +218,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             top: 0;
             width: auto;
           }
-          .form-scope select.checklist-input {
-            appearance: none;
-            -webkit-appearance: none;
-          }
-
-          /* Custom Dropdown Styling */
-          .custom-dropdown-container { position: relative; width: 100%; }
-          .custom-dropdown-list {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: #27454b;
-            border: 1px solid #00FFF6;
-            border-top: none;
-            border-radius: 0 0 8px 8px;
-            margin: 0;
-            padding: 0;
-            list-style: none;
-            z-index: 1000;
-            max-height: 200px;
-            overflow-y: auto;
-          }
-          .custom-dropdown-item {
-            padding: 12px 16px;
-            color: #f7f7f7;
-            cursor: pointer;
-            font-size: 14px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-          }
-          .custom-dropdown-item:hover { background: #152a31; }
 
           @media (max-width: 600px) {
             .form-scope .checklist-form-card { padding: 30px 24px !important; }
@@ -238,7 +228,11 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       <div className="swift-main-layout-wrapper">
         <div className="page-wrapper">
           <div className="swift-checklist-container">
-            {logo && <div className="checklist-logo"><img src={logo.src} alt={logo.alt} /></div>}
+            {logo && (
+              <div className="checklist-logo">
+                <img src={logo.src} alt={logo.alt} />
+              </div>
+            )}
 
             <h1 className="checklist-hero-title">
               {unit?.serial_number}
@@ -251,60 +245,64 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   <div className="checklist-field">
                     <label className="checklist-label">Maintenance company</label>
                     <div className="field-icon-wrapper">
-                        <select 
+                      <select 
                         name="maintained_by" 
                         className="checklist-input" 
                         required 
                         value={selectedCompany} 
-                        onChange={(e) => { setSelectedCompany(e.target.value); setEngName(""); }}
+                        onChange={handleCompanyChange}
                         style={{ color: selectedCompany ? '#F7F7F7' : '#7d8f93' }}
-                        >
+                      >
                         <option value="" disabled hidden>Please select</option>
                         {allCompanies.sort().map((c, i) => <option key={i} value={c}>{c}</option>)}
-                        </select>
-                        <i className="fa-solid fa-chevron-down"></i>
+                      </select>
+                      <i className="fa-solid fa-chevron-down"></i>
                     </div>
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Location</label>
-                    <input className="checklist-input" name="location_display" required value={locationDisplay} onChange={(e) => setLocationDisplay(e.target.value)} />
+                    <input 
+                      className="checklist-input" 
+                      name="location_display" 
+                      required 
+                      value={locationDisplay} 
+                      onChange={(e) => setLocationDisplay(e.target.value)} 
+                    />
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Date</label>
                     <div className="field-icon-wrapper">
-                        <input type="date" className="checklist-input" name="date_of_maintenance" defaultValue={today} required />
-                        <i className="fa-regular fa-calendar"></i>
+                      <input type="date" className="checklist-input" name="date_of_maintenance" defaultValue={today} required />
+                      <i className="fa-regular fa-calendar"></i>
                     </div>
                   </div>
                 </div>
 
                 <div className="checklist-inline-group" style={{ marginTop: '24px' }}>
-                  <div className="checklist-field" ref={dropdownRef}>
+                  <div className="checklist-field">
                     <label className="checklist-label">Engineer name</label>
-                    <div className="custom-dropdown-container">
-                      <div className="field-icon-wrapper">
-                        <input 
-                            className="checklist-input" 
-                            name="engineer_name" 
-                            required 
-                            value={engName} 
-                            autoComplete="off"
-                            onFocus={() => setShowDropdown(true)}
-                            onChange={(e) => { setEngName(e.target.value); setShowDropdown(true); }}
-                            style={{ borderRadius: (showDropdown && filteredEngineers.length > 0) ? '8px 8px 0 0' : '8px' }}
-                        />
-                        <i className={showDropdown ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}></i>
-                      </div>
-                      {showDropdown && filteredEngineers.length > 0 && (
-                        <ul className="custom-dropdown-list">
-                          {filteredEngineers.map((eng, i) => (
-                            <li key={i} className="custom-dropdown-item" onClick={() => selectEngineer(eng)}>
-                              {eng.name}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
+                    <div className="field-icon-wrapper">
+                      <input 
+                        className="checklist-input" 
+                        name="engineer_name" 
+                        list="eng-data-list" 
+                        required 
+                        value={engName} 
+                        onChange={handleEngineerChange}
+                        autoComplete="off"
+                        onClick={(e) => {
+                          const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+                          if (isTouch) {
+                            e.target.setAttribute('list', '');
+                            setTimeout(() => e.target.setAttribute('list', 'eng-data-list'), 10);
+                          }
+                        }}
+                      />
+                      <i className="fa-solid fa-chevron-down"></i>
                     </div>
+                    <datalist id="eng-data-list">
+                      {filteredEngineers.map((e, i) => <option key={i} value={e.name} />)}
+                    </datalist>
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer email</label>
@@ -337,6 +335,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                 </div>
 
                 {errorMsg && <p style={{ color: '#ff4d4d', marginTop: '16px' }}>{errorMsg}</p>}
+
                 <button className="checklist-submit" disabled={submitting}>
                   {submitting ? "Submitting..." : "Submit maintenance"}
                 </button>
