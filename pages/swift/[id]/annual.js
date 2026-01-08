@@ -43,17 +43,15 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const storageKey = `draft_annual_${unit?.serial_number}`;
   const engineerInputRef = useRef(null);
 
-  // FIX: Force Mobile Autofill Suggestion Bar
+  // FIXED: No-Jump Touch Handler
   useEffect(() => {
     const input = engineerInputRef.current;
     if (!input) return;
 
     const handleTouchFix = () => {
       if (document.activeElement !== input) {
-        setTimeout(() => {
-          input.blur();
-          input.focus();
-        }, 50);
+        // Removed .blur() to prevent focus jumping to other fields
+        input.focus();
       }
     };
 
@@ -138,8 +136,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       maintained_by: selectedCompany,
       location_display: locationDisplay,
       photoUrls,
-      unit_record_id: unit.record_id,
-      checklist_template_id: template.id,
+      unit_record_id: unit?.record_id,
+      checklist_template_id: template?.id,
       answers: (template?.questions || []).map((_, i) => ({
         question: `q${i+1}`,
         answer: props[`q${i+1}`] || ""
@@ -189,10 +187,16 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             -webkit-tap-highlight-color: transparent;
           }
           .form-scope .checklist-input:focus, .form-scope .checklist-textarea:focus { border-color: #00FFF6 !important; }
-          .form-scope .checklist-input:-webkit-autofill {
+          
+          /* FIXED: Input Dark Theme with Autofill */
+          .form-scope .checklist-input:-webkit-autofill,
+          .form-scope .checklist-input:-webkit-autofill:hover,
+          .form-scope .checklist-input:-webkit-autofill:focus {
             -webkit-box-shadow: 0 0 0 50px #27454b inset !important;
             -webkit-text-fill-color: #e9ebec !important;
+            transition: background-color 5000s ease-in-out 0s;
           }
+          
           .checklist-input::placeholder, .checklist-textarea::placeholder { color: #7d8f93 !important; opacity: 1; }
           .form-scope select.checklist-input {
             appearance: none;
@@ -259,7 +263,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       required 
                       value={engName} 
                       onChange={handleEngineerChange} 
-                      autoComplete="name"
+                      /* FIXED: autoComplete="off" allows datalist to be seen over Chrome autofill */
+                      autoComplete="off"
                     />
                     <datalist id="eng-list">
                       {allEngineers.filter(e => !selectedCompany || e.companyName === selectedCompany).map((e, i) => <option key={i} value={e.name} />)}
