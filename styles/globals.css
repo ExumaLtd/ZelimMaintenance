@@ -6,6 +6,11 @@ html {
   font-family: 'Montserrat', sans-serif; 
 }
 
+/* Updated root color to ensure Safari toolbars and overscroll areas match #172F36 */
+:root {
+  background-color: #172F36;
+}
+
 body {
   padding: 0;
   margin: 0; 
@@ -14,8 +19,8 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
   padding-top: env(safe-area-inset-top);
   
-  /* Removed radial gradient - using solid #0D1F23 for a clean dark base */
-  background: #0D1F23 !important;
+  /* Solid background for all pages */
+  background: #172F36 !important;
   background-size: cover;
   background-attachment: fixed;
   
@@ -32,11 +37,7 @@ a {
   box-sizing: border-box;
 }
 
-/* Updated root color to match the new body background for Safari toolbar blending */
-:root {
-  background-color: #0D1F23;
-}
-
+/* Fixed logo positioning for mobile/global view */
 .fixed-zelim-logo {
     position: fixed;
     bottom: 50px;
@@ -50,6 +51,7 @@ a {
 
 /* =========================================
    DASHBOARD / MAINTENANCE STYLES
+   Applies to the unit portal pages
 ========================================= */
 
 .dashboard-scope .maintenance-group-wrapper {
