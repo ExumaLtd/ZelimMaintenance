@@ -14,8 +14,8 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
   padding-top: env(safe-area-inset-top);
   
-  /* LAYER 1: Apply GRADIENT to BODY and force it to win the cascade */
-  background: radial-gradient(85.89% 70.71% at 50% 50%, #172F36 0%, #2E444A 100%) !important;
+  /* Removed radial gradient - using solid #0D1F23 for a clean dark base */
+  background: #0D1F23 !important;
   background-size: cover;
   background-attachment: fixed;
   
@@ -32,10 +32,9 @@ a {
   box-sizing: border-box;
 }
 
-/* LAYER 2: CRITICAL SAFARI FIX - Provide a solid background color to the root 
-   for the translucent top/bottom toolbars to blend against, preventing white/grey. */
+/* Updated root color to match the new body background for Safari toolbar blending */
 :root {
-  background-color: #172F36;
+  background-color: #0D1F23;
 }
 
 .fixed-zelim-logo {
@@ -47,4 +46,25 @@ a {
     opacity: 1; 
     top: auto;
     right: auto;
+}
+
+/* =========================================
+   DASHBOARD / MAINTENANCE STYLES
+========================================= */
+
+.dashboard-scope .maintenance-group-wrapper {
+    background: #152A31;
+    padding: 20px;
+    border-radius: 20px;
+    display: flex;
+    gap: 20px;
+    width: 100%;
+}
+
+.dashboard-scope .downloads-card {
+    background: #152A31;
+    padding: 24px 30px 30px;
+    border-radius: 20px;
+    width: 100%;
+    min-width: 0;
 }
