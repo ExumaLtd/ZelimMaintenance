@@ -166,10 +166,9 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           .form-scope .checklist-textarea {
             background-color: #27454b !important;
             color: #f7f7f7 !important;
-            border: 1px solid transparent !important; /* Base state */
+            border: 1px solid transparent !important;
           }
           
-          /* Updated focus outline to 1px teal */
           .form-scope .checklist-input:focus,
           .form-scope .checklist-textarea:focus {
             border-color: #00FFF6 !important;
@@ -188,6 +187,13 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             background-position: right 16px center !important;
             background-size: 12px !important;
           }
+
+          /* This helps prevent the browser from misaligning the datalist popup */
+          .datalist-wrapper {
+            position: relative;
+            width: 100%;
+          }
+
           @media (max-width: 600px) {
             .form-scope .checklist-form-card { padding: 30px 24px !important; }
           }
@@ -244,25 +250,27 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                 <div className="checklist-inline-group" style={{ marginTop: '24px' }}>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer name</label>
-                    <input 
-                      className="checklist-input" 
-                      name="engineer_name" 
-                      list="eng-data-list" 
-                      required 
-                      value={engName} 
-                      onChange={handleEngineerChange}
-                      autoComplete="off"
-                      onClick={(e) => {
-                        const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-                        if (isTouch) {
-                          e.target.setAttribute('list', '');
-                          setTimeout(() => e.target.setAttribute('list', 'eng-data-list'), 10);
-                        }
-                      }}
-                    />
-                    <datalist id="eng-data-list">
-                      {filteredEngineers.map((e, i) => <option key={i} value={e.name} />)}
-                    </datalist>
+                    <div className="datalist-wrapper">
+                      <input 
+                        className="checklist-input" 
+                        name="engineer_name" 
+                        list="eng-data-list" 
+                        required 
+                        value={engName} 
+                        onChange={handleEngineerChange}
+                        autoComplete="off"
+                        onClick={(e) => {
+                          const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+                          if (isTouch) {
+                            e.target.setAttribute('list', '');
+                            setTimeout(() => e.target.setAttribute('list', 'eng-data-list'), 10);
+                          }
+                        }}
+                      />
+                      <datalist id="eng-data-list">
+                        {filteredEngineers.map((e, i) => <option key={i} value={e.name} />)}
+                      </datalist>
+                    </div>
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer email</label>
