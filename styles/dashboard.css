@@ -97,13 +97,13 @@
     position: absolute !important;
     top: 0;
     bottom: 0;
-    left: 0; /* Standard desktop left */
+    left: 0; 
     right: auto;
     margin: 0 !important;
     width: 100% !important;
     height: 100% !important;
     object-fit: contain !important;
-    object-position: left !important; /* Standard desktop left */
+    object-position: left !important; 
     display: block;
 }
 
@@ -343,7 +343,7 @@
 
     .dashboard-scope .swift-dashboard-container {
         grid-template-columns: 1fr !important;
-        margin-top: 32px !important; /* SYNCED WITH FORM PAGE */
+        margin-top: 32px !important; 
     }
     .dashboard-scope .swift-dashboard-container::after {
         display: none;
@@ -366,7 +366,7 @@
     }
     
     .dashboard-scope .logo-section {
-        max-width: 225px; /* Identical scaling */
+        max-width: 225px; 
         max-height: 36px;
         width: 225px;
         height: 36px;
@@ -382,7 +382,7 @@
     }
     
     .dashboard-scope .portal-title {
-        font-size: 22px; /* Identical scaling */
+        font-size: 22px; 
         line-height: 28px;
         margin: 0 0 24px;
         text-align: center;

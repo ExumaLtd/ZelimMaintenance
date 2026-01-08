@@ -1,6 +1,6 @@
 /* =========================================================================
    CHECKLIST PAGE STYLES (form.css)
-   V59: CENTRALIZED DESKTOP + REMOVED 24PX MOBILE MARGIN + FULL LOGO SYNC
+   V60: FORCED MOBILE MARGIN REMOVAL + CENTRALIZED DESKTOP
 ========================================================================= */
 
 /* Ensure the wrapper takes up enough space and doesn't collapse */
@@ -19,7 +19,7 @@
     width: 100%;
     max-width: 900px;
     margin: 0 auto;
-    text-align: center; /* Set to center for Desktop */
+    text-align: center; /* Centralized for Desktop */
     padding: 20px 20px 100px 20px; 
     font-family: "Montserrat", sans-serif;
     color: #FFFFFF;
@@ -42,7 +42,7 @@
     width: auto !important;
     height: 100% !important;
     object-fit: contain !important;
-    object-position: center !important; /* Centralized on Desktop */
+    object-position: center !important; 
 }
 
 /* --- HERO TITLE --- */
@@ -88,14 +88,21 @@
     }
 }
 
-/* --- MOBILE FIELD SPACING --- */
+/* --- MOBILE FIELD SPACING & INLINE OVERRIDES --- */
 @media (max-width: 767px) {
-    .form-scope .checklist-inline-group {
-        display: block;
-        margin-top: 0 !important; /* Explicitly removed the 24px margin */
+    /* Overriding inline margin-top: 24px seen in inspector */
+    .form-scope .checklist-inline-group,
+    .form-scope div[style*="margin-top: 24px"],
+    .form-scope div[style*="margin-top:24px"] {
+        margin-top: 0 !important; 
     }
+
     .form-scope .checklist-field {
         margin-bottom: 16px;
+    }
+
+    .form-scope .checklist-label {
+        margin-top: 0 !important;
     }
 }
 
@@ -252,7 +259,7 @@
         position: absolute !important;
         left: 0; right: 0;
         margin: auto !important;
-        width: 100% !important; /* Forces dashboard scaling match */
+        width: 100% !important;
         height: 100% !important;
         object-fit: contain !important;
         object-position: center !important;
@@ -267,10 +274,6 @@
 
     .form-scope .checklist-form-card {
         padding: 30px 24px 24px 24px !important;
-    }
-
-    .form-scope .checklist-label {
-        margin-top: 0 !important;
     }
     
     .form-scope .checklist-submit {
