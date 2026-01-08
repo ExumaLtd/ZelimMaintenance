@@ -145,7 +145,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       <Head>
         <title>{unit?.serial_number} | Annual Maintenance</title>
         <style>{`
-          /* FORCED THEME UPDATES */
+          /* INTEGRATED THEME UPDATES */
           .form-scope .checklist-form-card {
             background: #152A31 !important;
             padding: 38px !important;
@@ -169,7 +169,11 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       <div className="swift-main-layout-wrapper">
         <div className="page-wrapper">
           <div className="swift-checklist-container">
-            {logo && <div className="checklist-logo"><img src={logo.src} alt="Logo" /></div>}
+            {logo && (
+              <div className="checklist-logo">
+                <img src={logo.src} alt={logo.alt} style={{ maxHeight: '40px', marginBottom: '40px' }} />
+              </div>
+            )}
             <h1 className="checklist-hero-title">{unit?.serial_number}<span className="break-point">annual maintenance</span></h1>
             
             <div className="checklist-form-card">
@@ -268,6 +272,7 @@ export async function getServerSideProps({ params }) {
       props: {
         unit: { 
           serial_number: uJson.records[0].fields.unit_name || uJson.records[0].fields.serial_number, 
+          company: uJson.records[0].fields.company || "",
           record_id: uJson.records[0].id, 
           public_token: uJson.records[0].fields.public_token 
         },
