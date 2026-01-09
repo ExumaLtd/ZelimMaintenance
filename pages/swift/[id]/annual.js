@@ -99,14 +99,14 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     if (typeof window === "undefined" || !navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(async (pos) => {
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14`, {
-          headers: { 'Accept-Language': 'en' }
-        });
+        // FIXED: Using accept-language=en-GB for formal country names globally
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14&accept-language=en-GB`);
         const data = await res.json();
         if (data && data.address) {
           const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
-          const rawCountry = data.address.country || "";
-          const country = data.address.country_code === 'gb' ? 'UK' : rawCountry;
+          
+          // Formal country name (e.g., "United Kingdom", "Germany", "Singapore")
+          const country = data.address.country || "";
           
           const combined = loc ? `${loc}, ${country}` : country;
           setLocationDisplay(prev => (!prev || prev.trim() === "") ? combined : prev);
@@ -162,19 +162,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
     setSubmitting(true);
 
-    // Map abbreviations to full names for Airtable submission
-    const countryFullNames = {
-      "UK": "United Kingdom",
-      "US": "United States",
-      "SG": "Singapore"
-    };
-
-    const fullCountryName = countryFullNames[locationCountry] || locationCountry;
-
     const payload = {
       maintained_by: selectedCompany,
       location_display: locationDisplay,
-      location_country: fullCountryName, 
+      location_country: locationCountry, // Sends formal name from state
       maintenance_type: "Annual",        
       date_of_maintenance: e.target.date_of_maintenance.value,
       engineer_name: engName,
