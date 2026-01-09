@@ -215,7 +215,6 @@ export default function SwiftUnitPage({
                   </Link>
                 </div>
 
-                {/* This empty div acts as a flex-spacer to keep the 3rd card at 50% width on desktop */}
                 <div 
                   className="maintenance-card" 
                   style={{ visibility: 'hidden', border: 'none', background: 'none', padding: 0 }}
@@ -257,27 +256,28 @@ export default function SwiftUnitPage({
                   </a>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
       </div>
 
-      {/* FOOTER LOGO - Fixed position relative to content, pushes to bottom of screen */}
+      {/* FOOTER LOGO - This section ensures the logo is always at the bottom of the viewport
+          on first load, but pushes down if the content is taller than the screen. */}
       <footer style={{ 
         width: '100%', 
-        padding: '60px 0 40px', 
+        padding: '40px 0 40px', 
         display: 'flex', 
         justifyContent: 'center', 
-        flexShrink: 0 
+        flexShrink: 0,
+        marginTop: 'auto' 
       }}>
         <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
           <Image 
             src="/logo/zelim-logo.svg" 
-            width={100} 
-            height={30} 
+            width={120} 
+            height={40} 
             alt="Zelim logo" 
-            style={{ opacity: 0.8 }}
+            style={{ opacity: 0.9 }}
           />
         </a>
       </footer>
