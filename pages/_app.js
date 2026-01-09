@@ -2,9 +2,10 @@ import "/styles/globals.css";
 import "/styles/landing.css";
 import "/styles/dashboard.css";
 import "/styles/form.css";
+import "/styles/form-complete.css";
 
 import Head from "next/head";
-import Script from "next/script"; // Import this
+import Script from "next/script"; 
 
 export default function MyApp({ Component, pageProps }) {
   return (
