@@ -25,7 +25,7 @@ const getClientLogo = (companyName, serialNumber) => {
   return null;
 };
 
-export default function Unplanned({ unit, template, allCompanies = [], allEngineers = [] }) {
+export default function Unscheduled({ unit, template, allCompanies = [], allEngineers = [] }) {
   const router = useRouter();
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
@@ -45,7 +45,7 @@ export default function Unplanned({ unit, template, allCompanies = [], allEngine
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
 
-  const storageKey = `draft_unplanned_${unit?.serial_number}`;
+  const storageKey = `draft_unscheduled_${unit?.serial_number}`;
 
   // ENGINEER LOGIC: Filter out the selected name from the list below
   const filteredEngineers = useMemo(() => {
@@ -179,7 +179,7 @@ export default function Unplanned({ unit, template, allCompanies = [], allEngine
       });
       if (!res.ok) throw new Error("Failed");
       localStorage.removeItem(storageKey);
-      router.push(`/swift/${unit.public_token}/unplanned-complete`);
+      router.push(`/swift/${unit.public_token}/unscheduled-complete`);
     } catch (err) { setErrorMsg(err.message); setSubmitting(false); }
   }
 
@@ -193,7 +193,7 @@ export default function Unplanned({ unit, template, allCompanies = [], allEngine
   return (
     <div className="form-scope">
       <Head>
-        <title>{unit?.serial_number} | Unplanned Maintenance</title>
+        <title>{unit?.serial_number} | Unscheduled Maintenance</title>
         <style>{`
           .checklist-form-card {
             background: #152a31 !important;
@@ -280,7 +280,7 @@ export default function Unplanned({ unit, template, allCompanies = [], allEngine
 
             <h1 className="checklist-hero-title">
               {unit?.serial_number}
-              <span className="break-point">unplanned maintenance</span>
+              <span className="break-point">unscheduled maintenance</span>
             </h1>
             
             <div className="checklist-form-card">
@@ -453,7 +453,7 @@ export async function getServerSideProps({ params }) {
 
     const headers = { Authorization: `Bearer ${apiKey}` };
     const unitFormula = encodeURIComponent(`{public_token}='${token}'`);
-    const templateFormula = encodeURIComponent(`{type}='Unplanned'`);
+    const templateFormula = encodeURIComponent(`{type}='Unscheduled'`);
 
     const urls = [
       `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${unitFormula}`,

@@ -1,4 +1,4 @@
-export default function UnplannedComplete() {
+export default function UnscheduledComplete() {
   return (
     <div className="swift-checklist-container">
 
@@ -7,7 +7,7 @@ export default function UnplannedComplete() {
       </div>
 
       <h1 className="checklist-hero-title">
-        Unplanned maintenance<br />
+        Unscheduled maintenance<br />
         <span className="break-point">submitted successfully</span>
       </h1>
 

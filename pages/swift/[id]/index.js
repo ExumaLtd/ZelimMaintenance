@@ -181,7 +181,7 @@ export default function SwiftUnitPage({
             {/* RIGHT PANEL */}
             <div className="action-panel">
 
-              {/* ROW 1: PLANNED MAINTENANCE */}
+              {/* SINGLE WRAPPER CONTAINING ALL THREE CARDS */}
               <div className="maintenance-group-wrapper">
                 <div className="maintenance-card">
                   <h3>Annual<br/>maintenance</h3>
@@ -204,26 +204,16 @@ export default function SwiftUnitPage({
                     Start maintenance
                   </Link>
                 </div>
-              </div>
 
-              {/* ROW 2: UNPLANNED MAINTENANCE */}
-              <div className="maintenance-group-wrapper" style={{ marginTop: '20px' }}>
                 <div className="maintenance-card">
-                  <h3>Unplanned<br/>maintenance</h3>
+                  <h3>Unscheduled<br/>maintenance</h3>
                   <p className="description">
-                    To be completed in accordance with Section 7.1.2 –
-                    Annual Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.
+                    To be completed in accordance with Section 7.1.3 – Unscheduled and Corrective Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.
                   </p>
-                  <Link href={`/swift/${publicToken}/unplanned`} className="start-btn">
+                  <Link href={`/swift/${publicToken}/unscheduled`} className="start-btn">
                     Start maintenance
                   </Link>
                 </div>
-
-                {/* Hidden spacer card to maintain the grid alignment on desktop */}
-                <div 
-                  className="maintenance-card" 
-                  style={{ visibility: 'hidden', border: 'none', background: 'none' }}
-                ></div>
               </div>
 
               {/* DOWNLOADS */}
