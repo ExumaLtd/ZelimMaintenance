@@ -38,7 +38,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [today, setToday] = useState("");
   
   const [locationDisplay, setLocationDisplay] = useState(""); 
-  const [locationCountry, setLocationCountry] = useState(""); // FIXED: Added state for country
+  const [locationCountry, setLocationCountry] = useState(""); 
   const [selectedCompany, setSelectedCompany] = useState("");
   const [engName, setEngName] = useState("");
   const [engEmail, setEngEmail] = useState("");
@@ -83,7 +83,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
         const data = JSON.parse(savedDraft);
         if (data.maintained_by) setSelectedCompany(data.maintained_by);
         if (data.location_display) setLocationDisplay(data.location_display);
-        if (data.location_country) setLocationCountry(data.location_country); // FIXED: Restore country draft
+        if (data.location_country) setLocationCountry(data.location_country);
         if (data.engineer_name) setEngName(data.engineer_name);
         if (data.engineer_email) setEngEmail(data.engineer_email);
         if (data.engineer_phone) setEngPhone(data.engineer_phone);
@@ -105,14 +105,12 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
         const data = await res.json();
         if (data && data.address) {
           const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
-          
-          // FIXED: Extract country separately and handle UK alias
           const rawCountry = data.address.country || "";
           const country = data.address.country_code === 'gb' ? 'UK' : rawCountry;
           
           const combined = loc ? `${loc}, ${country}` : country;
           setLocationDisplay(prev => (!prev || prev.trim() === "") ? combined : prev);
-          setLocationCountry(country); // FIXED: Populate country state
+          setLocationCountry(country); 
         }
       } catch (err) { console.error("Geo fetch error", err); }
     }, null, { enableHighAccuracy: true, timeout: 8000 });
@@ -122,7 +120,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     const draftData = {
       maintained_by: selectedCompany,
       location_display: locationDisplay,
-      location_country: locationCountry, // FIXED: Include country in draft
+      location_country: locationCountry,
       engineer_name: engName,
       engineer_email: engEmail,
       engineer_phone: engPhone,
@@ -161,12 +159,23 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       setErrorMsg("Please select both a company and an engineer.");
       return;
     }
+
     setSubmitting(true);
+
+    // Map abbreviations to full names for Airtable submission
+    const countryFullNames = {
+      "UK": "United Kingdom",
+      "US": "United States",
+      "SG": "Singapore"
+    };
+
+    const fullCountryName = countryFullNames[locationCountry] || locationCountry;
+
     const payload = {
       maintained_by: selectedCompany,
       location_display: locationDisplay,
-      location_country: locationCountry, // FIXED: Added location_country to payload
-      maintenance_type: "Annual",        // FIXED: Added hardcoded maintenance_type
+      location_country: fullCountryName, 
+      maintenance_type: "Annual",        
       date_of_maintenance: e.target.date_of_maintenance.value,
       engineer_name: engName,
       engineer_email: engEmail,
@@ -201,8 +210,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       <Head>
         <title>{unit?.serial_number} | Annual Maintenance</title>
         <style>{`
-          /* REMOVED .form-scope background color block */
-
           .form-scope .checklist-form-card {
             background: #152a31 !important;
             padding: 38px !important;
