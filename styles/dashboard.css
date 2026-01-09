@@ -5,7 +5,8 @@
 
 /* --- 1. BASE AND LAYOUT --- */
 
-.dashboard-scope html {
+/* Amended to target scope directly as html/body are outside the React tree */
+.dashboard-scope {
     font-family: 'Montserrat', sans-serif;
     box-sizing: border-box;
 }
@@ -16,16 +17,14 @@
     box-sizing: inherit;
 }
 
-.dashboard-scope body {
+/* Amended: Target the wrapper for background/padding to ensure mobile consistency */
+.dashboard-scope .swift-main-layout-wrapper {
     margin: 0;
     padding: 0 40px; /* Base desktop padding */
     background: transparent; 
     font-family: 'Montserrat', sans-serif; 
     color: #ffffff;
     overflow-x: hidden;
-}
-
-.dashboard-scope .swift-main-layout-wrapper {
     position: relative;
     min-height: 100vh;
     min-height: 100dvh;
@@ -306,7 +305,8 @@
 /* --- 7. MEDIA QUERIES --- */
 
 @media (max-width: 900px) {
-    .dashboard-scope body {
+    /* Changed to target wrapper */
+    .dashboard-scope .swift-main-layout-wrapper {
         padding: 0; 
     }
 
@@ -390,7 +390,8 @@
 
 
 @media (max-width: 600px) {
-    .dashboard-scope body {
+    /* Changed to target wrapper */
+    .dashboard-scope .swift-main-layout-wrapper {
         padding: 0;
     }
     .dashboard-scope .page-wrapper {
