@@ -181,7 +181,7 @@ export default function SwiftUnitPage({
             {/* RIGHT PANEL */}
             <div className="action-panel">
 
-              {/* SINGLE WRAPPER CONTAINING ALL THREE CARDS */}
+              {/* MAINTENANCE SECTION */}
               <div className="maintenance-group-wrapper">
                 <div className="maintenance-card">
                   <h3>Annual<br/>maintenance</h3>
@@ -208,12 +208,18 @@ export default function SwiftUnitPage({
                 <div className="maintenance-card">
                   <h3>Unscheduled<br/>maintenance</h3>
                   <p className="description">
-                    To be completed in accordance with Section 7.1.3 – Unscheduled and Corrective Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.
+                    To be completed in accordance with the SWIFT Survivor Recovery System Maintenance Manual.
                   </p>
                   <Link href={`/swift/${publicToken}/unscheduled`} className="start-btn">
                     Start maintenance
                   </Link>
                 </div>
+
+                {/* This empty div acts as a flex-spacer to keep the 3rd card at 50% width on desktop */}
+                <div 
+                  className="maintenance-card" 
+                  style={{ visibility: 'hidden', border: 'none', background: 'none', padding: 0 }}
+                ></div>
               </div>
 
               {/* DOWNLOADS */}
