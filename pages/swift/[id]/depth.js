@@ -99,18 +99,22 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     if (typeof window === "undefined" || !navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(async (pos) => {
       try {
-        // FIXED: Using accept-language=en-GB for formal country names globally
         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14&accept-language=en-GB`);
         const data = await res.json();
         if (data && data.address) {
           const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
           
-          // Formal country name (e.g., "United Kingdom", "Germany", "Singapore")
-          const country = data.address.country || "";
+          // Formal name for Airtable (e.g. "United Kingdom")
+          const formalCountry = data.address.country || "";
           
-          const combined = loc ? `${loc}, ${country}` : country;
-          setLocationDisplay(prev => (!prev || prev.trim() === "") ? combined : prev);
-          setLocationCountry(country); 
+          // Short code for UI (e.g. "UK")
+          const displayCountry = data.address.country_code ? data.address.country_code.toUpperCase() : formalCountry;
+          const shortCountry = displayCountry === "GB" ? "UK" : displayCountry;
+
+          const combinedDisplay = loc ? `${loc}, ${shortCountry}` : shortCountry;
+          
+          setLocationDisplay(prev => (!prev || prev.trim() === "") ? combinedDisplay : prev);
+          setLocationCountry(formalCountry); 
         }
       } catch (err) { console.error("Geo fetch error", err); }
     }, null, { enableHighAccuracy: true, timeout: 8000 });

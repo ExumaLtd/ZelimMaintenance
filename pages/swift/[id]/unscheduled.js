@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head"; 
+import Image from "next/image";
 import { UploadDropzone } from "../../../utils/uploadthing"; 
 
 function autoGrow(e) {
   const el = e.target || e; 
-  el.style.height = "72px"; 
+  // Base height matched to CSS min-height (78px) to prevent shrinking on mobile
+  el.style.height = "78px"; 
   const newHeight = el.scrollHeight;
   el.style.height = newHeight + "px";
 }
@@ -36,6 +38,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
   const [today, setToday] = useState("");
   
   const [locationDisplay, setLocationDisplay] = useState(""); 
+  const [locationCountry, setLocationCountry] = useState(""); 
   const [selectedCompany, setSelectedCompany] = useState("");
   const [engName, setEngName] = useState("");
   const [engEmail, setEngEmail] = useState("");
@@ -51,7 +54,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
     if (!selectedCompany) return [];
     let list = allEngineers.filter(e => e.companyName === selectedCompany);
     list = list.filter(e => e.name !== engName);
-    
     if (engName && engName !== "Please select" && engName.trim() !== "") {
       const search = engName.toLowerCase();
       const matches = list.filter(e => e.name.toLowerCase().includes(search));
@@ -81,6 +83,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
         const data = JSON.parse(savedDraft);
         if (data.maintained_by) setSelectedCompany(data.maintained_by);
         if (data.location_display) setLocationDisplay(data.location_display);
+        if (data.location_country) setLocationCountry(data.location_country);
         if (data.engineer_name) setEngName(data.engineer_name);
         if (data.engineer_email) setEngEmail(data.engineer_email);
         if (data.engineer_phone) setEngPhone(data.engineer_phone);
@@ -96,15 +99,22 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
     if (typeof window === "undefined" || !navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(async (pos) => {
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14`, {
-          headers: { 'Accept-Language': 'en' }
-        });
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14&accept-language=en-GB`);
         const data = await res.json();
         if (data && data.address) {
           const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
-          const country = data.address.country_code === 'gb' ? 'UK' : (data.address.country || "");
-          const combined = loc ? `${loc}, ${country}` : country;
-          setLocationDisplay(prev => (!prev || prev.trim() === "") ? combined : prev);
+          
+          // Formal name for Airtable submission (e.g. "United Kingdom")
+          const formalCountry = data.address.country || "";
+          
+          // Abbreviated code for UI Display (e.g. "UK")
+          const displayCountry = data.address.country_code ? data.address.country_code.toUpperCase() : formalCountry;
+          const shortCountry = displayCountry === "GB" ? "UK" : displayCountry;
+
+          const combinedDisplay = loc ? `${loc}, ${shortCountry}` : shortCountry;
+          
+          setLocationDisplay(prev => (!prev || prev.trim() === "") ? combinedDisplay : prev);
+          setLocationCountry(formalCountry); 
         }
       } catch (err) { console.error("Geo fetch error", err); }
     }, null, { enableHighAccuracy: true, timeout: 8000 });
@@ -114,6 +124,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
     const draftData = {
       maintained_by: selectedCompany,
       location_display: locationDisplay,
+      location_country: locationCountry,
       engineer_name: engName,
       engineer_email: engEmail,
       engineer_phone: engPhone,
@@ -121,7 +132,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       ...answers
     };
     localStorage.setItem(storageKey, JSON.stringify(draftData));
-  }, [selectedCompany, locationDisplay, engName, engEmail, engPhone, photoUrls, answers, storageKey]);
+  }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, photoUrls, answers, storageKey]);
 
   const selectCompany = (company) => {
     setSelectedCompany(company);
@@ -152,11 +163,14 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       setErrorMsg("Please select both a company and an engineer.");
       return;
     }
+
     setSubmitting(true);
+
     const payload = {
-      maintenance_type: "Unscheduled", 
       maintained_by: selectedCompany,
       location_display: locationDisplay,
+      location_country: locationCountry, // Sends formal "United Kingdom" to Airtable
+      maintenance_type: "Unscheduled",        
       date_of_maintenance: e.target.date_of_maintenance.value,
       engineer_name: engName,
       engineer_email: engEmail,
@@ -191,15 +205,22 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       <Head>
         <title>{unit?.serial_number} | Unscheduled Maintenance</title>
         <style>{`
-          .checklist-form-card {
+          .form-scope .checklist-form-card {
             background: #152a31 !important;
             padding: 38px !important;
             border-radius: 20px !important;
             width: 100%;
             text-align: left;
+            box-sizing: border-box;
           }
-          .checklist-input, 
-          .checklist-textarea {
+
+          .form-scope .checklist-submit:hover {
+            background-color: #01e6dd !important;
+            cursor: pointer;
+          }
+
+          .form-scope .checklist-input, 
+          .form-scope .checklist-textarea {
             background-color: #27454b !important;
             border: 1px solid transparent !important;
             padding: 14px 16px !important;
@@ -208,26 +229,35 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
             width: 100%;
             display: block;
             color: #F7F7F7;
+            min-height: 48px !important;
+            line-height: 20px !important;
+            box-sizing: border-box !important;
           }
-          .checklist-input:focus,
-          .checklist-textarea:focus {
+          .form-scope .checklist-textarea {
+            min-height: 78px !important;
+            resize: none !important;
+            overflow: hidden;
+          }
+          .form-scope .checklist-input:focus,
+          .form-scope .checklist-textarea:focus {
             border-color: #00FFF6 !important;
             border-width: 1px !important;
             outline: none;
           }
-          .field-icon-wrapper {
+          .form-scope .field-icon-wrapper {
             position: relative;
             display: flex;
             align-items: center;
           }
-          .field-icon-wrapper i {
+          .form-scope .field-icon-wrapper i {
             position: absolute;
             right: 16px;
             color: #f7f7f7;
             pointer-events: none;
           }
-          .custom-dropdown-container { position: relative; width: 100%; }
-          .custom-dropdown-list {
+
+          .form-scope .custom-dropdown-container { position: relative; width: 100%; }
+          .form-scope .custom-dropdown-list {
             position: absolute;
             top: calc(100% + 8px);
             left: 0;
@@ -243,7 +273,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
             max-height: 250px;
             overflow-y: auto;
           }
-          .custom-dropdown-item {
+          .form-scope .custom-dropdown-item {
             padding: 6px 16px;
             color: #F7F7F7;
             cursor: pointer;
@@ -252,17 +282,18 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
             border-radius: 4px;
             transition: background 0.15s ease, color 0.15s ease;
           }
-          .custom-dropdown-item:hover,
-          .custom-dropdown-item.active { 
+          .form-scope .custom-dropdown-item:hover,
+          .form-scope .custom-dropdown-item.active { 
             background: #476166;
             color: #F7F7F7;
           }
-          input[type="date"]::-webkit-calendar-picker-indicator {
+
+          .form-scope input[type="date"]::-webkit-calendar-picker-indicator {
             background: transparent; bottom: 0; color: transparent; cursor: pointer;
             height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto;
           }
           @media (max-width: 600px) {
-            .checklist-form-card { padding: 30px 24px !important; }
+            .form-scope .checklist-form-card { padding: 30px 24px !important; }
           }
         `}</style>
       </Head>
@@ -300,7 +331,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                       </div>
                       {showCompanyDropdown && (
                         <ul className="custom-dropdown-list">
-                          {[...allCompanies].sort().map((c, i) => (
+                          {allCompanies.sort().map((c, i) => (
                             <li 
                                 key={i} 
                                 className={`custom-dropdown-item ${selectedCompany === c ? 'active' : ''}`} 
@@ -431,6 +462,18 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
             </div>
           </div>
         </div>
+
+        <footer className="footer-section">
+          <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
+            <Image 
+              src="/logo/zelim-logo.svg" 
+              width={120} 
+              height={40} 
+              alt="Zelim logo" 
+              style={{ opacity: 1 }}
+            />
+          </a>
+        </footer>
       </div>
     </div>
   );
@@ -438,47 +481,35 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
 
 export async function getServerSideProps({ params }) {
   const token = params.id;
-  const apiKey = process.env.AIRTABLE_API_KEY;
-  const baseId = process.env.AIRTABLE_BASE_ID;
-  const tableName = process.env.AIRTABLE_SWIFT_TABLE || "swift_units"; 
-  
-  if (!apiKey || !baseId) throw new Error("Missing Airtable Env");
-  const headers = { Authorization: `Bearer ${apiKey}` };
-
   try {
+    const apiKey = process.env.AIRTABLE_API_KEY;
+    const baseId = process.env.AIRTABLE_BASE_ID;
+    const tableName = process.env.AIRTABLE_SWIFT_TABLE || "swift_units"; 
+    
+    if (!apiKey || !baseId) throw new Error("Missing Airtable Env");
+
+    const headers = { Authorization: `Bearer ${apiKey}` };
     const unitFormula = encodeURIComponent(`{public_token}='${token}'`);
-    const unitRes = await fetch(`https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${unitFormula}`, { headers });
-    const unitData = await unitRes.json();
+    const templateFormula = encodeURIComponent(`{type}='Unscheduled'`);
+
+    const urls = [
+      `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${unitFormula}`,
+      `https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula=${templateFormula}`,
+      `https://api.airtable.com/v0/${baseId}/maintenance_companies`,
+      `https://api.airtable.com/v0/${baseId}/engineers`
+    ];
+
+    const responses = await Promise.all(urls.map(url => fetch(url, { headers })));
+    const results = await Promise.all(responses.map(res => res.json()));
+    
+    const [unitData, templateData, companyData, engineerData] = results;
     
     if (!unitData.records || unitData.records.length === 0) return { notFound: true };
+
     const unitRecord = unitData.records[0];
-
-    // UPDATED: Filter by "Unscheduled" type for this page
-    const templateFormula = encodeURIComponent(`{type}='Unscheduled'`);
-    const templateRes = await fetch(`https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula=${templateFormula}`, { headers });
-    const templateData = await templateRes.json();
-
-    const [companyRes, engineerRes] = await Promise.all([
-      fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies`, { headers }),
-      fetch(`https://api.airtable.com/v0/${baseId}/engineers`, { headers })
-    ]);
-    const companyData = await companyRes.json();
-    const engineerData = await engineerRes.json();
-
     const companyLookup = {};
     if (companyData.records) {
       companyData.records.forEach(r => { if (r.fields.company_name) companyLookup[r.id] = r.fields.company_name; });
-    }
-
-    let questions = [];
-    const rawJson = templateData.records?.[0]?.fields.questions_json;
-    if (rawJson) {
-      try {
-        questions = JSON.parse(rawJson);
-      } catch (e) {
-        console.error("JSON Parse Error in Airtable Template:", e.message);
-        questions = ["ERROR: Template JSON in Airtable is invalid."];
-      }
     }
     
     return {
@@ -491,7 +522,7 @@ export async function getServerSideProps({ params }) {
         },
         template: { 
           id: templateData.records?.[0]?.id || "", 
-          questions: questions
+          questions: templateData.records?.[0]?.fields.questions_json ? JSON.parse(templateData.records[0].fields.questions_json) : []
         },
         allCompanies: Object.values(companyLookup).filter(Boolean),
         allEngineers: engineerData.records?.map(r => ({ 
