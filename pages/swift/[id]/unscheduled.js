@@ -453,6 +453,7 @@ export async function getServerSideProps({ params }) {
     if (!unitData.records || unitData.records.length === 0) return { notFound: true };
     const unitRecord = unitData.records[0];
 
+    // UPDATED: Filter by "Unscheduled" type for this page
     const templateFormula = encodeURIComponent(`{type}='Unscheduled'`);
     const templateRes = await fetch(`https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula=${templateFormula}`, { headers });
     const templateData = await templateRes.json();

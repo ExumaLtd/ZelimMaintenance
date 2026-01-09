@@ -4,14 +4,15 @@ import Head from "next/head";
 const getClientLogo = (companyName, serialNumber) => {
   const sn = serialNumber || "";
   const cn = companyName || "";
+  // Adjust logo logic as needed based on your assets
   if (["SWI001", "SWI002"].includes(sn) || cn.includes("Changi")) {
-    return { src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg", alt: "Logo" };
+    return { src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg", alt: "Changi Airport Group" };
   }
   if (sn === "SWI003" || cn.includes("Milford Haven")) {
-    return { src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg", alt: "Logo" };
+    return { src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg", alt: "Port of Milford Haven" };
   }
   if (["SWI010", "SWI011"].includes(sn) || cn.includes("Hatloy")) {
-    return { src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg", alt: "Logo" };
+    return { src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg", alt: "Hatloy Maritime" };
   }
   return null;
 };
@@ -29,7 +30,7 @@ export default function UnitDashboard({ unit }) {
         <div className="page-wrapper">
           <div className="swift-dashboard-container">
             
-            {/* DETAIL PANEL (Left) */}
+            {/* LEFT PANEL: Details & Logo */}
             <div className="detail-panel">
               <div className="logo-section">
                 {logo && <img src={logo.src} alt={logo.alt} />}
@@ -52,11 +53,11 @@ export default function UnitDashboard({ unit }) {
               </div>
             </div>
 
-            {/* ACTION PANEL (Right) */}
+            {/* RIGHT PANEL: 3 Maintenance Cards */}
             <div className="action-panel">
               <div className="maintenance-group-wrapper">
                 
-                {/* Annual Maintenance */}
+                {/* 1. Annual */}
                 <div className="maintenance-card">
                   <h3>Annual Maintenance</h3>
                   <p className="description">Standard yearly inspection and certification check.</p>
@@ -65,7 +66,7 @@ export default function UnitDashboard({ unit }) {
                   </Link>
                 </div>
 
-                {/* Unscheduled Maintenance */}
+                {/* 2. Unscheduled */}
                 <div className="maintenance-card">
                   <h3>Unscheduled Maintenance</h3>
                   <p className="description">To be completed in accordance with the SWIFT Survivor Recovery System Maintenance Manual.</p>
@@ -74,7 +75,7 @@ export default function UnitDashboard({ unit }) {
                   </Link>
                 </div>
 
-                {/* Depth Maintenance */}
+                {/* 3. Depth */}
                 <div className="maintenance-card">
                   <h3>Depth Maintenance</h3>
                   <p className="description">Extended 3-year or 5-year heavy maintenance cycle.</p>
