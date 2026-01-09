@@ -6,7 +6,6 @@ import { UploadDropzone } from "../../../utils/uploadthing";
 
 function autoGrow(e) {
   const el = e.target || e; 
-  // Base height matched to CSS min-height (78px) to prevent shrinking on mobile
   el.style.height = "78px"; 
   const newHeight = el.scrollHeight;
   el.style.height = newHeight + "px";
@@ -103,16 +102,10 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
         const data = await res.json();
         if (data && data.address) {
           const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
-          
-          // Formal name for Airtable (e.g. "United Kingdom")
           const formalCountry = data.address.country || "";
-          
-          // Short code for UI (e.g. "UK")
           const displayCountry = data.address.country_code ? data.address.country_code.toUpperCase() : formalCountry;
           const shortCountry = displayCountry === "GB" ? "UK" : displayCountry;
-
           const combinedDisplay = loc ? `${loc}, ${shortCountry}` : shortCountry;
-          
           setLocationDisplay(prev => (!prev || prev.trim() === "") ? combinedDisplay : prev);
           setLocationCountry(formalCountry); 
         }
@@ -163,13 +156,11 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       setErrorMsg("Please select both a company and an engineer.");
       return;
     }
-
     setSubmitting(true);
-
     const payload = {
       maintained_by: selectedCompany,
       location_display: locationDisplay,
-      location_country: locationCountry, // Sends formal name from state
+      location_country: locationCountry,
       maintenance_type: "Depth",        
       date_of_maintenance: e.target.date_of_maintenance.value,
       engineer_name: engName,
@@ -204,98 +195,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     <div className="form-scope">
       <Head>
         <title>{unit?.serial_number} | Depth Maintenance</title>
-        <style>{`
-          .form-scope .checklist-form-card {
-            background: #152a31 !important;
-            padding: 38px !important;
-            border-radius: 20px !important;
-            width: 100%;
-            text-align: left;
-            box-sizing: border-box;
-          }
-
-          .form-scope .checklist-submit:hover {
-            background-color: #01e6dd !important;
-            cursor: pointer;
-          }
-
-          .form-scope .checklist-input, 
-          .form-scope .checklist-textarea {
-            background-color: #27454b !important;
-            border: 1px solid transparent !important;
-            padding: 14px 16px !important;
-            font-family: 'Montserrat', sans-serif;
-            border-radius: 8px !important;
-            width: 100%;
-            display: block;
-            color: #F7F7F7;
-            min-height: 48px !important;
-            line-height: 20px !important;
-            box-sizing: border-box !important;
-          }
-          .form-scope .checklist-textarea {
-            min-height: 78px !important;
-            resize: none !important;
-            overflow: hidden;
-          }
-          .form-scope .checklist-input:focus,
-          .form-scope .checklist-textarea:focus {
-            border-color: #00FFF6 !important;
-            border-width: 1px !important;
-            outline: none;
-          }
-          .form-scope .field-icon-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-          }
-          .form-scope .field-icon-wrapper i {
-            position: absolute;
-            right: 16px;
-            color: #f7f7f7;
-            pointer-events: none;
-          }
-
-          .form-scope .custom-dropdown-container { position: relative; width: 100%; }
-          .form-scope .custom-dropdown-list {
-            position: absolute;
-            top: calc(100% + 8px);
-            left: 0;
-            right: 0;
-            background: #27454B;
-            border: 1px solid #00FFF6 !important;
-            border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(21, 42, 49, 0.4);
-            margin: 0;
-            padding: 6px 6px;
-            list-style: none;
-            z-index: 1000;
-            max-height: 250px;
-            overflow-y: auto;
-          }
-          .form-scope .custom-dropdown-item {
-            padding: 6px 16px;
-            color: #F7F7F7;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 400;
-            border-radius: 4px;
-            transition: background 0.15s ease, color 0.15s ease;
-          }
-          .form-scope .custom-dropdown-item:hover,
-          .form-scope .custom-dropdown-item.active { 
-            background: #476166;
-            color: #F7F7F7;
-          }
-
-          .form-scope input[type="date"]::-webkit-calendar-picker-indicator {
-            background: transparent; bottom: 0; color: transparent; cursor: pointer;
-            height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto;
-          }
-          @media (max-width: 600px) {
-            .form-scope .checklist-form-card { padding: 30px 24px !important; }
-          }
-        `}</style>
       </Head>
 
       <div className="swift-main-layout-wrapper">
@@ -317,26 +216,17 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                       <div className="field-icon-wrapper">
                         <input 
                           readOnly
-                          className="checklist-input" 
+                          className={`checklist-input ${selectedCompany ? 'is-active' : 'is-placeholder'} ${showCompanyDropdown ? 'is-focused' : ''}`} 
                           value={selectedCompany || "Please select"}
                           onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
-                          style={{ 
-                            color: selectedCompany ? '#F7F7F7' : '#7d8f93', 
-                            cursor: 'pointer',
-                            borderColor: showCompanyDropdown ? '#00FFF6' : 'transparent',
-                            paddingRight: '40px'
-                          }}
+                          style={{ cursor: 'pointer', paddingRight: '40px' }}
                         />
                         <i className={showCompanyDropdown ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}></i>
                       </div>
                       {showCompanyDropdown && (
                         <ul className="custom-dropdown-list">
                           {allCompanies.sort().map((c, i) => (
-                            <li 
-                                key={i} 
-                                className={`custom-dropdown-item ${selectedCompany === c ? 'active' : ''}`} 
-                                onClick={() => selectCompany(c)}
-                            >
+                            <li key={i} className={`custom-dropdown-item ${selectedCompany === c ? 'active' : ''}`} onClick={() => selectCompany(c)}>
                               {c}
                             </li>
                           ))}
@@ -347,26 +237,12 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
                   <div className="checklist-field">
                     <label className="checklist-label">Location</label>
-                    <input 
-                      className="checklist-input" 
-                      name="location_display" 
-                      required 
-                      value={locationDisplay} 
-                      onChange={(e) => setLocationDisplay(e.target.value)}
-                    />
+                    <input className="checklist-input" name="location_display" required value={locationDisplay} onChange={(e) => setLocationDisplay(e.target.value)} />
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Date</label>
                     <div className="field-icon-wrapper">
-                      <input 
-                        type="date" 
-                        className="checklist-input" 
-                        name="date_of_maintenance" 
-                        defaultValue={today} 
-                        max={today} 
-                        required 
-                        style={{ paddingRight: '40px' }}
-                      />
+                      <input type="date" className="checklist-input" name="date_of_maintenance" defaultValue={today} max={today} required style={{ paddingRight: '40px' }} />
                       <i className="fa-regular fa-calendar"></i>
                     </div>
                   </div>
@@ -378,18 +254,14 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                     <div className="custom-dropdown-container">
                       <div className="field-icon-wrapper">
                         <input 
-                          className="checklist-input" 
+                          className={`checklist-input ${(engName === "Please select" || !engName) ? 'is-placeholder' : 'is-active'} ${shouldShowEngDropdown ? 'is-focused' : ''}`} 
                           name="engineer_name" 
                           required 
                           value={engName} 
                           autoComplete="off"
                           onFocus={() => { if(selectedCompany) setShowEngineerDropdown(true); }}
                           onChange={(e) => { setEngName(e.target.value); if(selectedCompany) setShowEngineerDropdown(true); }}
-                          style={{ 
-                            color: (engName === "Please select" || !engName) ? '#7d8f93' : '#F7F7F7',
-                            borderColor: shouldShowEngDropdown ? '#00FFF6' : 'transparent',
-                            paddingRight: (selectedCompany && (hasEngineerResults || hasClearEng)) ? '40px' : '16px'
-                          }}
+                          style={{ paddingRight: (selectedCompany && (hasEngineerResults || hasClearEng)) ? '40px' : '16px' }}
                         />
                         {(selectedCompany && (hasEngineerResults || hasClearEng)) && (
                            <i className={showEngineerDropdown ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}></i>
@@ -398,9 +270,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                       {shouldShowEngDropdown && (
                         <ul className="custom-dropdown-list">
                           {hasClearEng && (
-                            <li className="custom-dropdown-item" onClick={clearEngineer}>
-                               Clear details
-                            </li>
+                            <li className="custom-dropdown-item" onClick={clearEngineer}>Clear details</li>
                           )}
                           {filteredEngineers.map((eng, i) => (
                             <li key={i} className="custom-dropdown-item" onClick={() => selectEngineer(eng)}>
@@ -413,37 +283,18 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer email</label>
-                    <input 
-                      type="email" 
-                      className="checklist-input" 
-                      name="engineer_email" 
-                      required 
-                      value={engEmail} 
-                      onChange={(e) => setEngEmail(e.target.value)} 
-                    />
+                    <input type="email" className="checklist-input" name="engineer_email" required value={engEmail} onChange={(e) => setEngEmail(e.target.value)} />
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer phone</label>
-                    <input 
-                      type="tel" 
-                      className="checklist-input" 
-                      name="engineer_phone" 
-                      value={engPhone} 
-                      onChange={(e) => setEngPhone(e.target.value)} 
-                    />
+                    <input type="tel" className="checklist-input" name="engineer_phone" value={engPhone} onChange={(e) => setEngPhone(e.target.value)} />
                   </div>
                 </div>
 
                 {(template?.questions || []).map((q, i) => (
                   <div key={i} style={{ marginTop: '24px' }}>
                     <label className="checklist-label">{q}</label>
-                    <textarea 
-                      name={`q${i + 1}`} 
-                      className="checklist-textarea" 
-                      onInput={autoGrow} 
-                      value={answers[`q${i+1}`] || ""}
-                      onChange={(e) => setAnswers(prev => ({ ...prev, [e.target.name]: e.target.value }))}
-                    />
+                    <textarea name={`q${i + 1}`} className="checklist-textarea" onInput={autoGrow} value={answers[`q${i+1}`] || ""} onChange={(e) => setAnswers(prev => ({ ...prev, [e.target.name]: e.target.value }))} />
                   </div>
                 ))}
 
@@ -465,13 +316,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
         <footer className="footer-section">
           <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
-            <Image 
-              src="/logo/zelim-logo.svg" 
-              width={120} 
-              height={40} 
-              alt="Zelim logo" 
-              style={{ opacity: 1 }}
-            />
+            <Image src="/logo/zelim-logo.svg" width={120} height={40} alt="Zelim logo" />
           </a>
         </footer>
       </div>
@@ -485,7 +330,6 @@ export async function getServerSideProps({ params }) {
     const apiKey = process.env.AIRTABLE_API_KEY;
     const baseId = process.env.AIRTABLE_BASE_ID;
     const tableName = process.env.AIRTABLE_SWIFT_TABLE || "swift_units"; 
-    
     if (!apiKey || !baseId) throw new Error("Missing Airtable Env");
 
     const headers = { Authorization: `Bearer ${apiKey}` };
@@ -501,7 +345,6 @@ export async function getServerSideProps({ params }) {
 
     const responses = await Promise.all(urls.map(url => fetch(url, { headers })));
     const results = await Promise.all(responses.map(res => res.json()));
-    
     const [unitData, templateData, companyData, engineerData] = results;
     
     if (!unitData.records || unitData.records.length === 0) return { notFound: true };
@@ -534,7 +377,6 @@ export async function getServerSideProps({ params }) {
       }
     };
   } catch (err) { 
-    console.error("Server Error:", err.message);
     return { notFound: true }; 
   }
 }
