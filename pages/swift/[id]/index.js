@@ -27,59 +27,73 @@ export default function UnitDashboard({ unit }) {
 
       <div className="swift-main-layout-wrapper">
         <div className="page-wrapper">
-          <div className="swift-checklist-container">
-            {logo && <div className="checklist-logo"><img src={logo.src} alt={logo.alt} /></div>}
+          <div className="swift-dashboard-container">
+            
+            {/* DETAIL PANEL (Left) */}
+            <div className="detail-panel">
+              <div className="logo-section">
+                {logo && <img src={logo.src} alt={logo.alt} />}
+              </div>
+              
+              <h1 className="portal-title">
+                <span className="title-line">{unit?.serial_number}</span>
+                <span className="title-line">maintenance dashboard</span>
+              </h1>
 
-            <h1 className="checklist-hero-title">
-              {unit?.serial_number}
-              <span className="break-point">maintenance dashboard</span>
-            </h1>
-
-            <div className="dashboard-grid">
-              {/* Annual Maintenance Card */}
-              <Link href={`/swift/${unit.public_token}/annual`} className="maintenance-card">
-                <div className="card-content">
-                  <div className="card-icon">
-                    <i className="fa-solid fa-calendar-check"></i>
-                  </div>
-                  <div className="card-text">
-                    <h3>Annual Maintenance</h3>
-                    <p>Standard yearly inspection and certification check.</p>
-                  </div>
+              <div className="maintenance-details">
+                <div className="detail-item">
+                  <p className="detail-label">Client</p>
+                  <p className="detail-value">{unit?.company || "N/A"}</p>
                 </div>
-                <i className="fa-solid fa-chevron-right arrow-icon"></i>
-              </Link>
-
-              {/* Unscheduled Maintenance Card - UPDATED WITH GENERIC TEXT */}
-              <Link href={`/swift/${unit.public_token}/unscheduled`} className="maintenance-card">
-                <div className="card-content">
-                  <div className="card-icon">
-                    <i className="fa-solid fa-screwdriver-wrench"></i>
-                  </div>
-                  <div className="card-text">
-                    <h3>Unscheduled Maintenance</h3>
-                    <p>To be completed in accordance with the SWIFT Survivor Recovery System Maintenance Manual.</p>
-                  </div>
+                <div className="detail-item">
+                  <p className="detail-label">Status</p>
+                  <p className="detail-value">Operational</p>
                 </div>
-                <i className="fa-solid fa-chevron-right arrow-icon"></i>
-              </Link>
-
-              {/* Depth Maintenance Card */}
-              <Link href={`/swift/${unit.public_token}/depth`} className="maintenance-card">
-                <div className="card-content">
-                  <div className="card-icon">
-                    <i className="fa-solid fa-gears"></i>
-                  </div>
-                  <div className="card-text">
-                    <h3>Depth Maintenance</h3>
-                    <p>Extended 3-year or 5-year heavy maintenance cycle.</p>
-                  </div>
-                </div>
-                <i className="fa-solid fa-chevron-right arrow-icon"></i>
-              </Link>
+              </div>
             </div>
+
+            {/* ACTION PANEL (Right) */}
+            <div className="action-panel">
+              <div className="maintenance-group-wrapper">
+                
+                {/* Annual Maintenance */}
+                <div className="maintenance-card">
+                  <h3>Annual Maintenance</h3>
+                  <p className="description">Standard yearly inspection and certification check.</p>
+                  <Link href={`/swift/${unit.public_token}/annual`} className="start-btn">
+                    Start check <i className="fa-solid fa-chevron-right"></i>
+                  </Link>
+                </div>
+
+                {/* Unscheduled Maintenance */}
+                <div className="maintenance-card">
+                  <h3>Unscheduled Maintenance</h3>
+                  <p className="description">To be completed in accordance with the SWIFT Survivor Recovery System Maintenance Manual.</p>
+                  <Link href={`/swift/${unit.public_token}/unscheduled`} className="start-btn">
+                    Start report <i className="fa-solid fa-chevron-right"></i>
+                  </Link>
+                </div>
+
+                {/* Depth Maintenance */}
+                <div className="maintenance-card">
+                  <h3>Depth Maintenance</h3>
+                  <p className="description">Extended 3-year or 5-year heavy maintenance cycle.</p>
+                  <Link href={`/swift/${unit.public_token}/depth`} className="start-btn">
+                    Start check <i className="fa-solid fa-chevron-right"></i>
+                  </Link>
+                </div>
+
+              </div>
+            </div>
+
           </div>
         </div>
+      </div>
+
+      <div className="fixed-zelim-logo">
+        <a href="https://www.zelim.ai" target="_blank" rel="noreferrer">
+          <img src="/Zelim_Logo(White).svg" alt="Zelim Logo" />
+        </a>
       </div>
     </div>
   );
@@ -91,18 +105,15 @@ export async function getServerSideProps({ params }) {
   const baseId = process.env.AIRTABLE_BASE_ID;
   const tableName = process.env.AIRTABLE_SWIFT_TABLE || "swift_units";
 
-  if (!apiKey || !baseId) throw new Error("Missing Airtable Env");
-
   try {
     const unitFormula = encodeURIComponent(`{public_token}='${token}'`);
     const res = await fetch(`https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${unitFormula}`, {
       headers: { Authorization: `Bearer ${apiKey}` }
     });
     const data = await res.json();
-
     if (!data.records || data.records.length === 0) return { notFound: true };
-
     const record = data.records[0];
+
     return {
       props: {
         unit: {
@@ -112,8 +123,8 @@ export async function getServerSideProps({ params }) {
         }
       }
     };
-  } catch (err) {
+  } catch (err) { 
     console.error("Dashboard Server Error:", err.message);
-    return { notFound: true };
+    return { notFound: true }; 
   }
 }

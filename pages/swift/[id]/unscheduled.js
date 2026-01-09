@@ -300,7 +300,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                       </div>
                       {showCompanyDropdown && (
                         <ul className="custom-dropdown-list">
-                          {allCompanies.sort().map((c, i) => (
+                          {[...allCompanies].sort().map((c, i) => (
                             <li 
                                 key={i} 
                                 className={`custom-dropdown-item ${selectedCompany === c ? 'active' : ''}`} 
