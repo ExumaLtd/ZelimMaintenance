@@ -291,7 +291,7 @@
 
 .dashboard-scope .footer-section {
     width: 100%;
-    padding: 40px 0 40px; /* Reduced from 80px top padding */
+    padding: 20px 0 40px;
     display: flex;
     justify-content: center;
     flex-shrink: 0;
