@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     engineer_name, 
     engineer_email,
     engineer_phone,
-    date_of_maintenance, // This is the value coming from your form picker
+    date_of_maintenance, 
     maintenance_type,
     location_display,
     location_town,
@@ -60,18 +60,15 @@ export default async function handler(req, res) {
       engineerRecordId = newEngData.id;
     }
 
-    const submissionTimestamp = new Date().toISOString();
-
-    // 3. SUBMIT TO MAINTENANCE_LOGS
-    // UPDATED: Column name changed to "date_and_time_of_maintenance"
+    // 3. SUBMIT TO THE NEW HISTORY LOG (Maintenance Logs)
+    // Removed "submitted_at" as per your latest Airtable structure
     const logRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_logs`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         fields: {
           "unit_link": [unit_record_id],
-          "date_and_time_of_maintenance": date_of_maintenance, // Updated name
-          "submitted_at": submissionTimestamp, 
+          "date_and_time_of_maintenance": date_of_maintenance, // Matches your renamed column
           "maintenance_type": maintenance_type,
           "engineer_name": engineer_name,
           "engineer_email": engineer_email,
@@ -82,7 +79,7 @@ export default async function handler(req, res) {
       })
     });
 
-    // 4. Submit to current Maintenance Check
+    // 4. Submit to current Maintenance Check (Legacy Table)
     const finalTown = location_town || location_display || "";
     const checkRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_checks`, {
       method: 'POST',
@@ -92,7 +89,7 @@ export default async function handler(req, res) {
           "unit": [unit_record_id],
           "maintained_by": companyRecordId ? [companyRecordId] : [],
           "engineer_name": [engineerRecordId],
-          "date_of_maintenance": date_of_maintenance, // Keep this as is for the dashboard table
+          "date_of_maintenance": date_of_maintenance,
           "maintenance_type": maintenance_type,
           "location_display": location_display || "",
           "location_town": finalTown,
@@ -105,7 +102,11 @@ export default async function handler(req, res) {
     });
 
     if (!checkRes.ok || !logRes.ok) {
-      throw new Error(`Airtable Error: Check status ${checkRes.status}, Log status ${logRes.status}`);
+      const logText = await logRes.text();
+      const checkText = await checkRes.text();
+      console.error("Log Error:", logText);
+      console.error("Check Error:", checkText);
+      throw new Error(`Airtable Error: Submission failed.`);
     }
 
     return res.status(200).json({ success: true });
