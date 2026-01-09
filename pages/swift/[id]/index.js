@@ -132,12 +132,12 @@ export default function SwiftUnitPage({
   const logoProps = getClientLogo(companyName, serialNumber);
 
   return (
-    <div className="dashboard-scope">
+    <div className="dashboard-scope" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <Head>
         <title>{companyName} Maintenance Portal</title>
       </Head>
 
-      <div className="swift-main-layout-wrapper">
+      <div className="swift-main-layout-wrapper" style={{ flex: '1 0 auto' }}>
         <div className="page-wrapper">
           <div className="swift-dashboard-container">
             
@@ -261,15 +261,26 @@ export default function SwiftUnitPage({
             </div>
           </div>
         </div>
-
-        {/* Fixed Zelim logo */}
-        <div className="zelim-spacer"></div>
-        <div className="fixed-zelim-logo">
-          <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
-            <Image src="/logo/zelim-logo.svg" width={80} height={20} alt="Zelim logo" />
-          </a>
-        </div>
       </div>
+
+      {/* FOOTER LOGO - Fixed position relative to content, pushes to bottom of screen */}
+      <footer style={{ 
+        width: '100%', 
+        padding: '60px 0 40px', 
+        display: 'flex', 
+        justifyContent: 'center', 
+        flexShrink: 0 
+      }}>
+        <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
+          <Image 
+            src="/logo/zelim-logo.svg" 
+            width={100} 
+            height={30} 
+            alt="Zelim logo" 
+            style={{ opacity: 0.8 }}
+          />
+        </a>
+      </footer>
     </div>
   );
 }
