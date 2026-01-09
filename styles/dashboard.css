@@ -1,6 +1,6 @@
 /* =========================================================================
    DASHBOARD SCOPE (dashboard.css)
-   V60: MOBILE HEIGHT & SCROLL FIXES + NO DELETIONS
+   V60: RESTORED ORIGINAL VISUALS + NO SVH
 ========================================================================= */
 
 /* --- 1. BASE AND LAYOUT --- */
@@ -8,10 +8,6 @@
 .dashboard-scope {
     font-family: 'Montserrat', sans-serif;
     box-sizing: border-box;
-    min-height: 100vh;
-    min-height: 100svh; /* Handles mobile browser bars to prevent cropping */
-    width: 100%;
-    background-color: #0d1f23;
 }
 
 .dashboard-scope *, 
@@ -29,7 +25,6 @@
     overflow-x: hidden;
     position: relative;
     min-height: 100vh;
-    min-height: 100svh; /* Use Small Viewport Height */
     display: flex;
     flex-direction: column;
     justify-content: space-between; 

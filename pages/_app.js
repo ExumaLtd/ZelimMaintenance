@@ -10,8 +10,8 @@ import { useEffect } from "react";
 
 export default function MyApp({ Component, pageProps }) {
   
-  // Force scroll to top on page load/navigation to prevent logo cropping
   useEffect(() => {
+    // Standard fix to ensure mobile doesn't "jump" down on load
     if ('scrollRestoration' in history) {
       history.scrollRestoration = 'manual';
     }
@@ -28,7 +28,6 @@ export default function MyApp({ Component, pageProps }) {
         <link rel="icon" href="/favicon/ZelimFavicon_192x192.png" />
       </Head>
 
-      {/* Use Next.js Script component for the Font Awesome Kit */}
       <Script 
         src="https://kit.fontawesome.com/7d09bbd1e9.js" 
         crossOrigin="anonymous"
