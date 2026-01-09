@@ -3,7 +3,7 @@ export default function UnscheduledComplete() {
     <div className="swift-checklist-container">
 
       <div className="checklist-logo">
-        <img src="/logos/zelim-logo.png" alt="Zelim Logo" />
+        <img src="/logos/zelim-logo.png" />
       </div>
 
       <h1 className="checklist-hero-title">
