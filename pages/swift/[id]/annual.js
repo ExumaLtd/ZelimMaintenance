@@ -6,7 +6,8 @@ import { UploadDropzone } from "../../../utils/uploadthing";
 
 function autoGrow(e) {
   const el = e.target || e; 
-  el.style.height = "72px"; 
+  // Base height matched to CSS min-height (78px) to prevent shrinking on mobile
+  el.style.height = "78px"; 
   const newHeight = el.scrollHeight;
   el.style.height = newHeight + "px";
 }
@@ -48,14 +49,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
-  // ENGINEER LOGIC: Filter out the selected name from the list below
   const filteredEngineers = useMemo(() => {
     if (!selectedCompany) return [];
     let list = allEngineers.filter(e => e.companyName === selectedCompany);
-    
-    // Remove current selection from the list to avoid repetition
     list = list.filter(e => e.name !== engName);
-    
     if (engName && engName !== "Please select" && engName.trim() !== "") {
       const search = engName.toLowerCase();
       const matches = list.filter(e => e.name.toLowerCase().includes(search));
@@ -185,8 +182,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   }
 
   const logo = getClientLogo(unit?.company, unit?.serial_number);
-
-  // ENGINEER DROPDOWN VISIBILITY LOGIC
   const hasEngineerResults = filteredEngineers.length > 0;
   const hasClearEng = engName && engName !== "Please select" && engName !== "";
   const shouldShowEngDropdown = showEngineerDropdown && (hasEngineerResults || hasClearEng);
@@ -196,6 +191,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       <Head>
         <title>{unit?.serial_number} | Annual Maintenance</title>
         <style>{`
+          .form-scope {
+            background-color: #1a3239 !important;
+            min-height: 100vh;
+          }
           .checklist-form-card {
             background: #152a31 !important;
             padding: 38px !important;
@@ -213,13 +212,14 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             width: 100%;
             display: block;
             color: #F7F7F7;
-            /* HEIGHT LOCK FIX */
             min-height: 48px !important;
             line-height: 20px !important;
             box-sizing: border-box !important;
           }
           .checklist-textarea {
-            min-height: 72px !important;
+            min-height: 78px !important;
+            resize: none !important;
+            overflow: hidden;
           }
           .checklist-input:focus,
           .checklist-textarea:focus {
@@ -446,7 +446,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           </div>
         </div>
 
-        {/* FOOTER SECTION */}
         <footer className="footer-section">
           <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
             <Image 
