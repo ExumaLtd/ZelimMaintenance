@@ -1,6 +1,6 @@
 /* =========================================================================
    DASHBOARD SCOPE (dashboard.css)
-   V50: UPDATED 3-CARD FLEX LAYOUT + 26PX MOBILE MARGIN
+   V51: REMOVED SPACERS AND FIXED LOGO TO FIX INITIAL LOAD VISIBILITY
 ========================================================================= */
 
 /* --- 1. BASE AND LAYOUT --- */
@@ -55,17 +55,6 @@
     margin-bottom: 40px;
     position: relative;
     flex-shrink: 0;
-}
-
-.dashboard-scope .swift-dashboard-container::after {
-    content: "";
-    display: block;
-    position: absolute;
-    bottom: -80px;
-    left: 0;
-    right: 0;
-    height: 80px;
-    grid-column: 1 / -1;
 }
 
 
@@ -294,41 +283,11 @@
 }
 
 
-/* --- 6. FIXED LOGO --- */
+/* --- 6. REMOVED FIXED LOGO LOGIC --- */
+/* Logo is now handled by footer in the index.js file */
 
-.dashboard-scope .fixed-zelim-logo {
-    position: fixed;
-    bottom: 50px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 50;
-    opacity: 1;
-    top: auto;
-    right: auto;
-}
-
-.dashboard-scope .fixed-zelim-logo a {
-    text-decoration: none;
-    display: block;
-}
-
-.dashboard-scope .fixed-zelim-logo img {
-    height: 30px;
-    width: auto;
-}
 
 /* --- 7. MEDIA QUERIES --- */
-
-@media (max-height: 650px) {
-    .dashboard-scope .fixed-zelim-logo {
-        position: static !important;
-        margin-top: 40px;
-        margin-bottom: 40px;
-    }
-    .dashboard-scope .swift-dashboard-container::after {
-        display: none;
-    }
-}
 
 @media (max-width: 900px) {
     .dashboard-scope body {
@@ -345,9 +304,6 @@
     .dashboard-scope .swift-dashboard-container {
         grid-template-columns: 1fr !important;
         margin-top: 26px !important; 
-    }
-    .dashboard-scope .swift-dashboard-container::after {
-        display: none;
     }
 
     .dashboard-scope .detail-panel,
@@ -413,14 +369,6 @@
     .dashboard-scope .maintenance-group-wrapper {
         gap: 20px;
         padding: 20px;
-    }
-
-    .dashboard-scope .fixed-zelim-logo {
-        position: static;
-        transform: none;
-        margin: 40px auto;
-        text-align: center;
-        opacity: 1;
     }
 }
 

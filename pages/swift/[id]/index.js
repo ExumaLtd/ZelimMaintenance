@@ -132,7 +132,6 @@ export default function SwiftUnitPage({
   const logoProps = getClientLogo(companyName, serialNumber);
 
   return (
-    /* flex + justify-content: space-between ensures content is top and footer is bottom */
     <div className="dashboard-scope" style={{ 
       display: 'flex', 
       flexDirection: 'column', 
@@ -267,10 +266,10 @@ export default function SwiftUnitPage({
         </div>
       </div>
 
-      {/* FOOTER LOGO - EXACT size and padding from your live version */}
+      {/* FOOTER LOGO - 120x40 size with 40px bottom padding. */}
       <footer style={{ 
         width: '100%', 
-        padding: '40px 0 40px', 
+        padding: '80px 0 40px', 
         display: 'flex', 
         justifyContent: 'center', 
         flexShrink: 0 
