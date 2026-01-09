@@ -45,15 +45,11 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
 
-  // STORAGE KEY specifically for unscheduled
   const storageKey = `draft_unscheduled_${unit?.serial_number}`;
 
-  // ENGINEER LOGIC: Filter out the selected name from the list below
   const filteredEngineers = useMemo(() => {
     if (!selectedCompany) return [];
     let list = allEngineers.filter(e => e.companyName === selectedCompany);
-    
-    // Remove current selection from the list to avoid repetition
     list = list.filter(e => e.name !== engName);
     
     if (engName && engName !== "Please select" && engName.trim() !== "") {
@@ -158,7 +154,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
     }
     setSubmitting(true);
     const payload = {
-      maintenance_type: "Unscheduled", // Added for API categorization
+      maintenance_type: "Unscheduled", 
       maintained_by: selectedCompany,
       location_display: locationDisplay,
       date_of_maintenance: e.target.date_of_maintenance.value,
@@ -186,8 +182,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
   }
 
   const logo = getClientLogo(unit?.company, unit?.serial_number);
-
-  // ENGINEER DROPDOWN VISIBILITY LOGIC
   const hasEngineerResults = filteredEngineers.length > 0;
   const hasClearEng = engName && engName !== "Please select" && engName !== "";
   const shouldShowEngDropdown = showEngineerDropdown && (hasEngineerResults || hasClearEng);
@@ -284,6 +278,11 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
               {unit?.serial_number}
               <span className="break-point">unscheduled maintenance</span>
             </h1>
+
+            {/* RESTORED SECTION TEXT */}
+            <p className="checklist-hero-subtitle" style={{ color: "#7d8f93", textAlign: "center", marginBottom: "32px", fontSize: "14px" }}>
+              To be completed in accordance with Section 7.1.3 – Unscheduled and Corrective Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.
+            </p>
             
             <div className="checklist-form-card">
               <form onSubmit={handleSubmit} autoComplete="off">
@@ -446,32 +445,32 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
 
 export async function getServerSideProps({ params }) {
   const token = params.id;
+  const apiKey = process.env.AIRTABLE_API_KEY;
+  const baseId = process.env.AIRTABLE_BASE_ID;
+  const tableName = process.env.AIRTABLE_SWIFT_TABLE || "swift_units"; 
+  
+  if (!apiKey || !baseId) throw new Error("Missing Airtable Env");
+  const headers = { Authorization: `Bearer ${apiKey}` };
+
   try {
-    const apiKey = process.env.AIRTABLE_API_KEY;
-    const baseId = process.env.AIRTABLE_BASE_ID;
-    const tableName = process.env.AIRTABLE_SWIFT_TABLE || "swift_units"; 
-    
-    if (!apiKey || !baseId) throw new Error("Missing Airtable Env");
-
-    const headers = { Authorization: `Bearer ${apiKey}` };
     const unitFormula = encodeURIComponent(`{public_token}='${token}'`);
-    const templateFormula = encodeURIComponent(`{type}='Unscheduled'`);
-
-    const urls = [
-      `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${unitFormula}`,
-      `https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula=${templateFormula}`,
-      `https://api.airtable.com/v0/${baseId}/maintenance_companies`,
-      `https://api.airtable.com/v0/${baseId}/engineers`
-    ];
-
-    const responses = await Promise.all(urls.map(url => fetch(url, { headers })));
-    const results = await Promise.all(responses.map(res => res.json()));
-    
-    const [unitData, templateData, companyData, engineerData] = results;
+    const unitRes = await fetch(`https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${unitFormula}`, { headers });
+    const unitData = await unitRes.json();
     
     if (!unitData.records || unitData.records.length === 0) return { notFound: true };
-
     const unitRecord = unitData.records[0];
+
+    const templateFormula = encodeURIComponent(`{type}='Unscheduled'`);
+    const templateRes = await fetch(`https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula=${templateFormula}`, { headers });
+    const templateData = await templateRes.json();
+
+    const [companyRes, engineerRes] = await Promise.all([
+      fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies`, { headers }),
+      fetch(`https://api.airtable.com/v0/${baseId}/engineers`, { headers })
+    ]);
+    const companyData = await companyRes.json();
+    const engineerData = await engineerRes.json();
+
     const companyLookup = {};
     if (companyData.records) {
       companyData.records.forEach(r => { if (r.fields.company_name) companyLookup[r.id] = r.fields.company_name; });
@@ -485,10 +484,10 @@ export async function getServerSideProps({ params }) {
           record_id: unitRecord.id, 
           public_token: unitRecord.fields.public_token || token 
         },
-        template: { 
-          id: templateData.records?.[0]?.id || "", 
-          questions: templateData.records?.[0]?.fields.questions_json ? JSON.parse(templateData.records[0].fields.questions_json) : []
-        },
+        template: templateData.records?.[0] ? { 
+          id: templateData.records[0].id, 
+          questions: templateData.records[0].fields.questions_json ? JSON.parse(templateData.records[0].fields.questions_json) : []
+        } : { id: "", questions: [] },
         allCompanies: Object.values(companyLookup).filter(Boolean),
         allEngineers: engineerData.records?.map(r => ({ 
           name: r.fields.engineer_name, 
