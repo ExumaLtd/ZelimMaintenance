@@ -1,6 +1,6 @@
 /* =========================================================================
    CHECKLIST PAGE STYLES (form.css)
-   V70: HEIGHT LOCK FIX + ENFORCED ZELIM FOOTER LOGIC
+   V71: MATCHED FOOTER PADDING & REMOVED SCOPE BACKGROUND
 ========================================================================= */
 
 /* Ensure the wrapper takes up enough space and doesn't collapse */
@@ -10,11 +10,17 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between; /* Pushes footer to bottom */
+    padding: 0 40px;
 }
 
 .form-scope .page-wrapper {
+    max-width: 1280px;
+    width: calc(100% - 160px);
+    margin: 0 auto;
     flex: 1;
     padding-top: 40px; 
+    display: flex;
+    flex-direction: column;
 }
 
 .form-scope .swift-checklist-container {
@@ -22,7 +28,7 @@
     max-width: 900px;
     margin: 0 auto;
     text-align: center;
-    padding: 20px 20px 40px 20px; /* Adjusted bottom padding for footer */
+    padding: 20px 20px 40px 20px; 
     font-family: "Montserrat", sans-serif;
     color: #FFFFFF;
 }
@@ -138,7 +144,7 @@
     background: #27454b;
     border: 2px solid transparent; 
     border-radius: 8px;
-    padding: 12px 15px; /* Added 2px to vertical padding to help lock height */
+    padding: 12px 15px; 
     color: #e9ebec;
     font-size: 16px !important; 
     font-family: "Montserrat", sans-serif;
@@ -147,7 +153,7 @@
     outline: none !important;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    line-height: 24px !important; /* FIXED: Prevents vertical shift when typing */
+    line-height: 24px !important; 
 }
 
 /* Prevents white/yellow background when mobile browser suggests a name */
@@ -160,7 +166,7 @@
 }
 
 .form-scope .checklist-input {
-    height: 48px; /* FIXED: Enforced height */
+    height: 48px; 
     min-height: 48px;
     appearance: none;
     -webkit-appearance: none;
@@ -234,17 +240,32 @@
     border-color: rgba(255, 255, 255, 0.2);
 }
 
-/* --- FOOTER SECTION (ENFORCED) --- */
+/* --- FOOTER SECTION (MATCHED TO DASHBOARD) --- */
 .form-scope .footer-section {
     width: 100%;
-    padding: 20px 0;
+    padding: 20px 0 40px;
     display: flex;
     justify-content: center;
     flex-shrink: 0;
 }
 
+.form-scope .footer-section a {
+    text-decoration: none;
+    display: block;
+}
+
 /* --- MOBILE SPECIFIC OVERRIDES --- */
 @media (max-width: 900px) {
+    .form-scope .swift-main-layout-wrapper {
+        padding: 0;
+    }
+
+    .form-scope .page-wrapper {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 20px !important;
+    }
+
     .form-scope .swift-checklist-container {
         margin-top: 26px !important;
     }
@@ -256,7 +277,7 @@
     }
 
     .form-scope .swift-checklist-container {
-        padding: 0 0 20px 0 !important; /* Reduced to allow footer visibility */
+        padding: 0 0 20px 0 !important; 
         text-align: center;
     }
 
