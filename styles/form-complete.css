@@ -14,13 +14,13 @@
 
 .form-scope .complete-card {
     background: #152a31;
-    padding: 46px 40px; /* Kept exactly as requested */
+    padding: 46px 40px; 
     border-radius: 20px;
     text-align: center;
-    /* Responsive Width Logic */
-    width: fit-content; 
+    /* This ensures the card width is determined by the widest child (the H1) */
+    display: table; 
+    margin: 0 auto;
     min-width: 320px;
-    max-width: 90vw;
 }
 
 .form-scope .complete-icon-circle {
@@ -46,7 +46,8 @@
     margin-bottom: 14px;
     font-family: "Montserrat", sans-serif;
     line-height: 30px;
-    white-space: nowrap; /* Ensures the card width is driven by the title line */
+    /* This forces the title to stay on one line, driving the card width */
+    white-space: nowrap; 
 }
 
 .form-scope .complete-title span {
@@ -63,11 +64,14 @@
     line-height: 20px;
     margin: 0 0 20px;
     font-family: "Montserrat", sans-serif;
+    /* Allows the body text to wrap based on the title's width */
+    display: block; 
 }
 
+/* Button styled as per your Dashboard .start-btn */
 .form-scope .return-dashboard-btn {
     display: flex;
-    max-width: fit-content;
+    width: fit-content;
     padding: 8px 16px;
     align-items: center;
     justify-content: center;
@@ -92,9 +96,14 @@
     border-color: hsla(0,0%,100%,.2);
 }
 
+/* Mobile Tweak: Allow wrapping on small screens to prevent overflow */
 @media (max-width: 480px) {
     .form-scope .complete-title, 
     .form-scope .complete-title span {
         white-space: normal;
+    }
+    .form-scope .complete-card {
+        display: block;
+        width: 100%;
     }
 }
