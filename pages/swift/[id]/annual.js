@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head"; 
 import Image from "next/image";
-import { UploadDropzone } from "../../../utils/uploadthing"; 
 
 function autoGrow(e) {
   const el = e.target || e; 
@@ -28,12 +27,16 @@ const getClientLogo = (companyName, serialNumber) => {
 
 export default function Annual({ unit, template, allCompanies = [], allEngineers = [] }) {
   const router = useRouter();
+  
+  // Refs for scrolling to missing fields
+  const companyFieldRef = useRef(null);
+  const locationFieldRef = useRef(null);
+  const engineerFieldRef = useRef(null);
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
   
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [photoUrls, setPhotoUrls] = useState([]);
   const [today, setToday] = useState("");
   
   const [locationDisplay, setLocationDisplay] = useState(""); 
@@ -86,7 +89,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
         if (data.engineer_name) setEngName(data.engineer_name);
         if (data.engineer_email) setEngEmail(data.engineer_email);
         if (data.engineer_phone) setEngPhone(data.engineer_phone);
-        if (data.photoUrls) setPhotoUrls(data.photoUrls);
         const draftAnswers = {};
         Object.keys(data).forEach(key => { if (key.startsWith('q')) draftAnswers[key] = data[key]; });
         setAnswers(draftAnswers);
@@ -121,11 +123,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       engineer_name: engName,
       engineer_email: engEmail,
       engineer_phone: engPhone,
-      photoUrls,
       ...answers
     };
     localStorage.setItem(storageKey, JSON.stringify(draftData));
-  }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, photoUrls, answers, storageKey]);
+  }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, answers, storageKey]);
 
   const selectCompany = (company) => {
     setSelectedCompany(company);
@@ -149,13 +150,39 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     setShowEngineerDropdown(false);
   };
 
+  const scrollToField = (ref) => {
+    if (ref.current) {
+        ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
   async function handleSubmit(e) {
     e.preventDefault();
+    setErrorMsg("");
     if (submitting) return;
-    if (!selectedCompany || engName === "Please select" || !engName) {
-      setErrorMsg("Please select both a company and an engineer.");
+
+    // 1. Validate Company
+    if (!selectedCompany || selectedCompany === "Please select") {
+      setErrorMsg("Please select a maintenance company.");
+      scrollToField(companyFieldRef);
+      setShowCompanyDropdown(true);
       return;
     }
+
+    // 2. Validate Location
+    if (!locationDisplay || locationDisplay.trim() === "") {
+      setErrorMsg("Please provide a location.");
+      scrollToField(locationFieldRef);
+      return;
+    }
+
+    // 3. Validate Engineer
+    if (!engName || engName === "Please select" || engName.trim() === "") {
+      setErrorMsg("Please select or enter an engineer name.");
+      scrollToField(engineerFieldRef);
+      return;
+    }
+
     setSubmitting(true);
     const payload = {
       maintained_by: selectedCompany,
@@ -166,7 +193,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       engineer_name: engName,
       engineer_email: engEmail,
       engineer_phone: engPhone,
-      photoUrls,
       unit_record_id: unit?.record_id,
       checklist_template_id: template?.id,
       answers: (template?.questions || []).map((_, i) => ({
@@ -180,11 +206,9 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) throw new Error("Failed to submit. Please try again.");
       
-      // Save the serial number for the success page to display
       localStorage.setItem('last_submitted_sn', unit?.serial_number);
-      
       localStorage.removeItem(storageKey);
       router.push(`/swift/${unit.public_token}/annual-complete`);
     } catch (err) { setErrorMsg(err.message); setSubmitting(false); }
@@ -212,11 +236,11 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             </h1>
             
             <div className="checklist-form-card">
-              <form onSubmit={handleSubmit} autoComplete="off">
+              <form onSubmit={handleSubmit} autoComplete="off" noValidate>
                 <div className="checklist-inline-group">
-                  <div className="checklist-field" ref={companyDropdownRef}>
+                  <div className="checklist-field" ref={companyFieldRef}>
                     <label className="checklist-label">Maintenance company</label>
-                    <div className="custom-dropdown-container">
+                    <div className="custom-dropdown-container" ref={companyDropdownRef}>
                       <div className="field-icon-wrapper">
                         <input 
                           readOnly
@@ -239,7 +263,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                     </div>
                   </div>
 
-                  <div className="checklist-field">
+                  <div className="checklist-field" ref={locationFieldRef}>
                     <label className="checklist-label">Location</label>
                     <input className="checklist-input" name="location_display" required value={locationDisplay} onChange={(e) => setLocationDisplay(e.target.value)} />
                   </div>
@@ -253,9 +277,9 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                 </div>
 
                 <div className="checklist-inline-group" style={{ marginTop: '24px' }}>
-                  <div className="checklist-field" ref={engineerDropdownRef}>
+                  <div className="checklist-field" ref={engineerFieldRef}>
                     <label className="checklist-label">Engineer name</label>
-                    <div className="custom-dropdown-container">
+                    <div className="custom-dropdown-container" ref={engineerDropdownRef}>
                       <div className="field-icon-wrapper">
                         <input 
                           className={`checklist-input ${(engName === "Please select" || !engName) ? 'is-placeholder' : 'is-active'} ${shouldShowEngDropdown ? 'is-focused' : ''}`} 
@@ -302,14 +326,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
                 ))}
 
-                <div style={{ marginTop: '24px' }}>
-                  <label className="checklist-label">Upload photos</label>
-                  <UploadDropzone endpoint="maintenanceImage" onClientUploadComplete={(res) => {
-                    setPhotoUrls(prev => [...prev, ...res.map(f => f.url)]);
-                  }} />
-                </div>
-
-                {errorMsg && <p style={{ color: '#ff4d4d', marginTop: '16px' }}>{errorMsg}</p>}
+                {errorMsg && <p style={{ color: '#ff4d4d', marginTop: '16px', fontWeight: '500' }}>{errorMsg}</p>}
                 <button className="checklist-submit" disabled={submitting}>
                   {submitting ? "Submitting..." : "Submit maintenance"}
                 </button>
