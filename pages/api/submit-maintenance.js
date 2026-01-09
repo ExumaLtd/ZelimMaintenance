@@ -60,15 +60,18 @@ export default async function handler(req, res) {
       engineerRecordId = newEngData.id;
     }
 
+    // Prepare the trimmed date (YYYY-MM-DD) for standard Date fields
+    const trimmedDate = date_of_maintenance.split('T')[0];
+
     // 3. SUBMIT TO MAINTENANCE_LOGS
-    // Key updated to "maintenance_date" per your Airtable screenshot
+    // Note: We do NOT send "submitted_at" because it is an automatic Created Time field
     const logRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_logs`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         fields: {
           "unit_link": [unit_record_id],
-          "maintenance_date": date_of_maintenance,
+          "date_of_maintenance": trimmedDate,
           "maintenance_type": maintenance_type,
           "engineer_name": engineer_name,
           "engineer_email": engineer_email,
@@ -89,7 +92,7 @@ export default async function handler(req, res) {
           "unit": [unit_record_id],
           "maintained_by": companyRecordId ? [companyRecordId] : [],
           "engineer_name": [engineerRecordId],
-          "date_of_maintenance": date_of_maintenance.split('T')[0], 
+          "date_of_maintenance": trimmedDate, 
           "maintenance_type": maintenance_type,
           "location_display": location_display || "",
           "location_town": finalTown,
