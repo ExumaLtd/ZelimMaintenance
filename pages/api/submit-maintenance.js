@@ -21,15 +21,14 @@ export default async function handler(req, res) {
   const baseId = process.env.AIRTABLE_BASE_ID;
 
   try {
-    // 1. Get Company ID
+    // 1. Get Company ID (KEEPING YOUR LOGIC)
     const compRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies?filterByFormula={company_name}='${maintained_by}'`, {
       headers: { Authorization: `Bearer ${apiKey}` }
     });
     const compData = await compRes.json();
     const companyRecordId = compData.records?.[0]?.id;
 
-    // 2. Handle Engineer (Anchor: Name)
-    // FIX: Using double quotes handles apostrophes in names like O'Mara
+    // 2. Handle Engineer (KEEPING YOUR LOGIC - Handles O'Mara etc.)
     const engFormula = `{engineer_name}="${engineer_name}"`;
     const engRes = await fetch(`https://api.airtable.com/v0/${baseId}/engineers?filterByFormula=${encodeURIComponent(engFormula)}`, {
       headers: { Authorization: `Bearer ${apiKey}` }
@@ -45,7 +44,6 @@ export default async function handler(req, res) {
     };
 
     if (engData.records?.length > 0) {
-      // Name matched! Update existing record with latest contact info
       engineerRecordId = engData.records[0].id;
       await fetch(`https://api.airtable.com/v0/${baseId}/engineers/${engineerRecordId}`, {
         method: 'PATCH',
@@ -53,7 +51,6 @@ export default async function handler(req, res) {
         body: JSON.stringify({ fields: engineerFields })
       });
     } else {
-      // Name not found: Create new record
       const newEng = await fetch(`https://api.airtable.com/v0/${baseId}/engineers`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
@@ -63,9 +60,27 @@ export default async function handler(req, res) {
       engineerRecordId = newEngData.id;
     }
 
-    // 3. Submit Maintenance Check
-    const finalTown = location_town || location_display || "";
+    // 3. SUBMIT TO THE NEW HISTORY LOG (The 100-Year Traceability)
+    // This uses the "Text" fields you just made in Airtable
+    const logRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_logs`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fields: {
+          "unit_link": [unit_record_id], // Connects to the unit
+          "date_of_maintenance": date_of_maintenance,
+          "maintenance_type": maintenance_type,
+          "engineer_name": engineer_name, // Static text for history
+          "engineer_email": engineer_email,
+          "location_display": location_display || "",
+          "checklist_json": JSON.stringify(answers), // Stores full history
+          "photos": photoUrls ? photoUrls.map(url => ({ url })) : []
+        }
+      })
+    });
 
+    // 4. Submit to current Maintenance Check (KEEPING FOR BACKWARD COMPATIBILITY)
+    const finalTown = location_town || location_display || "";
     const checkRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_checks`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
@@ -86,9 +101,8 @@ export default async function handler(req, res) {
       })
     });
 
-    if (!checkRes.ok) {
-      const error = await checkRes.json();
-      throw new Error(`Airtable Error: ${error.error.message}`);
+    if (!checkRes.ok || !logRes.ok) {
+      throw new Error(`Airtable Error: Submission failed to one or more tables.`);
     }
 
     return res.status(200).json({ success: true });
