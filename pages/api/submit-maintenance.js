@@ -60,15 +60,15 @@ export default async function handler(req, res) {
       engineerRecordId = newEngData.id;
     }
 
-    // 3. SUBMIT TO THE NEW HISTORY LOG (Maintenance Logs)
-    // Removed "submitted_at" as per your latest Airtable structure
+    // 3. SUBMIT TO MAINTENANCE_LOGS
+    // Uses your new "date_and_time_of_maintenance" field
     const logRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_logs`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         fields: {
           "unit_link": [unit_record_id],
-          "date_and_time_of_maintenance": date_of_maintenance, // Matches your renamed column
+          "date_and_time_of_maintenance": date_of_maintenance,
           "maintenance_type": maintenance_type,
           "engineer_name": engineer_name,
           "engineer_email": engineer_email,
@@ -79,7 +79,8 @@ export default async function handler(req, res) {
       })
     });
 
-    // 4. Submit to current Maintenance Check (Legacy Table)
+    // 4. Submit to MAINTENANCE_CHECKS
+    // Removed "submitted_at" from the payload so Airtable can compute it automatically
     const finalTown = location_town || location_display || "";
     const checkRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_checks`, {
       method: 'POST',
@@ -89,7 +90,7 @@ export default async function handler(req, res) {
           "unit": [unit_record_id],
           "maintained_by": companyRecordId ? [companyRecordId] : [],
           "engineer_name": [engineerRecordId],
-          "date_of_maintenance": date_of_maintenance,
+          "date_of_maintenance": date_of_maintenance.split('T')[0], // Just the date part for this table
           "maintenance_type": maintenance_type,
           "location_display": location_display || "",
           "location_town": finalTown,
@@ -104,14 +105,14 @@ export default async function handler(req, res) {
     if (!checkRes.ok || !logRes.ok) {
       const logText = await logRes.text();
       const checkText = await checkRes.text();
-      console.error("Log Error:", logText);
-      console.error("Check Error:", checkText);
-      throw new Error(`Airtable Error: Submission failed.`);
+      console.error("Log Error Details:", logText);
+      console.error("Check Error Details:", checkText);
+      throw new Error(`Airtable Sync Error`);
     }
 
     return res.status(200).json({ success: true });
   } catch (error) {
-    console.error("Submission Failure:", error.message);
+    console.error("Final Submission Failure:", error.message);
     return res.status(500).json({ success: false, error: error.message });
   }
 }
