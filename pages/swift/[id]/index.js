@@ -1,5 +1,4 @@
-// pages/swift/[id]/index.js – FINAL FULL VERSION (Updated with Scope)
-
+// pages/swift/[id]/index.js – FINAL FULL VERSION
 import Head from "next/head";
 import Link from "next/link";
 import Airtable from "airtable";
@@ -182,8 +181,8 @@ export default function SwiftUnitPage({
             {/* RIGHT PANEL */}
             <div className="action-panel">
 
+              {/* ROW 1: PLANNED MAINTENANCE */}
               <div className="maintenance-group-wrapper">
-
                 <div className="maintenance-card">
                   <h3>Annual<br/>maintenance</h3>
                   <p className="description">
@@ -205,6 +204,26 @@ export default function SwiftUnitPage({
                     Start maintenance
                   </Link>
                 </div>
+              </div>
+
+              {/* ROW 2: UNPLANNED MAINTENANCE */}
+              <div className="maintenance-group-wrapper" style={{ marginTop: '20px' }}>
+                <div className="maintenance-card">
+                  <h3>Unplanned<br/>maintenance</h3>
+                  <p className="description">
+                    To be completed in accordance with Section 7.1.2 –
+                    Annual Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.
+                  </p>
+                  <Link href={`/swift/${publicToken}/unplanned`} className="start-btn">
+                    Start maintenance
+                  </Link>
+                </div>
+
+                {/* Hidden spacer card to maintain the grid alignment on desktop */}
+                <div 
+                  className="maintenance-card" 
+                  style={{ visibility: 'hidden', border: 'none', background: 'none' }}
+                ></div>
               </div>
 
               {/* DOWNLOADS */}
