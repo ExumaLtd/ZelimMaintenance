@@ -1,6 +1,6 @@
 /* =========================================================================
    DASHBOARD SCOPE (dashboard.css)
-   V53: FLEX-BASED LAYOUT FOR 100VH CONSISTENCY - NO TRIMMING
+   V54: FLEX-BASED LAYOUT - 100% LOGO OPACITY & REDUCED FOOTER PADDING
 ========================================================================= */
 
 /* --- 1. BASE AND LAYOUT --- */
@@ -291,7 +291,7 @@
 
 .dashboard-scope .footer-section {
     width: 100%;
-    padding: 80px 0 40px; 
+    padding: 40px 0 40px; /* Reduced from 80px top padding */
     display: flex;
     justify-content: center;
     flex-shrink: 0;

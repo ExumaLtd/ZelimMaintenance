@@ -267,7 +267,7 @@ export default function SwiftUnitPage({
               width={120} 
               height={40} 
               alt="Zelim logo" 
-              style={{ opacity: 0.9 }}
+              style={{ opacity: 1 }} // Opacity set to 1 (100%)
             />
           </a>
         </footer>
