@@ -17,7 +17,6 @@
     padding: 46px 40px; 
     border-radius: 20px;
     text-align: center;
-    /* Desktop default: width follows the H1 text */
     display: table; 
     width: min-content;
     margin: 0 auto;
@@ -50,7 +49,7 @@
 }
 
 .form-scope .complete-title span {
-    display: block; /* Forces the break on desktop */
+    display: block; 
     font-size: 24px;   
     font-weight: 600; 
     color: #FFFFFF;
@@ -102,22 +101,29 @@
         display: block; 
         width: 100%;
         max-width: 100%;
-        /* Updated padding: 25px top, 30px sides/bottom */
-        padding: 25px 30px 30px; 
+        padding: 30px 30px 30px 30px; /* Updated to 30px all round */
+    }
+
+    .form-scope .complete-icon-circle {
+        width: 54px;   /* Updated to 54px */
+        height: 55px;  /* Updated to 55px */
+        margin: 0 auto 20px; /* Updated to 20px margin */
+    }
+
+    .form-scope .complete-icon-circle i {
+        font-size: 24px; /* Updated to 24px */
     }
 
     .form-scope .complete-title {
-        /* Dashboard H3 Style */
         color: #f7f7f7;
         font-size: 20px;
         font-weight: 600;
         line-height: 26px;
         margin: 0 0 8px;
-        white-space: normal; /* Allows wrapping */
+        white-space: normal; 
     }
 
     .form-scope .complete-title span {
-        /* ALLOW THE TEXT TO FLOW: Removed display: block */
         display: inline; 
         font-size: 20px;
         font-weight: 600;
@@ -126,7 +132,6 @@
     }
 
     .form-scope .complete-text {
-        /* Dashboard Description Style */
         color: #a0acaf;
         font-size: 14px;
         line-height: 20px;
