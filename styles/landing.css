@@ -1,6 +1,7 @@
 /* =========================================================================
    LANDING PAGE STYLES (landing.css)
    NAMESPACED VERSION: All rules scoped to .landing-scope
+   V3: FIXED LOGO SCALE OVERRIDE (SYNCED TO 120x40)
 ========================================================================= */
 
 .landing-scope .landing-root {
@@ -190,8 +191,11 @@
   display: inline-flex;
 }
 
+/* FORCING OVERRIDE OF INLINE ATTRIBUTES (120x40) */
 .landing-scope .zelim-logo {
-  width: 140px;
+  width: 120px !important;
+  height: 40px !important;
+  object-fit: contain;
   opacity: 1;
 }
 
