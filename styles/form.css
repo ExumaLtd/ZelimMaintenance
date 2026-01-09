@@ -304,6 +304,11 @@
     border-color: hsla(0, 0%, 100%, .2);
 }
 
+/* --- FILE UPLOAD (Hidden until Monday) --- */
+.form-scope .upload-section-container {
+    display: none !important;
+}
+
 /* --- FOOTER SECTION --- */
 .form-scope .footer-section {
     width: 100%;
@@ -355,11 +360,11 @@
     }
 
     .form-scope .checklist-form-card {
-        padding: 26px 24px !important;
+        /* UPDATED: 26px top, 24px sides, 30px bottom */
+        padding: 26px 24px 30px 24px !important;
     }
     
     .form-scope .checklist-submit {
-        /* FIXED: Removed width: 100% to keep it max-content as requested */
         margin: 30px 0 0 0 !important;
     }
 }
