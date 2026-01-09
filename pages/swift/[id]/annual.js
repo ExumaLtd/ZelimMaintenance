@@ -194,16 +194,18 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           .form-scope {
             background-color: #1a3239 !important;
             min-height: 100vh;
+            width: 100%;
           }
-          .checklist-form-card {
+          .form-scope .checklist-form-card {
             background: #152a31 !important;
             padding: 38px !important;
             border-radius: 20px !important;
             width: 100%;
             text-align: left;
+            box-sizing: border-box;
           }
-          .checklist-input, 
-          .checklist-textarea {
+          .form-scope .checklist-input, 
+          .form-scope .checklist-textarea {
             background-color: #27454b !important;
             border: 1px solid transparent !important;
             padding: 14px 16px !important;
@@ -216,31 +218,31 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             line-height: 20px !important;
             box-sizing: border-box !important;
           }
-          .checklist-textarea {
+          .form-scope .checklist-textarea {
             min-height: 78px !important;
             resize: none !important;
             overflow: hidden;
           }
-          .checklist-input:focus,
-          .checklist-textarea:focus {
+          .form-scope .checklist-input:focus,
+          .form-scope .checklist-textarea:focus {
             border-color: #00FFF6 !important;
             border-width: 1px !important;
             outline: none;
           }
-          .field-icon-wrapper {
+          .form-scope .field-icon-wrapper {
             position: relative;
             display: flex;
             align-items: center;
           }
-          .field-icon-wrapper i {
+          .form-scope .field-icon-wrapper i {
             position: absolute;
             right: 16px;
             color: #f7f7f7;
             pointer-events: none;
           }
 
-          .custom-dropdown-container { position: relative; width: 100%; }
-          .custom-dropdown-list {
+          .form-scope .custom-dropdown-container { position: relative; width: 100%; }
+          .form-scope .custom-dropdown-list {
             position: absolute;
             top: calc(100% + 8px);
             left: 0;
@@ -256,7 +258,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             max-height: 250px;
             overflow-y: auto;
           }
-          .custom-dropdown-item {
+          .form-scope .custom-dropdown-item {
             padding: 6px 16px;
             color: #F7F7F7;
             cursor: pointer;
@@ -265,18 +267,18 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             border-radius: 4px;
             transition: background 0.15s ease, color 0.15s ease;
           }
-          .custom-dropdown-item:hover,
-          .custom-dropdown-item.active { 
+          .form-scope .custom-dropdown-item:hover,
+          .form-scope .custom-dropdown-item.active { 
             background: #476166;
             color: #F7F7F7;
           }
 
-          input[type="date"]::-webkit-calendar-picker-indicator {
+          .form-scope input[type="date"]::-webkit-calendar-picker-indicator {
             background: transparent; bottom: 0; color: transparent; cursor: pointer;
             height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto;
           }
           @media (max-width: 600px) {
-            .checklist-form-card { padding: 30px 24px !important; }
+            .form-scope .checklist-form-card { padding: 30px 24px !important; }
           }
         `}</style>
       </Head>
