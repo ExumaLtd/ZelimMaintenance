@@ -181,6 +181,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("Failed");
+      
+      // Save the serial number for the success page to display
+      localStorage.setItem('last_submitted_sn', unit?.serial_number);
+      
       localStorage.removeItem(storageKey);
       router.push(`/swift/${unit.public_token}/annual-complete`);
     } catch (err) { setErrorMsg(err.message); setSubmitting(false); }
