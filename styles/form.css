@@ -177,7 +177,7 @@
     color: #F7F7F7;
 }
 
-/* --- DYNAMIC STATES (MOVED FROM JS) --- */
+/* --- DYNAMIC STATES --- */
 .form-scope .checklist-input.is-placeholder {
     color: #7d8f93 !important;
 }
@@ -190,7 +190,7 @@
     border-color: #00FFF6 !important;
 }
 
-/* --- INPUTS & ICONS (PREVENT JUMPING/ZOOMING) --- */
+/* --- INPUTS & ICONS --- */
 .form-scope .input-icon-wrapper {
     position: relative;
     width: 100%;
@@ -227,7 +227,6 @@
     line-height: 20px !important; 
 }
 
-/* Prevents white/yellow background when mobile browser suggests a name */
 .form-scope .checklist-input:-webkit-autofill,
 .form-scope .checklist-input:-webkit-autofill:hover, 
 .form-scope .checklist-input:-webkit-autofill:focus {
@@ -304,7 +303,7 @@
     border-color: rgba(255, 255, 255, 0.2);
 }
 
-/* --- FOOTER SECTION (MATCHED TO DASHBOARD) --- */
+/* --- FOOTER SECTION --- */
 .form-scope .footer-section {
     width: 100%;
     padding: 20px 0 40px;

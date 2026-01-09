@@ -6,7 +6,6 @@ import { UploadDropzone } from "../../../utils/uploadthing";
 
 function autoGrow(e) {
   const el = e.target || e; 
-  // Base height matched to CSS min-height (78px) to prevent shrinking on mobile
   el.style.height = "78px"; 
   const newHeight = el.scrollHeight;
   el.style.height = newHeight + "px";
@@ -103,16 +102,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
         const data = await res.json();
         if (data && data.address) {
           const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
-          
-          // Formal name for Airtable (e.g. "United Kingdom")
           const formalCountry = data.address.country || "";
-          
-          // Short code for UI (e.g. "UK")
           const displayCountry = data.address.country_code ? data.address.country_code.toUpperCase() : formalCountry;
           const shortCountry = displayCountry === "GB" ? "UK" : displayCountry;
-
           const combinedDisplay = loc ? `${loc}, ${shortCountry}` : shortCountry;
-          
           setLocationDisplay(prev => (!prev || prev.trim() === "") ? combinedDisplay : prev);
           setLocationCountry(formalCountry); 
         }
@@ -163,15 +156,12 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       setErrorMsg("Please select both a company and an engineer.");
       return;
     }
-
     setSubmitting(true);
-
     const payload = {
       maintained_by: selectedCompany,
       location_display: locationDisplay,
-      location_country: locationCountry, // Sends formal name from state
+      location_country: locationCountry,
       maintenance_type: "Annual",        
-      // Captures the exact ISO timestamp (Date + Time) at the moment of submission
       date_of_maintenance: new Date().toISOString(),
       engineer_name: engName,
       engineer_email: engEmail,
@@ -236,11 +226,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       {showCompanyDropdown && (
                         <ul className="custom-dropdown-list">
                           {allCompanies.sort().map((c, i) => (
-                            <li 
-                                key={i} 
-                                className={`custom-dropdown-item ${selectedCompany === c ? 'active' : ''}`} 
-                                onClick={() => selectCompany(c)}
-                            >
+                            <li key={i} className={`custom-dropdown-item ${selectedCompany === c ? 'active' : ''}`} onClick={() => selectCompany(c)}>
                               {c}
                             </li>
                           ))}
@@ -251,26 +237,12 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
                   <div className="checklist-field">
                     <label className="checklist-label">Location</label>
-                    <input 
-                      className="checklist-input" 
-                      name="location_display" 
-                      required 
-                      value={locationDisplay} 
-                      onChange={(e) => setLocationDisplay(e.target.value)}
-                    />
+                    <input className="checklist-input" name="location_display" required value={locationDisplay} onChange={(e) => setLocationDisplay(e.target.value)} />
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Date</label>
                     <div className="field-icon-wrapper">
-                      <input 
-                        type="date" 
-                        className="checklist-input" 
-                        name="date_of_maintenance" 
-                        defaultValue={today} 
-                        max={today} 
-                        required 
-                        style={{ paddingRight: '40px' }}
-                      />
+                      <input type="date" className="checklist-input" name="date_of_maintenance" defaultValue={today} max={today} required style={{ paddingRight: '40px' }} />
                       <i className="fa-regular fa-calendar"></i>
                     </div>
                   </div>
@@ -298,9 +270,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       {shouldShowEngDropdown && (
                         <ul className="custom-dropdown-list">
                           {hasClearEng && (
-                            <li className="custom-dropdown-item" onClick={clearEngineer}>
-                               Clear details
-                            </li>
+                            <li className="custom-dropdown-item" onClick={clearEngineer}>Clear details</li>
                           )}
                           {filteredEngineers.map((eng, i) => (
                             <li key={i} className="custom-dropdown-item" onClick={() => selectEngineer(eng)}>
@@ -313,37 +283,18 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer email</label>
-                    <input 
-                      type="email" 
-                      className="checklist-input" 
-                      name="engineer_email" 
-                      required 
-                      value={engEmail} 
-                      onChange={(e) => setEngEmail(e.target.value)} 
-                    />
+                    <input type="email" className="checklist-input" name="engineer_email" required value={engEmail} onChange={(e) => setEngEmail(e.target.value)} />
                   </div>
                   <div className="checklist-field">
                     <label className="checklist-label">Engineer phone</label>
-                    <input 
-                      type="tel" 
-                      className="checklist-input" 
-                      name="engineer_phone" 
-                      value={engPhone} 
-                      onChange={(e) => setEngPhone(e.target.value)} 
-                    />
+                    <input type="tel" className="checklist-input" name="engineer_phone" value={engPhone} onChange={(e) => setEngPhone(e.target.value)} />
                   </div>
                 </div>
 
                 {(template?.questions || []).map((q, i) => (
                   <div key={i} style={{ marginTop: '24px' }}>
                     <label className="checklist-label">{q}</label>
-                    <textarea 
-                      name={`q${i + 1}`} 
-                      className="checklist-textarea" 
-                      onInput={autoGrow} 
-                      value={answers[`q${i+1}`] || ""}
-                      onChange={(e) => setAnswers(prev => ({ ...prev, [e.target.name]: e.target.value }))}
-                    />
+                    <textarea name={`q${i + 1}`} className="checklist-textarea" onInput={autoGrow} value={answers[`q${i+1}`] || ""} onChange={(e) => setAnswers(prev => ({ ...prev, [e.target.name]: e.target.value }))} />
                   </div>
                 ))}
 
@@ -365,13 +316,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
         <footer className="footer-section">
           <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
-            <Image 
-              src="/logo/zelim-logo.svg" 
-              width={120} 
-              height={40} 
-              alt="Zelim logo" 
-              style={{ opacity: 1 }}
-            />
+            <Image src="/logo/zelim-logo.svg" width={120} height={40} alt="Zelim logo" />
           </a>
         </footer>
       </div>
@@ -401,7 +346,6 @@ export async function getServerSideProps({ params }) {
 
     const responses = await Promise.all(urls.map(url => fetch(url, { headers })));
     const results = await Promise.all(responses.map(res => res.json()));
-    
     const [unitData, templateData, companyData, engineerData] = results;
     
     if (!unitData.records || unitData.records.length === 0) return { notFound: true };
@@ -434,7 +378,6 @@ export async function getServerSideProps({ params }) {
       }
     };
   } catch (err) { 
-    console.error("Server Error:", err.message);
     return { notFound: true }; 
   }
 }
