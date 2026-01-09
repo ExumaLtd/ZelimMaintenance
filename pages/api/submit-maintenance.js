@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     engineer_name, 
     engineer_email,
     engineer_phone,
-    date_of_maintenance, 
+    date_of_maintenance, // This is the value coming from your form picker
     maintenance_type,
     location_display,
     location_town,
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
     const compData = await compRes.json();
     const companyRecordId = compData.records?.[0]?.id;
 
-    // 2. Handle Engineer (Handles names like O'Mara by using double quotes in formula)
+    // 2. Handle Engineer
     const engFormula = `{engineer_name}="${engineer_name}"`;
     const engRes = await fetch(`https://api.airtable.com/v0/${baseId}/engineers?filterByFormula=${encodeURIComponent(engFormula)}`, {
       headers: { Authorization: `Bearer ${apiKey}` }
@@ -60,16 +60,18 @@ export default async function handler(req, res) {
       engineerRecordId = newEngData.id;
     }
 
-    // 3. SUBMIT TO THE NEW HISTORY LOG (The 100-Year Traceability)
-    // Updated to include the "submitted_at" field
+    const submissionTimestamp = new Date().toISOString();
+
+    // 3. SUBMIT TO MAINTENANCE_LOGS
+    // UPDATED: Column name changed to "date_and_time_of_maintenance"
     const logRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_logs`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         fields: {
           "unit_link": [unit_record_id],
-          "date_of_maintenance": date_of_maintenance,
-          "submitted_at": new Date().toISOString(), // Automatically captures the precise upload time
+          "date_and_time_of_maintenance": date_of_maintenance, // Updated name
+          "submitted_at": submissionTimestamp, 
           "maintenance_type": maintenance_type,
           "engineer_name": engineer_name,
           "engineer_email": engineer_email,
@@ -80,7 +82,7 @@ export default async function handler(req, res) {
       })
     });
 
-    // 4. Submit to current Maintenance Check (For portal display and dashboard)
+    // 4. Submit to current Maintenance Check
     const finalTown = location_town || location_display || "";
     const checkRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_checks`, {
       method: 'POST',
@@ -90,7 +92,7 @@ export default async function handler(req, res) {
           "unit": [unit_record_id],
           "maintained_by": companyRecordId ? [companyRecordId] : [],
           "engineer_name": [engineerRecordId],
-          "date_of_maintenance": date_of_maintenance,
+          "date_of_maintenance": date_of_maintenance, // Keep this as is for the dashboard table
           "maintenance_type": maintenance_type,
           "location_display": location_display || "",
           "location_town": finalTown,
@@ -103,10 +105,7 @@ export default async function handler(req, res) {
     });
 
     if (!checkRes.ok || !logRes.ok) {
-      const logErr = await logRes.text();
-      const checkErr = await checkRes.text();
-      console.error("Log Error:", logErr, "Check Error:", checkErr);
-      throw new Error(`Airtable Error: Submission failed to one or more tables.`);
+      throw new Error(`Airtable Error: Check status ${checkRes.status}, Log status ${logRes.status}`);
     }
 
     return res.status(200).json({ success: true });
