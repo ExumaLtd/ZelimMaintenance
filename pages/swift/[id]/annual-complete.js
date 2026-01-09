@@ -10,7 +10,6 @@ export default function AnnualComplete() {
   const [unitSN, setUnitSN] = useState("");
 
   useEffect(() => {
-    // Retrieves the serial number saved in the main form's handleSubmit
     const savedSN = localStorage.getItem('last_submitted_sn');
     if (savedSN) setUnitSN(savedSN);
   }, []);
