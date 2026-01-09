@@ -61,14 +61,14 @@ export default async function handler(req, res) {
     }
 
     // 3. SUBMIT TO MAINTENANCE_LOGS
-    // Uses your new "date_and_time_of_maintenance" field
+    // Key updated to "maintenance_date" per your Airtable screenshot
     const logRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_logs`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         fields: {
           "unit_link": [unit_record_id],
-          "date_and_time_of_maintenance": date_of_maintenance,
+          "maintenance_date": date_of_maintenance,
           "maintenance_type": maintenance_type,
           "engineer_name": engineer_name,
           "engineer_email": engineer_email,
@@ -80,7 +80,6 @@ export default async function handler(req, res) {
     });
 
     // 4. Submit to MAINTENANCE_CHECKS
-    // Removed "submitted_at" from the payload so Airtable can compute it automatically
     const finalTown = location_town || location_display || "";
     const checkRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_checks`, {
       method: 'POST',
@@ -90,7 +89,7 @@ export default async function handler(req, res) {
           "unit": [unit_record_id],
           "maintained_by": companyRecordId ? [companyRecordId] : [],
           "engineer_name": [engineerRecordId],
-          "date_of_maintenance": date_of_maintenance.split('T')[0], // Just the date part for this table
+          "date_of_maintenance": date_of_maintenance.split('T')[0], 
           "maintenance_type": maintenance_type,
           "location_display": location_display || "",
           "location_town": finalTown,
