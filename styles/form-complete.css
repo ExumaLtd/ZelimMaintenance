@@ -14,7 +14,7 @@
 
 .form-scope .complete-card {
     background: #152a31;
-    padding: 50px 40px; 
+    padding: 46px 40px; /* Updated to 46px */
     border-radius: 20px;
     text-align: center;
     max-width: 500px;
@@ -22,18 +22,18 @@
 }
 
 .form-scope .complete-icon-circle {
-    width: 64px;
-    height: 64px;
+    width: 60px;  /* Updated to 60px */
+    height: 60px; /* Updated to 60px */
     background: rgba(0, 255, 246, 0.1);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 28px; /* Updated from 32px to 28px */
+    margin: 0 auto 24px; /* Updated to 24px */
 }
 
 .form-scope .complete-icon-circle i {
-    font-size: 28px; /* Updated from 32px to 28px */
+    font-size: 26px; /* Updated to 26px */
     color: #00FFF6;
 }
 
@@ -57,7 +57,7 @@
     color: #a0acaf;
     font-size: 14px;
     line-height: 20px;
-    margin: 0 0 20px; /* Updated from 40px to 20px */
+    margin: 0 0 20px;
     font-family: "Montserrat", sans-serif;
 }
 
