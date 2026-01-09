@@ -213,11 +213,6 @@ export default function SwiftUnitPage({
                     Start maintenance
                   </Link>
                 </div>
-
-                <div 
-                  className="maintenance-card" 
-                  style={{ visibility: 'hidden', border: 'none', background: 'none', padding: 0 }}
-                ></div>
               </div>
 
               {/* DOWNLOADS */}

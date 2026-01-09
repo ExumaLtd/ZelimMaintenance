@@ -1,6 +1,6 @@
 /* =========================================================================
    CHECKLIST PAGE STYLES (form.css)
-   V71: MATCHED FOOTER PADDING & REMOVED SCOPE BACKGROUND
+   V72: REMOVED SCOPE BACKGROUND COMPLETELY & MATCHED FOOTER
 ========================================================================= */
 
 /* Ensure the wrapper takes up enough space and doesn't collapse */
@@ -11,6 +11,11 @@
     flex-direction: column;
     justify-content: space-between; /* Pushes footer to bottom */
     padding: 0 40px;
+}
+
+.form-scope {
+    min-height: 100vh;
+    width: 100%;
 }
 
 .form-scope .page-wrapper {
