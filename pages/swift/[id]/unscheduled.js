@@ -226,7 +226,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
             color: #f7f7f7;
             pointer-events: none;
           }
-
           .custom-dropdown-container { position: relative; width: 100%; }
           .custom-dropdown-list {
             position: absolute;
@@ -258,7 +257,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
             background: #476166;
             color: #F7F7F7;
           }
-
           input[type="date"]::-webkit-calendar-picker-indicator {
             background: transparent; bottom: 0; color: transparent; cursor: pointer;
             height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto;
@@ -278,10 +276,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
               {unit?.serial_number}
               <span className="break-point">unscheduled maintenance</span>
             </h1>
-
-            <p className="checklist-hero-subtitle" style={{ color: "#7d8f93", textAlign: "center", marginBottom: "32px", fontSize: "14px" }}>
-              To be completed in accordance with the Unscheduled and Corrective Maintenance Process.
-            </p>
             
             <div className="checklist-form-card">
               <form onSubmit={handleSubmit} autoComplete="off">
@@ -475,7 +469,6 @@ export async function getServerSideProps({ params }) {
       companyData.records.forEach(r => { if (r.fields.company_name) companyLookup[r.id] = r.fields.company_name; });
     }
 
-    // SAFETY PARSE: Handle trailing commas or broken JSON in Airtable gracefully
     let questions = [];
     const rawJson = templateData.records?.[0]?.fields.questions_json;
     if (rawJson) {
@@ -483,7 +476,7 @@ export async function getServerSideProps({ params }) {
         questions = JSON.parse(rawJson);
       } catch (e) {
         console.error("JSON Parse Error in Airtable Template:", e.message);
-        questions = ["ERROR: There is a syntax error in the checklist template JSON in Airtable. Please remove trailing commas."];
+        questions = ["ERROR: Template JSON in Airtable is invalid."];
       }
     }
     

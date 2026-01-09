@@ -1,275 +1,119 @@
-// pages/swift/[id]/index.js – FINAL FULL VERSION
-import Head from "next/head";
 import Link from "next/link";
-import Airtable from "airtable";
-import Image from "next/image";
-import fs from "fs";
-import path from "path";
+import Head from "next/head";
 
-// -----------------------------
-// FILE SIZE UTILITY
-// -----------------------------
-const getFileSize = (filePath) => {
-  try {
-    const fullPath = path.join(process.cwd(), "public", filePath);
-    const stats = fs.statSync(fullPath);
-    const bytes = stats.size;
-    if (bytes === 0) return "0 Bytes";
-
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
-  } catch {
-    return "Size N/A";
-  }
-};
-
-// -----------------------------
-// SERVER SIDE PROPS
-// -----------------------------
-export async function getServerSideProps(context) {
-  const publicToken = context.params.id;
-
-  const maintenanceManualPath =
-    "/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf";
-  const installationGuidePath =
-    "/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf";
-
-  const fileSizes = {
-    maintenanceManualSize: getFileSize(maintenanceManualPath),
-    installationGuideSize: getFileSize(installationGuidePath),
-  };
-
-  try {
-    const base = new Airtable({
-      apiKey: process.env.AIRTABLE_API_KEY,
-    }).base(process.env.AIRTABLE_BASE_ID);
-
-    const records = await base(process.env.AIRTABLE_SWIFT_TABLE)
-      .select({
-        maxRecords: 1,
-        filterByFormula: `{public_token} = "${publicToken}"`,
-        fields: [
-          "serial_number",
-          "company",
-          "annual_maintenance_due",
-          "depth_maintenance_due",
-        ],
-      })
-      .firstPage();
-
-    if (!records || records.length === 0) {
-      return { redirect: { destination: "/", permanent: false } };
-    }
-
-    const record = records[0];
-
-    const unitDetails = {
-      serial_number: record.get("serial_number") || "N/A",
-      company: record.get("company") || "Client Unit",
-      annualDue: record.get("annual_maintenance_due")
-        ? new Date(record.get("annual_maintenance_due")).toLocaleDateString("en-GB")
-        : "N/A",
-      depthDue: record.get("depth_maintenance_due")
-        ? new Date(record.get("depth_maintenance_due")).toLocaleDateString("en-GB")
-        : "N/A",
-    };
-
-    return {
-      props: {
-        unit: unitDetails,
-        publicToken,
-        ...fileSizes,
-      },
-    };
-  } catch (err) {
-    console.error("Error fetching unit data:", err);
-    return { redirect: { destination: "/", permanent: false } };
-  }
-}
-
-// -----------------------------
-// CLIENT LOGO RESOLVER
-// -----------------------------
 const getClientLogo = (companyName, serialNumber) => {
-  if (["SWI001", "SWI002"].includes(serialNumber) || companyName?.includes("Changi")) {
-    return {
-      src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg",
-      alt: `${companyName} Logo`,
-    };
+  const sn = serialNumber || "";
+  const cn = companyName || "";
+  if (["SWI001", "SWI002"].includes(sn) || cn.includes("Changi")) {
+    return { src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg", alt: "Logo" };
   }
-
-  if (serialNumber === "SWI003" || companyName?.includes("Milford Haven")) {
-    return {
-      src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg",
-      alt: `${companyName} Logo`,
-    };
+  if (sn === "SWI003" || cn.includes("Milford Haven")) {
+    return { src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg", alt: "Logo" };
   }
-
-  if (["SWI010", "SWI011"].includes(serialNumber) || companyName?.includes("Hatloy")) {
-    return {
-      src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg",
-      alt: `${companyName} Logo`,
-    };
+  if (["SWI010", "SWI011"].includes(sn) || cn.includes("Hatloy")) {
+    return { src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg", alt: "Logo" };
   }
-
   return null;
 };
 
-// -----------------------------
-// PAGE COMPONENT
-// -----------------------------
-export default function SwiftUnitPage({
-  unit,
-  publicToken,
-  maintenanceManualSize,
-  installationGuideSize,
-}) {
-  const serialNumber = unit.serial_number;
-  const companyName = unit.company;
-
-  const logoProps = getClientLogo(companyName, serialNumber);
+export default function UnitDashboard({ unit }) {
+  const logo = getClientLogo(unit?.company, unit?.serial_number);
 
   return (
     <div className="dashboard-scope">
       <Head>
-        <title>{companyName} Maintenance Portal</title>
+        <title>{unit?.serial_number} | Dashboard</title>
       </Head>
 
       <div className="swift-main-layout-wrapper">
         <div className="page-wrapper">
-          <div className="swift-dashboard-container">
-            
-            {/* LEFT PANEL */}
-            <div className="detail-panel">
-              {logoProps && (
-                <div className="logo-section" style={{ position: 'relative' }}>
-                  <Image
-                    src={logoProps.src}
-                    alt={logoProps.alt}
-                    fill
-                    priority
-                    style={{ objectFit: 'contain', objectPosition: 'left' }}
-                  />
+          <div className="swift-checklist-container">
+            {logo && <div className="checklist-logo"><img src={logo.src} alt={logo.alt} /></div>}
+
+            <h1 className="checklist-hero-title">
+              {unit?.serial_number}
+              <span className="break-point">maintenance dashboard</span>
+            </h1>
+
+            <div className="dashboard-grid">
+              {/* Annual Maintenance Card */}
+              <Link href={`/swift/${unit.public_token}/annual`} className="maintenance-card">
+                <div className="card-content">
+                  <div className="card-icon">
+                    <i className="fa-solid fa-calendar-check"></i>
+                  </div>
+                  <div className="card-text">
+                    <h3>Annual Maintenance</h3>
+                    <p>Standard yearly inspection and certification check.</p>
+                  </div>
                 </div>
-              )}
+                <i className="fa-solid fa-chevron-right arrow-icon"></i>
+              </Link>
 
-              <h1 className="portal-title">
-                <span className="title-line">{companyName}</span>
-                <span className="title-line">maintenance portal</span>
-              </h1>
-
-              <div className="maintenance-details">
-                <div className="detail-item">
-                  <p className="detail-label">Serial number</p>
-                  <p className="detail-value">{serialNumber}</p>
+              {/* Unscheduled Maintenance Card - UPDATED WITH GENERIC TEXT */}
+              <Link href={`/swift/${unit.public_token}/unscheduled`} className="maintenance-card">
+                <div className="card-content">
+                  <div className="card-icon">
+                    <i className="fa-solid fa-screwdriver-wrench"></i>
+                  </div>
+                  <div className="card-text">
+                    <h3>Unscheduled Maintenance</h3>
+                    <p>To be completed in accordance with the SWIFT Survivor Recovery System Maintenance Manual.</p>
+                  </div>
                 </div>
+                <i className="fa-solid fa-chevron-right arrow-icon"></i>
+              </Link>
 
-                <div className="detail-item">
-                  <p className="detail-label">Annual maintenance due</p>
-                  <p className="detail-value">{unit.annualDue}</p>
+              {/* Depth Maintenance Card */}
+              <Link href={`/swift/${unit.public_token}/depth`} className="maintenance-card">
+                <div className="card-content">
+                  <div className="card-icon">
+                    <i className="fa-solid fa-gears"></i>
+                  </div>
+                  <div className="card-text">
+                    <h3>Depth Maintenance</h3>
+                    <p>Extended 3-year or 5-year heavy maintenance cycle.</p>
+                  </div>
                 </div>
-
-                <div className="detail-item">
-                  <p className="detail-label">30-month depth maintenance due</p>
-                  <p className="detail-value">{unit.depthDue}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* RIGHT PANEL */}
-            <div className="action-panel">
-
-              {/* MAINTENANCE SECTION */}
-              <div className="maintenance-group-wrapper">
-                <div className="maintenance-card">
-                  <h3>Annual<br/>maintenance</h3>
-                  <p className="description">
-                    To be completed in accordance with Section 7.1.2 –
-                    Annual Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.
-                  </p>
-                  <Link href={`/swift/${publicToken}/annual`} className="start-btn">
-                    Start maintenance
-                  </Link>
-                </div>
-
-                <div className="maintenance-card">
-                  <h3>30-month depth<br/>maintenance</h3>
-                  <p className="description">
-                    To be completed in accordance with Section 7.2.2 –
-                    30-Month Depth Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.
-                  </p>
-                  <Link href={`/swift/${publicToken}/depth`} className="start-btn">
-                    Start maintenance
-                  </Link>
-                </div>
-
-                <div className="maintenance-card">
-                  <h3>Unscheduled<br/>maintenance</h3>
-                  <p className="description">
-                    To be completed in accordance with Section 7.1.3 – Unscheduled and Corrective Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.
-                  </p>
-                  <Link href={`/swift/${publicToken}/unscheduled`} className="start-btn">
-                    Start maintenance
-                  </Link>
-                </div>
-
-                {/* This empty div acts as a flex-spacer to keep the 3rd card at 50% width on desktop */}
-                <div 
-                  className="maintenance-card" 
-                  style={{ visibility: 'hidden', border: 'none', background: 'none', padding: 0 }}
-                ></div>
-              </div>
-
-              {/* DOWNLOADS */}
-              <div className="downloads-card">
-                <h3>Downloads</h3>
-                <p className="description">
-                  To be used in accordance with both annual and 30-month depth maintenance.
-                </p>
-
-                <div className="download-list">
-                  <a
-                    href="/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="download-link"
-                  >
-                    <Image src="/Icons/PDF_Icon.svg" width={40} height={40} alt="PDF Icon" />
-                    <div>
-                      <p>SWIFT maintenance manual.pdf</p>
-                      <span>{maintenanceManualSize}</span>
-                    </div>
-                  </a>
-
-                  <a
-                    href="/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="download-link"
-                  >
-                    <Image src="/Icons/PDF_Icon.svg" width={40} height={40} alt="PDF Icon" />
-                    <div>
-                      <p>SWIFT installation guide.pdf</p>
-                      <span>{installationGuideSize}</span>
-                    </div>
-                  </a>
-                </div>
-              </div>
-
+                <i className="fa-solid fa-chevron-right arrow-icon"></i>
+              </Link>
             </div>
           </div>
-        </div>
-
-        {/* Fixed Zelim logo */}
-        <div className="zelim-spacer"></div>
-        <div className="fixed-zelim-logo">
-          <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
-            <Image src="/logo/zelim-logo.svg" width={80} height={20} alt="Zelim logo" />
-          </a>
         </div>
       </div>
     </div>
   );
+}
+
+export async function getServerSideProps({ params }) {
+  const token = params.id;
+  const apiKey = process.env.AIRTABLE_API_KEY;
+  const baseId = process.env.AIRTABLE_BASE_ID;
+  const tableName = process.env.AIRTABLE_SWIFT_TABLE || "swift_units";
+
+  if (!apiKey || !baseId) throw new Error("Missing Airtable Env");
+
+  try {
+    const unitFormula = encodeURIComponent(`{public_token}='${token}'`);
+    const res = await fetch(`https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${unitFormula}`, {
+      headers: { Authorization: `Bearer ${apiKey}` }
+    });
+    const data = await res.json();
+
+    if (!data.records || data.records.length === 0) return { notFound: true };
+
+    const record = data.records[0];
+    return {
+      props: {
+        unit: {
+          serial_number: record.fields.unit_name || record.fields.serial_number || "Unit",
+          company: record.fields.company || "",
+          public_token: record.fields.public_token || token
+        }
+      }
+    };
+  } catch (err) {
+    console.error("Dashboard Server Error:", err.message);
+    return { notFound: true };
+  }
 }
