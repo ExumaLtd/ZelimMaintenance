@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head"; 
+import Image from "next/image";
 import { UploadDropzone } from "../../../utils/uploadthing"; 
 
 function autoGrow(e) {
@@ -47,12 +48,9 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
-  // ENGINEER LOGIC: Filter out the selected name from the list below
   const filteredEngineers = useMemo(() => {
     if (!selectedCompany) return [];
     let list = allEngineers.filter(e => e.companyName === selectedCompany);
-    
-    // Remove current selection from the list to avoid repetition
     list = list.filter(e => e.name !== engName);
     
     if (engName && engName !== "Please select" && engName.trim() !== "") {
@@ -184,8 +182,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   }
 
   const logo = getClientLogo(unit?.company, unit?.serial_number);
-
-  // ENGINEER DROPDOWN VISIBILITY LOGIC
   const hasEngineerResults = filteredEngineers.length > 0;
   const hasClearEng = engName && engName !== "Please select" && engName !== "";
   const shouldShowEngDropdown = showEngineerDropdown && (hasEngineerResults || hasClearEng);
@@ -195,42 +191,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       <Head>
         <title>{unit?.serial_number} | Annual Maintenance</title>
         <style>{`
-          .checklist-form-card {
-            background: #152a31 !important;
-            padding: 38px !important;
-            border-radius: 20px !important;
-            width: 100%;
-            text-align: left;
-          }
-          .checklist-input, 
-          .checklist-textarea {
-            background-color: #27454b !important;
-            border: 1px solid transparent !important;
-            padding: 14px 16px !important;
-            font-family: 'Montserrat', sans-serif;
-            border-radius: 8px !important;
-            width: 100%;
-            display: block;
-            color: #F7F7F7;
-          }
-          .checklist-input:focus,
-          .checklist-textarea:focus {
-            border-color: #00FFF6 !important;
-            border-width: 1px !important;
-            outline: none;
-          }
-          .field-icon-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-          }
-          .field-icon-wrapper i {
-            position: absolute;
-            right: 16px;
-            color: #f7f7f7;
-            pointer-events: none;
-          }
-
+          /* Custom Dropdown Overrides */
           .custom-dropdown-container { position: relative; width: 100%; }
           .custom-dropdown-list {
             position: absolute;
@@ -263,12 +224,21 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             color: #F7F7F7;
           }
 
+          .field-icon-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+          }
+          .field-icon-wrapper i {
+            position: absolute;
+            right: 16px;
+            color: #f7f7f7;
+            pointer-events: none;
+          }
+
           input[type="date"]::-webkit-calendar-picker-indicator {
             background: transparent; bottom: 0; color: transparent; cursor: pointer;
             height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto;
-          }
-          @media (max-width: 600px) {
-            .checklist-form-card { padding: 30px 24px !important; }
           }
         `}</style>
       </Head>
@@ -437,6 +407,19 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             </div>
           </div>
         </div>
+
+        {/* FOOTER - ENFORCED LOGIC */}
+        <footer className="footer-section">
+          <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
+            <Image 
+              src="/logo/zelim-logo.svg" 
+              width={120} 
+              height={40} 
+              alt="Zelim logo" 
+              style={{ opacity: 1 }} /* Enforced 100% opacity */
+            />
+          </a>
+        </footer>
       </div>
     </div>
   );
