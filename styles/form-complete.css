@@ -17,9 +17,8 @@
     padding: 46px 40px; 
     border-radius: 20px;
     text-align: center;
-    
-    /* THE FIX: width: min-content tells the box to be only 
-       as wide as its longest non-breaking child (the H1) */
+    /* Desktop default: width follows the H1 text */
+    display: table; 
     width: min-content;
     margin: 0 auto;
 }
@@ -47,13 +46,11 @@
     margin-bottom: 14px;
     font-family: "Montserrat", sans-serif;
     line-height: 30px;
-    
-    /* Force this to stay on one line so it pushes the card width */
     white-space: nowrap; 
 }
 
 .form-scope .complete-title span {
-    display: block;
+    display: block; /* Forces the break on desktop */
     font-size: 24px;   
     font-weight: 600; 
     color: #FFFFFF;
@@ -66,14 +63,11 @@
     line-height: 20px;
     margin: 0 0 20px;
     font-family: "Montserrat", sans-serif;
-    /* Allows text to wrap within the width defined by the H1 */
-    display: block; 
-    min-width: 0;
+    display: block;
 }
 
 .form-scope .return-dashboard-btn {
     display: flex;
-    /* Ensure the button doesn't stretch the card further */
     width: max-content;
     padding: 8px 16px;
     align-items: center;
@@ -99,14 +93,43 @@
     border-color: hsla(0,0%,100%,.2);
 }
 
-/* Mobile Tweak: Allow wrapping on small screens */
-@media (max-width: 500px) {
+/* =========================================================================
+   MOBILE RESPONSIVENESS
+========================================================================= */
+
+@media (max-width: 600px) {
     .form-scope .complete-card {
+        display: block; 
         width: 100%;
-        max-width: 400px;
+        max-width: 100%;
+        /* Updated padding: 25px top, 30px sides/bottom */
+        padding: 25px 30px 30px; 
     }
-    .form-scope .complete-title, 
+
+    .form-scope .complete-title {
+        /* Dashboard H3 Style */
+        color: #f7f7f7;
+        font-size: 20px;
+        font-weight: 600;
+        line-height: 26px;
+        margin: 0 0 8px;
+        white-space: normal; /* Allows wrapping */
+    }
+
     .form-scope .complete-title span {
+        /* ALLOW THE TEXT TO FLOW: Removed display: block */
+        display: inline; 
+        font-size: 20px;
+        font-weight: 600;
+        color: #f7f7f7;
         white-space: normal;
+    }
+
+    .form-scope .complete-text {
+        /* Dashboard Description Style */
+        color: #a0acaf;
+        font-size: 14px;
+        line-height: 20px;
+        margin: 0 0 20px;
     }
 }
