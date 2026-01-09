@@ -29,7 +29,7 @@ export default function DepthComplete() {
             </div>
             
             <h1 className="complete-title">
-              Depth maintenance submitted
+              Depth maintenance submitted{" "} 
               <span>for {unitSN || "unit"}</span>
             </h1>
             

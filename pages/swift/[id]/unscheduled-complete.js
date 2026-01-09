@@ -29,7 +29,7 @@ export default function UnscheduledComplete() {
             </div>
             
             <h1 className="complete-title">
-              Unscheduled maintenance submitted
+              Unscheduled maintenance submitted{" "} 
               <span>for {unitSN || "unit"}</span>
             </h1>
             
