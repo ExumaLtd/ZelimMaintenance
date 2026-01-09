@@ -280,7 +280,8 @@
 .form-scope .checklist-submit {
     display: flex;
     max-width: fit-content;
-    padding: 10px 24px;
+    /* Updated padding to match dashboard sizing */
+    padding: 8px 16px;
     align-items: center;
     justify-content: center;
     gap: 6px;
@@ -288,12 +289,13 @@
     border-radius: 8px;
     background-color: #00FFF6 !important;
     color: #0d3037;
-    font-size: 15px;
+    /* Updated font settings to match dashboard sizing */
+    font-size: 14px;
     font-weight: 600;
     line-height: 20px;
     text-transform: none !important;
     transition: background-color .2s, border-color .2s;
-    margin: 30px 0 0 0;
+    margin: 30px 0 0 0; /* Keeps position to the left */
     cursor: pointer;
     font-family: "Montserrat", sans-serif;
 }
@@ -359,5 +361,10 @@
     
     .form-scope .checklist-submit {
         margin: 30px 0 0 0 !important;
+        /* Mobile usability optimization */
+        width: 100%;
+        max-width: 100%;
+        padding: 12px 16px;
+        font-size: 16px;
     }
 }
