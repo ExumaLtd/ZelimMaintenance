@@ -132,7 +132,12 @@ export default function SwiftUnitPage({
   const logoProps = getClientLogo(companyName, serialNumber);
 
   return (
-    <div className="dashboard-scope" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <div className="dashboard-scope" style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      minHeight: '100vh',
+      overflowX: 'hidden' 
+    }}>
       <Head>
         <title>{companyName} Maintenance Portal</title>
       </Head>
@@ -261,11 +266,10 @@ export default function SwiftUnitPage({
         </div>
       </div>
 
-      {/* FOOTER LOGO - This section ensures the logo is always at the bottom of the viewport
-          on first load, but pushes down if the content is taller than the screen. */}
+      {/* FOOTER LOGO - Optimized padding and margin to stay visible on first load */}
       <footer style={{ 
         width: '100%', 
-        padding: '40px 0 40px', 
+        padding: '20px 0 25px', 
         display: 'flex', 
         justifyContent: 'center', 
         flexShrink: 0,
@@ -274,10 +278,10 @@ export default function SwiftUnitPage({
         <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
           <Image 
             src="/logo/zelim-logo.svg" 
-            width={120} 
-            height={40} 
+            width={100} 
+            height={30} 
             alt="Zelim logo" 
-            style={{ opacity: 0.9 }}
+            style={{ opacity: 0.85 }}
           />
         </a>
       </footer>
