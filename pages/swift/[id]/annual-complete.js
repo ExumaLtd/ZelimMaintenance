@@ -1,24 +1,28 @@
 import Head from "next/head";
 import Image from "next/image";
+import Link from "next/link";
 
-export default function AnnualComplete() {
+export default function AnnualComplete({ unit }) {
   return (
-    <div className="dashboard-scope">
+    <div className="form-scope">
       <Head>
         <title>Maintenance Submitted | SWIFT</title>
       </Head>
 
       <div className="swift-main-layout-wrapper">
-        <div className="page-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          
-          <div className="swift-dashboard-container" style={{ display: 'block', maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
+        <div className="page-wrapper">
+          <div className="swift-checklist-container complete-page">
             
-            <h1 className="portal-title" style={{ marginBottom: '40px' }}>
-              <span className="title-line">Annual maintenance</span>
-              <span className="title-line" style={{ color: '#01FFF6' }}>submitted successfully</span>
+            <div className="checklist-logo">
+              <img src="/logo/zelim-logo.svg" alt="Zelim Logo" />
+            </div>
+
+            <h1 className="checklist-hero-title">
+              {unit?.serial_number}
+              <span className="break-point" style={{ color: '#01FFF6' }}>Annual maintenance submitted</span>
             </h1>
 
-            <div className="downloads-card" style={{ padding: '40px 30px', textAlign: 'center' }}>
+            <div className="checklist-form-card" style={{ textAlign: 'center', padding: '40px' }}>
               <div style={{ fontSize: "64px", color: "#01FFF6", marginBottom: "20px" }}>
                 ✓
               </div>
@@ -27,19 +31,17 @@ export default function AnnualComplete() {
                 Your maintenance record has been successfully uploaded and the system logs have been updated.
               </p>
 
-              <button
-                className="maintenance-card start-btn"
-                style={{ margin: "0 auto", cursor: "pointer", border: "none" }}
-                onClick={() => window.location.href = document.referrer || "/"}
+              <Link 
+                href={`/swift/${unit?.public_token}`} 
+                className="checklist-submit" 
+                style={{ margin: "0 auto", textDecoration: "none", display: "inline-block" }}
               >
-                Return to dashboard
-              </button>
+                Return to portal
+              </Link>
             </div>
-
           </div>
         </div>
 
-        {/* FOOTER - ENFORCED LOGIC */}
         <footer className="footer-section">
           <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
             <Image 
@@ -47,11 +49,48 @@ export default function AnnualComplete() {
               width={120} 
               height={40} 
               alt="Zelim logo" 
-              style={{ opacity: 1 }} /* Enforced 100% opacity */
+              style={{ opacity: 1 }} 
             />
           </a>
         </footer>
       </div>
     </div>
   );
+}
+
+export async function getServerSideProps({ params }) {
+  const token = params.id;
+  try {
+    const apiKey = process.env.AIRTABLE_API_KEY;
+    const baseId = process.env.AIRTABLE_BASE_ID;
+    const tableName = process.env.AIRTABLE_SWIFT_TABLE || "swift_units"; 
+    
+    if (!apiKey || !baseId) throw new Error("Missing Airtable Env");
+
+    const formula = encodeURIComponent(`{public_token}='${token}'`);
+    const url = `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${formula}`;
+
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    
+    const data = await res.json();
+
+    if (!data.records || data.records.length === 0) {
+      return { notFound: true };
+    }
+
+    const rec = data.records[0];
+    return {
+      props: {
+        unit: {
+          serial_number: rec.fields.unit_name || rec.fields.serial_number || "Unit",
+          public_token: rec.fields.public_token || token,
+        },
+      },
+    };
+  } catch (err) {
+    console.error("Success Page Error:", err.message);
+    return { notFound: true };
+  }
 }

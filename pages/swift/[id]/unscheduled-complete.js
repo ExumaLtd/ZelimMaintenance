@@ -1,8 +1,8 @@
-// pages/swift/[id]/unscheduled-complete.js
 import Head from "next/head";
 import Image from "next/image";
+import Link from "next/link";
 
-export default function UnscheduledComplete() {
+export default function UnscheduledComplete({ unit }) {
   return (
     <div className="form-scope">
       <Head>
@@ -11,52 +11,86 @@ export default function UnscheduledComplete() {
 
       <div className="swift-main-layout-wrapper">
         <div className="page-wrapper">
-          <div className="swift-checklist-container">
+          <div className="swift-checklist-container complete-page">
             
             <div className="checklist-logo">
-              {/* Using SVG to match dashboard branding */}
-              <img src="/logo/zelim-logo.svg" alt="Zelim Logo" style={{ width: '120px' }} />
+              <img src="/logo/zelim-logo.svg" alt="Zelim Logo" />
             </div>
 
             <h1 className="checklist-hero-title">
-              Unscheduled maintenance<br />
-              <span className="break-point">submitted successfully</span>
+              {unit?.serial_number}
+              <span className="break-point" style={{ color: '#01FFF6' }}>Unscheduled maintenance submitted</span>
             </h1>
 
-            <div className="checklist-form-card" style={{ textAlign: "center", padding: "60px 40px" }}>
-              
+            <div className="checklist-form-card" style={{ textAlign: 'center', padding: '40px' }}>
               <div style={{ fontSize: "64px", color: "#01FFF6", marginBottom: "20px" }}>
                 ✓
               </div>
 
-              <p style={{ color: "#FFFFFF", marginBottom: "32px", fontSize: "18px", lineHeight: "1.6" }}>
-                Your maintenance record has been uploaded<br />to the unit history.
+              <p style={{ color: "#FFFFFF", marginBottom: "32px", fontSize: "18px", lineHeight: "26px" }}>
+                Your maintenance record has been successfully uploaded and the system logs have been updated.
               </p>
 
-              <button
-                className="checklist-submit"
-                style={{ maxWidth: "300px", margin: "0 auto" }}
-                onClick={() => {
-                  // Redirects back to the dashboard
-                  const pathParts = window.location.pathname.split('/');
-                  const publicToken = pathParts[2];
-                  window.location.href = `/swift/${publicToken}`;
-                }}
+              <Link 
+                href={`/swift/${unit?.public_token}`} 
+                className="checklist-submit" 
+                style={{ margin: "0 auto", textDecoration: "none", display: "inline-block" }}
               >
-                Return to dashboard
-              </button>
+                Return to portal
+              </Link>
             </div>
           </div>
         </div>
 
-        {/* Fixed Zelim footer logo to match dashboard */}
-        <div className="zelim-spacer"></div>
-        <div className="fixed-zelim-logo">
+        <footer className="footer-section">
           <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
-            <Image src="/logo/zelim-logo.svg" width={80} height={20} alt="Zelim logo" />
+            <Image 
+              src="/logo/zelim-logo.svg" 
+              width={120} 
+              height={40} 
+              alt="Zelim logo" 
+              style={{ opacity: 1 }} 
+            />
           </a>
-        </div>
+        </footer>
       </div>
     </div>
   );
+}
+
+export async function getServerSideProps({ params }) {
+  const token = params.id;
+  try {
+    const apiKey = process.env.AIRTABLE_API_KEY;
+    const baseId = process.env.AIRTABLE_BASE_ID;
+    const tableName = process.env.AIRTABLE_SWIFT_TABLE || "swift_units"; 
+    
+    if (!apiKey || !baseId) throw new Error("Missing Airtable Env");
+
+    const formula = encodeURIComponent(`{public_token}='${token}'`);
+    const url = `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${formula}`;
+
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    
+    const data = await res.json();
+
+    if (!data.records || data.records.length === 0) {
+      return { notFound: true };
+    }
+
+    const rec = data.records[0];
+    return {
+      props: {
+        unit: {
+          serial_number: rec.fields.unit_name || rec.fields.serial_number || "Unit",
+          public_token: rec.fields.public_token || token,
+        },
+      },
+    };
+  } catch (err) {
+    console.error("Success Page Error:", err.message);
+    return { notFound: true };
+  }
 }
