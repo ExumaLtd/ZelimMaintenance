@@ -25,7 +25,7 @@ export default function AnnualComplete() {
           
           <div className="complete-card">
             <div className="complete-icon-circle">
-              <i className="fa-solid fa-circle-check"></i>
+              <i className="fa-regular fa-thumbs-up"></i>
             </div>
             
             <h1 className="complete-title">
