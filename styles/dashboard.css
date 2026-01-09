@@ -1,6 +1,6 @@
 /* =========================================================================
    DASHBOARD SCOPE (dashboard.css)
-   V58: FIXED MOBILE STACKING, PADDING, AND LAST-CHILD GAP
+   V59: FIXED UNSCHEDULED CARD WIDTH ON DESKTOP & BUTTON HOVER
 ========================================================================= */
 
 /* --- 1. BASE AND LAYOUT --- */
@@ -176,11 +176,11 @@
 }
 
 .dashboard-scope .maintenance-card {
-    flex: 1 1 calc(33.333% - 20px); 
+    /* Fixed width to ensure cards stay at 50% on desktop */
+    width: calc(50% - 10px); 
     background: linear-gradient(39deg, rgba(74, 98, 104, 0.20) 12.44%, rgba(74, 98, 104, 0.00) 87.56%);
     border-radius: 10px;
     padding: 25px 30px 30px;
-    min-width: 280px;
     display: flex;
     flex-direction: column;
 }
@@ -229,7 +229,6 @@
     margin-top: auto; 
 }
 
-/* AMENDED: UPDATED HOVER COLOUR TO #01e6dd */
 .dashboard-scope .maintenance-card .start-btn:hover,
 .dashboard-scope .maintenance-card .primary-btn:hover {
     background-color: #01e6dd !important; 
@@ -390,9 +389,7 @@
     }
 
     .dashboard-scope .maintenance-card {
-        flex: 0 0 auto !important; 
-        min-width: 0;
-        width: 100%;
+        width: 100% !important;
     }
 
     .dashboard-scope .maintenance-group-wrapper .maintenance-card:last-child {
