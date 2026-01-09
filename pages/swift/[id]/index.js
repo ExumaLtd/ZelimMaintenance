@@ -135,6 +135,28 @@ export default function SwiftUnitPage({
     <div className="dashboard-scope">
       <Head>
         <title>{companyName} Maintenance Portal</title>
+        <style>{`
+          .dashboard-scope { background-color: #0f1c21; min-height: 100vh; color: white; padding: 40px; }
+          .swift-dashboard-container { display: grid; grid-template-columns: 350px 1fr; gap: 60px; max-width: 1400px; margin: 60px auto; }
+          .maintenance-group-wrapper { display: flex; flex-wrap: wrap; gap: 20px; }
+          .maintenance-card { 
+             background: rgba(26, 47, 54, 0.8); 
+             padding: 30px; 
+             border-radius: 16px; 
+             width: 48%; /* Forces 2 per row */
+             display: flex; 
+             flex-direction: column; 
+             justify-content: space-between; 
+          }
+          .detail-panel { text-align: left; }
+          .logo-section { height: 60px; width: 200px; margin-bottom: 40px; }
+          .portal-title { font-size: 32px; font-weight: 700; margin-bottom: 40px; text-transform: lowercase; }
+          .detail-item { margin-bottom: 25px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; }
+          .detail-label { color: #8c9ea3; font-size: 14px; }
+          .detail-value { font-size: 20px; font-weight: 600; }
+          .start-btn { background: #00fff6; color: #0f1c21; padding: 12px 24px; border-radius: 8px; font-weight: 700; text-decoration: none; width: fit-content; margin-top: 20px; }
+          .fixed-zelim-logo { width: 100%; display: flex; justify-content: center; padding: 40px 0; }
+        `}</style>
       </Head>
 
       <div className="swift-main-layout-wrapper">
@@ -181,13 +203,12 @@ export default function SwiftUnitPage({
             {/* RIGHT PANEL */}
             <div className="action-panel">
 
-              {/* MAINTENANCE SECTION */}
               <div className="maintenance-group-wrapper">
                 <div className="maintenance-card">
                   <h3>Annual<br/>maintenance</h3>
                   <p className="description">
                     To be completed in accordance with Section 7.1.2 –
-                    Annual Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.
+                    Annual Maintenance Process of the SWIFT Maintenance Manual.
                   </p>
                   <Link href={`/swift/${publicToken}/annual`} className="start-btn">
                     Start maintenance
@@ -198,7 +219,7 @@ export default function SwiftUnitPage({
                   <h3>30-month depth<br/>maintenance</h3>
                   <p className="description">
                     To be completed in accordance with Section 7.2.2 –
-                    30-Month Depth Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.
+                    30-Month Depth Maintenance Process of the SWIFT Maintenance Manual.
                   </p>
                   <Link href={`/swift/${publicToken}/depth`} className="start-btn">
                     Start maintenance
@@ -214,46 +235,19 @@ export default function SwiftUnitPage({
                     Start maintenance
                   </Link>
                 </div>
-
-                {/* This empty div acts as a flex-spacer to keep the 3rd card at 50% width on desktop */}
-                <div 
-                  className="maintenance-card" 
-                  style={{ visibility: 'hidden', border: 'none', background: 'none', padding: 0 }}
-                ></div>
               </div>
 
               {/* DOWNLOADS */}
-              <div className="downloads-card">
+              <div className="downloads-card" style={{ marginTop: '40px', background: 'rgba(21, 42, 49, 0.5)', padding: '30px', borderRadius: '16px' }}>
                 <h3>Downloads</h3>
-                <p className="description">
-                  To be used in accordance with both annual and 30-month depth maintenance.
-                </p>
-
-                <div className="download-list">
-                  <a
-                    href="/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="download-link"
-                  >
-                    <Image src="/Icons/PDF_Icon.svg" width={40} height={40} alt="PDF Icon" />
-                    <div>
-                      <p>SWIFT maintenance manual.pdf</p>
-                      <span>{maintenanceManualSize}</span>
-                    </div>
+                <div className="download-list" style={{ display: 'flex', gap: '30px', marginTop: '20px' }}>
+                  <a href={maintenanceManualPath} target="_blank" className="download-link" style={{ display: 'flex', alignItems: 'center', gap: '15px', textDecoration: 'none', color: 'white' }}>
+                    <Image src="/Icons/PDF_Icon.svg" width={40} height={40} alt="PDF" />
+                    <div><p style={{ margin: 0 }}>Maintenance manual</p><span>{maintenanceManualSize}</span></div>
                   </a>
-
-                  <a
-                    href="/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="download-link"
-                  >
-                    <Image src="/Icons/PDF_Icon.svg" width={40} height={40} alt="PDF Icon" />
-                    <div>
-                      <p>SWIFT installation guide.pdf</p>
-                      <span>{installationGuideSize}</span>
-                    </div>
+                  <a href={installationGuidePath} target="_blank" className="download-link" style={{ display: 'flex', alignItems: 'center', gap: '15px', textDecoration: 'none', color: 'white' }}>
+                    <Image src="/Icons/PDF_Icon.svg" width={40} height={40} alt="PDF" />
+                    <div><p style={{ margin: 0 }}>Installation guide</p><span>{installationGuideSize}</span></div>
                   </a>
                 </div>
               </div>
@@ -262,11 +256,9 @@ export default function SwiftUnitPage({
           </div>
         </div>
 
-        {/* Fixed Zelim logo */}
-        <div className="zelim-spacer"></div>
         <div className="fixed-zelim-logo">
           <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
-            <Image src="/logo/zelim-logo.svg" width={80} height={20} alt="Zelim logo" />
+            <Image src="/Zelim_Logo(White).svg" width={100} height={30} alt="Zelim logo" />
           </a>
         </div>
       </div>
