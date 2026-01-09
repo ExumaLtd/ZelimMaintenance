@@ -1,6 +1,6 @@
 /* =========================================================================
    DASHBOARD SCOPE (dashboard.css)
-   V57: FIXED MOBILE STACKING & PADDING ISSUES
+   V58: FIXED MOBILE STACKING, PADDING, AND LAST-CHILD GAP
 ========================================================================= */
 
 /* --- 1. BASE AND LAYOUT --- */
@@ -226,7 +226,7 @@
     line-height: 20px;
     text-transform: none !important;
     transition: background-color 0.2s, border-color 0.2s;
-    margin-top: auto; /* Pushes button to bottom of card content */
+    margin-top: auto; 
 }
 
 .dashboard-scope .maintenance-card .start-btn:hover,
@@ -312,7 +312,7 @@
         max-width: 100% !important;
         margin: 0 auto;
         padding: 0 20px !important; 
-        flex: none; /* Prevents unwanted stretching on tablet */
+        flex: none; 
     }
 
     .dashboard-scope .swift-dashboard-container {
@@ -383,15 +383,20 @@
     }
 
     .dashboard-scope .maintenance-group-wrapper {
-        flex-direction: column; /* Force stack on mobile/tablet */
+        flex-direction: column !important;
         gap: 20px;
         padding: 20px;
     }
 
     .dashboard-scope .maintenance-card {
-        flex: none; /* Stop cards from stretching vertically */
+        flex: 0 0 auto !important; /* Force cards to only take required height */
         min-width: 0;
         width: 100%;
+    }
+
+    /* Remove gap on the last item inside the wrapper on mobile */
+    .dashboard-scope .maintenance-group-wrapper .maintenance-card:last-child {
+        margin-bottom: 0 !important;
     }
 }
 
@@ -401,12 +406,12 @@
         padding: 0;
     }
     .dashboard-scope .page-wrapper {
-        min-height: auto; /* Remove fixed min-height to fix padding issue */
+        min-height: auto; 
         padding: 0 20px !important; 
     }
     
     .dashboard-scope .maintenance-group-wrapper {
-        flex-direction: column;
+        flex-direction: column !important;
     }
     .dashboard-scope .downloads-card {
         padding: 24px 20px 20px; 
