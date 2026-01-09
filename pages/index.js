@@ -117,11 +117,13 @@ export default function Home() {
               rel="noopener noreferrer"
               className="logo-link"
             >
+              {/* UPDATED LOGO SIZE: Swapped 100x30 for 120x40 to match other pages */}
               <Image
                 src="/logo/zelim-logo.svg"
                 alt="Zelim Logo"
-                width={100}
-                height={30}
+                width={120}
+                height={40}
+                className="zelim-logo"
               />
             </Link>
           </footer>
