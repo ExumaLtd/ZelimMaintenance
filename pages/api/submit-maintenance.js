@@ -21,14 +21,14 @@ export default async function handler(req, res) {
   const baseId = process.env.AIRTABLE_BASE_ID;
 
   try {
-    // 1. Get Company ID (KEEPING YOUR LOGIC)
+    // 1. Get Company ID
     const compRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies?filterByFormula={company_name}='${maintained_by}'`, {
       headers: { Authorization: `Bearer ${apiKey}` }
     });
     const compData = await compRes.json();
     const companyRecordId = compData.records?.[0]?.id;
 
-    // 2. Handle Engineer (KEEPING YOUR LOGIC - Handles O'Mara etc.)
+    // 2. Handle Engineer (Handles names like O'Mara by using double quotes in formula)
     const engFormula = `{engineer_name}="${engineer_name}"`;
     const engRes = await fetch(`https://api.airtable.com/v0/${baseId}/engineers?filterByFormula=${encodeURIComponent(engFormula)}`, {
       headers: { Authorization: `Bearer ${apiKey}` }
@@ -61,25 +61,26 @@ export default async function handler(req, res) {
     }
 
     // 3. SUBMIT TO THE NEW HISTORY LOG (The 100-Year Traceability)
-    // This uses the "Text" fields you just made in Airtable
+    // Updated to include the "submitted_at" field
     const logRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_logs`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         fields: {
-          "unit_link": [unit_record_id], // Connects to the unit
+          "unit_link": [unit_record_id],
           "date_of_maintenance": date_of_maintenance,
+          "submitted_at": new Date().toISOString(), // Automatically captures the precise upload time
           "maintenance_type": maintenance_type,
-          "engineer_name": engineer_name, // Static text for history
+          "engineer_name": engineer_name,
           "engineer_email": engineer_email,
           "location_display": location_display || "",
-          "checklist_json": JSON.stringify(answers), // Stores full history
+          "checklist_json": JSON.stringify(answers),
           "photos": photoUrls ? photoUrls.map(url => ({ url })) : []
         }
       })
     });
 
-    // 4. Submit to current Maintenance Check (KEEPING FOR BACKWARD COMPATIBILITY)
+    // 4. Submit to current Maintenance Check (For portal display and dashboard)
     const finalTown = location_town || location_display || "";
     const checkRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_checks`, {
       method: 'POST',
@@ -102,6 +103,9 @@ export default async function handler(req, res) {
     });
 
     if (!checkRes.ok || !logRes.ok) {
+      const logErr = await logRes.text();
+      const checkErr = await checkRes.text();
+      console.error("Log Error:", logErr, "Check Error:", checkErr);
       throw new Error(`Airtable Error: Submission failed to one or more tables.`);
     }
 
