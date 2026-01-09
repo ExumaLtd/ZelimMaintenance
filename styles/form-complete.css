@@ -1,0 +1,65 @@
+/* =========================================================================
+   COMPLETION PAGE STYLES (form-complete.css)
+   For: Annual, Depth, and Unscheduled Success Pages
+========================================================================= */
+
+.form-scope .complete-card {
+    background: #152a31 !important;
+    padding: 48px 32px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 550px;
+    margin: 40px auto 0 auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.form-scope .complete-icon-circle {
+    width: 80px;
+    height: 80px;
+    background: rgba(0, 255, 246, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px auto;
+}
+
+.form-scope .complete-icon-circle i {
+    font-size: 40px;
+    color: #00FFF6;
+}
+
+.form-scope .complete-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: #FFFFFF;
+    margin-bottom: 16px;
+    font-family: "Montserrat", sans-serif;
+}
+
+.form-scope .complete-text {
+    color: #a0acaf;
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 32px;
+    font-family: "Montserrat", sans-serif;
+}
+
+.form-scope .back-to-unit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    background-color: #00FFF6 !important;
+    color: #0d3037 !important;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.form-scope .back-to-unit-btn:hover {
+    background-color: #01e6dd !important;
+    transform: translateY(-2px);
+}
