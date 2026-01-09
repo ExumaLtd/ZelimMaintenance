@@ -132,17 +132,18 @@ export default function SwiftUnitPage({
   const logoProps = getClientLogo(companyName, serialNumber);
 
   return (
+    /* flex + justify-content: space-between ensures content is top and footer is bottom */
     <div className="dashboard-scope" style={{ 
       display: 'flex', 
       flexDirection: 'column', 
       minHeight: '100vh',
-      overflowX: 'hidden' 
+      justifyContent: 'space-between' 
     }}>
       <Head>
         <title>{companyName} Maintenance Portal</title>
       </Head>
 
-      <div className="swift-main-layout-wrapper" style={{ flex: '1 0 auto' }}>
+      <div className="swift-main-layout-wrapper">
         <div className="page-wrapper">
           <div className="swift-dashboard-container">
             
@@ -266,22 +267,21 @@ export default function SwiftUnitPage({
         </div>
       </div>
 
-      {/* FOOTER LOGO - Optimized padding and margin to stay visible on first load */}
+      {/* FOOTER LOGO - EXACT size and padding from your live version */}
       <footer style={{ 
         width: '100%', 
-        padding: '20px 0 25px', 
+        padding: '40px 0 40px', 
         display: 'flex', 
         justifyContent: 'center', 
-        flexShrink: 0,
-        marginTop: 'auto' 
+        flexShrink: 0 
       }}>
         <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
           <Image 
             src="/logo/zelim-logo.svg" 
-            width={100} 
-            height={30} 
+            width={120} 
+            height={40} 
             alt="Zelim logo" 
-            style={{ opacity: 0.85 }}
+            style={{ opacity: 0.9 }}
           />
         </a>
       </footer>
