@@ -208,7 +208,7 @@ export default function SwiftUnitPage({
                 <div className="maintenance-card">
                   <h3>Unscheduled<br/>maintenance</h3>
                   <p className="description">
-                    To be completed in accordance with the SWIFT Survivor Recovery System Maintenance Manual.
+                    To be completed in accordance with Section 7.1.3 – Unscheduled and Corrective Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.
                   </p>
                   <Link href={`/swift/${publicToken}/unscheduled`} className="start-btn">
                     Start maintenance

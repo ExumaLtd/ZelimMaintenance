@@ -45,6 +45,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
 
+  // STORAGE KEY specifically for unscheduled
   const storageKey = `draft_unscheduled_${unit?.serial_number}`;
 
   // ENGINEER LOGIC: Filter out the selected name from the list below
@@ -157,6 +158,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
     }
     setSubmitting(true);
     const payload = {
+      maintenance_type: "Unscheduled", // Added for API categorization
       maintained_by: selectedCompany,
       location_display: locationDisplay,
       date_of_maintenance: e.target.date_of_maintenance.value,
