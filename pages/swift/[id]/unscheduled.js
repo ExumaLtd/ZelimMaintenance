@@ -279,9 +279,8 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
               <span className="break-point">unscheduled maintenance</span>
             </h1>
 
-            {/* RESTORED SECTION TEXT */}
             <p className="checklist-hero-subtitle" style={{ color: "#7d8f93", textAlign: "center", marginBottom: "32px", fontSize: "14px" }}>
-              To be completed in accordance with Section 7.1.3 – Unscheduled and Corrective Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.
+              To be completed in accordance with the Unscheduled and Corrective Maintenance Process.
             </p>
             
             <div className="checklist-form-card">
@@ -475,6 +474,18 @@ export async function getServerSideProps({ params }) {
     if (companyData.records) {
       companyData.records.forEach(r => { if (r.fields.company_name) companyLookup[r.id] = r.fields.company_name; });
     }
+
+    // SAFETY PARSE: Handle trailing commas or broken JSON in Airtable gracefully
+    let questions = [];
+    const rawJson = templateData.records?.[0]?.fields.questions_json;
+    if (rawJson) {
+      try {
+        questions = JSON.parse(rawJson);
+      } catch (e) {
+        console.error("JSON Parse Error in Airtable Template:", e.message);
+        questions = ["ERROR: There is a syntax error in the checklist template JSON in Airtable. Please remove trailing commas."];
+      }
+    }
     
     return {
       props: {
@@ -484,10 +495,10 @@ export async function getServerSideProps({ params }) {
           record_id: unitRecord.id, 
           public_token: unitRecord.fields.public_token || token 
         },
-        template: templateData.records?.[0] ? { 
-          id: templateData.records[0].id, 
-          questions: templateData.records[0].fields.questions_json ? JSON.parse(templateData.records[0].fields.questions_json) : []
-        } : { id: "", questions: [] },
+        template: { 
+          id: templateData.records?.[0]?.id || "", 
+          questions: questions
+        },
         allCompanies: Object.values(companyLookup).filter(Boolean),
         allEngineers: engineerData.records?.map(r => ({ 
           name: r.fields.engineer_name, 
