@@ -6,8 +6,18 @@ import "/styles/form-complete.css";
 
 import Head from "next/head";
 import Script from "next/script"; 
+import { useEffect } from "react";
 
 export default function MyApp({ Component, pageProps }) {
+  
+  // Force scroll to top on page load/navigation to prevent logo cropping
+  useEffect(() => {
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <>
       <Head>

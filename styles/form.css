@@ -1,20 +1,21 @@
 /* =========================================================================
    CHECKLIST PAGE STYLES (form.css)
-   V74: FULL V72 RETAINED + ALL JS STYLES + DYNAMIC STATE CLASSES
+   V75: MOBILE HEIGHT & SCROLL FIXES
 ========================================================================= */
 
 /* Ensure the wrapper takes up enough space and doesn't collapse */
 .form-scope .swift-main-layout-wrapper {
     min-height: 100vh;
-    min-height: 100dvh;
+    min-height: 100svh; /* Better handling for mobile browser bars */
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* Pushes footer to bottom */
+    justify-content: space-between;
     padding: 0 40px;
 }
 
 .form-scope {
     min-height: 100vh;
+    min-height: 100svh;
     width: 100%;
 }
 
@@ -26,6 +27,7 @@
     padding-top: 40px; 
     display: flex;
     flex-direction: column;
+    scroll-margin-top: 0;
 }
 
 .form-scope .swift-checklist-container {
@@ -337,6 +339,7 @@
 @media (max-width: 600px) {
     .form-scope .page-wrapper {
         padding: 0 16px !important;
+        padding-top: 20px; /* Reduced to help top logo visibility */
     }
 
     .form-scope .swift-checklist-container {
@@ -360,7 +363,6 @@
     }
 
     .form-scope .checklist-form-card {
-        /* UPDATED: 26px top, 24px sides, 30px bottom */
         padding: 26px 24px 30px 24px !important;
     }
     
