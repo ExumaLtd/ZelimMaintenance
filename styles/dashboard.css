@@ -229,9 +229,10 @@
     margin-top: auto; 
 }
 
+/* AMENDED: UPDATED HOVER COLOUR TO #01e6dd */
 .dashboard-scope .maintenance-card .start-btn:hover,
 .dashboard-scope .maintenance-card .primary-btn:hover {
-    background-color: #00f2ea !important; 
+    background-color: #01e6dd !important; 
     cursor: pointer;
 }
 
@@ -389,12 +390,11 @@
     }
 
     .dashboard-scope .maintenance-card {
-        flex: 0 0 auto !important; /* Force cards to only take required height */
+        flex: 0 0 auto !important; 
         min-width: 0;
         width: 100%;
     }
 
-    /* Remove gap on the last item inside the wrapper on mobile */
     .dashboard-scope .maintenance-group-wrapper .maintenance-card:last-child {
         margin-bottom: 0 !important;
     }

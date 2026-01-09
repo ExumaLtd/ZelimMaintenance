@@ -191,11 +191,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       <Head>
         <title>{unit?.serial_number} | Annual Maintenance</title>
         <style>{`
-          .form-scope {
-            background-color: #1a3239 !important;
-            min-height: 100vh;
-            width: 100%;
-          }
+          /* REMOVED .form-scope background color block */
+
           .form-scope .checklist-form-card {
             background: #152a31 !important;
             padding: 38px !important;
@@ -204,6 +201,12 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             text-align: left;
             box-sizing: border-box;
           }
+
+          .form-scope .checklist-submit:hover {
+            background-color: #01e6dd !important;
+            cursor: pointer;
+          }
+
           .form-scope .checklist-input, 
           .form-scope .checklist-textarea {
             background-color: #27454b !important;
