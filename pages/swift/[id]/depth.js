@@ -452,7 +452,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
                 {errorMsg && <p style={{ color: '#ff4d4d', marginTop: '16px' }}>{errorMsg}</p>}
                 <button className="checklist-submit" disabled={submitting}>
-                  {submitting ? "Submitting..." : "Submit depth maintenance"}
+                  {submitting ? "Submitting..." : "Submit maintenance"}
                 </button>
               </form>
             </div>
