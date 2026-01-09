@@ -1,6 +1,6 @@
 /* =========================================================================
    CHECKLIST PAGE STYLES (form.css)
-   V72: REMOVED SCOPE BACKGROUND COMPLETELY & MATCHED FOOTER
+   V74: FULL V72 RETAINED + ALL JS STYLES + DYNAMIC STATE CLASSES
 ========================================================================= */
 
 /* Ensure the wrapper takes up enough space and doesn't collapse */
@@ -74,11 +74,12 @@
 }
 
 .form-scope .checklist-form-card {
-    background: #172f36;
+    background: #152a31 !important; 
     padding: 38px;
     border-radius: 20px;
     width: 100%;
     text-align: left;
+    box-sizing: border-box;
 }
 
 /* --- TOP ROW DESKTOP LAYOUT --- */
@@ -124,6 +125,71 @@
     margin-bottom: 6px;
 }
 
+/* --- DROPDOWN & ICON WRAPPERS --- */
+.form-scope .field-icon-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.form-scope .field-icon-wrapper i {
+    position: absolute;
+    right: 16px;
+    color: #f7f7f7;
+    pointer-events: none;
+}
+
+.form-scope .custom-dropdown-container { 
+    position: relative; 
+    width: 100%; 
+}
+
+.form-scope .custom-dropdown-list {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: #27454B;
+    border: 1px solid #00FFF6 !important;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(21, 42, 49, 0.4);
+    margin: 0;
+    padding: 6px 6px;
+    list-style: none;
+    z-index: 1000;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.form-scope .custom-dropdown-item {
+    padding: 6px 16px;
+    color: #F7F7F7;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 400;
+    border-radius: 4px;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.form-scope .custom-dropdown-item:hover,
+.form-scope .custom-dropdown-item.active { 
+    background: #476166;
+    color: #F7F7F7;
+}
+
+/* --- DYNAMIC STATES (MOVED FROM JS) --- */
+.form-scope .checklist-input.is-placeholder {
+    color: #7d8f93 !important;
+}
+
+.form-scope .checklist-input.is-active {
+    color: #F7F7F7 !important;
+}
+
+.form-scope .checklist-input.is-focused {
+    border-color: #00FFF6 !important;
+}
+
 /* --- INPUTS & ICONS (PREVENT JUMPING/ZOOMING) --- */
 .form-scope .input-icon-wrapper {
     position: relative;
@@ -146,19 +212,19 @@
 .form-scope .checklist-input,
 .form-scope .checklist-textarea {
     width: 100%;
-    background: #27454b;
-    border: 2px solid transparent; 
-    border-radius: 8px;
-    padding: 12px 15px; 
-    color: #e9ebec;
+    background-color: #27454b !important;
+    border: 1px solid transparent !important;
+    padding: 14px 16px !important;
+    color: #F7F7F7;
     font-size: 16px !important; 
     font-family: "Montserrat", sans-serif;
-    box-sizing: border-box;
+    border-radius: 8px !important;
+    box-sizing: border-box !important;
     transition: border-color 0.2s;
     outline: none !important;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    line-height: 24px !important; 
+    line-height: 20px !important; 
 }
 
 /* Prevents white/yellow background when mobile browser suggests a name */
@@ -166,7 +232,7 @@
 .form-scope .checklist-input:-webkit-autofill:hover, 
 .form-scope .checklist-input:-webkit-autofill:focus {
     -webkit-box-shadow: 0 0 0 50px #27454b inset !important;
-    -webkit-text-fill-color: #e9ebec !important;
+    -webkit-text-fill-color: #F7F7F7 !important;
     transition: background-color 5000s ease-in-out 0s;
 }
 
@@ -192,17 +258,10 @@
     cursor: pointer;
 }
 
-.form-scope .checklist-input::-webkit-calendar-picker-indicator {
+.form-scope input[type="date"]::-webkit-calendar-picker-indicator {
+    background: transparent; bottom: 0; color: transparent; cursor: pointer;
+    height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto;
     display: block !important;
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer;
 }
 
 .form-scope .checklist-input::placeholder,
@@ -214,7 +273,7 @@
 .form-scope .checklist-textarea {
     resize: none !important; 
     overflow: hidden;
-    min-height: 72px;
+    min-height: 78px !important;
     display: block;
 }
 
@@ -241,7 +300,7 @@
 }
 
 .form-scope .checklist-submit:hover {
-    background-color: #00f2ea !important;
+    background-color: #01e6dd !important;
     border-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -261,24 +320,18 @@
 
 /* --- MOBILE SPECIFIC OVERRIDES --- */
 @media (max-width: 900px) {
-    .form-scope .swift-main-layout-wrapper {
-        padding: 0;
-    }
-
+    .form-scope .swift-main-layout-wrapper { padding: 0; }
     .form-scope .page-wrapper {
         width: 100% !important;
         max-width: 100% !important;
         padding: 0 20px !important;
     }
-
-    .form-scope .swift-checklist-container {
-        margin-top: 26px !important;
-    }
+    .form-scope .swift-checklist-container { margin-top: 26px !important; }
 }
 
 @media (max-width: 600px) {
     .form-scope .page-wrapper {
-        padding: 0 20px !important;
+        padding: 0 16px !important;
     }
 
     .form-scope .swift-checklist-container {
@@ -294,16 +347,6 @@
         margin: 0 auto 30px auto !important;
     }
 
-    .form-scope .checklist-logo img {
-        position: absolute !important;
-        left: 0; right: 0;
-        margin: auto !important;
-        width: 100% !important;
-        height: 100% !important;
-        object-fit: contain !important;
-        object-position: center !important;
-    }
-
     .form-scope .checklist-hero-title {
         font-size: 22px; 
         line-height: 28px;
@@ -312,7 +355,7 @@
     }
 
     .form-scope .checklist-form-card {
-        padding: 30px 24px 30px 24px !important; 
+        padding: 26px 24px !important;
     }
     
     .form-scope .checklist-submit {
