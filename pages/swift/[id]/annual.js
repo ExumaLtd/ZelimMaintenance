@@ -6,7 +6,6 @@ import { UploadDropzone } from "../../../utils/uploadthing";
 
 function autoGrow(e) {
   const el = e.target || e; 
-  // Base height matched to CSS min-height (78px) to prevent shrinking on mobile
   el.style.height = "78px"; 
   const newHeight = el.scrollHeight;
   el.style.height = newHeight + "px";
@@ -103,16 +102,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
         const data = await res.json();
         if (data && data.address) {
           const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
-          
-          // Formal name for Airtable (e.g. "United Kingdom")
           const formalCountry = data.address.country || "";
-          
-          // Short code for UI (e.g. "UK")
           const displayCountry = data.address.country_code ? data.address.country_code.toUpperCase() : formalCountry;
           const shortCountry = displayCountry === "GB" ? "UK" : displayCountry;
-
           const combinedDisplay = loc ? `${loc}, ${shortCountry}` : shortCountry;
-          
           setLocationDisplay(prev => (!prev || prev.trim() === "") ? combinedDisplay : prev);
           setLocationCountry(formalCountry); 
         }
@@ -166,12 +159,19 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
     setSubmitting(true);
 
+    const formDate = e.target.date_of_maintenance.value;
+    const now = new Date();
+    // Append current time if submitting for today
+    const timestamp = formDate === today 
+      ? `${formDate}T${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`
+      : formDate;
+
     const payload = {
       maintained_by: selectedCompany,
       location_display: locationDisplay,
-      location_country: locationCountry, // Sends formal name from state
+      location_country: locationCountry,
       maintenance_type: "Annual",        
-      date_of_maintenance: e.target.date_of_maintenance.value,
+      date_of_maintenance: timestamp,
       engineer_name: engName,
       engineer_email: engEmail,
       engineer_phone: engPhone,
@@ -213,12 +213,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             text-align: left;
             box-sizing: border-box;
           }
-
           .form-scope .checklist-submit:hover {
             background-color: #01e6dd !important;
             cursor: pointer;
           }
-
           .form-scope .checklist-input, 
           .form-scope .checklist-textarea {
             background-color: #27454b !important;
@@ -255,7 +253,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             color: #f7f7f7;
             pointer-events: none;
           }
-
           .form-scope .custom-dropdown-container { position: relative; width: 100%; }
           .form-scope .custom-dropdown-list {
             position: absolute;
@@ -287,7 +284,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             background: #476166;
             color: #F7F7F7;
           }
-
           .form-scope input[type="date"]::-webkit-calendar-picker-indicator {
             background: transparent; bottom: 0; color: transparent; cursor: pointer;
             height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto;
