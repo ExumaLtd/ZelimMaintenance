@@ -1,4 +1,3 @@
-// pages/swift/[id]/index.js – FINAL FULL VERSION
 import Head from "next/head";
 import Link from "next/link";
 import Airtable from "airtable";
@@ -100,7 +99,7 @@ const getClientLogo = (companyName, serialNumber) => {
     };
   }
 
-  if (serialNumber === "SWI003" || companyName?.includes("Milford Haven")) {
+  if (serialNumber === "SWI003" || companyName?.includes("Port of Milford Haven")) {
     return {
       src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg",
       alt: `${companyName} Logo`,
@@ -132,12 +131,7 @@ export default function SwiftUnitPage({
   const logoProps = getClientLogo(companyName, serialNumber);
 
   return (
-    <div className="dashboard-scope" style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      minHeight: '100vh',
-      justifyContent: 'space-between' 
-    }}>
+    <div className="dashboard-scope">
       <Head>
         <title>{companyName} Maintenance Portal</title>
       </Head>
@@ -149,7 +143,7 @@ export default function SwiftUnitPage({
             {/* LEFT PANEL */}
             <div className="detail-panel">
               {logoProps && (
-                <div className="logo-section" style={{ position: 'relative' }}>
+                <div className="logo-section">
                   <Image
                     src={logoProps.src}
                     alt={logoProps.alt}
@@ -264,26 +258,20 @@ export default function SwiftUnitPage({
             </div>
           </div>
         </div>
-      </div>
 
-      {/* FOOTER LOGO - 120x40 size with 40px bottom padding. */}
-      <footer style={{ 
-        width: '100%', 
-        padding: '80px 0 40px', 
-        display: 'flex', 
-        justifyContent: 'center', 
-        flexShrink: 0 
-      }}>
-        <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
-          <Image 
-            src="/logo/zelim-logo.svg" 
-            width={120} 
-            height={40} 
-            alt="Zelim logo" 
-            style={{ opacity: 0.9 }}
-          />
-        </a>
-      </footer>
+        {/* FOOTER - INTEGRATED IN FLEXBOX WRAPPER */}
+        <footer className="footer-section">
+          <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
+            <Image 
+              src="/logo/zelim-logo.svg" 
+              width={120} 
+              height={40} 
+              alt="Zelim logo" 
+              style={{ opacity: 0.9 }}
+            />
+          </a>
+        </footer>
+      </div>
     </div>
   );
 }
