@@ -15,7 +15,7 @@ export default async function handler(req, res) {
       // This MUST match the domain you just verified in the Resend Dashboard
       from: 'Zelim Maintenance <maintenance@exuma.co.uk>',
       to: [engineerEmail],
-      cc: ['maintenance@exuma.com'],
+      cc: ['maintenance@exuma.co.uk'],
       subject: `Maintenance Report: Unit ${serialNumber}`,
       react: MaintenanceReportEmail({ engineerName, serialNumber, answers }),
     });
