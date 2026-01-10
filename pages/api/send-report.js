@@ -21,11 +21,11 @@ export default async function handler(req, res) {
     } = req.body;
 
     // BRANDING CONSTANTS
-    // Zelim Green: #172F36
+    // Zelim Green: #172F36 (Applied to top accent line and buttons)
     const ZELIM_GREEN = "#172F36"; 
     
     // Constructing the absolute URL for the PNG logo asset
-    // Ensure you rename the file to zelim-logo-dark.png for URL safety
+    // We use VERCEL_URL as the primary source to ensure the email client can find the image
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `https://${process.env.VERCEL_URL}`;
     const logoUrl = `${baseUrl}/logo/zelim-logo-dark.png`;
 

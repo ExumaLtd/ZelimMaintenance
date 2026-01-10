@@ -51,8 +51,8 @@ export const TechnicalAlertEmail = ({
           
           <Section style={buttonContainer}>
             <Button 
-              px={28} 
-              py={14} 
+              pX={28} 
+              pY={14} 
               style={{ ...button, backgroundColor: ZELIM_GREEN }} 
               href={airtableUrl}
             >
