@@ -9,23 +9,35 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
   try {
-    const { engineerEmail, engineerName, serialNumber, answers } = req.body;
+    // Extracting the data from the request body
+    const { engineerEmail, engineerName, serialNumber, answers, reportType } = req.body;
+
+    // Logic to ensure the subject line is professional and descriptive
+    // This handles cases for "Annual", "Depth", and "Unscheduled"
+    let displayType = reportType || 'Maintenance';
+    
+    // If the frontend just sends "Annual", we append " Maintenance" for the subject
+    if (!displayType.toLowerCase().includes('maintenance')) {
+      displayType = `${displayType} Maintenance`;
+    }
+
+    const dynamicSubject = `${serialNumber} ${displayType} Confirmation`;
 
     const data = await resend.emails.send({
       // This MUST match the domain you just verified in the Resend Dashboard
       from: 'Zelim Maintenance <maintenance@exuma.co.uk>',
       to: [engineerEmail],
       cc: ['maintenance@exuma.co.uk'],
-      subject: `Maintenance Report: Unit ${serialNumber}`,
+      subject: dynamicSubject,
       react: MaintenanceReportEmail({ engineerName, serialNumber, answers }),
     });
 
-    // This helps us see the success message in the VS Code terminal
+    // Success log for the VS Code terminal
     console.log("RESEND SUCCESS:", data);
     return res.status(200).json(data);
 
   } catch (error) {
-    // If it fails, this will print the EXACT reason (e.g., "Domain not verified")
+    // Detailed error logging for troubleshooting
     console.error("--- RESEND ERROR ---");
     console.error(error.message);
     console.error("--- END ERROR ---");

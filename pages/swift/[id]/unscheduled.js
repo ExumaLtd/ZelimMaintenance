@@ -180,6 +180,13 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
     }
 
     setSubmitting(true);
+
+    // Prepare human-readable answers for the email
+    const emailFriendlyAnswers = {};
+    (template?.questions || []).forEach((qText, i) => {
+      emailFriendlyAnswers[qText] = answers[`q${i+1}`] || "Not answered";
+    });
+
     const payload = {
       maintained_by: selectedCompany,
       location_display: locationDisplay,
@@ -197,12 +204,27 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       }))
     };
     try {
+      // 1. Submit to Airtable
       const res = await fetch("/api/submit-maintenance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("Failed");
+
+      if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
+
+      // 2. Submit to Resend (Email)
+      await fetch("/api/send-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          engineerEmail: engEmail,
+          engineerName: engName,
+          serialNumber: unit?.serial_number,
+          answers: emailFriendlyAnswers,
+          reportType: "Unscheduled" // Triggers "SWIxxx Unscheduled Maintenance Confirmation"
+        }),
+      });
       
       localStorage.setItem('last_submitted_sn', unit?.serial_number);
       localStorage.removeItem(storageKey);

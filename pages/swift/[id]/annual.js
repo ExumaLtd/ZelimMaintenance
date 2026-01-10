@@ -226,7 +226,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           engineerEmail: engEmail,
           engineerName: engName,
           serialNumber: unit?.serial_number,
-          answers: emailFriendlyAnswers
+          answers: emailFriendlyAnswers,
+          reportType: "Annual" // Passes "Annual" to API which becomes "Annual Maintenance" in subject
         }),
       });
       
