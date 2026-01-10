@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" width="294.68" height="66.95" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 294.68 66.95">
+  <defs>
+    <linearGradient id="linear-gradient" x1="132.5" y1="74.76" x2="181.3" y2="47.24" gradientUnits="userSpaceOnUse">
+      <stop offset=".04" stop-color="#00fff6"/>
+      <stop offset=".15" stop-color="#02eae2"/>
+      <stop offset=".37" stop-color="#08b5b1"/>
+      <stop offset=".68" stop-color="#116063"/>
+      <stop offset=".85" stop-color="#172f36"/>
+    </linearGradient>
+    <linearGradient id="Zelim_Sky-Stone" data-name="Zelim Sky-Stone" x1="123.33" y1="58.5" x2="172.13" y2="30.98" gradientUnits="userSpaceOnUse">
+      <stop offset=".02" stop-color="#00fff6"/>
+      <stop offset=".11" stop-color="#01f4ec"/>
+      <stop offset=".25" stop-color="#04d8d2"/>
+      <stop offset=".44" stop-color="#09a9a7"/>
+      <stop offset=".66" stop-color="#106a6d"/>
+      <stop offset=".85" stop-color="#172f36"/>
+    </linearGradient>
+  </defs>
+  <g id="Layer_1-2" data-name="Layer 1">
+    <g>
+      <polygon points="78.72 66.95 78.72 17.48 128.79 17.48 128.79 28.03 92.43 28.03 92.43 36.2 126.92 36.2 126.92 46.75 92.43 46.75 92.43 56.4 128.42 56.4 122.35 66.95 78.72 66.95" style="fill: #152f36; stroke-width: 0px;"/>
+      <polygon points="200.38 59.22 200.38 17.48 213.74 17.48 213.74 66.95 200.38 59.22" style="fill: #152f36; stroke-width: 0px;"/>
+      <polygon points="281.4 66.95 281.4 32.21 263.04 66.95 250.22 66.95 231.86 32.21 231.86 66.95 218.5 66.95 218.5 17.48 236.65 17.48 256.63 54.92 276.61 17.48 294.68 17.48 294.68 66.95 281.4 66.95" style="fill: #152f36; stroke-width: 0px;"/>
+      <polygon points="74.04 66.95 74.01 56.11 29.59 56.11 74.01 17.48 13.98 17.48 1.52 28.32 44.39 28.32 0 66.95 74.04 66.95" style="fill: #152f36; stroke-width: 0px;"/>
+      <polygon points="166.58 23.07 166.58 22.2 166.58 0 127.93 66.95 150.02 51.74 166.58 23.07" style="fill: #152f36; stroke-width: 0px;"/>
+      <polygon points="185.25 55.41 166.58 55.41 152.56 55.41 127.93 66.95 205.23 66.95 185.25 55.41" style="fill: #152f36; stroke-width: 0px;"/>
+      <polygon points="166.58 55.41 152.56 55.41 127.93 66.95 185.25 55.41 166.58 55.41" style="fill: url(#linear-gradient);"/>
+      <polygon points="127.93 66.95 150.03 51.74 166.58 23.07 127.93 66.95" style="fill: url(#Zelim_Sky-Stone);"/>
+    </g>
+  </g>
+</svg>

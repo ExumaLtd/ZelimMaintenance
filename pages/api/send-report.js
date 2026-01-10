@@ -20,6 +20,13 @@ export default async function handler(req, res) {
       technicalData 
     } = req.body;
 
+    // BRANDING CONSTANTS
+    const ZELIM_GREEN = "#172F36";
+    // Constructing the absolute URL for the logo asset
+    // Ensure NEXT_PUBLIC_BASE_URL is set in your Vercel env (e.g., https://your-site.vercel.app)
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `https://${process.env.VERCEL_URL}`;
+    const logoUrl = `${baseUrl}/logo/zelim-logo(dark).svg`;
+
     // Logic to ensure the subject line is professional and descriptive
     let displayType = reportType || 'Maintenance';
     if (!displayType.toLowerCase().includes('maintenance')) {
@@ -36,7 +43,14 @@ export default async function handler(req, res) {
         from: 'Zelim Maintenance <maintenance@exuma.co.uk>',
         to: [engineerEmail],
         subject: engineerSubject,
-        react: MaintenanceReportEmail({ engineerName, serialNumber, answers }),
+        // Passing branding props to match the dashboard styling
+        react: MaintenanceReportEmail({ 
+          engineerName, 
+          serialNumber, 
+          answers, 
+          brandColor: ZELIM_GREEN,
+          logoUrl: logoUrl
+        }),
       },
       {
         // EMAIL 2: The Internal Technical Alert for the Zelim Team
@@ -48,7 +62,9 @@ export default async function handler(req, res) {
           serialNumber, 
           displayType, 
           technicalData, 
-          answers 
+          answers,
+          brandColor: ZELIM_GREEN,
+          logoUrl: logoUrl
         }),
       }
     ]);
