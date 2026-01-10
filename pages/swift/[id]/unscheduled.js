@@ -222,7 +222,13 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
           engineerName: engName,
           serialNumber: unit?.serial_number,
           answers: emailFriendlyAnswers,
-          reportType: "Unscheduled" // Triggers "SWIxxx Unscheduled Maintenance Confirmation"
+          reportType: "Unscheduled",
+          technicalData: {
+            unit_record_id: unit?.record_id,
+            checklist_template_id: template?.id,
+            engineer_phone: engPhone,
+            location_country: locationCountry
+          }
         }),
       });
       

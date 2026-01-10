@@ -221,7 +221,13 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
           engineerName: engName,
           serialNumber: unit?.serial_number,
           answers: emailFriendlyAnswers,
-          reportType: "Depth" // Triggers "SWIxxx Depth Maintenance Confirmation"
+          reportType: "Depth",
+          technicalData: {
+            unit_record_id: unit?.record_id,
+            checklist_template_id: template?.id,
+            engineer_phone: engPhone,
+            location_country: locationCountry
+          }
         }),
       });
       
