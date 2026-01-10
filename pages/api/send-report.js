@@ -21,11 +21,13 @@ export default async function handler(req, res) {
     } = req.body;
 
     // BRANDING CONSTANTS
-    const ZELIM_GREEN = "#172F36";
-    // Constructing the absolute URL for the logo asset
-    // Ensure NEXT_PUBLIC_BASE_URL is set in your Vercel env (e.g., https://your-site.vercel.app)
+    // Updated to Zelim Green #172F36 as per the top accent line request
+    const ZELIM_GREEN = "#172F36"; 
+    
+    // Constructing the absolute URL for the PNG logo asset
+    // Using encodeURIComponent for the brackets in "zelim-logo(dark).png" 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `https://${process.env.VERCEL_URL}`;
-    const logoUrl = `${baseUrl}/logo/zelim-logo(dark).svg`;
+    const logoUrl = `${baseUrl}/logo/zelim-logo(dark).png`;
 
     // Logic to ensure the subject line is professional and descriptive
     let displayType = reportType || 'Maintenance';
@@ -36,14 +38,13 @@ export default async function handler(req, res) {
     const engineerSubject = `${serialNumber} ${displayType} Confirmation`;
     const internalSubject = `TECHNICAL ALERT: ${serialNumber} - ${displayType}`;
 
-    // Send both emails in a single batch call using React templates for both
+    // Send both emails in a single batch call
     const data = await resend.batch.send([
       {
         // EMAIL 1: The receipt for the Engineer
         from: 'Zelim Maintenance <maintenance@exuma.co.uk>',
         to: [engineerEmail],
         subject: engineerSubject,
-        // Passing branding props to match the dashboard styling
         react: MaintenanceReportEmail({ 
           engineerName, 
           serialNumber, 
@@ -54,7 +55,6 @@ export default async function handler(req, res) {
       },
       {
         // EMAIL 2: The Internal Technical Alert for the Zelim Team
-        // Updated display name to "Zelim Maintenance Submission"
         from: 'Zelim Maintenance Submission <maintenance@exuma.co.uk>',
         to: ['maintenance@exuma.co.uk'], 
         subject: internalSubject,
