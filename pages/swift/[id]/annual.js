@@ -184,6 +184,13 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     }
 
     setSubmitting(true);
+
+    // Prepare human-readable answers for the email
+    const emailFriendlyAnswers = {};
+    (template?.questions || []).forEach((qText, i) => {
+      emailFriendlyAnswers[qText] = answers[`q${i+1}`] || "Not answered";
+    });
+
     const payload = {
       maintained_by: selectedCompany,
       location_display: locationDisplay,
@@ -200,18 +207,36 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
         answer: answers[`q${i+1}`] || ""
       }))
     };
+
     try {
+      // 1. Submit to Airtable
       const res = await fetch("/api/submit-maintenance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("Failed to submit. Please try again.");
+
+      if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
+
+      // 2. Submit to Resend (Email)
+      await fetch("/api/send-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          engineerEmail: engEmail,
+          engineerName: engName,
+          serialNumber: unit?.serial_number,
+          answers: emailFriendlyAnswers
+        }),
+      });
       
       localStorage.setItem('last_submitted_sn', unit?.serial_number);
       localStorage.removeItem(storageKey);
       router.push(`/swift/${unit.public_token}/annual-complete`);
-    } catch (err) { setErrorMsg(err.message); setSubmitting(false); }
+    } catch (err) { 
+      setErrorMsg(err.message); 
+      setSubmitting(false); 
+    }
   }
 
   const logo = getClientLogo(unit?.company, unit?.serial_number);

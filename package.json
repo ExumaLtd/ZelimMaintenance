@@ -8,12 +8,15 @@
     "start": "next start"
   },
   "dependencies": {
+    "@react-email/components": "^1.0.4",
+    "@react-email/render": "^2.0.2",
     "@uploadthing/react": "^7.3.3",
     "airtable": "^0.12.2",
     "formidable": "^3.5.4",
     "next": "14.2.35",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "resend": "^6.7.0",
     "uploadthing": "^7.7.4"
   }
 }
