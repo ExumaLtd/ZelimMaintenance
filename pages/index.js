@@ -75,7 +75,7 @@ export default function Home() {
         };
 
         // Triggers native browser "Allow" prompt.
-        // Layout stays frozen because #reader is 'fixed' outside the flow.
+        // Layout stays frozen because scanner mounts in the fixed overlay.
         await html5QrCode.start(
           { facingMode: "environment" }, 
           config,
@@ -207,24 +207,49 @@ export default function Home() {
         </div>
       </div>
 
-      {/* SCANNER ELEMENT MOVED HERE:
-          By placing it outside landing-root with 'fixed', it cannot affect 
-          the layout or padding of the form-stack.
+      {/* POPUP SCANNER OVERLAY
+          This keeps the main page frozen while providing a visible 
+          container for the camera stream to function properly.
       */}
-      <div 
-        id="reader" 
-        style={{ 
-          display: showScanner ? 'block' : 'none',
+      {showScanner && (
+        <div style={{
           position: 'fixed',
           top: 0,
           left: 0,
-          width: '0px',
-          height: '0px',
-          opacity: 0,
-          pointerEvents: 'none',
-          zIndex: -1
-        }}
-      ></div>
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'rgba(13, 48, 55, 0.95)', // SWIFT brand dark teal
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '20px'
+        }}>
+          <div id="reader" style={{ 
+            width: '100%', 
+            maxWidth: '360px', 
+            borderRadius: '16px', 
+            overflow: 'hidden',
+            backgroundColor: '#1a2b2e',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
+          }}></div>
+          
+          <button 
+            type="button"
+            className="qr-button"
+            onClick={stopScanner}
+            style={{ 
+              marginTop: '30px', 
+              color: '#f7f7f7', 
+              fontSize: '16px',
+              textDecoration: 'underline'
+            }}
+          >
+            Cancel and enter code manually
+          </button>
+        </div>
+      )}
     </div>
   );
 }
