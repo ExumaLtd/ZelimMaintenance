@@ -65,7 +65,7 @@ export default function Home() {
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
   // -----------------------------
-  // FORM SUBMIT LOGIC
+  // FORM SUBMIT
   // -----------------------------
   const handleFormSubmit = async (e, codeOverride = null) => {
     if (e) e.preventDefault();
@@ -90,28 +90,20 @@ export default function Home() {
         return;
       }
 
-      const redirectToken = data.publicToken;
-      if (!redirectToken) {
-        if (!codeOverride) setError('This unit is missing a public token.');
-        setIsSubmitting(false);
-        return;
-      }
-
       if (codeOverride) {
-        window.location.href = `/swift/${redirectToken}`;
+        window.location.href = `/swift/${data.publicToken}`;
       } else {
-        router.push(`/swift/${redirectToken}`);
+        router.push(`/swift/${data.publicToken}`);
       }
 
-    } catch (err) {
-      console.error(err);
+    } catch {
       if (!codeOverride) setError('A network error occurred.');
       setIsSubmitting(false);
     }
   };
 
   // -----------------------------
-  // LIVE QR SCANNER
+  // QR SCANNER
   // -----------------------------
   const startScanner = async () => {
     setShowScanner(true);
@@ -129,14 +121,9 @@ export default function Home() {
           if (deviceId) cameraConfig = { deviceId: { exact: deviceId } };
         }
 
-        const config = {
-          fps: isIOS() ? 6 : 10,
-          disableFlip: false
-        };
-
         await html5QrCode.start(
           cameraConfig,
-          config,
+          { fps: isIOS() ? 6 : 10 },
           async (decodedText) => {
             if (lastScanRef.current === decodedText) {
               scanCountRef.current += 1;
@@ -145,17 +132,15 @@ export default function Home() {
               scanCountRef.current = 1;
             }
 
-            if (scanCountRef.current >= 2) {
-              if (hasNavigatedRef.current) return;
+            if (scanCountRef.current >= 2 && !hasNavigatedRef.current) {
               hasNavigatedRef.current = true;
 
               document.querySelector(".focus-reticle")?.classList.add("locked");
               navigator.vibrate?.([50, 30, 50]);
 
-              let finalCode = decodedText;
-              if (decodedText.includes('/')) {
-                finalCode = decodedText.split('/').pop();
-              }
+              let finalCode = decodedText.includes('/')
+                ? decodedText.split('/').pop()
+                : decodedText;
 
               await sleep(120);
               handleFormSubmit(null, finalCode);
@@ -164,27 +149,25 @@ export default function Home() {
         );
 
         setTimeout(() => {
-          const video = document.querySelector("#reader video");
-          lockZoomIfSupported(video);
+          lockZoomIfSupported(document.querySelector("#reader video"));
         }, 300);
 
-      } catch (err) {
-        console.error("Unable to start scanner", err);
+      } catch {
         setShowScanner(false);
       }
     }, 50);
   };
 
   useEffect(() => {
-    const handlePopState = () => {
+    const onPop = () => {
       if (showScanner) {
         scannerRef.current?.stop().catch(() => {});
         scannerRef.current = null;
         setShowScanner(false);
       }
     };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
   }, [showScanner]);
 
   return (
@@ -196,10 +179,6 @@ export default function Home() {
           #reader__dashboard,
           #reader__dashboard_section {
             display: none !important;
-          }
-          .scanner-overlay #reader video {
-            height: auto !important;
-            display: block !important;
           }
         `}</style>
       </Head>
@@ -214,7 +193,10 @@ export default function Home() {
         <div className="landing-content">
           <div className="landing-main">
             <div className="landing-header">
-              <h1 className="landing-title"><span>SWIFT</span><span>maintenance portal</span></h1>
+              <h1 className="landing-title">
+                <span>SWIFT</span>
+                <span>maintenance portal</span>
+              </h1>
               <p className="landing-subtitle">
                 For authorised engineers carrying out official inspections and scheduled servicing.
               </p>
@@ -223,7 +205,6 @@ export default function Home() {
             <form onSubmit={handleFormSubmit} className="form-stack">
               <div className={`input-wrapper ${error ? 'has-error' : ''}`}>
                 <input
-                  type="text"
                   className="input-field"
                   placeholder="Enter your access code"
                   value={accessCode}
@@ -232,7 +213,7 @@ export default function Home() {
                 {error && <p className="error-text">{error}</p>}
               </div>
 
-              <button type="submit" className="primary-btn">
+              <button className="primary-btn">
                 {isSubmitting ? 'Verifying…' : 'Enter portal'}
               </button>
 
@@ -252,10 +233,10 @@ export default function Home() {
         </div>
       </div>
 
-      {/* SCANNER OVERLAY — SAME LAYOUT AS LOGIN */}
+      {/* FULL-SCREEN SCANNER */}
       {showScanner && (
-        <div className="landing-content scanner-overlay">
-          <div className="landing-main scanner-main">
+        <div className="scanner-overlay">
+          <div className="scanner-main">
             <div className="focus-reticle"><span /></div>
             <div id="reader" />
           </div>

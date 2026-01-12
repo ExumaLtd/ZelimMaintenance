@@ -52,20 +52,6 @@
   padding: 32px 56px 80px;
 }
 
-/* Scanner mode: landing-content must fill viewport */
-.landing-scope .scanner-overlay.landing-content {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background-color: rgb(13, 48, 55);
-}
-
-/* iOS safe-area handling */
-.landing-scope .scanner-overlay.landing-content {
-  padding-top: calc(32px + env(safe-area-inset-top));
-  padding-bottom: calc(80px + env(safe-area-inset-bottom));
-}
-
 .landing-scope .landing-main {
   width: 100%;
   display: flex;
@@ -181,7 +167,6 @@
   line-height: 24px;
   font-weight: 600;
   cursor: pointer;
-  text-transform: none !important;
   transition: background-color .2s, border-color .2s;
 }
 
@@ -190,7 +175,7 @@
 }
 
 /* =========================================
-   QR LOGIN & SCANNER
+   QR LOGIN
 ========================================= */
 
 .landing-scope .qr-login-container {
@@ -205,11 +190,7 @@
   color: #a0acaf;
   font-family: Montserrat;
   font-size: 14px;
-  font-weight: 400;
   cursor: pointer;
-  text-decoration: none;
-  opacity: 1;
-  transition: color 0.2s;
 }
 
 .landing-scope .qr-button:hover {
@@ -217,44 +198,66 @@
 }
 
 /* =========================================
-   CAMERA (CRITICAL FIXES)
+   SCANNER OVERLAY (FINAL, CORRECT)
 ========================================= */
 
+.scanner-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgb(13, 48, 55);
+  z-index: 9999;
+}
+
+/* Camera area fills screen minus footer */
+.scanner-main {
+  position: absolute;
+  top: env(safe-area-inset-top);
+  left: 0;
+  right: 0;
+  bottom: calc(96px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* html5-qrcode container */
-.landing-scope #reader {
-  width: 100% !important;
+.scanner-overlay #reader {
+  width: 100%;
   max-width: 360px;
+  height: 100%;
   background: #1a2b2e;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
 }
 
-/* Kill ALL forced heights — this removes the dark band */
-.landing-scope #reader video {
+/* iOS FIX — video MUST fill container */
+.scanner-overlay #reader video {
   width: 100% !important;
-  height: auto !important;
-  max-height: none !important;
+  height: 100% !important;
   object-fit: cover !important;
   display: block !important;
-  border-radius: 12px;
 }
 
 /* Hide library UI */
-.landing-scope #reader button,
-.landing-scope #reader__dashboard_section,
-.landing-scope #reader__status_span {
+#reader button,
+#reader__dashboard_section,
+#reader__status_span {
   display: none !important;
 }
 
 /* =========================================
-   FOOTER LOGO
+   FOOTER LOGO (PINNED)
 ========================================= */
 
-.landing-scope .landing-footer {
-  width: 100%;
+.scanner-overlay .landing-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: env(safe-area-inset-bottom);
+  padding: 24px 0;
+  margin: 0;
   display: flex;
   justify-content: center;
-  margin-top: 32px;
 }
 
 .landing-scope img.zelim-logo {
