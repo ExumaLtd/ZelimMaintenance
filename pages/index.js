@@ -14,14 +14,14 @@ export default function Home() {
   const router = useRouter();
   const scannerRef = useRef(null); // Keep track of the scanner instance
 
-  // -----------------------------
-  // FORM SUBMIT LOGIC
-  // -----------------------------
-  const handleFormSubmit = async (e, codeOverride = null) => {
+  // ---------------------------------------------------------
+  // MANUAL FORM SUBMIT (For typed-in codes)
+  // ---------------------------------------------------------
+  const handleFormSubmit = async (e) => {
     if (e) e.preventDefault();
     if (isSubmitting) return;
 
-    const code = codeOverride || accessCode.trim();
+    const code = accessCode.trim();
     if (!code) {
       setError('Please enter your access code.');
       return;
@@ -41,21 +41,14 @@ export default function Home() {
       }
 
       const redirectToken = data.publicToken;
-
       if (!redirectToken) {
         setError('This unit is missing a public token.');
         setIsSubmitting(false);
         return;
       }
 
-      // If this came from a QR scan, open in a new tab
-      if (codeOverride) {
-        window.open(`/swift/${redirectToken}`, '_blank');
-        setIsSubmitting(false);
-      } else {
-        // If manual entry, stay in same tab
-        return router.push(`/swift/${redirectToken}`);
-      }
+      // Manual entry opens in the CURRENT tab
+      return router.push(`/swift/${redirectToken}`);
 
     } catch (err) {
       console.error('PIN verification error:', err);
@@ -64,14 +57,13 @@ export default function Home() {
     }
   };
 
-  // -----------------------------
-  // LIVE QR SCANNER LOGIC
-  // -----------------------------
+  // ---------------------------------------------------------
+  // QR SCANNER LOGIC (Bypasses manual form)
+  // ---------------------------------------------------------
   const startScanner = async () => {
     setShowScanner(true);
     
-    // Push a state into browser history so the hardware/gesture "Back" 
-    // button on mobile triggers popstate to close the scanner instead of exiting the site.
+    // Push history state so universal "Back" button closes the overlay
     window.history.pushState({ scannerOpen: true }, '');
 
     setTimeout(async () => {
@@ -79,36 +71,33 @@ export default function Home() {
         const html5QrCode = new Html5Qrcode("reader");
         scannerRef.current = html5QrCode;
 
-        const config = { 
-          fps: 10, 
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0 
-        };
-
         await html5QrCode.start(
           { facingMode: "environment" }, 
-          config,
+          { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 },
           async (decodedText) => {
             let finalCode = decodedText;
-            // Clean the URL if it's a full link
             if (decodedText.includes('/')) {
                 finalCode = decodedText.split('/').pop();
             }
 
-            // Immediately attempt the redirect
-            handleFormSubmit(null, finalCode);
-            
-            // Close scanner UI
-            stopScanner();
-            
-            // Move back in history to clean up the state we pushed
-            if (window.history.state?.scannerOpen) {
-              window.history.back();
+            // Silent fetch to bypass the landing page state/errors
+            try {
+              const res = await fetch(`/api/swift-resolve-pin?pin=${encodeURIComponent(finalCode)}`);
+              const data = await res.json();
+              
+              if (res.ok && data.publicToken) {
+                // Launch in NEW TAB
+                window.open(`/swift/${data.publicToken}`, '_blank');
+                
+                // Close scanner UI
+                stopScanner();
+                if (window.history.state?.scannerOpen) window.history.back();
+              }
+            } catch (e) {
+              console.error("QR bypass failed", e);
             }
           },
-          (errorMessage) => {
-            // Scanning active
-          }
+          () => {} // Silent scanning
         );
       } catch (err) {
         console.error("Unable to start scanner", err);
@@ -131,20 +120,15 @@ export default function Home() {
 
   // Listen for Universal Mobile Back Button / Gestures
   useEffect(() => {
-    const handlePopState = (event) => {
-      if (showScanner) {
-        stopScanner();
-      }
+    const handlePopState = () => {
+      if (showScanner) stopScanner();
     };
-
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [showScanner]);
 
   useEffect(() => {
-    return () => {
-      if (scannerRef.current) stopScanner();
-    };
+    return () => { if (scannerRef.current) stopScanner(); };
   }, []);
 
   return (
@@ -245,32 +229,42 @@ export default function Home() {
           left: 0,
           width: '100vw',
           height: '100vh',
-          backgroundColor: 'rgb(13, 48, 55)', // SWIFT brand dark teal
+          backgroundColor: 'rgb(13, 48, 55)', 
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 9999,
-          padding: '20px'
+          zIndex: 9999
         }}>
+          {/* CAMERA FEED */}
           <div id="reader" style={{ 
-            width: '100%', 
+            width: '90%', 
             maxWidth: '360px', 
             borderRadius: '16px', 
             overflow: 'hidden',
             backgroundColor: '#000'
           }}></div>
 
-          {/* Zelim Logo inside scanner overlay */}
-          <div style={{ marginTop: '40px' }}>
-            <Image
-              src="/logo/zelim-logo.svg"
-              alt="Zelim Logo"
-              width={120}
-              height={40}
-              style={{ opacity: 1 }}
-            />
-          </div>
+          {/* FOOTER - Positioned identically to the portal page */}
+          <footer className="landing-footer" style={{ 
+            position: 'absolute', 
+            bottom: 0, 
+            width: '100%', 
+            backgroundColor: 'transparent',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
+            <div className="logo-link" style={{ opacity: 1 }}>
+              <Image
+                src="/logo/zelim-logo.svg"
+                alt="Zelim Logo"
+                width={120}
+                height={40}
+                style={{ opacity: 1, display: 'block' }}
+              />
+            </div>
+          </footer>
         </div>
       )}
     </div>
