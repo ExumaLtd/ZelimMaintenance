@@ -2,9 +2,9 @@
 import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
-import { Html5QrcodeScanner } from "html5-qrcode";
+import { Html5Qrcode } from "html5-qrcode";
 
 export default function Home() {
   const [accessCode, setAccessCode] = useState('');
@@ -12,10 +12,9 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const router = useRouter();
+  const qrScannerRef = useRef(null); // To hold the scanner instance
 
-  // -----------------------------
-  // FORM SUBMIT LOGIC
-  // -----------------------------
+  // 1. PIN LOGIN LOGIC
   const handleFormSubmit = async (e, codeOverride = null) => {
     if (e) e.preventDefault();
     if (isSubmitting) return;
@@ -40,14 +39,13 @@ export default function Home() {
       }
 
       const redirectToken = data.publicToken;
-
       if (!redirectToken) {
         setError('This unit is missing a public token.');
         setIsSubmitting(false);
         return;
       }
 
-      return router.push(`/swift/${redirectToken}`);
+      router.push(`/swift/${redirectToken}`);
 
     } catch (err) {
       console.error('PIN verification error:', err);
@@ -56,47 +54,55 @@ export default function Home() {
     }
   };
 
-  // -----------------------------
-  // LIVE QR SCANNER LOGIC
-  // -----------------------------
-  useEffect(() => {
-    let scanner = null;
-    if (showScanner) {
-      // Initialize scanner inside the 'reader' div
-      scanner = new Html5QrcodeScanner("reader", { 
-        fps: 10, 
-        qrbox: { width: 250, height: 250 },
-        rememberLastUsedCamera: true,
-        aspectRatio: 1.0
-      });
+  // 2. SCANNER TRIGGER (Immediate)
+  const startCamera = async () => {
+    setShowScanner(true);
+    setError('');
 
-      scanner.render((decodedText) => {
-        // SUCCESS: The camera "locked on" to a code
-        let finalCode = decodedText;
-        
-        // If the QR contains a full URL, extract just the token/code at the end
-        if (decodedText.includes('/')) {
-            finalCode = decodedText.split('/').pop();
-        }
+    // Small delay to ensure the 'reader' div is rendered before starting
+    setTimeout(async () => {
+      try {
+        const html5QrCode = new Html5Qrcode("reader");
+        qrScannerRef.current = html5QrCode;
 
-        setAccessCode(finalCode);
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+        // Point directly to the rear camera for that 'native' feel
+        await html5QrCode.start(
+          { facingMode: "environment" }, 
+          config,
+          (decodedText) => {
+            // SUCCESS: Lock on and login
+            let finalCode = decodedText.includes('/') ? decodedText.split('/').pop() : decodedText;
+            setAccessCode(finalCode);
+            stopCamera();
+            handleFormSubmit(null, finalCode);
+          }
+        );
+      } catch (err) {
+        console.error("Camera start error:", err);
+        setError("Could not access camera. Please check permissions.");
         setShowScanner(false);
-        scanner.clear(); 
-        
-        // Auto-submit the code immediately
-        handleFormSubmit(null, finalCode);
-      }, (err) => {
-        // Continuous scanning - no need to log errors for every frame
-      });
-    }
-
-    // Cleanup: Turn off camera if user navigates away or closes scanner
-    return () => {
-      if (scanner) {
-        scanner.clear().catch(e => console.error("Scanner cleanup error:", e));
       }
-    };
-  }, [showScanner]);
+    }, 100);
+  };
+
+  const stopCamera = async () => {
+    if (qrScannerRef.current) {
+      try {
+        await qrScannerRef.current.stop();
+        qrScannerRef.current = null;
+      } catch (err) {
+        console.error("Stop error:", err);
+      }
+    }
+    setShowScanner(false);
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => { if (qrScannerRef.current) stopCamera(); };
+  }, []);
 
   return (
     <div className="landing-scope">
@@ -105,26 +111,21 @@ export default function Home() {
       </Head>
 
       <div className="landing-root">
-
-        {/* LEFT HERO */}
         <div className="landing-hero">
           <div className="landing-hero-inner" style={{ position: "relative" }}>
             <Image
               src="/images/swiftmaintenanceportal-hero.png"
-              alt="SWIFT maintenance portal hero image"
+              alt="Hero image"
               fill
               priority
               quality={100}
-              sizes="50vw"
               style={{ objectFit: "cover", objectPosition: "center" }}
             />
           </div>
         </div>
 
-        {/* RIGHT CONTENT */}
         <div className="landing-content">
           <div className="landing-main">
-
             <div className="landing-header">
               <h1 className="landing-title">
                 <span>SWIFT</span>
@@ -135,15 +136,15 @@ export default function Home() {
               </p>
             </div>
 
-            {/* LIVE SCANNER VIEW - Only shows when button is clicked */}
+            {/* LIVE SCANNER VIEW */}
             {showScanner && (
-              <div className="scanner-wrapper" style={{ width: '100%', maxWidth: '360px', marginBottom: '20px' }}>
-                <div id="reader"></div>
+              <div className="scanner-container" style={{ width: '100%', maxWidth: '360px' }}>
+                <div id="reader" style={{ overflow: 'hidden', borderRadius: '12px' }}></div>
                 <button 
                   type="button" 
                   className="qr-button" 
-                  style={{ marginTop: '10px', width: '100%', opacity: 0.6 }}
-                  onClick={() => setShowScanner(false)}
+                  style={{ marginTop: '20px', width: '100%', opacity: 0.7 }}
+                  onClick={stopCamera}
                 >
                   Cancel Scan
                 </button>
@@ -171,13 +172,8 @@ export default function Home() {
                   {isSubmitting ? 'Verifying...' : 'Enter portal'}
                 </button>
 
-                {/* QR CODE LOGIN SECTION */}
                 <div className="qr-login-container">
-                  <button 
-                    type="button" 
-                    className="qr-button"
-                    onClick={() => setShowScanner(true)}
-                  >
+                  <button type="button" className="qr-button" onClick={startCamera}>
                     Log in with QR code
                   </button>
                 </div>
@@ -186,19 +182,8 @@ export default function Home() {
           </div>
 
           <footer className="landing-footer">
-            <Link
-              href="https://www.zelim.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="logo-link"
-            >
-              <Image
-                src="/logo/zelim-logo.svg"
-                alt="Zelim Logo"
-                width={120}
-                height={40}
-                className="zelim-logo"
-              />
+            <Link href="https://www.zelim.com" target="_blank" className="logo-link">
+              <Image src="/logo/zelim-logo.svg" alt="Zelim Logo" width={120} height={40} className="zelim-logo" />
             </Link>
           </footer>
         </div>
