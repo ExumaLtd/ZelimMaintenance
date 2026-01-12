@@ -14,14 +14,14 @@ export default function Home() {
   const router = useRouter();
   const scannerRef = useRef(null); // Keep track of the scanner instance
 
-  // ---------------------------------------------------------
-  // MANUAL FORM SUBMIT (For typed-in codes)
-  // ---------------------------------------------------------
-  const handleFormSubmit = async (e) => {
+  // -----------------------------
+  // FORM SUBMIT LOGIC
+  // -----------------------------
+  const handleFormSubmit = async (e, codeOverride = null) => {
     if (e) e.preventDefault();
     if (isSubmitting) return;
 
-    const code = accessCode.trim();
+    const code = codeOverride || accessCode.trim();
     if (!code) {
       setError('Please enter your access code.');
       return;
@@ -35,35 +35,46 @@ export default function Home() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Invalid access code.');
+        // If it was a QR scan, we don't want to show an error on the main form
+        if (!codeOverride) {
+          setError(data.error || 'Invalid access code.');
+        }
         setIsSubmitting(false);
         return;
       }
 
       const redirectToken = data.publicToken;
+
       if (!redirectToken) {
-        setError('This unit is missing a public token.');
+        if (!codeOverride) setError('This unit is missing a public token.');
         setIsSubmitting(false);
         return;
       }
 
-      // Manual entry opens in the CURRENT tab
-      return router.push(`/swift/${redirectToken}`);
+      // If this came from a QR scan, we bypass the login by redirecting the page.
+      // window.open is often blocked by Safari in async callbacks, so we use assign 
+      // to ensure the engineer actually gets into the portal immediately.
+      if (codeOverride) {
+        window.location.assign(`/swift/${redirectToken}`);
+      } else {
+        return router.push(`/swift/${redirectToken}`);
+      }
 
     } catch (err) {
       console.error('PIN verification error:', err);
-      setError('A network error occurred. Please try again.');
+      if (!codeOverride) setError('A network error occurred. Please try again.');
       setIsSubmitting(false);
     }
   };
 
-  // ---------------------------------------------------------
-  // QR SCANNER LOGIC (Bypasses manual form)
-  // ---------------------------------------------------------
+  // -----------------------------
+  // LIVE QR SCANNER LOGIC
+  // -----------------------------
   const startScanner = async () => {
     setShowScanner(true);
     
-    // Push history state so universal "Back" button closes the overlay
+    // Push a state into browser history so the hardware/gesture "Back" 
+    // button on mobile triggers popstate to close the scanner instead of exiting the site.
     window.history.pushState({ scannerOpen: true }, '');
 
     setTimeout(async () => {
@@ -71,33 +82,31 @@ export default function Home() {
         const html5QrCode = new Html5Qrcode("reader");
         scannerRef.current = html5QrCode;
 
+        const config = { 
+          fps: 10, 
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0 
+        };
+
         await html5QrCode.start(
           { facingMode: "environment" }, 
-          { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 },
+          config,
           async (decodedText) => {
             let finalCode = decodedText;
+            // Clean the URL if it's a full link
             if (decodedText.includes('/')) {
                 finalCode = decodedText.split('/').pop();
             }
 
-            // Silent fetch to bypass the landing page state/errors
-            try {
-              const res = await fetch(`/api/swift-resolve-pin?pin=${encodeURIComponent(finalCode)}`);
-              const data = await res.json();
-              
-              if (res.ok && data.publicToken) {
-                // Launch in NEW TAB
-                window.open(`/swift/${data.publicToken}`, '_blank');
-                
-                // Close scanner UI
-                stopScanner();
-                if (window.history.state?.scannerOpen) window.history.back();
-              }
-            } catch (e) {
-              console.error("QR bypass failed", e);
-            }
+            // Execute the redirect logic directly
+            handleFormSubmit(null, finalCode);
+            
+            // Close scanner UI immediately
+            stopScanner();
           },
-          () => {} // Silent scanning
+          (errorMessage) => {
+            // Scanning active
+          }
         );
       } catch (err) {
         console.error("Unable to start scanner", err);
@@ -116,19 +125,36 @@ export default function Home() {
       }
     }
     setShowScanner(false);
+    // If the scanner was closed via "Back" button, the popstate handles it.
+    // If it was closed via scan success, we should clear the history state.
+    if (window.history.state?.scannerOpen) {
+      window.history.back();
+    }
   };
 
   // Listen for Universal Mobile Back Button / Gestures
   useEffect(() => {
-    const handlePopState = () => {
-      if (showScanner) stopScanner();
+    const handlePopState = (event) => {
+      if (showScanner) {
+        // We use the low-level stop logic directly here
+        if (scannerRef.current) {
+          scannerRef.current.stop().catch(() => {});
+          scannerRef.current = null;
+        }
+        setShowScanner(false);
+      }
     };
+
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [showScanner]);
 
   useEffect(() => {
-    return () => { if (scannerRef.current) stopScanner(); };
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.stop().catch(() => {});
+      }
+    };
   }, []);
 
   return (
@@ -229,32 +255,26 @@ export default function Home() {
           left: 0,
           width: '100vw',
           height: '100vh',
-          backgroundColor: 'rgb(13, 48, 55)', 
+          backgroundColor: 'rgb(13, 48, 55)', // SWIFT brand dark teal
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 9999
         }}>
-          {/* CAMERA FEED */}
-          <div id="reader" style={{ 
-            width: '90%', 
-            maxWidth: '360px', 
-            borderRadius: '16px', 
-            overflow: 'hidden',
-            backgroundColor: '#000'
-          }}></div>
+          {/* Main content area to keep camera centered and logo at bottom */}
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+            <div id="reader" style={{ 
+              width: '90%', 
+              maxWidth: '360px', 
+              borderRadius: '16px', 
+              overflow: 'hidden',
+              backgroundColor: '#000'
+            }}></div>
+          </div>
 
-          {/* FOOTER - Positioned identically to the portal page */}
-          <footer className="landing-footer" style={{ 
-            position: 'absolute', 
-            bottom: 0, 
-            width: '100%', 
-            backgroundColor: 'transparent',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}>
+          {/* Footer - Positioned exactly like the main landing page footer */}
+          <footer className="landing-footer" style={{ width: '100%', position: 'relative' }}>
             <div className="logo-link" style={{ opacity: 1 }}>
               <Image
                 src="/logo/zelim-logo.svg"
