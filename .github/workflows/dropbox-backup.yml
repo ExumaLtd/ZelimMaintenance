@@ -30,5 +30,16 @@ jobs:
     - name: Run Vercel Backup
       run: node scripts/vercel-backup.js
       env:
-        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }} # <--- THIS IS THE MISSING KEY
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
+
+    - name: Archive Repository (GitHub Code)
+      run: zip -r zelim_source_code_backup.zip . -x "node_modules/*" ".git/*"
+
+    - name: Upload Code Backup to Dropbox
+      run: |
+        curl -X POST https://content.dropboxapi.com/2/files/upload \
+          --header "Authorization: Bearer ${{ secrets.DROPBOX_ACCESS_TOKEN }}" \
+          --header "Dropbox-API-Arg: {\"path\": \"/GitHub/$(date +%Y)/$(date +%B)/$(date +%d-%m-%Y)/zelim_code_backup_$(date +%d%m%Y).zip\",\"mode\": \"overwrite\"}" \
+          --header "Content-Type: application/octet-stream" \
+          --data-binary @zelim_source_code_backup.zip
