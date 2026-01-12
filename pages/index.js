@@ -14,10 +14,6 @@ export default function Home() {
 
   const router = useRouter();
   const scannerRef = useRef(null);
-
-  // Scan confidence
-  const lastScanRef = useRef(null);
-  const scanCountRef = useRef(0);
   const hasNavigatedRef = useRef(false);
 
   // -----------------------------
@@ -36,14 +32,9 @@ export default function Home() {
   // -----------------------------
   const getBestRearCameraId = async () => {
     if (!navigator.mediaDevices?.enumerateDevices) return null;
-
     const devices = await navigator.mediaDevices.enumerateDevices();
     const videoDevices = devices.filter(d => d.kind === "videoinput");
-
-    const rear = videoDevices.filter(d =>
-      /rear|back|environment/i.test(d.label)
-    );
-
+    const rear = videoDevices.filter(d => /rear|back|environment/i.test(d.label));
     return (rear[0] || videoDevices[0])?.deviceId || null;
   };
 
@@ -51,10 +42,8 @@ export default function Home() {
     if (!videoEl) return;
     const track = videoEl.srcObject?.getVideoTracks?.()[0];
     if (!track) return;
-
     const caps = track.getCapabilities?.();
     if (!caps?.zoom) return;
-
     try {
       await track.applyConstraints({
         advanced: [{ zoom: Math.min(1, caps.zoom.max) }]
@@ -62,10 +51,8 @@ export default function Home() {
     } catch {}
   };
 
-  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-
   // -----------------------------
-  // FORM SUBMIT
+  // FORM SUBMIT / REDIRECT LOGIC
   // -----------------------------
   const handleFormSubmit = async (e, codeOverride = null) => {
     if (e) e.preventDefault();
@@ -77,28 +64,37 @@ export default function Home() {
       return;
     }
 
-    setError('');
-    setIsSubmitting(true);
+    // Only show "Verifying..." on the portal button, not the scanner
+    if (!codeOverride) {
+      setError('');
+      setIsSubmitting(true);
+    }
 
     try {
       const res = await fetch(`/api/swift-resolve-pin?pin=${encodeURIComponent(code)}`);
       const data = await res.json();
 
       if (!res.ok) {
-        if (!codeOverride) setError(data.error || 'Invalid access code.');
-        setIsSubmitting(false);
+        if (!codeOverride) {
+          setError(data.error || 'Invalid access code.');
+          setIsSubmitting(false);
+        }
         return;
       }
 
+      // REDIRECT: Use window.location for scanner to ensure clean tab transition
       if (codeOverride) {
         window.location.href = `/swift/${data.publicToken}`;
       } else {
         router.push(`/swift/${data.publicToken}`);
       }
 
-    } catch {
-      if (!codeOverride) setError('A network error occurred.');
-      setIsSubmitting(false);
+    } catch (err) {
+      console.error('Submission error:', err);
+      if (!codeOverride) {
+        setError('A network error occurred.');
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -106,6 +102,7 @@ export default function Home() {
   // QR SCANNER
   // -----------------------------
   const startScanner = async () => {
+    hasNavigatedRef.current = false;
     setShowScanner(true);
     window.history.pushState({ scannerOpen: true }, '');
 
@@ -115,7 +112,6 @@ export default function Home() {
         scannerRef.current = html5QrCode;
 
         let cameraConfig = { facingMode: "environment" };
-
         if (isAndroid()) {
           const deviceId = await getBestRearCameraId();
           if (deviceId) cameraConfig = { deviceId: { exact: deviceId } };
@@ -123,46 +119,63 @@ export default function Home() {
 
         await html5QrCode.start(
           cameraConfig,
-          { fps: isIOS() ? 6 : 10 },
+          { fps: isIOS() ? 10 : 15, qrbox: { width: 250, height: 250 } },
           async (decodedText) => {
-            if (lastScanRef.current === decodedText) {
-              scanCountRef.current += 1;
-            } else {
-              lastScanRef.current = decodedText;
-              scanCountRef.current = 1;
-            }
+            // Prevent double-firing
+            if (hasNavigatedRef.current) return;
+            hasNavigatedRef.current = true;
 
-            if (scanCountRef.current >= 2 && !hasNavigatedRef.current) {
-              hasNavigatedRef.current = true;
+            // Haptic Feedback
+            if (navigator.vibrate) navigator.vibrate(100);
+            
+            // UI Feedback
+            document.querySelector(".focus-reticle")?.classList.add("locked");
 
-              document.querySelector(".focus-reticle")?.classList.add("locked");
-              navigator.vibrate?.([50, 30, 50]);
+            let finalCode = decodedText.includes('/')
+              ? decodedText.split('/').pop()
+              : decodedText;
 
-              let finalCode = decodedText.includes('/')
-                ? decodedText.split('/').pop()
-                : decodedText;
-
-              await sleep(120);
-              handleFormSubmit(null, finalCode);
-            }
+            // Immediate redirect attempt
+            handleFormSubmit(null, finalCode);
+            
+            // Close UI
+            stopScanner();
           }
         );
 
         setTimeout(() => {
           lockZoomIfSupported(document.querySelector("#reader video"));
-        }, 300);
+        }, 400);
 
-      } catch {
+      } catch (err) {
+        console.error("Scanner failed to start", err);
         setShowScanner(false);
       }
     }, 50);
   };
 
+  const stopScanner = async () => {
+    if (scannerRef.current) {
+      try {
+        await scannerRef.current.stop();
+        scannerRef.current = null;
+      } catch (err) {
+        console.error("Scanner cleanup error", err);
+      }
+    }
+    setShowScanner(false);
+    if (window.history.state?.scannerOpen) {
+      window.history.back();
+    }
+  };
+
   useEffect(() => {
     const onPop = () => {
       if (showScanner) {
-        scannerRef.current?.stop().catch(() => {});
-        scannerRef.current = null;
+        if (scannerRef.current) {
+          scannerRef.current.stop().catch(() => {});
+          scannerRef.current = null;
+        }
         setShowScanner(false);
       }
     };
@@ -184,12 +197,20 @@ export default function Home() {
       </Head>
 
       <div className="landing-root">
+        {/* LEFT HERO */}
         <div className="landing-hero">
           <div className="landing-hero-inner">
-            <Image src="/images/swiftmaintenanceportal-hero.png" alt="" fill priority />
+            <Image 
+                src="/images/swiftmaintenanceportal-hero.png" 
+                alt="Hero" 
+                fill 
+                priority 
+                style={{ objectFit: 'cover' }}
+            />
           </div>
         </div>
 
+        {/* RIGHT CONTENT */}
         <div className="landing-content">
           <div className="landing-main">
             <div className="landing-header">
@@ -209,11 +230,12 @@ export default function Home() {
                   placeholder="Enter your access code"
                   value={accessCode}
                   onChange={(e) => { setAccessCode(e.target.value); setError(''); }}
+                  disabled={isSubmitting}
                 />
                 {error && <p className="error-text">{error}</p>}
               </div>
 
-              <button className="primary-btn">
+              <button type="submit" className="primary-btn">
                 {isSubmitting ? 'Verifying…' : 'Enter portal'}
               </button>
 
@@ -227,23 +249,28 @@ export default function Home() {
 
           <footer className="landing-footer">
             <Link href="https://www.zelim.com" target="_blank" className="logo-link">
-              <Image src="/logo/zelim-logo.svg" alt="Zelim Logo" width={120} height={40} />
+              <Image src="/logo/zelim-logo.svg" alt="Zelim Logo" width={120} height={40} className="zelim-logo" />
             </Link>
           </footer>
         </div>
       </div>
 
-      {/* FULL-SCREEN SCANNER */}
+      {/* FULL-SCREEN SCANNER OVERLAY */}
       {showScanner && (
-        <div className="scanner-overlay">
-          <div className="scanner-main">
-            <div className="focus-reticle"><span /></div>
-            <div id="reader" />
-          </div>
+        <div className="scanner-overlay landing-scope">
+          {/* We use landing-content here so the footer and logo position matches perfectly */}
+          <div className="landing-content" style={{ position: 'relative', height: '100vh', width: '100vw' }}>
+            <div className="scanner-main" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+              <div className="focus-reticle"><span /></div>
+              <div id="reader" style={{ width: '100%' }} />
+            </div>
 
-          <footer className="landing-footer">
-            <Image src="/logo/zelim-logo.svg" alt="Zelim Logo" width={120} height={40} />
-          </footer>
+            <footer className="landing-footer" style={{ marginTop: '0' }}>
+              <div className="logo-link">
+                <Image src="/logo/zelim-logo.svg" alt="Zelim Logo" width={120} height={40} className="zelim-logo" />
+              </div>
+            </footer>
+          </div>
         </div>
       )}
     </div>
