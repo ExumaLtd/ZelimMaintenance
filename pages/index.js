@@ -52,10 +52,8 @@ export default function Home() {
       }
 
       // If this came from a QR scan, we bypass the login by redirecting the page.
-      // window.open is often blocked by Safari in async callbacks, so we use assign 
-      // to ensure the engineer actually gets into the portal immediately.
       if (codeOverride) {
-        window.location.assign(`/swift/${redirectToken}`);
+        window.location.href = `/swift/${redirectToken}`;
       } else {
         return router.push(`/swift/${redirectToken}`);
       }
@@ -74,7 +72,7 @@ export default function Home() {
     setShowScanner(true);
     
     // Push a state into browser history so the hardware/gesture "Back" 
-    // button on mobile triggers popstate to close the scanner instead of exiting the site.
+    // button on mobile triggers popstate to close the scanner
     window.history.pushState({ scannerOpen: true }, '');
 
     setTimeout(async () => {
@@ -92,6 +90,11 @@ export default function Home() {
           { facingMode: "environment" }, 
           config,
           async (decodedText) => {
+            // Haptic Feedback
+            if (typeof navigator !== "undefined" && navigator.vibrate) {
+              navigator.vibrate(100);
+            }
+
             let finalCode = decodedText;
             // Clean the URL if it's a full link
             if (decodedText.includes('/')) {
@@ -125,8 +128,7 @@ export default function Home() {
       }
     }
     setShowScanner(false);
-    // If the scanner was closed via "Back" button, the popstate handles it.
-    // If it was closed via scan success, we should clear the history state.
+    // Remove the scanner history state if it exists
     if (window.history.state?.scannerOpen) {
       window.history.back();
     }
@@ -136,7 +138,6 @@ export default function Home() {
   useEffect(() => {
     const handlePopState = (event) => {
       if (showScanner) {
-        // We use the low-level stop logic directly here
         if (scannerRef.current) {
           scannerRef.current.stop().catch(() => {});
           scannerRef.current = null;
@@ -161,6 +162,11 @@ export default function Home() {
     <div className="landing-scope">
       <Head>
         <title>SWIFT Maintenance Portal</title>
+        {/* CSS to clean up library-injected black boxes and status text */}
+        <style>{`
+          #reader__status_span, #reader__dashboard { display: none !important; }
+          #reader video { width: 100% !important; height: 100% !important; object-fit: cover !important; }
+        `}</style>
       </Head>
 
       <div className="landing-root">
@@ -255,26 +261,25 @@ export default function Home() {
           left: 0,
           width: '100vw',
           height: '100vh',
-          backgroundColor: 'rgb(13, 48, 55)', // SWIFT brand dark teal
+          backgroundColor: 'rgb(13, 48, 55)', 
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
           zIndex: 9999
         }}>
-          {/* Main content area to keep camera centered and logo at bottom */}
+          {/* CAMERA FEED - Flex: 1 centers it in the remaining space */}
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
             <div id="reader" style={{ 
               width: '90%', 
               maxWidth: '360px', 
               borderRadius: '16px', 
               overflow: 'hidden',
-              backgroundColor: '#000'
+              backgroundColor: '#000',
+              border: 'none'
             }}></div>
           </div>
 
-          {/* Footer - Positioned exactly like the main landing page footer */}
-          <footer className="landing-footer" style={{ width: '100%', position: 'relative' }}>
+          {/* OVERLAY FOOTER - Positioned identically to the landing page */}
+          <footer className="landing-footer" style={{ width: '100%', position: 'relative', background: 'transparent' }}>
             <div className="logo-link" style={{ opacity: 1 }}>
               <Image
                 src="/logo/zelim-logo.svg"
