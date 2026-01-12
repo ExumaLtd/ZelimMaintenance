@@ -4,9 +4,10 @@ const { Dropbox } = require('dropbox');
 async function backupVercel() {
     try {
         const VERCEL_TOKEN = process.env.VERCEL_TOKEN;
-        // Updated with your Project ID
+        // Your specific Project ID
         const PROJECT_ID = 'prj_PNyJLvXl1OjOSonBDPedp7xSK5tq'; 
-        const TEAM_ID = null; 
+        // Your specific Team ID to authorize access to the Exuma team scope
+        const TEAM_ID = 'team_OCp7mDUAqlZkK0Uheh0mYbPb'; 
 
         const now = new Date();
         const year = now.getFullYear();
@@ -20,7 +21,7 @@ async function backupVercel() {
 
         console.log("Fetching Environment Variables from Vercel...");
 
-        // Fetch Environment Variables from Vercel API
+        // Fetch Environment Variables from Vercel API with the required teamId parameter
         const envResponse = await axios.get(
             `https://api.vercel.com/v9/projects/${PROJECT_ID}/env${TEAM_ID ? `?teamId=${TEAM_ID}` : ''}`,
             { headers: { Authorization: `Bearer ${VERCEL_TOKEN}` } }
