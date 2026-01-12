@@ -63,6 +63,10 @@ export default function Home() {
   const startScanner = async () => {
     setShowScanner(true);
     
+    // Push a state into browser history so the hardware/gesture "Back" 
+    // button on mobile triggers popstate to close the scanner instead of exiting the site.
+    window.history.pushState({ scannerOpen: true }, '');
+
     setTimeout(async () => {
       try {
         const html5QrCode = new Html5Qrcode("reader");
@@ -74,20 +78,30 @@ export default function Home() {
           aspectRatio: 1.0 
         };
 
-        // Triggers native browser "Allow" prompt.
-        // Layout stays frozen because scanner mounts in the fixed overlay.
         await html5QrCode.start(
           { facingMode: "environment" }, 
           config,
-          (decodedText) => {
+          async (decodedText) => {
             let finalCode = decodedText;
             if (decodedText.includes('/')) {
                 finalCode = decodedText.split('/').pop();
             }
 
-            setAccessCode(finalCode);
-            stopScanner();
-            handleFormSubmit(null, finalCode);
+            try {
+              const res = await fetch(`/api/swift-resolve-pin?pin=${encodeURIComponent(finalCode)}`);
+              const data = await res.json();
+              
+              if (res.ok && data.publicToken) {
+                // Open portal in new tab
+                window.open(`/swift/${data.publicToken}`, '_blank');
+                
+                // Close scanner and cleanup history state
+                stopScanner();
+                if (window.history.state?.scannerOpen) window.history.back();
+              }
+            } catch (e) {
+              console.error("QR Resolve failed", e);
+            }
           },
           (errorMessage) => {
             // Scanning active
@@ -112,7 +126,18 @@ export default function Home() {
     setShowScanner(false);
   };
 
-  // Cleanup on unmount
+  // Listen for Universal Mobile Back Button / Gestures
+  useEffect(() => {
+    const handlePopState = (event) => {
+      if (showScanner) {
+        stopScanner();
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [showScanner]);
+
   useEffect(() => {
     return () => {
       if (scannerRef.current) stopScanner();
@@ -194,6 +219,7 @@ export default function Home() {
               target="_blank"
               rel="noopener noreferrer"
               className="logo-link"
+              style={{ opacity: 1 }}
             >
               <Image
                 src="/logo/zelim-logo.svg"
@@ -201,16 +227,14 @@ export default function Home() {
                 width={120}
                 height={40}
                 className="zelim-logo"
+                style={{ opacity: 1, display: 'block' }}
               />
             </Link>
           </footer>
         </div>
       </div>
 
-      {/* POPUP SCANNER OVERLAY
-          This keeps the main page frozen while providing a visible 
-          container for the camera stream to function properly.
-      */}
+      {/* POPUP SCANNER OVERLAY */}
       {showScanner && (
         <div style={{
           position: 'fixed',
@@ -218,7 +242,7 @@ export default function Home() {
           left: 0,
           width: '100vw',
           height: '100vh',
-          backgroundColor: 'rgba(13, 48, 55, 0.95)', // SWIFT brand dark teal
+          backgroundColor: 'rgb(13, 48, 55)', // SWIFT brand dark teal
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -231,23 +255,8 @@ export default function Home() {
             maxWidth: '360px', 
             borderRadius: '16px', 
             overflow: 'hidden',
-            backgroundColor: '#1a2b2e',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.4)'
+            backgroundColor: '#1a2b2e'
           }}></div>
-          
-          <button 
-            type="button"
-            className="qr-button"
-            onClick={stopScanner}
-            style={{ 
-              marginTop: '30px', 
-              color: '#f7f7f7', 
-              fontSize: '16px',
-              textDecoration: 'underline'
-            }}
-          >
-            Cancel and enter code manually
-          </button>
         </div>
       )}
     </div>
