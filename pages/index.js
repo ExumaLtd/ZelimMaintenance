@@ -90,7 +90,7 @@ export default function Home() {
           { facingMode: "environment" }, 
           config,
           async (decodedText) => {
-            // Haptic Feedback
+            // Haptic Feedback (Vibration pulse)
             if (typeof navigator !== "undefined" && navigator.vibrate) {
               navigator.vibrate(100);
             }
@@ -162,18 +162,13 @@ export default function Home() {
     <div className="landing-scope">
       <Head>
         <title>SWIFT Maintenance Portal</title>
-        {/* CSS to clean up library-injected black boxes and status text */}
-        <style>{`
-          #reader__status_span, #reader__dashboard { display: none !important; }
-          #reader video { width: 100% !important; height: 100% !important; object-fit: cover !important; }
-        `}</style>
       </Head>
 
       <div className="landing-root">
 
         {/* LEFT HERO */}
         <div className="landing-hero">
-          <div className="landing-hero-inner" style={{ position: "relative" }}>
+          <div className="landing-hero-inner">
             <Image
               src="/images/swiftmaintenanceportal-hero.png"
               alt="SWIFT maintenance portal hero image"
@@ -238,7 +233,6 @@ export default function Home() {
               target="_blank"
               rel="noopener noreferrer"
               className="logo-link"
-              style={{ opacity: 1 }}
             >
               <Image
                 src="/logo/zelim-logo.svg"
@@ -246,7 +240,6 @@ export default function Home() {
                 width={120}
                 height={40}
                 className="zelim-logo"
-                style={{ opacity: 1, display: 'block' }}
               />
             </Link>
           </footer>
@@ -266,30 +259,24 @@ export default function Home() {
           flexDirection: 'column',
           zIndex: 9999
         }}>
-          {/* CAMERA FEED - Flex: 1 centers it in the remaining space */}
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-            <div id="reader" style={{ 
-              width: '90%', 
-              maxWidth: '360px', 
-              borderRadius: '16px', 
-              overflow: 'hidden',
-              backgroundColor: '#000',
-              border: 'none'
-            }}></div>
-          </div>
-
-          {/* OVERLAY FOOTER - Positioned identically to the landing page */}
-          <footer className="landing-footer" style={{ width: '100%', position: 'relative', background: 'transparent' }}>
-            <div className="logo-link" style={{ opacity: 1 }}>
-              <Image
-                src="/logo/zelim-logo.svg"
-                alt="Zelim Logo"
-                width={120}
-                height={40}
-                style={{ opacity: 1, display: 'block' }}
-              />
+          {/* We wrap this in your existing classes so the logo inherits your CSS styles */}
+          <div className="landing-content" style={{ flex: 1, paddingBottom: '32px' }}>
+            <div className="landing-main">
+               <div id="reader" style={{ width: '90%', maxWidth: '360px' }}></div>
             </div>
-          </footer>
+
+            <footer className="landing-footer" style={{ position: 'relative', marginTop: 'auto' }}>
+              <div className="logo-link">
+                <Image
+                  src="/logo/zelim-logo.svg"
+                  alt="Zelim Logo"
+                  width={120}
+                  height={40}
+                  className="zelim-logo"
+                />
+              </div>
+            </footer>
+          </div>
         </div>
       )}
     </div>
