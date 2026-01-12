@@ -75,7 +75,7 @@ export default function Home() {
           aspectRatio: 1.0 
         };
 
-        // This triggers the native browser "Allow" prompt immediately
+        // This triggers the native browser "Allow" prompt immediately on the current page
         await html5QrCode.start(
           { facingMode: "environment" }, 
           config,
@@ -157,43 +157,44 @@ export default function Home() {
               </p>
             </div>
 
-            {/* LIVE SCANNER VIEW - Only shows when button is clicked */}
-            {showScanner && (
-              <div className="scanner-wrapper" style={{ width: '100%', maxWidth: '360px', marginBottom: '20px' }}>
-                <div id="reader" style={{ overflow: 'hidden', borderRadius: '12px' }}></div>
-                <button 
-                  type="button" 
-                  className="qr-button" 
-                  style={{ marginTop: '20px', width: '100%', opacity: 0.6 }}
-                  onClick={stopScanner}
-                >
-                  Cancel Scan
-                </button>
-              </div>
-            )}
-
-            {!showScanner && (
-              <form onSubmit={handleFormSubmit} className="form-stack">
-                <div className={`input-wrapper ${error ? 'has-error' : ''}`}>
-                  <input
-                    type="text"
-                    className="input-field"
-                    placeholder="Enter your access code"
-                    value={accessCode}
-                    onChange={(e) => {
-                      setAccessCode(e.target.value);
-                      setError('');
-                    }}
-                    disabled={isSubmitting}
-                  />
-                  {error && <p className="error-text">{error}</p>}
+            <form onSubmit={handleFormSubmit} className="form-stack">
+              
+              {/* LIVE SCANNER VIEW - Opens within the form to stay on-page */}
+              {showScanner && (
+                <div className="scanner-wrapper" style={{ width: '100%', maxWidth: '360px', marginBottom: '20px' }}>
+                  <div id="reader" style={{ overflow: 'hidden', borderRadius: '12px' }}></div>
+                  <button 
+                    type="button" 
+                    className="qr-button" 
+                    style={{ marginTop: '10px', width: '100%' }}
+                    onClick={stopScanner}
+                  >
+                    Cancel Scan
+                  </button>
                 </div>
+              )}
 
-                <button type="submit" className="primary-btn">
-                  {isSubmitting ? 'Verifying...' : 'Enter portal'}
-                </button>
+              <div className={`input-wrapper ${error ? 'has-error' : ''}`}>
+                <input
+                  type="text"
+                  className="input-field"
+                  placeholder="Enter your access code"
+                  value={accessCode}
+                  onChange={(e) => {
+                    setAccessCode(e.target.value);
+                    setError('');
+                  }}
+                  disabled={isSubmitting}
+                />
+                {error && <p className="error-text">{error}</p>}
+              </div>
 
-                {/* QR CODE LOGIN SECTION */}
+              <button type="submit" className="primary-btn">
+                {isSubmitting ? 'Verifying...' : 'Enter portal'}
+              </button>
+
+              {/* QR CODE LOGIN SECTION - Only show button if scanner is not already open */}
+              {!showScanner && (
                 <div className="qr-login-container">
                   <button 
                     type="button" 
@@ -203,8 +204,8 @@ export default function Home() {
                     Log in with QR code
                   </button>
                 </div>
-              </form>
-            )}
+              )}
+            </form>
           </div>
 
           <footer className="landing-footer">
