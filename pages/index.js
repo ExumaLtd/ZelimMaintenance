@@ -15,9 +15,9 @@ export default function Home() {
   const router = useRouter();
   const scannerRef = useRef(null);
 
-  // NEW — scan confidence + navigation guards
+  // Scan confidence
   const lastScanRef = useRef(null);
-  const lastScanTimeRef = useRef(0);
+  const scanCountRef = useRef(0);
   const hasNavigatedRef = useRef(false);
 
   // -----------------------------
@@ -59,9 +59,7 @@ export default function Home() {
       await track.applyConstraints({
         advanced: [{ zoom: Math.min(1, caps.zoom.max) }]
       });
-    } catch {
-      // silent
-    }
+    } catch {}
   };
 
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -87,9 +85,7 @@ export default function Home() {
       const data = await res.json();
 
       if (!res.ok) {
-        if (!codeOverride) {
-          setError(data.error || 'Invalid access code.');
-        }
+        if (!codeOverride) setError(data.error || 'Invalid access code.');
         setIsSubmitting(false);
         return;
       }
@@ -104,18 +100,18 @@ export default function Home() {
       if (codeOverride) {
         window.location.href = `/swift/${redirectToken}`;
       } else {
-        return router.push(`/swift/${redirectToken}`);
+        router.push(`/swift/${redirectToken}`);
       }
 
     } catch (err) {
-      console.error('PIN verification error:', err);
-      if (!codeOverride) setError('A network error occurred. Please try again.');
+      console.error(err);
+      if (!codeOverride) setError('A network error occurred.');
       setIsSubmitting(false);
     }
   };
 
   // -----------------------------
-  // LIVE QR SCANNER LOGIC
+  // LIVE QR SCANNER
   // -----------------------------
   const startScanner = async () => {
     setShowScanner(true);
@@ -130,35 +126,31 @@ export default function Home() {
 
         if (isAndroid()) {
           const deviceId = await getBestRearCameraId();
-          if (deviceId) {
-            cameraConfig = { deviceId: { exact: deviceId } };
-          }
+          if (deviceId) cameraConfig = { deviceId: { exact: deviceId } };
         }
 
         const config = {
           fps: isIOS() ? 6 : 10,
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0
+          disableFlip: false
         };
 
         await html5QrCode.start(
           cameraConfig,
           config,
           async (decodedText) => {
-            const now = Date.now();
+            if (lastScanRef.current === decodedText) {
+              scanCountRef.current += 1;
+            } else {
+              lastScanRef.current = decodedText;
+              scanCountRef.current = 1;
+            }
 
-            if (
-              lastScanRef.current === decodedText &&
-              now - lastScanTimeRef.current < 500
-            ) {
+            if (scanCountRef.current >= 2) {
               if (hasNavigatedRef.current) return;
               hasNavigatedRef.current = true;
 
               document.querySelector(".focus-reticle")?.classList.add("locked");
-
-              if (navigator.vibrate) {
-                navigator.vibrate([50, 30, 50]);
-              }
+              navigator.vibrate?.([50, 30, 50]);
 
               let finalCode = decodedText;
               if (decodedText.includes('/')) {
@@ -167,11 +159,7 @@ export default function Home() {
 
               await sleep(120);
               handleFormSubmit(null, finalCode);
-              return;
             }
-
-            lastScanRef.current = decodedText;
-            lastScanTimeRef.current = now;
           }
         );
 
@@ -203,16 +191,12 @@ export default function Home() {
     <div className="landing-scope">
       <Head>
         <title>SWIFT Maintenance Portal</title>
-
-        {/* ORIGINAL RULES KEPT + SAFE OVERRIDES ADDED */}
         <style>{`
           #reader__status_span,
           #reader__dashboard,
           #reader__dashboard_section {
             display: none !important;
           }
-
-          /* OVERRIDE ONLY — cancels the bad 100% height without deleting it */
           .scanner-overlay #reader video {
             height: auto !important;
             display: block !important;
@@ -221,29 +205,16 @@ export default function Home() {
       </Head>
 
       <div className="landing-root">
-        {/* LEFT HERO */}
         <div className="landing-hero">
           <div className="landing-hero-inner">
-            <Image
-              src="/images/swiftmaintenanceportal-hero.png"
-              alt="SWIFT maintenance portal hero image"
-              fill
-              priority
-              quality={100}
-              sizes="50vw"
-              style={{ objectFit: "cover" }}
-            />
+            <Image src="/images/swiftmaintenanceportal-hero.png" alt="" fill priority />
           </div>
         </div>
 
-        {/* RIGHT CONTENT */}
         <div className="landing-content">
           <div className="landing-main">
             <div className="landing-header">
-              <h1 className="landing-title">
-                <span>SWIFT</span>
-                <span>maintenance portal</span>
-              </h1>
+              <h1 className="landing-title"><span>SWIFT</span><span>maintenance portal</span></h1>
               <p className="landing-subtitle">
                 For authorised engineers carrying out official inspections and scheduled servicing.
               </p>
@@ -256,17 +227,13 @@ export default function Home() {
                   className="input-field"
                   placeholder="Enter your access code"
                   value={accessCode}
-                  onChange={(e) => {
-                    setAccessCode(e.target.value);
-                    setError('');
-                  }}
-                  disabled={isSubmitting}
+                  onChange={(e) => { setAccessCode(e.target.value); setError(''); }}
                 />
                 {error && <p className="error-text">{error}</p>}
               </div>
 
               <button type="submit" className="primary-btn">
-                {isSubmitting ? 'Verifying...' : 'Enter portal'}
+                {isSubmitting ? 'Verifying…' : 'Enter portal'}
               </button>
 
               <div className="qr-login-container">
@@ -278,32 +245,24 @@ export default function Home() {
           </div>
 
           <footer className="landing-footer">
-            <Link href="https://www.zelim.com" target="_blank" rel="noopener noreferrer" className="logo-link">
-              <Image src="/logo/zelim-logo.svg" alt="Zelim Logo" width={120} height={40} className="zelim-logo" />
+            <Link href="https://www.zelim.com" target="_blank" className="logo-link">
+              <Image src="/logo/zelim-logo.svg" alt="Zelim Logo" width={120} height={40} />
             </Link>
           </footer>
         </div>
       </div>
 
-      {/* SCANNER OVERLAY — now inherits landing-content layout */}
+      {/* SCANNER OVERLAY — SAME LAYOUT AS LOGIN */}
       {showScanner && (
-        <div className="scanner-overlay">
-          <div className="landing-content scanner-content">
-            <div className="landing-main scanner-main">
-              <div className="focus-reticle"><span /></div>
-              <div id="reader" />
-            </div>
-
-            <footer className="landing-footer">
-              <Image
-                src="/logo/zelim-logo.svg"
-                alt="Zelim Logo"
-                width={120}
-                height={40}
-                className="zelim-logo"
-              />
-            </footer>
+        <div className="landing-content scanner-overlay">
+          <div className="landing-main scanner-main">
+            <div className="focus-reticle"><span /></div>
+            <div id="reader" />
           </div>
+
+          <footer className="landing-footer">
+            <Image src="/logo/zelim-logo.svg" alt="Zelim Logo" width={120} height={40} />
+          </footer>
         </div>
       )}
     </div>

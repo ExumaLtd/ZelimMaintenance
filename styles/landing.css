@@ -52,6 +52,20 @@
   padding: 32px 56px 80px;
 }
 
+/* Scanner mode: landing-content must fill viewport */
+.landing-scope .scanner-overlay.landing-content {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: rgb(13, 48, 55);
+}
+
+/* iOS safe-area handling */
+.landing-scope .scanner-overlay.landing-content {
+  padding-top: calc(32px + env(safe-area-inset-top));
+  padding-bottom: calc(80px + env(safe-area-inset-bottom));
+}
+
 .landing-scope .landing-main {
   width: 100%;
   display: flex;
@@ -202,24 +216,30 @@
   color: #f7f7f7;
 }
 
-/* Scanner Viewport Styling */
+/* =========================================
+   CAMERA (CRITICAL FIXES)
+========================================= */
+
+/* html5-qrcode container */
 .landing-scope #reader {
-  border: none !important;
+  width: 100% !important;
+  max-width: 360px;
   background: #1a2b2e;
   border-radius: 12px;
   overflow: hidden;
-  width: 100% !important;
 }
 
-/* Force video to fill container and maintain rounded corners */
+/* Kill ALL forced heights — this removes the dark band */
 .landing-scope #reader video {
   width: 100% !important;
   height: auto !important;
+  max-height: none !important;
   object-fit: cover !important;
+  display: block !important;
   border-radius: 12px;
 }
 
-/* Hide library's default buttons and status UI */
+/* Hide library UI */
 .landing-scope #reader button,
 .landing-scope #reader__dashboard_section,
 .landing-scope #reader__status_span {
@@ -235,27 +255,16 @@
   display: flex;
   justify-content: center;
   margin-top: 32px;
-  opacity: 1;
-}
-
-.landing-scope .logo-link {
-  display: inline-flex;
 }
 
 .landing-scope img.zelim-logo {
   width: 120px !important;
-  min-width: 120px !important;
-  max-width: 120px !important;
   height: 40px !important;
-  min-height: 40px !important;
-  max-height: 40px !important;
   object-fit: contain !important;
-  display: block !important;
-  opacity: 1;
 }
 
 /* =========================================
-   RESPONSIVE (≤900px)
+   RESPONSIVE
 ========================================= */
 
 @media (max-width: 900px) {
@@ -264,7 +273,7 @@
   }
 
   .landing-scope .landing-hero {
-    display: none; 
+    display: none;
   }
 
   .landing-scope .landing-content {
@@ -277,96 +286,9 @@
 }
 
 /* =========================================
-   SHORT VIEWPORT HEIGHT
+   FOCUS RETICLE
 ========================================= */
 
-@media (max-height: 780px) {
-  .landing-scope .landing-content {
-    padding: 24px 40px 64px;
-  }
-
-  .landing-scope .landing-header {
-    margin-bottom: 24px;
-  }
-
-  .landing-scope .form-stack {
-    gap: 12px;
-  }
-
-  .landing-scope .landing-footer {
-    margin-top: 24px;
-  }
-
-  .landing-scope h1.landing-title {
-    font-size: 26px;
-    line-height: 32px;
-  }
-}
-
-/* =========================================================================
-   APPENDED — CORRECTIVE OVERRIDES FOR SCANNER (DO NOT REMOVE)
-   These fix iOS Safari video sizing + footer alignment.
-========================================================================= */
-
-/* Full-screen scanner overlay */
-.scanner-overlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgb(13, 48, 55);
-  display: flex;
-  flex-direction: column;
-  z-index: 9999;
-}
-
-/* Scanner content must EXACTLY mirror landing-content layout */
-.landing-scope .scanner-content {
-  flex: 1;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-
-  /* Match landing-content padding + iOS safe areas */
-  padding-top: calc(32px + env(safe-area-inset-top));
-  padding-left: 56px;
-  padding-right: 56px;
-  padding-bottom: calc(80px + env(safe-area-inset-bottom));
-}
-
-/* Mobile override to match existing responsive rule */
-@media (max-width: 900px) {
-  .landing-scope .scanner-content {
-    padding-left: 24px;
-    padding-right: 24px;
-  }
-}
-
-/* Camera area behaves like landing-main */
-.scanner-main {
-  flex: 1;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-/* HARD OVERRIDE: neutralise any forced video height */
-.scanner-overlay #reader video {
-  height: auto !important;
-  max-height: 100% !important;
-  display: block !important;
-}
-
-/* Prevent html5-qrcode wrapper creating dead space */
-.scanner-overlay #reader {
-  width: 100% !important;
-  max-width: 360px;
-  aspect-ratio: 1 / 1; /* stabilises layout on iOS */
-}
-
-/* Focus reticle */
 .focus-reticle {
   position: absolute;
   width: 220px;
