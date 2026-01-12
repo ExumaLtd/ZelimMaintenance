@@ -15,13 +15,13 @@ export default function Home() {
   const scannerRef = useRef(null); // Keep track of the scanner instance
 
   // -----------------------------
-  // FORM SUBMIT LOGIC
+  // FORM SUBMIT LOGIC (Manual Entry Only)
   // -----------------------------
-  const handleFormSubmit = async (e, codeOverride = null) => {
+  const handleFormSubmit = async (e) => {
     if (e) e.preventDefault();
     if (isSubmitting) return;
 
-    const code = codeOverride || accessCode.trim();
+    const code = accessCode.trim();
     if (!code) {
       setError('Please enter your access code.');
       return;
@@ -35,44 +35,32 @@ export default function Home() {
       const data = await res.json();
 
       if (!res.ok) {
-        // If it was a QR scan, we don't want to show an error on the main form
-        if (!codeOverride) {
-          setError(data.error || 'Invalid access code.');
-        }
+        setError(data.error || 'Invalid access code.');
         setIsSubmitting(false);
         return;
       }
 
       const redirectToken = data.publicToken;
-
       if (!redirectToken) {
-        if (!codeOverride) setError('This unit is missing a public token.');
+        setError('This unit is missing a public token.');
         setIsSubmitting(false);
         return;
       }
 
-      // If this came from a QR scan, we bypass the login by redirecting the page.
-      if (codeOverride) {
-        window.location.href = `/swift/${redirectToken}`;
-      } else {
-        return router.push(`/swift/${redirectToken}`);
-      }
+      return router.push(`/swift/${redirectToken}`);
 
     } catch (err) {
       console.error('PIN verification error:', err);
-      if (!codeOverride) setError('A network error occurred. Please try again.');
+      setError('A network error occurred. Please try again.');
       setIsSubmitting(false);
     }
   };
 
   // -----------------------------
-  // LIVE QR SCANNER LOGIC
+  // LIVE QR SCANNER LOGIC (Independent Express Lane)
   // -----------------------------
   const startScanner = async () => {
     setShowScanner(true);
-    
-    // Push a state into browser history so the hardware/gesture "Back" 
-    // button on mobile triggers popstate to close the scanner
     window.history.pushState({ scannerOpen: true }, '');
 
     setTimeout(async () => {
@@ -90,26 +78,33 @@ export default function Home() {
           { facingMode: "environment" }, 
           config,
           async (decodedText) => {
-            // Haptic Feedback (Vibration pulse)
+            // Haptic Feedback
             if (typeof navigator !== "undefined" && navigator.vibrate) {
               navigator.vibrate(100);
             }
 
             let finalCode = decodedText;
-            // Clean the URL if it's a full link
             if (decodedText.includes('/')) {
                 finalCode = decodedText.split('/').pop();
             }
 
-            // Execute the redirect logic directly
-            handleFormSubmit(null, finalCode);
+            // Independent silent resolution to bypass manual portal form
+            try {
+              const res = await fetch(`/api/swift-resolve-pin?pin=${encodeURIComponent(finalCode)}`);
+              const data = await res.json();
+              
+              if (res.ok && data.publicToken) {
+                // Open in a NEW TAB as requested
+                window.open(`/swift/${data.publicToken}`, '_blank');
+              }
+            } catch (err) {
+              console.error("QR Resolution failed", err);
+            }
             
-            // Close scanner UI immediately
+            // Close scanner immediately
             stopScanner();
           },
-          (errorMessage) => {
-            // Scanning active
-          }
+          () => {}
         );
       } catch (err) {
         console.error("Unable to start scanner", err);
@@ -128,13 +123,11 @@ export default function Home() {
       }
     }
     setShowScanner(false);
-    // Remove the scanner history state if it exists
     if (window.history.state?.scannerOpen) {
       window.history.back();
     }
   };
 
-  // Listen for Universal Mobile Back Button / Gestures
   useEffect(() => {
     const handlePopState = (event) => {
       if (showScanner) {
@@ -145,17 +138,12 @@ export default function Home() {
         setShowScanner(false);
       }
     };
-
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [showScanner]);
 
   useEffect(() => {
-    return () => {
-      if (scannerRef.current) {
-        scannerRef.current.stop().catch(() => {});
-      }
-    };
+    return () => { if (scannerRef.current) stopScanner(); };
   }, []);
 
   return (
@@ -165,7 +153,6 @@ export default function Home() {
       </Head>
 
       <div className="landing-root">
-
         {/* LEFT HERO */}
         <div className="landing-hero">
           <div className="landing-hero-inner">
@@ -184,7 +171,6 @@ export default function Home() {
         {/* RIGHT CONTENT */}
         <div className="landing-content">
           <div className="landing-main">
-
             <div className="landing-header">
               <h1 className="landing-title">
                 <span>SWIFT</span>
@@ -216,11 +202,7 @@ export default function Home() {
               </button>
 
               <div className="qr-login-container">
-                <button 
-                  type="button" 
-                  className="qr-button"
-                  onClick={startScanner}
-                >
+                <button type="button" className="qr-button" onClick={startScanner}>
                   Log in with QR code
                 </button>
               </div>
@@ -228,19 +210,8 @@ export default function Home() {
           </div>
 
           <footer className="landing-footer">
-            <Link
-              href="https://www.zelim.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="logo-link"
-            >
-              <Image
-                src="/logo/zelim-logo.svg"
-                alt="Zelim Logo"
-                width={120}
-                height={40}
-                className="zelim-logo"
-              />
+            <Link href="https://www.zelim.com" target="_blank" rel="noopener noreferrer" className="logo-link">
+              <Image src="/logo/zelim-logo.svg" alt="Zelim Logo" width={120} height={40} className="zelim-logo" />
             </Link>
           </footer>
         </div>
@@ -249,23 +220,19 @@ export default function Home() {
       {/* POPUP SCANNER OVERLAY */}
       {showScanner && (
         <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          backgroundColor: 'rgb(13, 48, 55)', 
-          display: 'flex',
-          flexDirection: 'column',
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          backgroundColor: 'rgb(13, 48, 55)', display: 'flex', flexDirection: 'column',
           zIndex: 9999
         }}>
-          {/* We wrap this in your existing classes so the logo inherits your CSS styles */}
-          <div className="landing-content" style={{ flex: 1, paddingBottom: '32px' }}>
-            <div className="landing-main">
+          {/* Main content centers scanner, then pushes footer to exact bottom match */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%' }}>
+            
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                <div id="reader" style={{ width: '90%', maxWidth: '360px' }}></div>
             </div>
 
-            <footer className="landing-footer" style={{ position: 'relative', marginTop: 'auto' }}>
+            {/* Replicating landing-content padding for logo position consistency */}
+            <footer className="landing-footer" style={{ paddingBottom: '80px', position: 'relative' }}>
               <div className="logo-link">
                 <Image
                   src="/logo/zelim-logo.svg"
@@ -273,6 +240,7 @@ export default function Home() {
                   width={120}
                   height={40}
                   className="zelim-logo"
+                  style={{ display: 'block' }}
                 />
               </div>
             </footer>
