@@ -304,7 +304,8 @@
 }
 
 /* =========================================================================
-   APPENDED — SCANNER OVERLAY & FOCUS RETICLE (NON-DESTRUCTIVE)
+   APPENDED — CORRECTIVE OVERRIDES FOR SCANNER (DO NOT REMOVE)
+   These fix iOS Safari video sizing + footer alignment.
 ========================================================================= */
 
 /* Full-screen scanner overlay */
@@ -317,42 +318,52 @@
   z-index: 9999;
 }
 
-/* Make scanner content behave like landing-content incl. safe areas */
+/* Scanner content must EXACTLY mirror landing-content layout */
 .landing-scope .scanner-content {
   flex: 1;
   width: 100%;
   display: flex;
   flex-direction: column;
+  align-items: center;
   justify-content: space-between;
+
+  /* Match landing-content padding + iOS safe areas */
   padding-top: calc(32px + env(safe-area-inset-top));
+  padding-left: 56px;
+  padding-right: 56px;
   padding-bottom: calc(80px + env(safe-area-inset-bottom));
 }
 
-/* Main camera area */
-.scanner-overlay .scanner-main {
+/* Mobile override to match existing responsive rule */
+@media (max-width: 900px) {
+  .landing-scope .scanner-content {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+/* Camera area behaves like landing-main */
+.scanner-main {
   flex: 1;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
 }
 
-/* Ensure reader never creates phantom black space */
-.landing-scope .scanner-overlay #reader {
-  width: 100% !important;
-  max-width: 360px;
-  background: #1a2b2e;
-  border-radius: 16px;
-  overflow: hidden;
+/* HARD OVERRIDE: neutralise any forced video height */
+.scanner-overlay #reader video {
+  height: auto !important;
+  max-height: 100% !important;
+  display: block !important;
 }
 
-/* Critical iOS fix — prevent letterboxing & bottom crop */
-.landing-scope .scanner-overlay #reader video {
+/* Prevent html5-qrcode wrapper creating dead space */
+.scanner-overlay #reader {
   width: 100% !important;
-  height: auto !important;
-  display: block !important;
-  object-fit: cover !important;
-  border-radius: 16px;
+  max-width: 360px;
+  aspect-ratio: 1 / 1; /* stabilises layout on iOS */
 }
 
 /* Focus reticle */
@@ -374,13 +385,11 @@
   border: 1px dashed rgba(1, 255, 246, 0.25);
 }
 
-/* Locked state when scan confidence achieved */
 .focus-reticle.locked {
   animation: none;
   border-color: #01fff6;
 }
 
-/* Reticle animation */
 @keyframes reticlePulse {
   0% { opacity: 0.4; }
   50% { opacity: 0.85; }

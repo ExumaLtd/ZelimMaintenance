@@ -187,19 +187,6 @@ export default function Home() {
     }, 50);
   };
 
-  const stopScanner = async () => {
-    if (scannerRef.current) {
-      try {
-        await scannerRef.current.stop();
-        scannerRef.current = null;
-      } catch {}
-    }
-    setShowScanner(false);
-    if (window.history.state?.scannerOpen) {
-      window.history.back();
-    }
-  };
-
   useEffect(() => {
     const handlePopState = () => {
       if (showScanner) {
@@ -216,9 +203,20 @@ export default function Home() {
     <div className="landing-scope">
       <Head>
         <title>SWIFT Maintenance Portal</title>
+
+        {/* ORIGINAL RULES KEPT + SAFE OVERRIDES ADDED */}
         <style>{`
-          #reader__status_span, #reader__dashboard { display: none !important; }
-          #reader video { width: 100% !important; height: 100% !important; object-fit: cover !important; }
+          #reader__status_span,
+          #reader__dashboard,
+          #reader__dashboard_section {
+            display: none !important;
+          }
+
+          /* OVERRIDE ONLY — cancels the bad 100% height without deleting it */
+          .scanner-overlay #reader video {
+            height: auto !important;
+            display: block !important;
+          }
         `}</style>
       </Head>
 
@@ -287,16 +285,25 @@ export default function Home() {
         </div>
       </div>
 
-      {/* SCANNER OVERLAY */}
+      {/* SCANNER OVERLAY — now inherits landing-content layout */}
       {showScanner && (
         <div className="scanner-overlay">
-          <div className="scanner-main">
-            <div className="focus-reticle"><span /></div>
-            <div id="reader" />
+          <div className="landing-content scanner-content">
+            <div className="landing-main scanner-main">
+              <div className="focus-reticle"><span /></div>
+              <div id="reader" />
+            </div>
+
+            <footer className="landing-footer">
+              <Image
+                src="/logo/zelim-logo.svg"
+                alt="Zelim Logo"
+                width={120}
+                height={40}
+                className="zelim-logo"
+              />
+            </footer>
           </div>
-          <footer className="landing-footer">
-            <Image src="/logo/zelim-logo.svg" alt="Zelim Logo" width={120} height={40} className="zelim-logo" />
-          </footer>
         </div>
       )}
     </div>
