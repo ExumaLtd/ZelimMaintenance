@@ -1,7 +1,7 @@
 /* =========================================================================
    LANDING PAGE STYLES (landing.css)
    NAMESPACED VERSION: All rules scoped to .landing-scope
-   V4: FORCED LOGO SYNC (STRICT 120x40 OVERRIDE)
+   V5: QR SCANNER INTEGRATION & COLOR SYNC
 ========================================================================= */
 
 .landing-scope .landing-root {
@@ -176,11 +176,11 @@
 }
 
 /* =========================================
-   QR LOGIN BUTTON (MOBILE ONLY)
+   QR LOGIN & SCANNER
 ========================================= */
 
 .landing-scope .qr-login-container {
-  display: none; /* Hidden by default for desktop */
+  display: none; /* Hidden on desktop */
   text-align: center;
   margin-top: 20px;
 }
@@ -188,18 +188,31 @@
 .landing-scope .qr-button {
   background: none;
   border: none;
-  color: #f7f7f7;
+  color: #a0acaf; /* Updated hex code */
   font-family: Montserrat;
   font-size: 14px;
   font-weight: 400;
   cursor: pointer;
   text-decoration: none;
-  opacity: 0.8;
-  transition: opacity 0.2s;
+  opacity: 1; /* Forced to 100% opacity */
+  transition: color 0.2s;
 }
 
 .landing-scope .qr-button:hover {
-  opacity: 1;
+  color: #f7f7f7;
+}
+
+/* Scanner Viewport Styling */
+.landing-scope #reader {
+  border: none !important;
+  background: #1a2b2e;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Hide library's default buttons in case they leak through */
+.landing-scope #reader button {
+  display: none !important;
 }
 
 /* =========================================
@@ -218,9 +231,6 @@
   display: inline-flex;
 }
 
-/* STRICT OVERRIDE: 
-   Uses width/height AND max/min to crush any inline attributes or styles.
-*/
 .landing-scope img.zelim-logo {
   width: 120px !important;
   min-width: 120px !important;
