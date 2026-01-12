@@ -1,41 +1,57 @@
 const axios = require('axios');
 const { Dropbox } = require('dropbox');
 
-const AIRTABLE_BASE_ID = 'appOQXbopTwn0SdnL';
-const AIRTABLE_TABLE_ID = 'tblo0gVrtd422UQgd';
-
 async function backupAirtable() {
-  try {
-    const now = new Date();
-    const year = now.getFullYear();
-    const monthName = now.toLocaleString('default', { month: 'long' });
-    
-    const day = String(now.getDate()).padStart(2, '0');
-    const monthNum = String(now.getMonth() + 1).padStart(2, '0');
-    const dateStamp = `${day}${monthNum}${year}`;
-    const dayFolderName = `${day}-${monthNum}-${year}`;
-    
-    // Folder Path: /Airtable/2026/January/12-01-2026/
-    const folderPath = `/Airtable/${year}/${monthName}/${dayFolderName}`;
-    
-    // Filename: zelim_maintenanceportal_backup_airtable_2026_January_12012026.json
-    const fileName = `zelim_maintenanceportal_backup_airtable_${year}_${monthName}_${dateStamp}.json`;
+    try {
+        const AIRTABLE_PAT = process.env.AIRTABLE_PAT;
+        // Updated with your specific Base ID from the screenshot
+        const BASE_ID = 'appOQXbopTwn0SdnL'; 
 
-    const dbx = new Dropbox({ accessToken: process.env.DROPBOX_ACCESS_TOKEN });
+        const now = new Date();
+        const year = now.getFullYear();
+        const monthName = now.toLocaleString('default', { month: 'long' });
+        const day = String(now.getDate()).padStart(2, '0');
+        const monthNum = String(now.getMonth() + 1).padStart(2, '0');
+        const dateStamp = `${day}${monthNum}${year}`;
+        const dayFolderName = `${day}-${monthNum}-${year}`;
 
-    console.log(`--- Fetching Airtable Data ---`);
-    const res = await axios.get(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}`,
-      { headers: { Authorization: `Bearer ${process.env.AIRTABLE_PAT}` } }
-    );
+        const dbx = new Dropbox({ accessToken: process.env.DROPBOX_ACCESS_TOKEN });
 
-    await dbx.filesUpload({
-      path: `${folderPath}/${fileName}`,
-      contents: JSON.stringify(res.data, null, 2),
-      mode: 'overwrite'
-    });
-    
-    console.log(`SUCCESS: File ${fileName} saved to ${folderPath}`);
-  } catch (e) { console.error(e.message); process.exit(1); }
+        console.log("Fetching list of all tables from Airtable...");
+        
+        // 1. Get the schema (list of all tables currently in the base)
+        const schemaResponse = await axios.get(
+            `https://api.airtable.com/v0/meta/bases/${BASE_ID}/tables`,
+            { headers: { Authorization: `Bearer ${AIRTABLE_PAT}` } }
+        );
+
+        const tables = schemaResponse.data.tables;
+
+        // 2. Loop through every table found and upload to Dropbox
+        for (const table of tables) {
+            console.log(`Backing up table: ${table.name}...`);
+            
+            const recordsResponse = await axios.get(
+                `https://api.airtable.com/v0/${BASE_ID}/${table.id}`,
+                { headers: { Authorization: `Bearer ${AIRTABLE_PAT}` } }
+            );
+
+            const folderPath = `/Airtable/${year}/${monthName}/${dayFolderName}`;
+            // Sanitizes table name for filename (e.g., "Swift Units" becomes "swift_units")
+            const fileName = `zelim_backup_${table.name.toLowerCase().replace(/\s+/g, '_')}_${dateStamp}.json`;
+
+            await dbx.filesUpload({
+                path: `${folderPath}/${fileName}`,
+                contents: JSON.stringify(recordsResponse.data.records, null, 2),
+                mode: 'overwrite'
+            });
+        }
+
+        console.log('SUCCESS: All tables (including future ones) backed up to Dropbox.');
+    } catch (e) {
+        console.error('BACKUP FAILED:', e.response ? e.response.data : e.message);
+        process.exit(1);
+    }
 }
+
 backupAirtable();
