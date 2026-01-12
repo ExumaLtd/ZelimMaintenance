@@ -1,7 +1,7 @@
 /* =========================================================================
    LANDING PAGE STYLES (landing.css)
    NAMESPACED VERSION: All rules scoped to .landing-scope
-   V5: QR SCANNER INTEGRATION & COLOR SYNC
+   V6: STYLING FOR IN-PAGE SCANNER & VIDEO FILL
 ========================================================================= */
 
 .landing-scope .landing-root {
@@ -188,13 +188,13 @@
 .landing-scope .qr-button {
   background: none;
   border: none;
-  color: #a0acaf; /* Updated hex code */
+  color: #a0acaf; /* #a0acaf at 100% opacity */
   font-family: Montserrat;
   font-size: 14px;
   font-weight: 400;
   cursor: pointer;
   text-decoration: none;
-  opacity: 1; /* Forced to 100% opacity */
+  opacity: 1;
   transition: color 0.2s;
 }
 
@@ -208,10 +208,21 @@
   background: #1a2b2e;
   border-radius: 12px;
   overflow: hidden;
+  width: 100% !important;
 }
 
-/* Hide library's default buttons in case they leak through */
-.landing-scope #reader button {
+/* Force video to fill container and maintain rounded corners */
+.landing-scope #reader video {
+  width: 100% !important;
+  height: auto !important;
+  object-fit: cover !important;
+  border-radius: 12px;
+}
+
+/* Hide library's default buttons and status UI */
+.landing-scope #reader button,
+.landing-scope #reader__dashboard_section,
+.landing-scope #reader__status_span {
   display: none !important;
 }
 
