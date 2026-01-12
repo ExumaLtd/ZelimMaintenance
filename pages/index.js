@@ -15,7 +15,7 @@ export default function Home() {
   const scannerRef = useRef(null); // Keep track of the scanner instance
 
   // -----------------------------
-  // FORM SUBMIT LOGIC (Manual Entry Only)
+  // FORM SUBMIT LOGIC (Manual Only)
   // -----------------------------
   const handleFormSubmit = async (e) => {
     if (e) e.preventDefault();
@@ -88,20 +88,20 @@ export default function Home() {
                 finalCode = decodedText.split('/').pop();
             }
 
-            // Independent silent resolution to bypass manual portal form
+            // Independent silent resolution to bypass manual portal form state
             try {
               const res = await fetch(`/api/swift-resolve-pin?pin=${encodeURIComponent(finalCode)}`);
               const data = await res.json();
               
               if (res.ok && data.publicToken) {
-                // Open in a NEW TAB as requested
-                window.open(`/swift/${data.publicToken}`, '_blank');
+                // Use assign for direct redirect in current tab (avoids popup blockers)
+                window.location.assign(`/swift/${data.publicToken}`);
+                return; // Stop here and let the browser navigate
               }
             } catch (err) {
               console.error("QR Resolution failed", err);
             }
             
-            // Close scanner immediately
             stopScanner();
           },
           () => {}
@@ -129,7 +129,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    const handlePopState = (event) => {
+    const handlePopState = () => {
       if (showScanner) {
         if (scannerRef.current) {
           scannerRef.current.stop().catch(() => {});
@@ -141,10 +141,6 @@ export default function Home() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [showScanner]);
-
-  useEffect(() => {
-    return () => { if (scannerRef.current) stopScanner(); };
-  }, []);
 
   return (
     <div className="landing-scope">
@@ -162,7 +158,6 @@ export default function Home() {
               fill
               priority
               quality={100}
-              sizes="50vw"
               style={{ objectFit: "cover", objectPosition: "center" }}
             />
           </div>
@@ -222,29 +217,26 @@ export default function Home() {
         <div style={{
           position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
           backgroundColor: 'rgb(13, 48, 55)', display: 'flex', flexDirection: 'column',
-          zIndex: 9999
+          zIndex: 9999,
+          padding: '32px 24px 80px' // Match landing-content padding exactly
         }}>
-          {/* Main content centers scanner, then pushes footer to exact bottom match */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%' }}>
-            
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-               <div id="reader" style={{ width: '90%', maxWidth: '360px' }}></div>
-            </div>
-
-            {/* Replicating landing-content padding for logo position consistency */}
-            <footer className="landing-footer" style={{ paddingBottom: '80px', position: 'relative' }}>
-              <div className="logo-link">
-                <Image
-                  src="/logo/zelim-logo.svg"
-                  alt="Zelim Logo"
-                  width={120}
-                  height={40}
-                  className="zelim-logo"
-                  style={{ display: 'block' }}
-                />
-              </div>
-            </footer>
+          {/* CAMERA FEED - Centers in the top/middle space */}
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+             <div id="reader" style={{ width: '100%', maxWidth: '360px' }}></div>
           </div>
+
+          {/* OVERLAY FOOTER - Positioned identically to main landing footer */}
+          <footer className="landing-footer" style={{ marginTop: '0', flex: '0 0 auto' }}>
+            <div className="logo-link">
+              <Image
+                src="/logo/zelim-logo.svg"
+                alt="Zelim Logo"
+                width={120}
+                height={40}
+                className="zelim-logo"
+              />
+            </div>
+          </footer>
         </div>
       )}
     </div>
