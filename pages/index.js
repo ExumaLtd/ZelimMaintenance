@@ -61,7 +61,6 @@ export default function Home() {
   // LIVE QR SCANNER LOGIC
   // -----------------------------
   const startScanner = async () => {
-    // We set this to true to mount the div, but CSS keeps it from shifting layout
     setShowScanner(true);
     
     setTimeout(async () => {
@@ -75,8 +74,8 @@ export default function Home() {
           aspectRatio: 1.0 
         };
 
-        // This triggers the native browser "Allow" prompt immediately on the current page
-        // No UI changes occur until the user clicks "Allow"
+        // Triggers native browser "Allow" prompt.
+        // Layout stays frozen because #reader is 'fixed' outside the flow.
         await html5QrCode.start(
           { facingMode: "environment" }, 
           config,
@@ -96,7 +95,6 @@ export default function Home() {
         );
       } catch (err) {
         console.error("Unable to start scanner", err);
-        // If they deny, we just reset the state quietly
         setShowScanner(false);
       }
     }, 50);
@@ -159,22 +157,6 @@ export default function Home() {
             </div>
 
             <form onSubmit={handleFormSubmit} className="form-stack">
-              
-              {/* HIDDEN SCANNER ELEMENT - Positioned so it doesn't move other elements */}
-              <div 
-                id="reader" 
-                style={{ 
-                  display: showScanner ? 'block' : 'none',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '1px',
-                  height: '1px',
-                  opacity: 0,
-                  pointerEvents: 'none'
-                }}
-              ></div>
-
               <div className={`input-wrapper ${error ? 'has-error' : ''}`}>
                 <input
                   type="text"
@@ -224,6 +206,25 @@ export default function Home() {
           </footer>
         </div>
       </div>
+
+      {/* SCANNER ELEMENT MOVED HERE:
+          By placing it outside landing-root with 'fixed', it cannot affect 
+          the layout or padding of the form-stack.
+      */}
+      <div 
+        id="reader" 
+        style={{ 
+          display: showScanner ? 'block' : 'none',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '0px',
+          height: '0px',
+          opacity: 0,
+          pointerEvents: 'none',
+          zIndex: -1
+        }}
+      ></div>
     </div>
   );
 }
