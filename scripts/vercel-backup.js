@@ -1,37 +1,52 @@
+const axios = require('axios');
 const { Dropbox } = require('dropbox');
 
 async function backupVercel() {
-  try {
-    const now = new Date();
-    const year = now.getFullYear();
-    const monthName = now.toLocaleString('default', { month: 'long' });
-    
-    const day = String(now.getDate()).padStart(2, '0');
-    const monthNum = String(now.getMonth() + 1).padStart(2, '0');
-    const dateStamp = `${day}${monthNum}${year}`;
-    const dayFolderName = `${day}-${monthNum}-${year}`;
-    
-    // Folder Path: /Vercel/2026/January/12-01-2026/
-    const folderPath = `/Vercel/${year}/${monthName}/${dayFolderName}`;
-    
-    // Filename: zelim_maintenanceportal_backup_vercel_2026_January_12012026.json
-    const fileName = `zelim_maintenanceportal_backup_vercel_${year}_${monthName}_${dateStamp}.json`;
+    try {
+        const VERCEL_TOKEN = process.env.VERCEL_TOKEN;
+        // Updated with your Project ID
+        const PROJECT_ID = 'prj_PNyJLvXl1OjOSonBDPedp7xSK5tq'; 
+        const TEAM_ID = null; 
 
-    const dbx = new Dropbox({ accessToken: process.env.DROPBOX_ACCESS_TOKEN });
+        const now = new Date();
+        const year = now.getFullYear();
+        const monthName = now.toLocaleString('default', { month: 'long' });
+        const day = String(now.getDate()).padStart(2, '0');
+        const monthNum = String(now.getMonth() + 1).padStart(2, '0');
+        const dateStamp = `${day}${monthNum}${year}`;
+        const dayFolderName = `${day}-${monthNum}-${year}`;
 
-    const snapshot = {
-      project: "Zelim Maintenance Portal",
-      backup_time: now.toISOString(),
-      status: "Production Live"
-    };
+        const dbx = new Dropbox({ accessToken: process.env.DROPBOX_ACCESS_TOKEN });
 
-    await dbx.filesUpload({
-      path: `${folderPath}/${fileName}`,
-      contents: JSON.stringify(snapshot, null, 2),
-      mode: 'overwrite'
-    });
-    
-    console.log(`SUCCESS: File ${fileName} saved to ${folderPath}`);
-  } catch (e) { console.error(e.message); process.exit(1); }
+        console.log("Fetching Environment Variables from Vercel...");
+
+        // Fetch Environment Variables from Vercel API
+        const envResponse = await axios.get(
+            `https://api.vercel.com/v9/projects/${PROJECT_ID}/env${TEAM_ID ? `?teamId=${TEAM_ID}` : ''}`,
+            { headers: { Authorization: `Bearer ${VERCEL_TOKEN}` } }
+        );
+
+        const backupData = {
+            project: "Zelim Maintenance Portal",
+            backup_time: now.toISOString(),
+            environment_variables: envResponse.data.envs,
+            note: "This file contains the secret keys and IDs required to run the portal."
+        };
+
+        const folderPath = `/Vercel/${year}/${monthName}/${dayFolderName}`;
+        const fileName = `zelim_project_config_backup_${dateStamp}.json`;
+
+        await dbx.filesUpload({
+            path: `${folderPath}/${fileName}`,
+            contents: JSON.stringify(backupData, null, 2),
+            mode: 'overwrite'
+        });
+
+        console.log('SUCCESS: Vercel config and env vars backed up to Dropbox.');
+    } catch (e) {
+        console.error('VERCEL BACKUP FAILED:', e.response ? e.response.data : e.message);
+        process.exit(1);
+    }
 }
+
 backupVercel();
