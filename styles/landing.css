@@ -180,7 +180,7 @@
 ========================================= */
 
 .landing-scope .qr-login-container {
-  display: none; /* Hidden on desktop */
+  display: none;
   text-align: center;
   margin-top: 20px;
 }
@@ -307,7 +307,7 @@
    APPENDED — SCANNER OVERLAY & FOCUS RETICLE (NON-DESTRUCTIVE)
 ========================================================================= */
 
-/* Full-screen scanner overlay that mirrors landing-content layout */
+/* Full-screen scanner overlay */
 .scanner-overlay {
   position: fixed;
   inset: 0;
@@ -317,6 +317,17 @@
   z-index: 9999;
 }
 
+/* Make scanner content behave like landing-content incl. safe areas */
+.landing-scope .scanner-content {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-top: calc(32px + env(safe-area-inset-top));
+  padding-bottom: calc(80px + env(safe-area-inset-bottom));
+}
+
 /* Main camera area */
 .scanner-overlay .scanner-main {
   flex: 1;
@@ -324,6 +335,24 @@
   align-items: center;
   justify-content: center;
   position: relative;
+}
+
+/* Ensure reader never creates phantom black space */
+.landing-scope .scanner-overlay #reader {
+  width: 100% !important;
+  max-width: 360px;
+  background: #1a2b2e;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* Critical iOS fix — prevent letterboxing & bottom crop */
+.landing-scope .scanner-overlay #reader video {
+  width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  object-fit: cover !important;
+  border-radius: 16px;
 }
 
 /* Focus reticle */
