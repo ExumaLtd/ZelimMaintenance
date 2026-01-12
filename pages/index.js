@@ -48,7 +48,14 @@ export default function Home() {
         return;
       }
 
-      return router.push(`/swift/${redirectToken}`);
+      // If this came from a QR scan, open in a new tab
+      if (codeOverride) {
+        window.open(`/swift/${redirectToken}`, '_blank');
+        setIsSubmitting(false);
+      } else {
+        // If manual entry, stay in same tab
+        return router.push(`/swift/${redirectToken}`);
+      }
 
     } catch (err) {
       console.error('PIN verification error:', err);
@@ -83,24 +90,20 @@ export default function Home() {
           config,
           async (decodedText) => {
             let finalCode = decodedText;
+            // Clean the URL if it's a full link
             if (decodedText.includes('/')) {
                 finalCode = decodedText.split('/').pop();
             }
 
-            try {
-              const res = await fetch(`/api/swift-resolve-pin?pin=${encodeURIComponent(finalCode)}`);
-              const data = await res.json();
-              
-              if (res.ok && data.publicToken) {
-                // Open portal in new tab
-                window.open(`/swift/${data.publicToken}`, '_blank');
-                
-                // Close scanner and cleanup history state
-                stopScanner();
-                if (window.history.state?.scannerOpen) window.history.back();
-              }
-            } catch (e) {
-              console.error("QR Resolve failed", e);
+            // Immediately attempt the redirect
+            handleFormSubmit(null, finalCode);
+            
+            // Close scanner UI
+            stopScanner();
+            
+            // Move back in history to clean up the state we pushed
+            if (window.history.state?.scannerOpen) {
+              window.history.back();
             }
           },
           (errorMessage) => {
@@ -255,8 +258,19 @@ export default function Home() {
             maxWidth: '360px', 
             borderRadius: '16px', 
             overflow: 'hidden',
-            backgroundColor: '#1a2b2e'
+            backgroundColor: '#000'
           }}></div>
+
+          {/* Zelim Logo inside scanner overlay */}
+          <div style={{ marginTop: '40px' }}>
+            <Image
+              src="/logo/zelim-logo.svg"
+              alt="Zelim Logo"
+              width={120}
+              height={40}
+              style={{ opacity: 1 }}
+            />
+          </div>
         </div>
       )}
     </div>
