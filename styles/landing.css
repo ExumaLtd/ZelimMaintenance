@@ -188,7 +188,7 @@
 .landing-scope .qr-button {
   background: none;
   border: none;
-  color: #a0acaf; /* #a0acaf at 100% opacity */
+  color: #a0acaf;
   font-family: Montserrat;
   font-size: 14px;
   font-weight: 400;
@@ -272,7 +272,7 @@
   }
 
   .landing-scope .qr-login-container {
-    display: block; /* Visible on mobile devices */
+    display: block;
   }
 }
 
@@ -301,4 +301,59 @@
     font-size: 26px;
     line-height: 32px;
   }
+}
+
+/* =========================================================================
+   APPENDED — SCANNER OVERLAY & FOCUS RETICLE (NON-DESTRUCTIVE)
+========================================================================= */
+
+/* Full-screen scanner overlay that mirrors landing-content layout */
+.scanner-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgb(13, 48, 55);
+  display: flex;
+  flex-direction: column;
+  z-index: 9999;
+}
+
+/* Main camera area */
+.scanner-overlay .scanner-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* Focus reticle */
+.focus-reticle {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  border: 2px solid rgba(1, 255, 246, 0.45);
+  border-radius: 12px;
+  pointer-events: none;
+  animation: reticlePulse 1.6s ease-in-out infinite;
+  z-index: 2;
+}
+
+.focus-reticle span {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  border: 1px dashed rgba(1, 255, 246, 0.25);
+}
+
+/* Locked state when scan confidence achieved */
+.focus-reticle.locked {
+  animation: none;
+  border-color: #01fff6;
+}
+
+/* Reticle animation */
+@keyframes reticlePulse {
+  0% { opacity: 0.4; }
+  50% { opacity: 0.85; }
+  100% { opacity: 0.4; }
 }

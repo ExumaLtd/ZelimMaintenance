@@ -4,24 +4,76 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
-import { Html5Qrcode } from "html5-qrcode"; // Switched to low-level class
+import { Html5Qrcode } from "html5-qrcode";
 
 export default function Home() {
   const [accessCode, setAccessCode] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+
   const router = useRouter();
-  const scannerRef = useRef(null); // Keep track of the scanner instance
+  const scannerRef = useRef(null);
+
+  // NEW — scan confidence + navigation guards
+  const lastScanRef = useRef(null);
+  const lastScanTimeRef = useRef(0);
+  const hasNavigatedRef = useRef(false);
 
   // -----------------------------
-  // FORM SUBMIT LOGIC (Manual Only)
+  // DEVICE HELPERS
   // -----------------------------
-  const handleFormSubmit = async (e) => {
+  const isIOS = () =>
+    typeof navigator !== "undefined" &&
+    /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+  const isAndroid = () =>
+    typeof navigator !== "undefined" &&
+    /Android/.test(navigator.userAgent);
+
+  // -----------------------------
+  // CAMERA HELPERS
+  // -----------------------------
+  const getBestRearCameraId = async () => {
+    if (!navigator.mediaDevices?.enumerateDevices) return null;
+
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoDevices = devices.filter(d => d.kind === "videoinput");
+
+    const rear = videoDevices.filter(d =>
+      /rear|back|environment/i.test(d.label)
+    );
+
+    return (rear[0] || videoDevices[0])?.deviceId || null;
+  };
+
+  const lockZoomIfSupported = async (videoEl) => {
+    if (!videoEl) return;
+    const track = videoEl.srcObject?.getVideoTracks?.()[0];
+    if (!track) return;
+
+    const caps = track.getCapabilities?.();
+    if (!caps?.zoom) return;
+
+    try {
+      await track.applyConstraints({
+        advanced: [{ zoom: Math.min(1, caps.zoom.max) }]
+      });
+    } catch {
+      // silent
+    }
+  };
+
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+  // -----------------------------
+  // FORM SUBMIT LOGIC
+  // -----------------------------
+  const handleFormSubmit = async (e, codeOverride = null) => {
     if (e) e.preventDefault();
     if (isSubmitting) return;
 
-    const code = accessCode.trim();
+    const code = codeOverride || accessCode.trim();
     if (!code) {
       setError('Please enter your access code.');
       return;
@@ -35,29 +87,35 @@ export default function Home() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Invalid access code.');
+        if (!codeOverride) {
+          setError(data.error || 'Invalid access code.');
+        }
         setIsSubmitting(false);
         return;
       }
 
       const redirectToken = data.publicToken;
       if (!redirectToken) {
-        setError('This unit is missing a public token.');
+        if (!codeOverride) setError('This unit is missing a public token.');
         setIsSubmitting(false);
         return;
       }
 
-      return router.push(`/swift/${redirectToken}`);
+      if (codeOverride) {
+        window.location.href = `/swift/${redirectToken}`;
+      } else {
+        return router.push(`/swift/${redirectToken}`);
+      }
 
     } catch (err) {
       console.error('PIN verification error:', err);
-      setError('A network error occurred. Please try again.');
+      if (!codeOverride) setError('A network error occurred. Please try again.');
       setIsSubmitting(false);
     }
   };
 
   // -----------------------------
-  // LIVE QR SCANNER LOGIC (Independent Express Lane)
+  // LIVE QR SCANNER LOGIC
   // -----------------------------
   const startScanner = async () => {
     setShowScanner(true);
@@ -68,44 +126,60 @@ export default function Home() {
         const html5QrCode = new Html5Qrcode("reader");
         scannerRef.current = html5QrCode;
 
-        const config = { 
-          fps: 10, 
+        let cameraConfig = { facingMode: "environment" };
+
+        if (isAndroid()) {
+          const deviceId = await getBestRearCameraId();
+          if (deviceId) {
+            cameraConfig = { deviceId: { exact: deviceId } };
+          }
+        }
+
+        const config = {
+          fps: isIOS() ? 6 : 10,
           qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0 
+          aspectRatio: 1.0
         };
 
         await html5QrCode.start(
-          { facingMode: "environment" }, 
+          cameraConfig,
           config,
           async (decodedText) => {
-            // Haptic Feedback
-            if (typeof navigator !== "undefined" && navigator.vibrate) {
-              navigator.vibrate(100);
-            }
+            const now = Date.now();
 
-            let finalCode = decodedText;
-            if (decodedText.includes('/')) {
-                finalCode = decodedText.split('/').pop();
-            }
+            if (
+              lastScanRef.current === decodedText &&
+              now - lastScanTimeRef.current < 500
+            ) {
+              if (hasNavigatedRef.current) return;
+              hasNavigatedRef.current = true;
 
-            // Independent silent resolution to bypass manual portal form state
-            try {
-              const res = await fetch(`/api/swift-resolve-pin?pin=${encodeURIComponent(finalCode)}`);
-              const data = await res.json();
-              
-              if (res.ok && data.publicToken) {
-                // Use assign for direct redirect in current tab (avoids popup blockers)
-                window.location.assign(`/swift/${data.publicToken}`);
-                return; // Stop here and let the browser navigate
+              document.querySelector(".focus-reticle")?.classList.add("locked");
+
+              if (navigator.vibrate) {
+                navigator.vibrate([50, 30, 50]);
               }
-            } catch (err) {
-              console.error("QR Resolution failed", err);
+
+              let finalCode = decodedText;
+              if (decodedText.includes('/')) {
+                finalCode = decodedText.split('/').pop();
+              }
+
+              await sleep(120);
+              handleFormSubmit(null, finalCode);
+              return;
             }
-            
-            stopScanner();
-          },
-          () => {}
+
+            lastScanRef.current = decodedText;
+            lastScanTimeRef.current = now;
+          }
         );
+
+        setTimeout(() => {
+          const video = document.querySelector("#reader video");
+          lockZoomIfSupported(video);
+        }, 300);
+
       } catch (err) {
         console.error("Unable to start scanner", err);
         setShowScanner(false);
@@ -118,9 +192,7 @@ export default function Home() {
       try {
         await scannerRef.current.stop();
         scannerRef.current = null;
-      } catch (err) {
-        console.error("Unable to stop scanner", err);
-      }
+      } catch {}
     }
     setShowScanner(false);
     if (window.history.state?.scannerOpen) {
@@ -131,10 +203,8 @@ export default function Home() {
   useEffect(() => {
     const handlePopState = () => {
       if (showScanner) {
-        if (scannerRef.current) {
-          scannerRef.current.stop().catch(() => {});
-          scannerRef.current = null;
-        }
+        scannerRef.current?.stop().catch(() => {});
+        scannerRef.current = null;
         setShowScanner(false);
       }
     };
@@ -146,6 +216,10 @@ export default function Home() {
     <div className="landing-scope">
       <Head>
         <title>SWIFT Maintenance Portal</title>
+        <style>{`
+          #reader__status_span, #reader__dashboard { display: none !important; }
+          #reader video { width: 100% !important; height: 100% !important; object-fit: cover !important; }
+        `}</style>
       </Head>
 
       <div className="landing-root">
@@ -158,7 +232,8 @@ export default function Home() {
               fill
               priority
               quality={100}
-              style={{ objectFit: "cover", objectPosition: "center" }}
+              sizes="50vw"
+              style={{ objectFit: "cover" }}
             />
           </div>
         </div>
@@ -212,30 +287,15 @@ export default function Home() {
         </div>
       </div>
 
-      {/* POPUP SCANNER OVERLAY */}
+      {/* SCANNER OVERLAY */}
       {showScanner && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-          backgroundColor: 'rgb(13, 48, 55)', display: 'flex', flexDirection: 'column',
-          zIndex: 9999,
-          padding: '32px 24px 80px' // Match landing-content padding exactly
-        }}>
-          {/* CAMERA FEED - Centers in the top/middle space */}
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-             <div id="reader" style={{ width: '100%', maxWidth: '360px' }}></div>
+        <div className="scanner-overlay">
+          <div className="scanner-main">
+            <div className="focus-reticle"><span /></div>
+            <div id="reader" />
           </div>
-
-          {/* OVERLAY FOOTER - Positioned identically to main landing footer */}
-          <footer className="landing-footer" style={{ marginTop: '0', flex: '0 0 auto' }}>
-            <div className="logo-link">
-              <Image
-                src="/logo/zelim-logo.svg"
-                alt="Zelim Logo"
-                width={120}
-                height={40}
-                className="zelim-logo"
-              />
-            </div>
+          <footer className="landing-footer">
+            <Image src="/logo/zelim-logo.svg" alt="Zelim Logo" width={120} height={40} className="zelim-logo" />
           </footer>
         </div>
       )}
