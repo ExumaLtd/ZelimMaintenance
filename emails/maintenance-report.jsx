@@ -15,11 +15,11 @@ import {
 import * as React from 'react';
 
 export const MaintenanceReportEmail = ({ 
-  engineerName, 
-  serialNumber, 
+  engineerName = 'Engineer', 
+  serialNumber = 'N/A', 
   answers = {},
-  brandColor,
-  logoUrl 
+  brandColor = '#172F36',
+  logoUrl = '/logo/zelim-logo-dark.png'
 }) => {
   const today = new Date().toLocaleDateString('en-GB', {
     day: 'numeric',
@@ -27,8 +27,10 @@ export const MaintenanceReportEmail = ({
     year: 'numeric',
   });
 
-  // Use the passed brand color or fallback to Zelim Green
-  const ZELIM_GREEN = brandColor || '#172F36';
+  // Ensure logo URL is absolute
+  const absoluteLogoUrl = logoUrl?.startsWith('http') 
+    ? logoUrl 
+    : `https://maintenance.exuma.co.uk${logoUrl?.startsWith('/') ? '' : '/'}${logoUrl}`;
 
   return (
     <Html>
@@ -36,25 +38,32 @@ export const MaintenanceReportEmail = ({
       <Preview>Maintenance Summary: {serialNumber}</Preview>
       <Body style={main}>
         <Container style={container}>
-          {/* Header with Zelim Green Accent and Dark Logo */}
-          <Section style={{ ...headerSection, borderTop: `6px solid ${ZELIM_GREEN}` }}>
-            <Img
-              src={logoUrl} 
-              width="140"
-              alt="Zelim Logo"
-              style={logo}
-            />
+          {/* Header with Brand Color Accent */}
+          <Section style={{ ...headerSection, borderTop: `6px solid ${brandColor}` }}>
+            {logoUrl && (
+              <Img
+                src={absoluteLogoUrl}
+                width="140"
+                height="47"
+                alt="Company Logo"
+                style={logo}
+              />
+            )}
           </Section>
 
           <Section style={contentPadding}>
             <Heading style={h1}>{serialNumber}</Heading>
-            <Text style={{ ...subTitle, color: ZELIM_GREEN }}>Maintenance Confirmation</Text>
+            <Text style={{ ...subTitle, color: brandColor }}>
+              Maintenance Confirmation
+            </Text>
             
             <Text style={text}>
               Hello <strong>{engineerName}</strong>,
             </Text>
             <Text style={text}>
-              This is your official maintenance receipt for work completed on <strong>{today}</strong>. A copy of this report has been logged in our central system.
+              This is your official maintenance receipt for work completed on{' '}
+              <strong>{today}</strong>. A copy of this report has been logged in our 
+              central system.
             </Text>
 
             <Hr style={hr} />
@@ -73,26 +82,38 @@ export const MaintenanceReportEmail = ({
               </Row>
             </Section>
 
-            <Heading as="h2" style={h2}>Checklist Details</Heading>
-            
-            <Section>
-              {Object.entries(answers).map(([question, answer], i) => (
-                <div key={i} style={answerBlock}>
-                  <Text style={questionText}>{question}</Text>
-                  <Text style={answerText}>{String(answer) || 'Not answered'}</Text>
-                </div>
-              ))}
-            </Section>
+            {/* Only show checklist if there are answers */}
+            {Object.keys(answers).length > 0 && (
+              <>
+                <Heading as="h2" style={h2}>Checklist Details</Heading>
+                
+                <Section>
+                  {Object.entries(answers).map(([question, answer], i) => (
+                    <div key={i} style={answerBlock}>
+                      <Text style={questionText}>{question}</Text>
+                      <Text style={answerText}>
+                        {answer !== null && answer !== undefined && answer !== '' 
+                          ? String(answer) 
+                          : 'Not answered'}
+                      </Text>
+                    </div>
+                  ))}
+                </Section>
 
-            <Hr style={hr} />
+                <Hr style={hr} />
+              </>
+            )}
 
             <Text style={footerContactText}>
-              Need technical assistance? Contact <strong>maintenance@exuma.co.uk</strong>
+              Need technical assistance? Contact{' '}
+              <strong>maintenance@exuma.co.uk</strong>
             </Text>
           </Section>
 
           <Section style={footerSection}>
-            <Text style={attribution}>© 2026 Zelim | Intelligent Maritime Safety</Text>
+            <Text style={attribution}>
+              © {new Date().getFullYear()} Zelim | Intelligent Maritime Safety
+            </Text>
           </Section>
         </Container>
       </Body>
@@ -102,7 +123,7 @@ export const MaintenanceReportEmail = ({
 
 export default MaintenanceReportEmail;
 
-// --- Styles: Zelim Brand Aesthetic ---
+// --- Styles: Professional Maritime Aesthetic ---
 const main = {
   backgroundColor: '#F8FAFC',
   padding: '40px 0',
@@ -125,6 +146,7 @@ const headerSection = {
 
 const logo = {
   margin: '0 auto',
+  display: 'block',
 };
 
 const contentPadding = {
@@ -153,6 +175,7 @@ const text = {
   color: '#475569',
   fontSize: '15px',
   lineHeight: '24px',
+  margin: '12px 0',
 };
 
 const statusCard = {
@@ -188,7 +211,7 @@ const h2 = {
 const answerBlock = {
   marginBottom: '20px',
   paddingLeft: '12px',
-  borderLeft: `2px solid #E2E8F0`,
+  borderLeft: '2px solid #E2E8F0',
 };
 
 const questionText = {
@@ -203,6 +226,7 @@ const answerText = {
   color: '#475569',
   margin: '0',
   lineHeight: '1.5',
+  whiteSpace: 'pre-wrap',
 };
 
 const hr = {
@@ -214,6 +238,7 @@ const footerContactText = {
   fontSize: '13px',
   color: '#94A3B8',
   textAlign: 'center',
+  margin: '0',
 };
 
 const footerSection = {
@@ -224,4 +249,5 @@ const footerSection = {
 const attribution = {
   fontSize: '12px',
   color: '#CBD5E1',
+  margin: '0',
 };
