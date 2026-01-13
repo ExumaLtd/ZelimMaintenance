@@ -18,7 +18,8 @@ export const TechnicalAlertEmail = ({
   technicalData = {},
   answers = {},
   brandColor = '#172F36',
-  logoUrl = '/logo/zelim-logo-dark.png'
+  logoUrl = '/logo/zelim-logo-dark.png',
+  previewUrl = null
 }) => {
   // Airtable configuration
   const airtableBaseId = 'appOQXbopTwn0SdnL'; 
@@ -38,14 +39,23 @@ export const TechnicalAlertEmail = ({
       {/* Updated Preview/Subject Line - No "TECHNICAL ALERT:" prefix */}
       <Preview>{serialNumber} {displayType} Submitted</Preview>
       <Body style={main}>
+        {/* View in browser link */}
+        {previewUrl && (
+          <Container style={previewLinkContainer}>
+            <Text style={previewLinkText}>
+              Having trouble viewing this email?{' '}
+              <a href={previewUrl} style={previewLink}>View in browser</a>
+            </Text>
+          </Container>
+        )}
         <Container style={container}>
           {/* Logo Section */}
           <Section style={logoSection}>
             {logoUrl && (
               <Img 
                 src={absoluteLogoUrl}
-                width="140"
-                height="47"
+                width="250"
+                height="40"
                 alt="Company Logo" 
                 style={logo} 
               />
@@ -127,8 +137,17 @@ export const TechnicalAlertEmail = ({
 
           {/* Footer */}
           <Section style={footerSection}>
+            <a href="https://www.zelim.com" style={footerLink}>
+              <Img
+                src="https://maintenance.exuma.co.uk/logo/zelim-logo.svg"
+                width="120"
+                height="40"
+                alt="Zelim logo"
+                style={footerLogo}
+              />
+            </a>
             <Text style={footerText}>
-              © {new Date().getFullYear()} Zelim | Intelligent Maritime Safety
+              © {new Date().getFullYear()} Zelim Limited | Find Recover Protect
             </Text>
           </Section>
         </Container>
@@ -140,6 +159,23 @@ export const TechnicalAlertEmail = ({
 export default TechnicalAlertEmail;
 
 // --- Styles ---
+const previewLinkContainer = {
+  maxWidth: '600px',
+  margin: '0 auto 10px auto',
+  textAlign: 'center',
+};
+
+const previewLinkText = {
+  fontSize: '12px',
+  color: '#64748B',
+  margin: '0',
+};
+
+const previewLink = {
+  color: '#172F36',
+  textDecoration: 'underline',
+};
+
 const main = { 
   backgroundColor: '#f6f9fc', 
   padding: '40px 0', 
@@ -162,7 +198,12 @@ const logoSection = {
 
 const logo = {
   margin: '0 auto',
-  display: 'block'
+  display: 'block',
+  maxWidth: '250px',
+  maxHeight: '40px',
+  width: '100%',
+  height: 'auto',
+  objectFit: 'contain',
 };
 
 const h1 = { 
@@ -244,6 +285,17 @@ const answerText = {
 const footerSection = {
   marginTop: '40px',
   textAlign: 'center'
+};
+
+const footerLink = {
+  textDecoration: 'none',
+  display: 'inline-block',
+  marginBottom: '12px',
+};
+
+const footerLogo = {
+  margin: '0 auto',
+  display: 'block',
 };
 
 const footerText = {

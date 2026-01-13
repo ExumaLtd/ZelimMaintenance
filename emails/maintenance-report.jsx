@@ -19,7 +19,8 @@ export const MaintenanceReportEmail = ({
   serialNumber = 'N/A', 
   answers = {},
   brandColor = '#172F36',
-  logoUrl = '/logo/zelim-logo-dark.png'
+  logoUrl = '/logo/zelim-logo-dark.png',
+  previewUrl = null
 }) => {
   const today = new Date().toLocaleDateString('en-GB', {
     day: 'numeric',
@@ -37,14 +38,23 @@ export const MaintenanceReportEmail = ({
       <Head />
       <Preview>Maintenance Summary: {serialNumber}</Preview>
       <Body style={main}>
+        {/* View in browser link */}
+        {previewUrl && (
+          <Container style={previewLinkContainer}>
+            <Text style={previewLinkText}>
+              Having trouble viewing this email?{' '}
+              <a href={previewUrl} style={previewLink}>View in browser</a>
+            </Text>
+          </Container>
+        )}
         <Container style={container}>
           {/* Header with Brand Color Accent */}
           <Section style={{ ...headerSection, borderTop: `6px solid ${brandColor}` }}>
             {logoUrl && (
               <Img
                 src={absoluteLogoUrl}
-                width="140"
-                height="47"
+                width="250"
+                height="40"
                 alt="Company Logo"
                 style={logo}
               />
@@ -111,8 +121,17 @@ export const MaintenanceReportEmail = ({
           </Section>
 
           <Section style={footerSection}>
+            <a href="https://www.zelim.com" style={footerLink}>
+              <Img
+                src="https://maintenance.exuma.co.uk/logo/zelim-logo.svg"
+                width="120"
+                height="40"
+                alt="Zelim logo"
+                style={footerLogo}
+              />
+            </a>
             <Text style={attribution}>
-              © {new Date().getFullYear()} Zelim | Intelligent Maritime Safety
+              © {new Date().getFullYear()} Zelim Limited | Find Recover Protect
             </Text>
           </Section>
         </Container>
@@ -124,6 +143,23 @@ export const MaintenanceReportEmail = ({
 export default MaintenanceReportEmail;
 
 // --- Styles: Professional Maritime Aesthetic ---
+const previewLinkContainer = {
+  maxWidth: '600px',
+  margin: '0 auto 10px auto',
+  textAlign: 'center',
+};
+
+const previewLinkText = {
+  fontSize: '12px',
+  color: '#64748B',
+  margin: '0',
+};
+
+const previewLink = {
+  color: '#172F36',
+  textDecoration: 'underline',
+};
+
 const main = {
   backgroundColor: '#F8FAFC',
   padding: '40px 0',
@@ -147,6 +183,11 @@ const headerSection = {
 const logo = {
   margin: '0 auto',
   display: 'block',
+  maxWidth: '250px',
+  maxHeight: '40px',
+  width: '100%',
+  height: 'auto',
+  objectFit: 'contain',
 };
 
 const contentPadding = {
@@ -244,6 +285,17 @@ const footerContactText = {
 const footerSection = {
   paddingBottom: '40px',
   textAlign: 'center',
+};
+
+const footerLink = {
+  textDecoration: 'none',
+  display: 'inline-block',
+  marginBottom: '12px',
+};
+
+const footerLogo = {
+  margin: '0 auto',
+  display: 'block',
 };
 
 const attribution = {
