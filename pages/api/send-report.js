@@ -1,6 +1,6 @@
 import { Resend } from 'resend';
-import { MaintenanceReportEmail } from '../../emails/MaintenanceReport';
-import { TechnicalAlertEmail } from '../../emails/TechnicalAlert';
+import { MaintenanceReportEmail } from '../../emails/maintenance-report';
+import { TechnicalAlertEmail } from '../../emails/technical-alert';
 
 // Cleans any quotation marks from your .env.local file automatically
 const apiKey = process.env.RESEND_API_KEY?.replace(/['"]+/g, '');
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     }
 
     const engineerSubject = `${serialNumber} ${displayType} Confirmation`;
-    const internalSubject = `TECHNICAL ALERT: ${serialNumber} - ${displayType}`;
+    const internalSubject = `${serialNumber} - ${displayType} Submitted`; // ✅ UPDATED
 
     // Send both emails in a single batch call using React templates for both
     const data = await resend.batch.send([
