@@ -308,7 +308,7 @@
 
   .dashboard-scope .swift-dashboard-container {
     grid-template-columns: 1fr !important;
-    margin-top: 26px !important;
+    margin-top: 0 !important;
   }
 
   .dashboard-scope .detail-panel,
