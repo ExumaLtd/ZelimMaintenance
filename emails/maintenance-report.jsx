@@ -27,10 +27,10 @@ export const MaintenanceReportEmail = ({
     year: 'numeric',
   });
 
-  // Ensure logo URL is absolute
+  // Ensure logo URL is absolute for email clients
   const absoluteLogoUrl = logoUrl?.startsWith('http') 
     ? logoUrl 
-    : `https://maintenance.exuma.co.uk${logoUrl?.startsWith('/') ? '' : '/'}${logoUrl}`;
+    : `https://maintenance.exuma.co.uk${logoUrl?.startsWith('/') ? logoUrl : `/${logoUrl}`}`;
 
   return (
     <Html>

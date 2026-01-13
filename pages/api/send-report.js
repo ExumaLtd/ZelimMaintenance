@@ -24,10 +24,9 @@ export default async function handler(req, res) {
     // Zelim Green: #172F36 (Applied to top accent line and buttons)
     const ZELIM_GREEN = "#172F36"; 
     
-    // Constructing the absolute URL for the PNG logo asset
-    // We use VERCEL_URL as the primary source to ensure the email client can find the image
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `https://${process.env.VERCEL_URL}`;
-    const logoUrl = `${baseUrl}/logo/zelim-logo-dark.png`;
+    // Logo URL - use the direct production URL for emails
+    // Email clients need absolute URLs, and the templates will handle this
+    const logoUrl = "https://maintenance.exuma.co.uk/logo/zelim-logo-dark.png";
 
     // Logic to ensure the subject line is professional and descriptive
     let displayType = reportType || 'Maintenance';
@@ -36,7 +35,7 @@ export default async function handler(req, res) {
     }
 
     const engineerSubject = `${serialNumber} ${displayType} Confirmation`;
-    const internalSubject = `${serialNumber} - ${displayType} Submitted`; // ✅ UPDATED
+    const internalSubject = `${serialNumber} ${displayType} Submitted`;
 
     // Send both emails in a single batch call using React templates for both
     const data = await resend.batch.send([
