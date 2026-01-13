@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
   try {
-    // Extracting the data from the request body
+    // 1. Extract variables FIRST
     const { 
       engineerEmail, 
       engineerName, 
@@ -18,32 +18,29 @@ export default async function handler(req, res) {
       answers, 
       reportType, 
       technicalData,
-      companyLogoUrl  // NEW: Company/client logo URL
+      companyLogoUrl 
     } = req.body;
 
-    // BRANDING CONSTANTS
-    // Zelim Green: #172F36 (Applied to top accent line and buttons)
+    // 2. Define constants and brand colors
     const ZELIM_GREEN = "#172F36"; 
-    
-    // Company logo URL - this will be the client's logo (e.g., Changi Airport, Milford Haven, etc.)
-    // Example: /client_logos/changi_airport/ChangiAirport_Logo.png
     const logoUrl = companyLogoUrl || "https://maintenance.exuma.co.uk/logo/zelim-logo-dark.png";
 
-    // Generate preview URLs for "View in browser" links
-    const baseUrl = "https://maintenance.exuma.co.uk";
-    const engineerPreviewUrl = `${baseUrl}/api/emails/preview-maintenance-report?engineerName=${encodeURIComponent(engineerName)}&serialNumber=${encodeURIComponent(serialNumber)}`;
-    const internalPreviewUrl = `${baseUrl}/api/emails/preview-technical-alert?serialNumber=${encodeURIComponent(serialNumber)}&displayType=${encodeURIComponent(displayType)}`;
-
-    // Logic to ensure the subject line is professional and descriptive
+    // 3. Define displayType BEFORE it is used in preview URLs
     let displayType = reportType || 'Maintenance';
     if (!displayType.toLowerCase().includes('maintenance')) {
       displayType = `${displayType} Maintenance`;
     }
 
+    // 4. NOW create preview URLs using the initialized variables
+    const baseUrl = "https://maintenance.exuma.co.uk";
+    const engineerPreviewUrl = `${baseUrl}/api/emails/preview-maintenance-report?engineerName=${encodeURIComponent(engineerName)}&serialNumber=${encodeURIComponent(serialNumber)}`;
+    const internalPreviewUrl = `${baseUrl}/api/emails/preview-technical-alert?serialNumber=${encodeURIComponent(serialNumber)}&displayType=${encodeURIComponent(displayType)}`;
+
+    // 5. Set the subject lines
     const engineerSubject = `${serialNumber} ${displayType} Confirmation`;
     const internalSubject = `${serialNumber} ${displayType} Submitted`;
 
-    // Send both emails in a single batch call using React templates for both
+    // 6. Send both emails in a single batch call
     const data = await resend.batch.send([
       {
         // EMAIL 1: The receipt for the Engineer
