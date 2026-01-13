@@ -4,7 +4,6 @@ const { Dropbox } = require('dropbox');
 async function backupAirtable() {
     try {
         const AIRTABLE_PAT = process.env.AIRTABLE_PAT;
-        // Base ID confirmed from your logs and settings
         const BASE_ID = 'appOQXbopTwn0SdnL'; 
 
         const now = new Date();
@@ -19,22 +18,20 @@ async function backupAirtable() {
 
         console.log("Fetching list of all tables from Airtable...");
         
-        // 1. Get the schema (This part is currently working)
         const schemaResponse = await axios.get(
             `https://api.airtable.com/v0/meta/bases/${BASE_ID}/tables`,
             { headers: { Authorization: `Bearer ${AIRTABLE_PAT}` } }
         );
 
         const tables = schemaResponse.data.tables;
+        console.log(`Found ${tables.length} tables to backup`);
 
-        // 2. Loop through every table found and upload to Dropbox
         for (const table of tables) {
-            console.log(`Backing up table: ${table.name}...`);
+            console.log(`Backing up table: ${table.name} (ID: ${table.id})...`);
             
-            // AMENDED: Using encodeURIComponent(table.name) instead of table.id 
-            // to resolve the 401 error during record fetching.
+            // Try using table.id instead of table.name
             const recordsResponse = await axios.get(
-                `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(table.name)}`,
+                `https://api.airtable.com/v0/${BASE_ID}/${table.id}`,
                 { headers: { Authorization: `Bearer ${AIRTABLE_PAT}` } }
             );
 
@@ -46,15 +43,19 @@ async function backupAirtable() {
                 contents: JSON.stringify(recordsResponse.data.records, null, 2),
                 mode: 'overwrite'
             });
+            
+            console.log(`✓ Successfully backed up ${table.name}`);
         }
 
-        console.log('SUCCESS: All tables (including future ones) backed up to Dropbox.');
+        console.log('SUCCESS: All tables backed up to Dropbox.');
     } catch (e) {
-        // AMENDED: Improved error logging to catch the exact response from Airtable
-        if (e.response && e.response.data) {
-            console.error('BACKUP FAILED:', JSON.stringify(e.response.data, null, 2));
-        } else {
-            console.error('BACKUP FAILED:', e.message);
+        console.error('BACKUP FAILED');
+        console.error('Error message:', e.message);
+        if (e.response) {
+            console.error('Status:', e.response.status);
+            console.error('Status text:', e.response.statusText);
+            console.error('Response data:', JSON.stringify(e.response.data, null, 2));
+            console.error('Request URL:', e.config?.url);
         }
         process.exit(1);
     }
