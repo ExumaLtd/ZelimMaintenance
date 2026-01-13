@@ -243,9 +243,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
       if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
 
-// Get company logo URL for email
-// const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
-const companyLogoUrl = null; // temporary test
+      // Get company logo URL for email
+      const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
 
       await fetch("/api/send-report", {
         method: "POST",
