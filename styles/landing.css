@@ -191,7 +191,6 @@
   font-family: Montserrat;
   font-size: 14px;
   cursor: pointer;
-  text-decoration: underline;
   padding: 8px;
 }
 
@@ -242,7 +241,7 @@
   border-radius: 50%;
   width: 44px;
   height: 44px;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   cursor: pointer;
@@ -333,20 +332,38 @@
 }
 
 /* =========================================
-   FOOTER IN SCANNER
+   FOOTER IN SCANNER - MATCHES LOGIN PAGE
 ========================================= */
 
 .scanner-footer {
   padding: 24px 0 max(24px, env(safe-area-inset-bottom));
   display: flex;
   justify-content: center;
+  align-items: center;
   background: transparent;
+}
+
+.scanner-footer .logo-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .landing-scope img.zelim-logo {
   width: 120px !important;
   height: 40px !important;
   object-fit: contain !important;
+}
+
+.landing-scope .landing-footer,
+.scanner-footer {
+  /* Ensure both footers have identical styling */
+}
+
+.landing-scope .logo-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
 }
 
 /* =========================================
