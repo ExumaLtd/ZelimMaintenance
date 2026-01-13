@@ -324,10 +324,10 @@
   }
 
   .dashboard-scope .logo-section {
-    max-width: 225px;
-    max-height: 36px;
-    width: 225px;
-    height: 36px;
+    max-width: 225px !important;
+    max-height: 36px !important;
+    width: 225px !important;
+    height: 36px !important;
     margin: 0 auto 30px auto !important;
   }
 
