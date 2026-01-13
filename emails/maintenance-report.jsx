@@ -116,14 +116,16 @@ export const MaintenanceReportEmail = ({
 
             <Text style={footerContactText}>
               Need technical assistance? Contact{' '}
-              <strong>maintenance@exuma.co.uk</strong>
+              <a href="mailto:maintenance@zelim.com" style={emailLink}>
+                maintenance@zelim.com
+              </a>
             </Text>
           </Section>
 
           <Section style={footerSection}>
             <a href="https://www.zelim.com" style={footerLink}>
               <Img
-                src="https://maintenance.exuma.co.uk/logo/zelim-logo.svg"
+                src="https://maintenance.exuma.co.uk/logo/zelim-logo-dark.png"
                 width="120"
                 height="40"
                 alt="Zelim logo"
@@ -280,6 +282,12 @@ const footerContactText = {
   color: '#94A3B8',
   textAlign: 'center',
   margin: '0',
+};
+
+const emailLink = {
+  color: '#172F36',
+  textDecoration: 'underline',
+  fontWeight: '600',
 };
 
 const footerSection = {

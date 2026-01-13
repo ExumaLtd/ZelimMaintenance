@@ -17,16 +17,22 @@ export default async function handler(req, res) {
       serialNumber, 
       answers, 
       reportType, 
-      technicalData 
+      technicalData,
+      companyLogoUrl  // NEW: Company/client logo URL
     } = req.body;
 
     // BRANDING CONSTANTS
     // Zelim Green: #172F36 (Applied to top accent line and buttons)
     const ZELIM_GREEN = "#172F36"; 
     
-    // Logo URL - use the direct production URL for emails
-    // Email clients need absolute URLs, and the templates will handle this
-    const logoUrl = "https://maintenance.exuma.co.uk/logo/zelim-logo-dark.png";
+    // Company logo URL - this will be the client's logo (e.g., Changi Airport, Milford Haven, etc.)
+    // Example: /client_logos/changi_airport/ChangiAirport_Logo.png
+    const logoUrl = companyLogoUrl || "https://maintenance.exuma.co.uk/logo/zelim-logo-dark.png";
+
+    // Generate preview URLs for "View in browser" links
+    const baseUrl = "https://maintenance.exuma.co.uk";
+    const engineerPreviewUrl = `${baseUrl}/api/emails/preview-maintenance-report?engineerName=${encodeURIComponent(engineerName)}&serialNumber=${encodeURIComponent(serialNumber)}`;
+    const internalPreviewUrl = `${baseUrl}/api/emails/preview-technical-alert?serialNumber=${encodeURIComponent(serialNumber)}&displayType=${encodeURIComponent(displayType)}`;
 
     // Logic to ensure the subject line is professional and descriptive
     let displayType = reportType || 'Maintenance';
@@ -49,7 +55,8 @@ export default async function handler(req, res) {
           serialNumber, 
           answers,
           brandColor: ZELIM_GREEN,
-          logoUrl: logoUrl
+          logoUrl: logoUrl,
+          previewUrl: engineerPreviewUrl
         }),
       },
       {
@@ -63,7 +70,8 @@ export default async function handler(req, res) {
           technicalData, 
           answers,
           brandColor: ZELIM_GREEN,
-          logoUrl: logoUrl
+          logoUrl: logoUrl,
+          previewUrl: internalPreviewUrl
         }),
       }
     ]);
