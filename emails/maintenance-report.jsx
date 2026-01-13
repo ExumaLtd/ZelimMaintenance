@@ -304,6 +304,9 @@ const footerLink = {
 const footerLogo = {
   margin: '0 auto',
   display: 'block',
+  width: '120px',
+  height: 'auto',
+  objectFit: 'contain',
 };
 
 const attribution = {
