@@ -1,18 +1,17 @@
 import Head from "next/head";
 import Link from "next/link";
-import Airtable from "airtable";
 import Image from "next/image";
+import Airtable from "airtable";
 import fs from "fs";
 import path from "path";
 
-// -----------------------------
-// FILE SIZE UTILITY
-// -----------------------------
+// File size utility
 const getFileSize = (filePath) => {
   try {
     const fullPath = path.join(process.cwd(), "public", filePath);
     const stats = fs.statSync(fullPath);
     const bytes = stats.size;
+    
     if (bytes === 0) return "0 Bytes";
 
     const k = 1024;
@@ -24,16 +23,41 @@ const getFileSize = (filePath) => {
   }
 };
 
-// -----------------------------
-// SERVER SIDE PROPS
-// -----------------------------
+// Client logo resolver
+const getClientLogo = (companyName, serialNumber) => {
+  const logoMap = {
+    changi: {
+      serials: ["SWI001", "SWI002"],
+      nameMatch: "Changi",
+      src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg",
+    },
+    milford: {
+      serials: ["SWI003"],
+      nameMatch: "Port of Milford Haven",
+      src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg",
+    },
+    hatloy: {
+      serials: ["SWI010", "SWI011"],
+      nameMatch: "Hatloy",
+      src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg",
+    },
+  };
+
+  for (const client of Object.values(logoMap)) {
+    if (client.serials.includes(serialNumber) || companyName?.includes(client.nameMatch)) {
+      return { src: client.src, alt: `${companyName} Logo` };
+    }
+  }
+
+  return null;
+};
+
+// Fetch unit data from Airtable
 export async function getServerSideProps(context) {
   const publicToken = context.params.id;
 
-  const maintenanceManualPath =
-    "/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf";
-  const installationGuidePath =
-    "/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf";
+  const maintenanceManualPath = "/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf";
+  const installationGuidePath = "/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf";
 
   const fileSizes = {
     maintenanceManualSize: getFileSize(maintenanceManualPath),
@@ -49,12 +73,7 @@ export async function getServerSideProps(context) {
       .select({
         maxRecords: 1,
         filterByFormula: `{public_token} = "${publicToken}"`,
-        fields: [
-          "serial_number",
-          "company",
-          "annual_maintenance_due",
-          "depth_maintenance_due",
-        ],
+        fields: ["serial_number", "company", "annual_maintenance_due", "depth_maintenance_due"],
       })
       .firstPage();
 
@@ -88,47 +107,51 @@ export async function getServerSideProps(context) {
   }
 }
 
-// -----------------------------
-// CLIENT LOGO RESOLVER
-// -----------------------------
-const getClientLogo = (companyName, serialNumber) => {
-  if (["SWI001", "SWI002"].includes(serialNumber) || companyName?.includes("Changi")) {
-    return {
-      src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg",
-      alt: `${companyName} Logo`,
-    };
-  }
-
-  if (serialNumber === "SWI003" || companyName?.includes("Port of Milford Haven")) {
-    return {
-      src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg",
-      alt: `${companyName} Logo`,
-    };
-  }
-
-  if (["SWI010", "SWI011"].includes(serialNumber) || companyName?.includes("Hatloy")) {
-    return {
-      src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg",
-      alt: `${companyName} Logo`,
-    };
-  }
-
-  return null;
-};
-
-// -----------------------------
-// PAGE COMPONENT
-// -----------------------------
+// Main component
 export default function SwiftUnitPage({
   unit,
   publicToken,
   maintenanceManualSize,
   installationGuideSize,
 }) {
-  const serialNumber = unit.serial_number;
-  const companyName = unit.company;
-
+  const { serial_number: serialNumber, company: companyName } = unit;
   const logoProps = getClientLogo(companyName, serialNumber);
+
+  const maintenanceTypes = [
+    {
+      title: "Monthly\nmaintenance",
+      description: "To be completed in accordance with the SWIFT Survivor Recovery System Maintenance Manual.",
+      href: `/swift/${publicToken}/monthly`,
+    },
+    {
+      title: "Annual\nmaintenance",
+      description: "To be completed in accordance with Section 7.1.2 – Annual Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.",
+      href: `/swift/${publicToken}/annual`,
+    },
+    {
+      title: "30-month depth\nmaintenance",
+      description: "To be completed in accordance with Section 7.2.2 – 30-Month Depth Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.",
+      href: `/swift/${publicToken}/depth`,
+    },
+    {
+      title: "Unscheduled\nmaintenance",
+      description: "To be completed in accordance with the SWIFT Survivor Recovery System Maintenance Manual.",
+      href: `/swift/${publicToken}/unscheduled`,
+    },
+  ];
+
+  const downloads = [
+    {
+      href: "/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf",
+      name: "SWIFT maintenance manual.pdf",
+      size: maintenanceManualSize,
+    },
+    {
+      href: "/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf",
+      name: "SWIFT installation guide.pdf",
+      size: installationGuideSize,
+    },
+  ];
 
   return (
     <div className="dashboard-scope">
@@ -140,7 +163,7 @@ export default function SwiftUnitPage({
         <div className="page-wrapper">
           <div className="swift-dashboard-container">
             
-            {/* LEFT PANEL */}
+            {/* Left Panel - Unit Details */}
             <div className="detail-panel">
               {logoProps && (
                 <div className="logo-section">
@@ -149,7 +172,7 @@ export default function SwiftUnitPage({
                     alt={logoProps.alt}
                     fill
                     priority
-                    style={{ objectFit: 'contain', objectPosition: 'left' }}
+                    sizes="250px"
                   />
                 </div>
               )}
@@ -177,45 +200,25 @@ export default function SwiftUnitPage({
               </div>
             </div>
 
-            {/* RIGHT PANEL */}
+            {/* Right Panel - Actions */}
             <div className="action-panel">
-
-              {/* MAINTENANCE SECTION */}
+              
+              {/* Maintenance Cards */}
               <div className="maintenance-group-wrapper">
-                <div className="maintenance-card">
-                  <h3>Annual<br/>maintenance</h3>
-                  <p className="description">
-                    To be completed in accordance with Section 7.1.2 –
-                    Annual Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.
-                  </p>
-                  <Link href={`/swift/${publicToken}/annual`} className="start-btn">
-                    Start maintenance
-                  </Link>
-                </div>
-
-                <div className="maintenance-card">
-                  <h3>30-month depth<br/>maintenance</h3>
-                  <p className="description">
-                    To be completed in accordance with Section 7.2.2 –
-                    30-Month Depth Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.
-                  </p>
-                  <Link href={`/swift/${publicToken}/depth`} className="start-btn">
-                    Start maintenance
-                  </Link>
-                </div>
-
-                <div className="maintenance-card">
-                  <h3>Unscheduled<br/>maintenance</h3>
-                  <p className="description">
-                    To be completed in accordance with the SWIFT Survivor Recovery System Maintenance Manual.
-                  </p>
-                  <Link href={`/swift/${publicToken}/unscheduled`} className="start-btn">
-                    Start maintenance
-                  </Link>
-                </div>
+                {maintenanceTypes.map((maintenance, index) => (
+                  <div key={index} className="maintenance-card">
+                    <h3>{maintenance.title.split('\n').map((line, i) => (
+                      <span key={i}>{line}{i === 0 && <br />}</span>
+                    ))}</h3>
+                    <p className="description">{maintenance.description}</p>
+                    <Link href={maintenance.href} className="start-btn">
+                      Start maintenance
+                    </Link>
+                  </div>
+                ))}
               </div>
 
-              {/* DOWNLOADS */}
+              {/* Downloads */}
               <div className="downloads-card">
                 <h3>Downloads</h3>
                 <p className="description">
@@ -223,46 +226,40 @@ export default function SwiftUnitPage({
                 </p>
 
                 <div className="download-list">
-                  <a
-                    href="/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="download-link"
-                  >
-                    <Image src="/Icons/PDF_Icon.svg" width={40} height={40} alt="PDF Icon" />
-                    <div>
-                      <p>SWIFT maintenance manual.pdf</p>
-                      <span>{maintenanceManualSize}</span>
-                    </div>
-                  </a>
-
-                  <a
-                    href="/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="download-link"
-                  >
-                    <Image src="/Icons/PDF_Icon.svg" width={40} height={40} alt="PDF Icon" />
-                    <div>
-                      <p>SWIFT installation guide.pdf</p>
-                      <span>{installationGuideSize}</span>
-                    </div>
-                  </a>
+                  {downloads.map((download, index) => (
+                    <a
+                      key={index}
+                      href={download.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="download-link"
+                    >
+                      <Image 
+                        src="/Icons/PDF_Icon.svg" 
+                        width={40} 
+                        height={40} 
+                        alt="PDF Icon" 
+                      />
+                      <div>
+                        <p>{download.name}</p>
+                        <span>{download.size}</span>
+                      </div>
+                    </a>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* FOOTER - INTEGRATED IN FLEXBOX WRAPPER */}
+        {/* Footer */}
         <footer className="footer-section">
           <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
             <Image 
               src="/logo/zelim-logo.svg" 
               width={120} 
               height={40} 
-              alt="Zelim logo" 
-              style={{ opacity: 1 }} // Opacity set to 1 (100%)
+              alt="Zelim logo"
             />
           </a>
         </footer>
