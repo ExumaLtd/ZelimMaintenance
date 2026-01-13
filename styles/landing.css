@@ -298,38 +298,10 @@
 }
 
 /* =========================================
-   FOCUS RETICLE
+   FOCUS RETICLE - REMOVED
 ========================================= */
 
-.focus-reticle {
-  position: absolute;
-  width: min(250px, 60vw);
-  height: min(250px, 60vw);
-  border: 2px solid rgba(1, 255, 246, 0.45);
-  border-radius: 12px;
-  pointer-events: none;
-  animation: reticlePulse 1.6s ease-in-out infinite;
-  z-index: 10;
-}
-
-.focus-reticle span {
-  position: absolute;
-  inset: 0;
-  border-radius: 10px;
-  border: 1px dashed rgba(1, 255, 246, 0.25);
-}
-
-.focus-reticle.locked {
-  animation: none;
-  border-color: #01fff6;
-  box-shadow: 0 0 20px rgba(1, 255, 246, 0.5);
-}
-
-@keyframes reticlePulse {
-  0% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 0.85; transform: scale(1.02); }
-  100% { opacity: 0.4; transform: scale(1); }
-}
+/* Reticle styles removed as visual feedback not needed */
 
 /* =========================================
    FOOTER IN SCANNER - MATCHES LOGIN PAGE
