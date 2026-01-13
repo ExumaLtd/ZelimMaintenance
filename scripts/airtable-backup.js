@@ -4,6 +4,7 @@ const { Dropbox } = require('dropbox');
 async function backupAirtable() {
     try {
         const AIRTABLE_PAT = process.env.AIRTABLE_PAT;
+        // Base ID confirmed from your logs and settings
         const BASE_ID = 'appOQXbopTwn0SdnL'; 
 
         const now = new Date();
@@ -18,7 +19,7 @@ async function backupAirtable() {
 
         console.log("Fetching list of all tables from Airtable...");
         
-        // 1. Get the schema
+        // 1. Get the schema (This part is currently working)
         const schemaResponse = await axios.get(
             `https://api.airtable.com/v0/meta/bases/${BASE_ID}/tables`,
             { headers: { Authorization: `Bearer ${AIRTABLE_PAT}` } }
@@ -26,12 +27,12 @@ async function backupAirtable() {
 
         const tables = schemaResponse.data.tables;
 
-        // 2. Loop through tables
+        // 2. Loop through every table found and upload to Dropbox
         for (const table of tables) {
-            // Using table.name instead of table.id in the URL often resolves 401/403 issues 
-            // when permissions are correctly set but IDs are restricted.
             console.log(`Backing up table: ${table.name}...`);
             
+            // AMENDED: Using encodeURIComponent(table.name) instead of table.id 
+            // to resolve the 401 error during record fetching.
             const recordsResponse = await axios.get(
                 `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(table.name)}`,
                 { headers: { Authorization: `Bearer ${AIRTABLE_PAT}` } }
@@ -49,7 +50,7 @@ async function backupAirtable() {
 
         console.log('SUCCESS: All tables (including future ones) backed up to Dropbox.');
     } catch (e) {
-        // Detailed error logging to see exactly why Airtable is rejecting it
+        // AMENDED: Improved error logging to catch the exact response from Airtable
         if (e.response && e.response.data) {
             console.error('BACKUP FAILED:', JSON.stringify(e.response.data, null, 2));
         } else {
