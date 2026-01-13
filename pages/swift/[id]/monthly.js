@@ -256,12 +256,13 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           answers: emailFriendlyAnswers,
           reportType: "Monthly",
           companyLogoUrl: companyLogoUrl,
-          technicalData: {
-            unit_record_id: unit?.record_id,
-            checklist_template_id: template?.id,
-            engineer_phone: engPhone,
-            location_country: locationCountry,
-          },
+technicalData: {
+  unit_record_id: unit?.record_id,
+  checklist_template_id: template?.id,
+  maintenance_company: selectedCompany,
+  engineer_name: engName,
+  location_display: locationDisplay,
+},
         }),
       });
 

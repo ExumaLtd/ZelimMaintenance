@@ -29,16 +29,16 @@ export default async function handler(req, res) {
     // Example: /client_logos/changi_airport/ChangiAirport_Logo.png
     const logoUrl = companyLogoUrl || "https://maintenance.exuma.co.uk/logo/zelim-logo-dark.png";
 
+    // Generate preview URLs for "View in browser" links
+    const baseUrl = "https://maintenance.exuma.co.uk";
+    const engineerPreviewUrl = `${baseUrl}/api/emails/preview-maintenance-report?engineerName=${encodeURIComponent(engineerName)}&serialNumber=${encodeURIComponent(serialNumber)}`;
+    const internalPreviewUrl = `${baseUrl}/api/emails/preview-technical-alert?serialNumber=${encodeURIComponent(serialNumber)}&displayType=${encodeURIComponent(displayType)}`;
+
     // Logic to ensure the subject line is professional and descriptive
     let displayType = reportType || 'Maintenance';
     if (!displayType.toLowerCase().includes('maintenance')) {
       displayType = `${displayType} Maintenance`;
     }
-
-    // Generate preview URLs for "View in browser" links
-    const baseUrl = "https://maintenance.exuma.co.uk";
-    const engineerPreviewUrl = `${baseUrl}/api/emails/preview-maintenance-report?engineerName=${encodeURIComponent(engineerName)}&serialNumber=${encodeURIComponent(serialNumber)}`;
-    const internalPreviewUrl = `${baseUrl}/api/emails/preview-technical-alert?serialNumber=${encodeURIComponent(serialNumber)}&displayType=${encodeURIComponent(displayType)}`;
 
     const engineerSubject = `${serialNumber} ${displayType} Confirmation`;
     const internalSubject = `${serialNumber} ${displayType} Submitted`;
@@ -67,7 +67,12 @@ export default async function handler(req, res) {
         react: TechnicalAlertEmail({ 
           serialNumber, 
           displayType, 
-          technicalData, 
+          technicalData: {
+            unit_record_id: technicalData?.unit_record_id,
+            maintenance_company: technicalData?.maintenance_company || 'N/A',
+            engineer_name: technicalData?.engineer_name || engineerName,
+            location_display: technicalData?.location_display || 'N/A',
+          },
           answers,
           brandColor: ZELIM_GREEN,
           logoUrl: logoUrl,
