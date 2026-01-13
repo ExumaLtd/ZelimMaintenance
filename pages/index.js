@@ -1,264 +1,294 @@
-import Head from "next/head";
-import Link from "next/link";
-import Image from "next/image";
-import Airtable from "airtable";
-import fs from "fs";
-import path from "path";
+// pages/index.js
+import Head from 'next/head';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter } from 'next/router';
+import { Html5Qrcode } from "html5-qrcode";
 
-// File size utility
-const getFileSize = (filePath) => {
-  try {
-    const fullPath = path.join(process.cwd(), "public", filePath);
-    const stats = fs.statSync(fullPath);
-    const bytes = stats.size;
+export default function Home() {
+  const [accessCode, setAccessCode] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
+
+  const router = useRouter();
+  const scannerRef = useRef(null);
+  const hasNavigatedRef = useRef(false);
+
+  const isIOS = () => typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isAndroid = () => typeof navigator !== "undefined" && /Android/.test(navigator.userAgent);
+
+  const getBestRearCameraId = async () => {
+    if (!navigator.mediaDevices?.enumerateDevices) return null;
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoDevices = devices.filter(d => d.kind === "videoinput");
+    const rear = videoDevices.filter(d => /rear|back|environment/i.test(d.label));
+    return (rear[0] || videoDevices[0])?.deviceId || null;
+  };
+
+  const getCameraConfig = async () => {
+    if (isAndroid()) {
+      const deviceId = await getBestRearCameraId();
+      return deviceId ? { deviceId: { exact: deviceId } } : { facingMode: "environment" };
+    }
+    return { facingMode: "environment" };
+  };
+
+  const lockZoom = useCallback(async (videoEl) => {
+    if (!videoEl) return;
+    const track = videoEl.srcObject?.getVideoTracks?.()?.[0];
+    if (!track) return;
+    const caps = track.getCapabilities?.();
+    if (!caps?.zoom) return;
+    try {
+      await track.applyConstraints({ advanced: [{ zoom: Math.min(1, caps.zoom.max) }] });
+    } catch {}
+  }, []);
+
+  const navigateToToken = (token, fromScanner = false) => {
+    const url = `/swift/${token}`;
+    fromScanner ? window.location.href = url : router.push(url);
+  };
+
+  const resolveAndNavigate = async (code) => {
+    try {
+      const res = await fetch(`/api/swift-resolve-pin?pin=${encodeURIComponent(code)}`);
+      
+      if (!res.ok) return null;
+      
+      const data = await res.json();
+      return data?.publicToken || null;
+    } catch (err) {
+      console.error('PIN resolution error:', err);
+      return null;
+    }
+  };
+
+  const handleFormSubmit = async (e, codeOverride = null) => {
+    if (e) e.preventDefault();
+    if (isSubmitting) return;
+
+    const code = codeOverride || accessCode.trim();
+    if (!code) {
+      setError('Please enter your access code.');
+      return;
+    }
+
+    const isManualSubmit = !codeOverride;
+    if (isManualSubmit) {
+      setError('');
+      setIsSubmitting(true);
+    }
+
+    const token = await resolveAndNavigate(code);
     
-    if (bytes === 0) return "0 Bytes";
-
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
-  } catch {
-    return "Size N/A";
-  }
-};
-
-// Client logo resolver
-const getClientLogo = (companyName, serialNumber) => {
-  const logoMap = {
-    changi: {
-      serials: ["SWI001", "SWI002"],
-      nameMatch: "Changi",
-      src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg",
-    },
-    milford: {
-      serials: ["SWI003"],
-      nameMatch: "Port of Milford Haven",
-      src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg",
-    },
-    hatloy: {
-      serials: ["SWI010", "SWI011"],
-      nameMatch: "Hatloy",
-      src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg",
-    },
+    if (token) {
+      navigateToToken(token, !isManualSubmit);
+    } else if (isManualSubmit) {
+      setError('Invalid access code.');
+      setIsSubmitting(false);
+    }
   };
 
-  for (const client of Object.values(logoMap)) {
-    if (client.serials.includes(serialNumber) || companyName?.includes(client.nameMatch)) {
-      return { src: client.src, alt: `${companyName} Logo` };
+  const handleQrCodeDetected = async (decodedText, html5QrCode) => {
+    if (hasNavigatedRef.current) return;
+    hasNavigatedRef.current = true;
+
+    console.log("QR Code detected:", decodedText);
+    
+    if (navigator.vibrate) navigator.vibrate(100);
+
+    try {
+      await html5QrCode.stop();
+      scannerRef.current = null;
+    } catch (err) {
+      console.error("Scanner stop error:", err);
     }
-  }
 
-  return null;
-};
+    setShowScanner(false);
 
-// Fetch unit data from Airtable
-export async function getServerSideProps(context) {
-  const publicToken = context.params.id;
+    // Handle full URLs directly
+    if (decodedText.startsWith('http://') || decodedText.startsWith('https://')) {
+      window.location.href = decodedText;
+      return;
+    }
 
-  const maintenanceManualPath = "/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf";
-  const installationGuidePath = "/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf";
-
-  const fileSizes = {
-    maintenanceManualSize: getFileSize(maintenanceManualPath),
-    installationGuideSize: getFileSize(installationGuidePath),
+    // Extract code from path-like strings
+    const code = decodedText.includes('/') ? decodedText.split('/').pop() : decodedText;
+    const token = await resolveAndNavigate(code);
+    
+    if (token) {
+      navigateToToken(token, true);
+    }
   };
 
-  try {
-    const base = new Airtable({
-      apiKey: process.env.AIRTABLE_API_KEY,
-    }).base(process.env.AIRTABLE_BASE_ID);
+  const startScanner = async () => {
+    hasNavigatedRef.current = false;
+    setShowScanner(true);
+    window.history.pushState({ scannerOpen: true }, '');
 
-    const records = await base(process.env.AIRTABLE_SWIFT_TABLE)
-      .select({
-        maxRecords: 1,
-        filterByFormula: `{public_token} = "${publicToken}"`,
-        fields: ["serial_number", "company", "annual_maintenance_due", "depth_maintenance_due"],
-      })
-      .firstPage();
+    setTimeout(async () => {
+      try {
+        const html5QrCode = new Html5Qrcode("reader");
+        scannerRef.current = html5QrCode;
 
-    if (!records || records.length === 0) {
-      return { redirect: { destination: "/", permanent: false } };
+        const cameraConfig = await getCameraConfig();
+        const scanConfig = { 
+          fps: isIOS() ? 10 : 15, 
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0
+        };
+
+        await html5QrCode.start(
+          cameraConfig,
+          scanConfig,
+          (decodedText) => handleQrCodeDetected(decodedText, html5QrCode)
+        );
+
+        setTimeout(() => {
+          lockZoom(document.querySelector("#reader video"));
+        }, 400);
+
+      } catch (err) {
+        console.error("Scanner start error:", err);
+        alert(`Camera access error: ${err.message || 'Unable to access camera'}`);
+        setShowScanner(false);
+      }
+    }, 50);
+  };
+
+  const stopScanner = async () => {
+    if (scannerRef.current) {
+      try {
+        await scannerRef.current.stop();
+        scannerRef.current = null;
+      } catch (err) {
+        console.error("Scanner cleanup error:", err);
+      }
     }
+    setShowScanner(false);
+    if (window.history.state?.scannerOpen) {
+      window.history.back();
+    }
+  };
 
-    const record = records[0];
-
-    const unitDetails = {
-      serial_number: record.get("serial_number") || "N/A",
-      company: record.get("company") || "Client Unit",
-      annualDue: record.get("annual_maintenance_due")
-        ? new Date(record.get("annual_maintenance_due")).toLocaleDateString("en-GB")
-        : "N/A",
-      depthDue: record.get("depth_maintenance_due")
-        ? new Date(record.get("depth_maintenance_due")).toLocaleDateString("en-GB")
-        : "N/A",
+  useEffect(() => {
+    const handlePopState = () => {
+      if (showScanner && scannerRef.current) {
+        scannerRef.current.stop().catch(() => {});
+        scannerRef.current = null;
+        setShowScanner(false);
+      }
     };
-
-    return {
-      props: {
-        unit: unitDetails,
-        publicToken,
-        ...fileSizes,
-      },
-    };
-  } catch (err) {
-    console.error("Error fetching unit data:", err);
-    return { redirect: { destination: "/", permanent: false } };
-  }
-}
-
-// Main component
-export default function SwiftUnitPage({
-  unit,
-  publicToken,
-  maintenanceManualSize,
-  installationGuideSize,
-}) {
-  const { serial_number: serialNumber, company: companyName } = unit;
-  const logoProps = getClientLogo(companyName, serialNumber);
-
-  const maintenanceTypes = [
-    {
-      title: "Annual\nmaintenance",
-      description: "To be completed in accordance with Section 7.1.2 – Annual Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.",
-      href: `/swift/${publicToken}/annual`,
-    },
-    {
-      title: "30-month depth\nmaintenance",
-      description: "To be completed in accordance with Section 7.2.2 – 30-Month Depth Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.",
-      href: `/swift/${publicToken}/depth`,
-    },
-    {
-      title: "Unscheduled\nmaintenance",
-      description: "To be completed in accordance with the SWIFT Survivor Recovery System Maintenance Manual.",
-      href: `/swift/${publicToken}/unscheduled`,
-    },
-  ];
-
-  const downloads = [
-    {
-      href: "/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf",
-      name: "SWIFT maintenance manual.pdf",
-      size: maintenanceManualSize,
-    },
-    {
-      href: "/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf",
-      name: "SWIFT installation guide.pdf",
-      size: installationGuideSize,
-    },
-  ];
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [showScanner]);
 
   return (
-    <div className="dashboard-scope">
+    <div className="landing-scope">
       <Head>
-        <title>{companyName} Maintenance Portal</title>
+        <title>SWIFT Maintenance Portal</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <style>{`
+          #reader__status_span,
+          #reader__dashboard,
+          #reader__dashboard_section,
+          #reader__scan_region__dashboard_section_csr,
+          #reader__scan_region__dashboard_section_swaplink {
+            display: none !important;
+          }
+        `}</style>
       </Head>
 
-      <div className="swift-main-layout-wrapper">
-        <div className="page-wrapper">
-          <div className="swift-dashboard-container">
-            
-            {/* Left Panel - Unit Details */}
-            <div className="detail-panel">
-              {logoProps && (
-                <div className="logo-section">
-                  <Image
-                    src={logoProps.src}
-                    alt={logoProps.alt}
-                    fill
-                    priority
-                    style={{ objectFit: 'contain', objectPosition: 'left' }}
-                  />
-                </div>
-              )}
-
-              <h1 className="portal-title">
-                <span className="title-line">{companyName}</span>
-                <span className="title-line">maintenance portal</span>
-              </h1>
-
-              <div className="maintenance-details">
-                <div className="detail-item">
-                  <p className="detail-label">Serial number</p>
-                  <p className="detail-value">{serialNumber}</p>
-                </div>
-
-                <div className="detail-item">
-                  <p className="detail-label">Annual maintenance due</p>
-                  <p className="detail-value">{unit.annualDue}</p>
-                </div>
-
-                <div className="detail-item">
-                  <p className="detail-label">30-month depth maintenance due</p>
-                  <p className="detail-value">{unit.depthDue}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Panel - Actions */}
-            <div className="action-panel">
-              
-              {/* Maintenance Cards */}
-              <div className="maintenance-group-wrapper">
-                {maintenanceTypes.map((maintenance, index) => (
-                  <div key={index} className="maintenance-card">
-                    <h3>{maintenance.title.split('\n').map((line, i) => (
-                      <span key={i}>{line}{i === 0 && <br />}</span>
-                    ))}</h3>
-                    <p className="description">{maintenance.description}</p>
-                    <Link href={maintenance.href} className="start-btn">
-                      Start maintenance
-                    </Link>
-                  </div>
-                ))}
-              </div>
-
-              {/* Downloads */}
-              <div className="downloads-card">
-                <h3>Downloads</h3>
-                <p className="description">
-                  To be used in accordance with both annual and 30-month depth maintenance.
-                </p>
-
-                <div className="download-list">
-                  {downloads.map((download, index) => (
-                    <a
-                      key={index}
-                      href={download.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="download-link"
-                    >
-                      <Image 
-                        src="/Icons/PDF_Icon.svg" 
-                        width={40} 
-                        height={40} 
-                        alt="PDF Icon" 
-                      />
-                      <div>
-                        <p>{download.name}</p>
-                        <span>{download.size}</span>
-                      </div>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </div>
+      <div className="landing-root">
+        <div className="landing-hero">
+          <div className="landing-hero-inner">
+            <Image 
+              src="/images/swiftmaintenanceportal-hero.png" 
+              alt="Hero" 
+              fill 
+              priority 
+              style={{ objectFit: 'cover' }}
+            />
           </div>
         </div>
 
-        {/* Footer */}
-        <footer className="footer-section">
-          <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
-            <Image 
-              src="/logo/zelim-logo.svg" 
-              width={120} 
-              height={40} 
-              alt="Zelim logo"
-            />
-          </a>
-        </footer>
+        <div className="landing-content">
+          <div className="landing-main">
+            <div className="landing-header">
+              <h1 className="landing-title">
+                <span>SWIFT</span>
+                <span>maintenance portal</span>
+              </h1>
+              <p className="landing-subtitle">
+                For authorised engineers carrying out official inspections and scheduled servicing.
+              </p>
+            </div>
+
+            <form onSubmit={handleFormSubmit} className="form-stack">
+              <div className={`input-wrapper ${error ? 'has-error' : ''}`}>
+                <input
+                  className="input-field"
+                  placeholder="Enter your access code"
+                  value={accessCode}
+                  onChange={(e) => {
+                    setAccessCode(e.target.value);
+                    setError('');
+                  }}
+                  disabled={isSubmitting}
+                />
+                {error && <p className="error-text">{error}</p>}
+              </div>
+
+              <button type="submit" className="primary-btn" disabled={isSubmitting}>
+                {isSubmitting ? 'Verifying…' : 'Enter portal'}
+              </button>
+
+              <div className="qr-login-container">
+                <button type="button" className="qr-button" onClick={startScanner}>
+                  Log in with QR code
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <footer className="landing-footer">
+            <Link href="https://www.zelim.com" target="_blank" className="logo-link">
+              <Image 
+                src="/logo/zelim-logo.svg" 
+                alt="Zelim Logo" 
+                width={120} 
+                height={40} 
+                className="zelim-logo" 
+              />
+            </Link>
+          </footer>
+        </div>
       </div>
+
+      {showScanner && (
+        <div className="scanner-overlay landing-scope">
+          <div className="scanner-container">
+            <div className="scanner-main">
+              <div id="reader" />
+            </div>
+
+            <footer className="scanner-footer">
+              <div className="logo-link">
+                <Image 
+                  src="/logo/zelim-logo.svg" 
+                  alt="Zelim Logo" 
+                  width={120} 
+                  height={40} 
+                  className="zelim-logo" 
+                />
+              </div>
+            </footer>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
