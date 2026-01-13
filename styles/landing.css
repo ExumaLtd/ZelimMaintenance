@@ -1,8 +1,11 @@
 /* =========================================================================
-   LANDING PAGE STYLES (landing.css)
-   NAMESPACED VERSION: All rules scoped to .landing-scope
-   FIXED: Proper QR scanner sizing and iPad support
+   LANDING PAGE STYLES
+   Namespaced to .landing-scope
 ========================================================================= */
+
+/* =========================================
+   LAYOUT
+========================================= */
 
 .landing-scope .landing-root {
   display: flex;
@@ -12,7 +15,7 @@
 }
 
 /* =========================================
-   LEFT HERO (IMAGE)
+   HERO IMAGE (LEFT PANEL)
 ========================================= */
 
 .landing-scope .landing-hero {
@@ -22,7 +25,6 @@
   justify-content: center;
   padding: 24px;
   min-height: 100vh !important;
-  height: auto !important;
 }
 
 .landing-scope .landing-hero-inner {
@@ -40,7 +42,7 @@
 }
 
 /* =========================================
-   RIGHT PANEL
+   CONTENT PANEL (RIGHT SIDE)
 ========================================= */
 
 .landing-scope .landing-content {
@@ -95,7 +97,7 @@
 }
 
 /* =========================================
-   FORM STACK (INPUT + BUTTON)
+   FORM
 ========================================= */
 
 .landing-scope .form-stack {
@@ -136,7 +138,6 @@
 .landing-scope .input-field:focus {
   outline: none;
   border-color: #01fff6;
-  box-shadow: none;
 }
 
 .landing-scope .input-wrapper.has-error .input-field {
@@ -150,10 +151,6 @@
   color: #d92d20;
   text-align: left;
 }
-
-/* =========================================
-   PRIMARY BUTTON
-========================================= */
 
 .landing-scope .primary-btn {
   width: 100%;
@@ -174,8 +171,13 @@
   background: #01e6dd !important;
 }
 
+.landing-scope .primary-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* =========================================
-   QR LOGIN
+   QR LOGIN BUTTON
 ========================================= */
 
 .landing-scope .qr-login-container {
@@ -199,7 +201,23 @@
 }
 
 /* =========================================
-   SCANNER OVERLAY - FIXED FOR ALL DEVICES
+   FOOTER
+========================================= */
+
+.landing-scope .logo-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.landing-scope img.zelim-logo {
+  width: 120px !important;
+  height: 40px !important;
+  object-fit: contain !important;
+}
+
+/* =========================================
+   QR SCANNER OVERLAY
 ========================================= */
 
 .scanner-overlay {
@@ -213,13 +231,12 @@
 .scanner-container {
   width: 100%;
   height: 100vh;
-  height: 100dvh; /* Dynamic viewport height for mobile */
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   position: relative;
 }
 
-/* Camera area - takes remaining space */
 .scanner-main {
   flex: 1;
   display: flex;
@@ -227,33 +244,10 @@
   justify-content: center;
   padding: 20px;
   position: relative;
-  min-height: 0; /* Important for flex children */
+  min-height: 0;
 }
 
-/* Close button */
-.close-scanner {
-  position: absolute;
-  top: max(20px, env(safe-area-inset-top));
-  right: 20px;
-  z-index: 10;
-  background: rgba(0, 0, 0, 0.5);
-  border: none;
-  border-radius: 50%;
-  width: 44px;
-  height: 44px;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: white;
-  backdrop-filter: blur(10px);
-}
-
-.close-scanner:hover {
-  background: rgba(0, 0, 0, 0.7);
-}
-
-/* html5-qrcode container - FIXED sizing */
+/* html5-qrcode reader container */
 .scanner-overlay #reader {
   width: 100%;
   max-width: min(90vw, 500px);
@@ -264,7 +258,7 @@
   overflow: hidden;
 }
 
-/* Video element - CRITICAL fixes for all devices */
+/* Video element - critical for proper display */
 .scanner-overlay #reader video {
   width: 100% !important;
   height: 100% !important;
@@ -278,7 +272,6 @@
   border-radius: 16px;
 }
 
-/* Canvas overlay from html5-qrcode */
 .scanner-overlay #reader canvas {
   position: absolute !important;
   top: 0 !important;
@@ -287,7 +280,7 @@
   height: 100% !important;
 }
 
-/* Hide library UI elements */
+/* Hide html5-qrcode UI elements */
 #reader button,
 #reader__dashboard_section,
 #reader__status_span,
@@ -296,16 +289,6 @@
 #reader__scan_region__dashboard_section_swaplink {
   display: none !important;
 }
-
-/* =========================================
-   FOCUS RETICLE - REMOVED
-========================================= */
-
-/* Reticle styles removed as visual feedback not needed */
-
-/* =========================================
-   FOOTER IN SCANNER - MATCHES LOGIN PAGE
-========================================= */
 
 .scanner-footer {
   padding: 24px 0 max(24px, env(safe-area-inset-bottom));
@@ -321,25 +304,8 @@
   justify-content: center;
 }
 
-.landing-scope img.zelim-logo {
-  width: 120px !important;
-  height: 40px !important;
-  object-fit: contain !important;
-}
-
-.landing-scope .landing-footer,
-.scanner-footer {
-  /* Ensure both footers have identical styling */
-}
-
-.landing-scope .logo-link {
-  display: inline-flex;
-  align-items: center;
-  text-decoration: none;
-}
-
 /* =========================================
-   RESPONSIVE - TABLET & MOBILE
+   RESPONSIVE
 ========================================= */
 
 @media (max-width: 1024px) {
@@ -366,15 +332,10 @@
   }
 }
 
-/* iPad specific fixes */
+/* iPad */
 @media (min-width: 768px) and (max-width: 1024px) {
   .scanner-overlay #reader {
     max-width: min(70vw, 450px);
-  }
-  
-  .focus-reticle {
-    width: min(220px, 55vw);
-    height: min(220px, 55vw);
   }
 }
 
@@ -387,14 +348,9 @@
   .scanner-overlay #reader {
     max-width: 95vw;
   }
-  
-  .focus-reticle {
-    width: min(200px, 70vw);
-    height: min(200px, 70vw);
-  }
 }
 
-/* Landscape orientation fix */
+/* Landscape mode */
 @media (orientation: landscape) and (max-height: 500px) {
   .scanner-main {
     padding: 10px;
