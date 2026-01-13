@@ -1,7 +1,7 @@
 /* =========================================================================
    LANDING PAGE STYLES (landing.css)
    NAMESPACED VERSION: All rules scoped to .landing-scope
-   V6: STYLING FOR IN-PAGE SCANNER & VIDEO FILL
+   FIXED: Proper QR scanner sizing and iPad support
 ========================================================================= */
 
 .landing-scope .landing-root {
@@ -191,6 +191,8 @@
   font-family: Montserrat;
   font-size: 14px;
   cursor: pointer;
+  text-decoration: underline;
+  padding: 8px;
 }
 
 .landing-scope .qr-button:hover {
@@ -198,7 +200,7 @@
 }
 
 /* =========================================
-   SCANNER OVERLAY (FINAL, CORRECT)
+   SCANNER OVERLAY - FIXED FOR ALL DEVICES
 ========================================= */
 
 .scanner-overlay {
@@ -206,58 +208,139 @@
   inset: 0;
   background-color: rgb(13, 48, 55);
   z-index: 9999;
+  overflow: hidden;
 }
 
-/* Camera area fills screen minus footer */
+.scanner-container {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile */
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Camera area - takes remaining space */
 .scanner-main {
-  position: absolute;
-  top: env(safe-area-inset-top);
-  left: 0;
-  right: 0;
-  bottom: calc(96px + env(safe-area-inset-bottom));
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px;
+  position: relative;
+  min-height: 0; /* Important for flex children */
 }
 
-/* html5-qrcode container */
+/* Close button */
+.close-scanner {
+  position: absolute;
+  top: max(20px, env(safe-area-inset-top));
+  right: 20px;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  backdrop-filter: blur(10px);
+}
+
+.close-scanner:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+/* html5-qrcode container - FIXED sizing */
 .scanner-overlay #reader {
   width: 100%;
-  max-width: 360px;
-  height: 100%;
-  background: #1a2b2e;
+  max-width: min(90vw, 500px);
+  aspect-ratio: 1;
+  background: transparent;
+  position: relative;
   border-radius: 16px;
   overflow: hidden;
 }
 
-/* iOS FIX — video MUST fill container */
+/* Video element - CRITICAL fixes for all devices */
 .scanner-overlay #reader video {
   width: 100% !important;
   height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
   object-fit: cover !important;
   display: block !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  border-radius: 16px;
 }
 
-/* Hide library UI */
+/* Canvas overlay from html5-qrcode */
+.scanner-overlay #reader canvas {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Hide library UI elements */
 #reader button,
 #reader__dashboard_section,
-#reader__status_span {
+#reader__status_span,
+#reader__scan_region__dashboard_section,
+#reader__scan_region__dashboard_section_csr,
+#reader__scan_region__dashboard_section_swaplink {
   display: none !important;
 }
 
 /* =========================================
-   FOOTER LOGO (PINNED)
+   FOCUS RETICLE
 ========================================= */
 
-.scanner-overlay .landing-footer {
+.focus-reticle {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: env(safe-area-inset-bottom);
-  padding: 24px 0;
-  margin: 0;
+  width: min(250px, 60vw);
+  height: min(250px, 60vw);
+  border: 2px solid rgba(1, 255, 246, 0.45);
+  border-radius: 12px;
+  pointer-events: none;
+  animation: reticlePulse 1.6s ease-in-out infinite;
+  z-index: 10;
+}
+
+.focus-reticle span {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  border: 1px dashed rgba(1, 255, 246, 0.25);
+}
+
+.focus-reticle.locked {
+  animation: none;
+  border-color: #01fff6;
+  box-shadow: 0 0 20px rgba(1, 255, 246, 0.5);
+}
+
+@keyframes reticlePulse {
+  0% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.02); }
+  100% { opacity: 0.4; transform: scale(1); }
+}
+
+/* =========================================
+   FOOTER IN SCANNER
+========================================= */
+
+.scanner-footer {
+  padding: 24px 0 max(24px, env(safe-area-inset-bottom));
   display: flex;
   justify-content: center;
+  background: transparent;
 }
 
 .landing-scope img.zelim-logo {
@@ -267,8 +350,14 @@
 }
 
 /* =========================================
-   RESPONSIVE
+   RESPONSIVE - TABLET & MOBILE
 ========================================= */
+
+@media (max-width: 1024px) {
+  .landing-scope .landing-content {
+    padding: 32px 40px 60px;
+  }
+}
 
 @media (max-width: 900px) {
   .landing-scope .landing-root {
@@ -288,35 +377,46 @@
   }
 }
 
-/* =========================================
-   FOCUS RETICLE
-========================================= */
-
-.focus-reticle {
-  position: absolute;
-  width: 220px;
-  height: 220px;
-  border: 2px solid rgba(1, 255, 246, 0.45);
-  border-radius: 12px;
-  pointer-events: none;
-  animation: reticlePulse 1.6s ease-in-out infinite;
-  z-index: 2;
+/* iPad specific fixes */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .scanner-overlay #reader {
+    max-width: min(70vw, 450px);
+  }
+  
+  .focus-reticle {
+    width: min(220px, 55vw);
+    height: min(220px, 55vw);
+  }
 }
 
-.focus-reticle span {
-  position: absolute;
-  inset: 0;
-  border-radius: 10px;
-  border: 1px dashed rgba(1, 255, 246, 0.25);
+/* Small mobile */
+@media (max-width: 400px) {
+  .scanner-main {
+    padding: 12px;
+  }
+  
+  .scanner-overlay #reader {
+    max-width: 95vw;
+  }
+  
+  .focus-reticle {
+    width: min(200px, 70vw);
+    height: min(200px, 70vw);
+  }
 }
 
-.focus-reticle.locked {
-  animation: none;
-  border-color: #01fff6;
-}
-
-@keyframes reticlePulse {
-  0% { opacity: 0.4; }
-  50% { opacity: 0.85; }
-  100% { opacity: 0.4; }
+/* Landscape orientation fix */
+@media (orientation: landscape) and (max-height: 500px) {
+  .scanner-main {
+    padding: 10px;
+  }
+  
+  .scanner-overlay #reader {
+    max-width: min(40vh, 400px);
+    max-height: 80vh;
+  }
+  
+  .scanner-footer {
+    padding: 12px 0;
+  }
 }

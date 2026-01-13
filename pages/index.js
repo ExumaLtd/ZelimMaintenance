@@ -99,7 +99,7 @@ export default function Home() {
   };
 
   // -----------------------------
-  // QR SCANNER
+  // QR SCANNER - FIXED VERSION
   // -----------------------------
   const startScanner = async () => {
     hasNavigatedRef.current = false;
@@ -119,11 +119,17 @@ export default function Home() {
 
         await html5QrCode.start(
           cameraConfig,
-          { fps: isIOS() ? 10 : 15, qrbox: { width: 250, height: 250 } },
+          { 
+            fps: isIOS() ? 10 : 15, 
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0
+          },
           async (decodedText) => {
             // Prevent double-firing
             if (hasNavigatedRef.current) return;
             hasNavigatedRef.current = true;
+
+            console.log("QR Code detected:", decodedText);
 
             // Haptic Feedback
             if (navigator.vibrate) navigator.vibrate(100);
@@ -131,24 +137,44 @@ export default function Home() {
             // UI Feedback
             document.querySelector(".focus-reticle")?.classList.add("locked");
 
-            let finalCode = decodedText.includes('/')
-              ? decodedText.split('/').pop()
-              : decodedText;
+            // Stop scanner immediately
+            try {
+              await html5QrCode.stop();
+              scannerRef.current = null;
+            } catch (err) {
+              console.error("Error stopping scanner:", err);
+            }
 
-            // Immediate redirect attempt
-            handleFormSubmit(null, finalCode);
+            // Check if it's a full URL or just a code
+            if (decodedText.startsWith('http://') || decodedText.startsWith('https://')) {
+              // It's a full URL - navigate directly
+              console.log("Navigating to URL:", decodedText);
+              window.location.href = decodedText;
+            } else {
+              // It's a code - extract the last part if it contains slashes
+              let finalCode = decodedText.includes('/')
+                ? decodedText.split('/').pop()
+                : decodedText;
+              
+              console.log("Processing code:", finalCode);
+              
+              // Try to resolve the code through your API
+              handleFormSubmit(null, finalCode);
+            }
             
-            // Close UI
-            stopScanner();
+            // Close scanner UI
+            setShowScanner(false);
           }
         );
 
+        // Apply zoom lock after a slight delay
         setTimeout(() => {
           lockZoomIfSupported(document.querySelector("#reader video"));
         }, 400);
 
       } catch (err) {
         console.error("Scanner failed to start", err);
+        alert(`Camera error: ${err.message || 'Could not access camera'}`);
         setShowScanner(false);
       }
     }, 50);
@@ -187,10 +213,13 @@ export default function Home() {
     <div className="landing-scope">
       <Head>
         <title>SWIFT Maintenance Portal</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <style>{`
           #reader__status_span,
           #reader__dashboard,
-          #reader__dashboard_section {
+          #reader__dashboard_section,
+          #reader__scan_region__dashboard_section_csr,
+          #reader__scan_region__dashboard_section_swaplink {
             display: none !important;
           }
         `}</style>
@@ -258,14 +287,20 @@ export default function Home() {
       {/* FULL-SCREEN SCANNER OVERLAY */}
       {showScanner && (
         <div className="scanner-overlay landing-scope">
-          {/* We use landing-content here so the footer and logo position matches perfectly */}
-          <div className="landing-content" style={{ position: 'relative', height: '100vh', width: '100vw' }}>
-            <div className="scanner-main" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+          <div className="scanner-container">
+            <div className="scanner-main">
               <div className="focus-reticle"><span /></div>
-              <div id="reader" style={{ width: '100%' }} />
+              <div id="reader" />
             </div>
 
-            <footer className="landing-footer" style={{ marginTop: '0' }}>
+            <button className="close-scanner" onClick={stopScanner}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+
+            <footer className="scanner-footer">
               <div className="logo-link">
                 <Image src="/logo/zelim-logo.svg" alt="Zelim Logo" width={120} height={40} className="zelim-logo" />
               </div>
