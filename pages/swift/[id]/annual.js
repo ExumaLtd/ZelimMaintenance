@@ -11,24 +11,36 @@ function autoGrow(e) {
 }
 
 const getClientLogo = (companyName, serialNumber) => {
-  const sn = serialNumber || "";
-  const cn = companyName || "";
-  if (["SWI001", "SWI002"].includes(sn) || cn.includes("Changi")) {
-    return { src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg", alt: "Logo" };
+  const logoMap = {
+    changi: {
+      serials: ["SWI001", "SWI002"],
+      nameMatch: "Changi",
+      src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg",
+    },
+    milford: {
+      serials: ["SWI003"],
+      nameMatch: "Milford Haven",
+      src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg",
+    },
+    hatloy: {
+      serials: ["SWI010", "SWI011"],
+      nameMatch: "Hatloy",
+      src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg",
+    },
+  };
+
+  for (const client of Object.values(logoMap)) {
+    if (client.serials.includes(serialNumber) || companyName?.includes(client.nameMatch)) {
+      return { src: client.src, alt: `${companyName} Logo` };
+    }
   }
-  if (sn === "SWI003" || cn.includes("Milford Haven")) {
-    return { src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg", alt: "Logo" };
-  }
-  if (["SWI010", "SWI011"].includes(sn) || cn.includes("Hatloy")) {
-    return { src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg", alt: "Logo" };
-  }
+
   return null;
 };
 
 export default function Annual({ unit, template, allCompanies = [], allEngineers = [] }) {
   const router = useRouter();
   
-  // Refs for scrolling to missing fields
   const companyFieldRef = useRef(null);
   const locationFieldRef = useRef(null);
   const engineerFieldRef = useRef(null);
@@ -152,7 +164,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const scrollToField = (ref) => {
     if (ref.current) {
-        ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   };
 
@@ -161,7 +173,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     setErrorMsg("");
     if (submitting) return;
 
-    // 1. Validate Company
     if (!selectedCompany || selectedCompany === "Please select") {
       setErrorMsg("Please select a maintenance company.");
       scrollToField(companyFieldRef);
@@ -169,14 +180,12 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       return;
     }
 
-    // 2. Validate Location
     if (!locationDisplay || locationDisplay.trim() === "") {
       setErrorMsg("Please provide a location.");
       scrollToField(locationFieldRef);
       return;
     }
 
-    // 3. Validate Engineer
     if (!engName || engName === "Please select" || engName.trim() === "") {
       setErrorMsg("Please select or enter an engineer name.");
       scrollToField(engineerFieldRef);
@@ -185,7 +194,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
     setSubmitting(true);
 
-    // Prepare human-readable answers for the email
     const emailFriendlyAnswers = {};
     (template?.questions || []).forEach((qText, i) => {
       emailFriendlyAnswers[qText] = answers[`q${i+1}`] || "Not answered";
@@ -209,7 +217,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     };
 
     try {
-      // 1. Submit to Airtable
       const res = await fetch("/api/submit-maintenance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -218,7 +225,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
       if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
 
-      // 2. Submit to Resend (Email)
       await fetch("/api/send-report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -260,7 +266,17 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       <div className="swift-main-layout-wrapper">
         <div className="page-wrapper">
           <div className="swift-checklist-container">
-            {logo && <div className="checklist-logo"><img src={logo.src} alt={logo.alt} /></div>}
+            {logo && (
+              <div className="checklist-logo">
+                <Image
+                  src={logo.src}
+                  alt={logo.alt}
+                  fill
+                  priority
+                  sizes="250px"
+                />
+              </div>
+            )}
 
             <h1 className="checklist-hero-title">
               {unit?.serial_number}
