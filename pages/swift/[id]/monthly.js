@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Image from "next/image";
+import { getCompanyLogoUrl } from '../../../utils/get-company-logo';
 
 const autoGrow = (e) => {
   const el = e.target || e;
@@ -19,12 +20,12 @@ const getClientLogo = (companyName, serialNumber) => {
     milford: {
       serials: ["SWI003"],
       nameMatch: "Milford Haven",
-      src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg",
+      src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven_Logo(White).svg",
     },
     hatloy: {
       serials: ["SWI010", "SWI011"],
       nameMatch: "Hatloy",
-      src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg",
+      src: "/client_logos/hatloy_maritime/HatloyMaritime_Logo(White).svg",
     },
   };
 
@@ -242,6 +243,9 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
       if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
 
+      // Get company logo URL for email
+      const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
+
       await fetch("/api/send-report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -251,6 +255,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           serialNumber: unit?.serial_number,
           answers: emailFriendlyAnswers,
           reportType: "Monthly",
+          companyLogoUrl: companyLogoUrl,
           technicalData: {
             unit_record_id: unit?.record_id,
             checklist_template_id: template?.id,
