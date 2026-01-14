@@ -29,7 +29,7 @@ export default function AnnualComplete() {
         <div className="complete-page-wrapper">
           <div className="complete-card">
             <div className="complete-icon-circle">
-              <ThumbsUp size={32} />
+              <ThumbsUp size={32} strokeWidth={1.5} />
             </div>
 
             <h1 className="complete-title">

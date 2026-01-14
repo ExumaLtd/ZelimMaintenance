@@ -347,7 +347,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                           style={{ cursor: "pointer", paddingRight: "40px" }}
                         />
                         <div className="field-icon-inside">
-                          {showCompanyDropdown ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                          {showCompanyDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
                         </div>
                       </div>
                       {showCompanyDropdown && (
@@ -390,7 +390,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                         style={{ paddingRight: "40px" }}
                       />
                       <div className="field-icon-inside">
-                        <Calendar size={20} />
+                        <Calendar size={20} strokeWidth={1.5} />
                       </div>
                     </div>
                   </div>
@@ -422,7 +422,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                         />
                         {selectedCompany && (hasEngineerResults || hasClearEng) && (
                           <div className="field-icon-inside">
-                            {showEngineerDropdown ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                            {showEngineerDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
                           </div>
                         )}
                       </div>
