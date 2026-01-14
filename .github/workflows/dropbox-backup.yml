@@ -37,7 +37,8 @@ jobs:
       run: node scripts/airtable-backup.js
       env:
         AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
-        DROPBOX_ACCESS_TOKEN: ${{ steps.dropbox_token.outputs.temp_token }}
+        # Quotes added to ensure the token string is passed correctly
+        DROPBOX_ACCESS_TOKEN: "${{ steps.dropbox_token.outputs.temp_token }}"
         DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY }}
         DROPBOX_APP_SECRET: ${{ secrets.DROPBOX_APP_SECRET }}
 
@@ -45,7 +46,8 @@ jobs:
       run: node scripts/vercel-backup.js
       env:
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        DROPBOX_ACCESS_TOKEN: ${{ steps.dropbox_token.outputs.temp_token }}
+        # Quotes added to ensure the token string is passed correctly
+        DROPBOX_ACCESS_TOKEN: "${{ steps.dropbox_token.outputs.temp_token }}"
         DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY }}
         DROPBOX_APP_SECRET: ${{ secrets.DROPBOX_APP_SECRET }}
 
