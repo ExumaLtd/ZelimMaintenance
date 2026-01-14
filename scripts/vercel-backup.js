@@ -17,7 +17,12 @@ async function backupVercel() {
         const dateStamp = `${day}${monthNum}${year}`;
         const dayFolderName = `${day}-${monthNum}-${year}`;
 
-        const dbx = new Dropbox({ accessToken: process.env.DROPBOX_ACCESS_TOKEN });
+        // Updated to handle the dynamic refresh token flow
+        const dbx = new Dropbox({ 
+            accessToken: process.env.DROPBOX_ACCESS_TOKEN,
+            clientId: process.env.DROPBOX_APP_KEY,
+            clientSecret: process.env.DROPBOX_APP_SECRET
+        });
 
         console.log("Fetching Environment Variables from Vercel...");
 

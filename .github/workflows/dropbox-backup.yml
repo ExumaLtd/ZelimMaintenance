@@ -2,8 +2,8 @@ name: Daily Dropbox Backup
 
 on:
   schedule:
-    - cron: '0 10 * * *' # Runs every day at 10:00 UTC
-  workflow_dispatch: # Allows manual trigger
+    - cron: '0 0 * * *' # Runs at 00:00 (Midnight) GMT
+  workflow_dispatch:
 
 jobs:
   backup:
@@ -21,17 +21,31 @@ jobs:
     - name: Install Dependencies
       run: npm install axios dropbox
 
+    # This step uses your Key, Secret, and Refresh Token to get a fresh 4-hour token
+    - name: Get Fresh Dropbox Access Token
+      id: dropbox_token
+      run: |
+        token=$(curl -s -X POST https://api.dropbox.com/oauth2/token \
+          -u "${{ secrets.DROPBOX_APP_KEY }}:${{ secrets.DROPBOX_APP_SECRET }}" \
+          -d grant_type=refresh_token \
+          -d refresh_token="${{ secrets.DROPBOX_REFRESH_TOKEN }}" \
+          | jq -r '.access_token')
+        echo "::add-mask::$token"
+        echo "temp_token=$token" >> $GITHUB_OUTPUT
+
     - name: Run Airtable Backup
       run: node scripts/airtable-backup.js
       env:
         AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
-        DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
+        # Passes the fresh token we just generated
+        DROPBOX_ACCESS_TOKEN: ${{ steps.dropbox_token.outputs.temp_token }}
 
     - name: Run Vercel Backup
       run: node scripts/vercel-backup.js
       env:
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        DROPBOX_ACCESS_TOKEN: ${{ secrets.DROPBOX_ACCESS_TOKEN }}
+        # Passes the fresh token we just generated
+        DROPBOX_ACCESS_TOKEN: ${{ steps.dropbox_token.outputs.temp_token }}
 
     - name: Archive Repository (GitHub Code)
       run: zip -r zelim_source_code_backup.zip . -x "node_modules/*" ".git/*"
@@ -39,7 +53,7 @@ jobs:
     - name: Upload Code Backup to Dropbox
       run: |
         curl -X POST https://content.dropboxapi.com/2/files/upload \
-          --header "Authorization: Bearer ${{ secrets.DROPBOX_ACCESS_TOKEN }}" \
+          --header "Authorization: Bearer ${{ steps.dropbox_token.outputs.temp_token }}" \
           --header "Dropbox-API-Arg: {\"path\": \"/GitHub/$(date +%Y)/$(date +%B)/$(date +%d-%m-%Y)/zelim_code_backup_$(date +%d%m%Y).zip\",\"mode\": \"overwrite\"}" \
           --header "Content-Type: application/octet-stream" \
           --data-binary @zelim_source_code_backup.zip

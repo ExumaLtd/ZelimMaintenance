@@ -18,7 +18,12 @@ async function backupAirtable() {
         const dateStamp = `${day}${monthNum}${year}`;
         const dayFolderName = `${day}-${monthNum}-${year}`;
 
-        const dbx = new Dropbox({ accessToken: process.env.DROPBOX_ACCESS_TOKEN });
+        // Updated only this section to support the refresh token flow
+        const dbx = new Dropbox({ 
+            accessToken: process.env.DROPBOX_ACCESS_TOKEN,
+            clientId: process.env.DROPBOX_APP_KEY,
+            clientSecret: process.env.DROPBOX_APP_SECRET
+        });
 
         console.log("Fetching list of all tables from Airtable...");
         
