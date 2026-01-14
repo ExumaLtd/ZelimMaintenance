@@ -204,7 +204,6 @@ export default function ImageUploader({
           type="file"
           accept={isMobile ? "image/*" : "image/*,application/pdf"}
           multiple
-          capture={isMobile ? "environment" : undefined}
           style={{ display: 'none' }}
           onChange={(e) => {
             handleFileSelect(e.target.files);
