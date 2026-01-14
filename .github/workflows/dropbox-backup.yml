@@ -19,25 +19,40 @@ jobs:
         node-version: '18'
 
     - name: Install Dependencies
-      run: npm install axios dropbox
+      run: npm install axios
 
-    # This step uses your Key, Secret, and Refresh Token to get a fresh 4-hour token
+    # DEBUG STEP: This will now print the exact error from Dropbox if it fails
     - name: Get Fresh Dropbox Access Token
       id: dropbox_token
       run: |
-        token=$(curl -s -X POST https://api.dropbox.com/oauth2/token \
+        # Request the token and capture the FULL response
+        response=$(curl -X POST https://api.dropbox.com/oauth2/token \
           -u "${{ secrets.DROPBOX_APP_KEY }}:${{ secrets.DROPBOX_APP_SECRET }}" \
           -d grant_type=refresh_token \
-          -d refresh_token="${{ secrets.DROPBOX_REFRESH_TOKEN }}" \
-          | jq -r '.access_token')
+          -d refresh_token="${{ secrets.DROPBOX_REFRESH_TOKEN }}")
+        
+        # PRINT THE RESPONSE to the logs so we can see the error
+        echo "----------------------------------------------"
+        echo "DEBUG: Raw Response from Dropbox:"
+        echo "$response"
+        echo "----------------------------------------------"
+        
+        # Extract the token
+        token=$(echo "$response" | jq -r '.access_token')
+        
+        # If token is null or empty, FAIL HERE and show us why
+        if [ "$token" == "null" ] || [ -z "$token" ]; then
+          echo "::error::CRITICAL FAILURE: Could not get a valid token. Check the 'Raw Response' above for the error message (e.g., invalid_grant)."
+          exit 1
+        fi
+
         echo "temp_token=$token" >> $GITHUB_OUTPUT
 
     - name: Run Airtable Backup
       run: node scripts/airtable-backup.js
       env:
         AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
-        # Added quotes to ensure the token is passed as a solid string
-        DROPBOX_ACCESS_TOKEN: "${{ steps.dropbox_token.outputs.temp_token }}"
+        DROPBOX_ACCESS_TOKEN: ${{ steps.dropbox_token.outputs.temp_token }}
         DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY }}
         DROPBOX_APP_SECRET: ${{ secrets.DROPBOX_APP_SECRET }}
 
@@ -45,8 +60,7 @@ jobs:
       run: node scripts/vercel-backup.js
       env:
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        # Added quotes to ensure the token is passed as a solid string
-        DROPBOX_ACCESS_TOKEN: "${{ steps.dropbox_token.outputs.temp_token }}"
+        DROPBOX_ACCESS_TOKEN: ${{ steps.dropbox_token.outputs.temp_token }}
         DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY }}
         DROPBOX_APP_SECRET: ${{ secrets.DROPBOX_APP_SECRET }}
 
