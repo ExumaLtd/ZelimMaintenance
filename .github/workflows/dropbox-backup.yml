@@ -24,23 +24,22 @@ jobs:
     - name: Get Fresh Dropbox Access Token
       id: dropbox_token
       run: |
-        # Use --data-urlencode to ensure the hyphen in your token is handled correctly
-        response=$(curl -X POST https://api.dropbox.com/oauth2/token \
+        # Use --data-urlencode to safely handle special characters in the refresh token
+        response=$(curl -s -X POST https://api.dropbox.com/oauth2/token \
           -u "${{ secrets.DROPBOX_APP_KEY }}:${{ secrets.DROPBOX_APP_SECRET }}" \
           -d grant_type=refresh_token \
           --data-urlencode "refresh_token=${{ secrets.DROPBOX_REFRESH_TOKEN }}")
         
         echo "----------------------------------------------"
-        echo "DEBUG: Raw Response from Dropbox:"
-        echo "$response"
-        echo "----------------------------------------------"
+        echo "DEBUG: Response received"
         
         # Extract the token
         token=$(echo "$response" | jq -r '.access_token')
         
-        # Fail immediately if the token is not valid
+        # Check if the response actually contains a token
         if [ "$token" == "null" ] || [ -z "$token" ]; then
-          echo "::error::CRITICAL FAILURE: Could not get a valid token. Check the 'Raw Response' above."
+          echo "ERROR: Dropbox rejected the refresh token."
+          echo "Full Response: $response"
           exit 1
         fi
 
