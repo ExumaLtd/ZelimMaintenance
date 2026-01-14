@@ -473,21 +473,11 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   <div key={i} style={{ marginTop: "24px" }}>
                     <label className="checklist-label">
                       {q.title}
-                      {q.instruction && (
-                        <span style={{ 
-                          display: 'block', 
-                          fontSize: '13px', 
-                          color: '#7d8f93', 
-                          fontWeight: '400', 
-                          marginTop: '4px' 
-                        }}>
-                          {q.instruction}
-                        </span>
-                      )}
                     </label>
                     <textarea
                       name={`q${i + 1}`}
                       className="checklist-textarea"
+                      placeholder={q.instruction || ""}
                       onInput={autoGrow}
                       value={answers[`q${i + 1}`] || ""}
                       onChange={(e) => setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }))}
