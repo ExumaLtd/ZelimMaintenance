@@ -313,8 +313,15 @@
 .form-scope .checklist-textarea {
   resize: none !important;
   overflow: hidden;
-  min-height: 140px !important;
+  min-height: 110px !important;
   display: block;
+}
+
+/* Desktop: larger textarea */
+@media (min-width: 992px) {
+  .form-scope .checklist-textarea {
+    min-height: 140px !important;
+  }
 }
 
 /* Submit Button */
@@ -492,17 +499,9 @@
     margin-top: 8px;
   }
   
-  /* Mobile: Reduce heights to 110px */
-  .form-scope .checklist-textarea {
-    min-height: 110px !important;
-  }
-  
-  .form-scope .image-drop-zone {
-    min-height: 110px;
-  }
-  
-  /* Increase spacing between question fields on mobile */
-  .form-scope div[style*="margin-top: 24px"] {
+  /* Increase spacing between question fields on mobile to match desktop */
+  .form-scope div[style*="margin-top: 24px"],
+  .form-scope div[style*="margin-top:24px"] {
     margin-top: 30px !important;
   }
 }
@@ -510,16 +509,23 @@
 .form-scope .image-drop-zone {
   border: 1px dashed #425558;
   border-radius: 8px;
-  padding: 16px;
   text-align: center;
-  cursor: pointer;
   transition: all 0.2s ease;
   background-color: rgba(66, 85, 88, 0.03);
-  min-height: 140px;
+  min-height: 110px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: 16px;
+  cursor: pointer;
+}
+
+/* Desktop: larger min-height */
+@media (min-width: 992px) {
+  .form-scope .image-drop-zone {
+    min-height: 140px;
+  }
 }
 
 .form-scope .image-drop-zone:hover {
