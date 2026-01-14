@@ -37,15 +37,17 @@ jobs:
       run: node scripts/airtable-backup.js
       env:
         AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
-        # Passes the fresh token we just generated
         DROPBOX_ACCESS_TOKEN: ${{ steps.dropbox_token.outputs.temp_token }}
+        DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY }}
+        DROPBOX_APP_SECRET: ${{ secrets.DROPBOX_APP_SECRET }}
 
     - name: Run Vercel Backup
       run: node scripts/vercel-backup.js
       env:
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        # Passes the fresh token we just generated
         DROPBOX_ACCESS_TOKEN: ${{ steps.dropbox_token.outputs.temp_token }}
+        DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY }}
+        DROPBOX_APP_SECRET: ${{ secrets.DROPBOX_APP_SECRET }}
 
     - name: Archive Repository (GitHub Code)
       run: zip -r zelim_source_code_backup.zip . -x "node_modules/*" ".git/*"
