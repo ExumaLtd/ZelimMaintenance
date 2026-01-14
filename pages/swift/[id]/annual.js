@@ -482,6 +482,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       value={answers[`q${i + 1}`] || ""}
                       onChange={(e) => setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }))}
                       required={q.required}
+                      style={{ fontSize: '14px', color: '#7d8f93' }}
                     />
                     
                     {/* IMAGE UPLOADER */}
