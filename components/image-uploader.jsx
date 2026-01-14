@@ -149,7 +149,7 @@ export default function ImageUploader({
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,application/pdf"
           multiple
           capture="environment"
           style={{ display: 'none' }}
@@ -187,11 +187,37 @@ export default function ImageUploader({
                 type="button"
                 className="thumbnail-remove"
                 onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
                   removeImage(index);
                 }}
+                style={{
+                  position: 'absolute',
+                  top: '4px',
+                  right: '4px',
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  backgroundColor: '#00FFF6',
+                  color: '#0d3037',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s',
+                  zIndex: 10,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#01e6dd';
+                  e.currentTarget.style.transform = 'scale(1.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#00FFF6';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
               >
-                <X size={14} />
+                <X size={14} strokeWidth={3} />
               </button>
             </div>
           ))}

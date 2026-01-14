@@ -552,3 +552,44 @@
     height: 80px;
   }
 }
+
+/* Fix for field icons (dropdowns, calendar) */
+.form-scope .field-icon-wrapper .field-icon-inside {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  color: #f7f7f7;
+}
+
+.form-scope .field-icon-wrapper .field-icon-inside svg {
+  display: block;
+  stroke: #f7f7f7;
+  margin: 0;
+  padding: 0;
+}
+
+/* Remove any inherited spacing from Lucide */
+.form-scope svg {
+  vertical-align: middle;
+}
+
+/* Success page icon alignment */
+.form-scope .complete-icon-circle svg {
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+/* Upload prompt icons */
+.form-scope .upload-prompt svg,
+.form-scope .upload-status svg {
+  display: block;
+  margin: 0 auto;
+  stroke-width: 2;
+}
