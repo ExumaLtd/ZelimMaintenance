@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { Camera, Loader2, AlertCircle, X } from 'lucide-react';
 
 /**
  * ImageUploader Component
@@ -157,12 +158,12 @@ export default function ImageUploader({
         
         {uploading ? (
           <div className="upload-status">
-            <i className="fa-solid fa-spinner fa-spin"></i>
+            <Loader2 className="animate-spin" size={28} />
             <span>Uploading...</span>
           </div>
         ) : (
           <div className="upload-prompt">
-            <i className="fa-solid fa-camera"></i>
+            <Camera size={28} />
             <span>Take photo or drag images here</span>
           </div>
         )}
@@ -171,7 +172,7 @@ export default function ImageUploader({
       {/* Error Message */}
       {error && (
         <div className="upload-error">
-          <i className="fa-solid fa-circle-exclamation"></i>
+          <AlertCircle size={16} />
           {error}
         </div>
       )}
@@ -190,7 +191,7 @@ export default function ImageUploader({
                   removeImage(index);
                 }}
               >
-                <i className="fa-solid fa-xmark"></i>
+                <X size={14} />
               </button>
             </div>
           ))}
@@ -198,108 +199,16 @@ export default function ImageUploader({
       )}
 
       <style jsx>{`
-        .image-uploader-container {
-          margin-top: 8px;
+        .animate-spin {
+          animation: spin 1s linear infinite;
         }
 
-        .image-drop-zone {
-          border: 2px dashed #425558;
-          border-radius: 8px;
-          padding: 16px;
-          text-align: center;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          background-color: rgba(66, 85, 88, 0.05);
-        }
-
-        .image-drop-zone:hover {
-          border-color: #5a7073;
-          background-color: rgba(66, 85, 88, 0.1);
-        }
-
-        .upload-prompt,
-        .upload-status {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 8px;
-          color: #425558;
-        }
-
-        .upload-prompt i,
-        .upload-status i {
-          font-size: 24px;
-        }
-
-        .upload-prompt span,
-        .upload-status span {
-          font-size: 14px;
-          font-weight: 500;
-        }
-
-        .upload-error {
-          margin-top: 8px;
-          padding: 12px;
-          background-color: #fee;
-          color: #c33;
-          border-radius: 6px;
-          font-size: 14px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .image-thumbnails {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 12px;
-          margin-top: 12px;
-        }
-
-        .thumbnail-item {
-          position: relative;
-          width: 80px;
-          height: 80px;
-          border-radius: 8px;
-          overflow: hidden;
-          border: 2px solid #e5e7eb;
-        }
-
-        .thumbnail-item img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-
-        .thumbnail-remove {
-          position: absolute;
-          top: 4px;
-          right: 4px;
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          background-color: rgba(0, 0, 0, 0.7);
-          color: white;
-          border: none;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: background-color 0.2s;
-        }
-
-        .thumbnail-remove:hover {
-          background-color: rgba(0, 0, 0, 0.9);
-        }
-
-        @media (max-width: 768px) {
-          .image-drop-zone {
-            padding: 20px;
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
           }
-
-          .upload-prompt i,
-          .upload-status i {
-            font-size: 28px;
+          to {
+            transform: rotate(360deg);
           }
         }
       `}</style>

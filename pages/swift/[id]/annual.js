@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import Image from "next/image";
 import { getCompanyLogoUrl } from '../../../utils/get-company-logo';
-// Added Lucide Imports
+import ImageUploader from '../../../components/image-uploader';
 import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
 
 const autoGrow = (e) => {
@@ -59,6 +59,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [engEmail, setEngEmail] = useState("");
   const [engPhone, setEngPhone] = useState("");
   const [answers, setAnswers] = useState({});
+  const [questionImages, setQuestionImages] = useState({}); // NEW: Store images per question
 
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
@@ -186,6 +187,14 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
+  // NEW: Handle image changes for a specific question
+  const handleImagesChange = (questionKey, images) => {
+    setQuestionImages(prev => ({
+      ...prev,
+      [questionKey]: images
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
@@ -213,10 +222,17 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
     setSubmitting(true);
 
-    // Prepare email-friendly answers
+    // Prepare email-friendly answers WITH images
     const emailFriendlyAnswers = {};
     (template?.questions || []).forEach((qText, i) => {
-      emailFriendlyAnswers[qText] = answers[`q${i + 1}`] || "Not answered";
+      const questionKey = `q${i + 1}`;
+      const textAnswer = answers[questionKey] || "Not answered";
+      const images = questionImages[questionKey] || [];
+      
+      emailFriendlyAnswers[qText] = {
+        text: textAnswer,
+        images: images.map(img => img.url) // Just the URLs for email
+      };
     });
 
     const payload = {
@@ -230,10 +246,15 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       engineer_phone: engPhone,
       unit_record_id: unit?.record_id,
       checklist_template_id: template?.id,
-      answers: (template?.questions || []).map((_, i) => ({
-        question: `q${i + 1}`,
-        answer: answers[`q${i + 1}`] || "",
-      })),
+      serial_number: unit?.serial_number, // NEW: For Cloudinary folder
+      answers: (template?.questions || []).map((_, i) => {
+        const questionKey = `q${i + 1}`;
+        return {
+          question: questionKey,
+          answer: answers[questionKey] || "",
+          images: (questionImages[questionKey] || []).map(img => img.url) // NEW: Include image URLs
+        };
+      }),
     };
 
     try {
@@ -266,6 +287,13 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             location_display: locationDisplay,
           },
         }),
+      });
+
+      // Clear image localStorage after successful submission
+      (template?.questions || []).forEach((_, i) => {
+        const questionKey = `q${i + 1}`;
+        const imageStorageKey = `images_annual_${unit?.serial_number}_${questionKey}`;
+        localStorage.removeItem(imageStorageKey);
       });
 
       localStorage.setItem("last_submitted_sn", unit?.serial_number);
@@ -318,7 +346,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                           onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
                           style={{ cursor: "pointer", paddingRight: "40px" }}
                         />
-                        {/* Swapped FontAwesome for Lucide ChevronDown/Up */}
                         <div className="field-icon-inside">
                           {showCompanyDropdown ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                         </div>
@@ -362,7 +389,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                         required
                         style={{ paddingRight: "40px" }}
                       />
-                      {/* Swapped FontAwesome for Lucide Calendar */}
                       <div className="field-icon-inside">
                         <Calendar size={20} />
                       </div>
@@ -394,7 +420,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                             paddingRight: selectedCompany && (hasEngineerResults || hasClearEng) ? "40px" : "16px",
                           }}
                         />
-                        {/* Swapped FontAwesome for Lucide ChevronDown/Up */}
                         {selectedCompany && (hasEngineerResults || hasClearEng) && (
                           <div className="field-icon-inside">
                             {showEngineerDropdown ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -442,6 +467,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
                 </div>
 
+                {/* QUESTIONS WITH IMAGE UPLOADERS */}
                 {(template?.questions || []).map((q, i) => (
                   <div key={i} style={{ marginTop: "24px" }}>
                     <label className="checklist-label">{q}</label>
@@ -451,6 +477,15 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       onInput={autoGrow}
                       value={answers[`q${i + 1}`] || ""}
                       onChange={(e) => setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }))}
+                    />
+                    
+                    {/* IMAGE UPLOADER */}
+                    <ImageUploader
+                      questionKey={`q${i + 1}`}
+                      questionText={q}
+                      serialNumber={unit?.serial_number}
+                      maintenanceType="annual"
+                      onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
                     />
                   </div>
                 ))}
