@@ -258,11 +258,11 @@ export default function ImageUploader({
                   position: 'absolute',
                   top: '4px',
                   right: '4px',
-                  width: '28px',
-                  height: '28px',
+                  width: '24px',
+                  height: '24px',
                   borderRadius: '50%',
-                  backgroundColor: '#00FFF6',
-                  color: '#0d3037',
+                  backgroundColor: 'rgb(0, 255, 246)',
+                  color: 'rgb(13, 48, 55)',
                   border: 'none',
                   cursor: 'pointer',
                   display: 'flex',
@@ -278,11 +278,11 @@ export default function ImageUploader({
                   e.currentTarget.style.transform = 'scale(1.1)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#00FFF6';
+                  e.currentTarget.style.backgroundColor = 'rgb(0, 255, 246)';
                   e.currentTarget.style.transform = 'scale(1)';
                 }}
               >
-                <X size={16} strokeWidth={3} />
+                <X size={14} strokeWidth={3} />
               </button>
             </div>
           ))}
