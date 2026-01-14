@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Camera, Loader2, AlertCircle, X } from 'lucide-react';
 
 /**
@@ -24,31 +24,41 @@ export default function ImageUploader({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
+  const isInitialMount = useRef(true);
 
-  // Load saved images from localStorage on mount
+  const storageKey = `images_${maintenanceType}_${serialNumber}_${questionKey}`;
+
+  // Load saved images from localStorage on mount ONLY
   useEffect(() => {
-    const storageKey = `images_${maintenanceType}_${serialNumber}_${questionKey}`;
     const saved = localStorage.getItem(storageKey);
     if (saved) {
       try {
         const parsedImages = JSON.parse(saved);
         setImages(parsedImages);
-        onImagesChange?.(parsedImages);
+        // Only call onImagesChange if we actually loaded images
+        if (parsedImages.length > 0 && onImagesChange) {
+          onImagesChange(parsedImages);
+        }
       } catch (e) {
         console.error('Failed to load saved images', e);
       }
     }
-  }, [maintenanceType, serialNumber, questionKey, onImagesChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
 
-  // Save images to localStorage whenever they change
+  // Save images to localStorage whenever they change (but not on initial mount)
   useEffect(() => {
-    const storageKey = `images_${maintenanceType}_${serialNumber}_${questionKey}`;
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     if (images.length > 0) {
       localStorage.setItem(storageKey, JSON.stringify(images));
     } else {
       localStorage.removeItem(storageKey);
     }
-  }, [images, maintenanceType, serialNumber, questionKey]);
+  }, [images, storageKey]);
 
   // Generate folder path for Cloudinary
   const getFolderPath = () => {
@@ -73,25 +83,40 @@ export default function ImageUploader({
     formData.append('upload_preset', 'maintenance-uploads');
     formData.append('folder', getFolderPath());
 
+    // Determine if it's a PDF
+    const isPDF = file.type === 'application/pdf';
+    const uploadUrl = isPDF 
+      ? 'https://api.cloudinary.com/v1_1/zelimmaintenanceportal/raw/upload'
+      : 'https://api.cloudinary.com/v1_1/zelimmaintenanceportal/image/upload';
+
     try {
-      const response = await fetch(
-        'https://api.cloudinary.com/v1_1/zelimmaintenanceportal/image/upload',
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        body: formData,
+      });
 
       if (!response.ok) {
         throw new Error('Upload failed');
       }
 
       const data = await response.json();
+      
+      // Create thumbnail based on file type
+      let thumbnail;
+      if (isPDF) {
+        // For PDFs, use first page as thumbnail
+        thumbnail = data.secure_url.replace('/upload/', '/upload/w_150,h_150,c_fill,pg_1,f_jpg/');
+      } else {
+        // For images, create thumbnail
+        thumbnail = data.secure_url.replace('/upload/', '/upload/w_150,h_150,c_fill/');
+      }
+
       return {
         url: data.secure_url,
         publicId: data.public_id,
-        thumbnail: data.secure_url.replace('/upload/', '/upload/w_150,h_150,c_fill/'),
+        thumbnail: thumbnail,
         filename: file.name,
+        fileType: isPDF ? 'pdf' : 'image',
       };
     } catch (err) {
       console.error('Cloudinary upload error:', err);
@@ -111,7 +136,9 @@ export default function ImageUploader({
       
       const newImages = [...images, ...uploadedImages];
       setImages(newImages);
-      onImagesChange?.(newImages);
+      if (onImagesChange) {
+        onImagesChange(newImages);
+      }
     } catch (err) {
       setError('Failed to upload images. Please try again.');
     } finally {
@@ -131,10 +158,25 @@ export default function ImageUploader({
     e.stopPropagation();
   };
 
-  const removeImage = (index) => {
+  const removeImage = useCallback((index) => {
     const newImages = images.filter((_, i) => i !== index);
     setImages(newImages);
-    onImagesChange?.(newImages);
+    if (onImagesChange) {
+      onImagesChange(newImages);
+    }
+  }, [images, onImagesChange]);
+
+  const handleRemoveClick = (e, index) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
+    removeImage(index);
+  };
+
+  const handleRemoveTouch = (e, index) => {
+    e.preventDefault();
+    e.stopPropagation();
+    removeImage(index);
   };
 
   return (
@@ -153,7 +195,11 @@ export default function ImageUploader({
           multiple
           capture="environment"
           style={{ display: 'none' }}
-          onChange={(e) => handleFileSelect(e.target.files)}
+          onChange={(e) => {
+            handleFileSelect(e.target.files);
+            // Reset input value so same file can be selected again
+            e.target.value = '';
+          }}
         />
         
         {uploading ? (
@@ -181,22 +227,19 @@ export default function ImageUploader({
       {images.length > 0 && (
         <div className="image-thumbnails">
           {images.map((img, index) => (
-            <div key={index} className="thumbnail-item">
+            <div key={`${img.publicId}-${index}`} className="thumbnail-item">
               <img src={img.thumbnail} alt={`Upload ${index + 1}`} />
               <button
                 type="button"
                 className="thumbnail-remove"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  removeImage(index);
-                }}
+                onClick={(e) => handleRemoveClick(e, index)}
+                onTouchEnd={(e) => handleRemoveTouch(e, index)}
                 style={{
                   position: 'absolute',
                   top: '4px',
                   right: '4px',
-                  width: '24px',
-                  height: '24px',
+                  width: '28px',
+                  height: '28px',
                   borderRadius: '50%',
                   backgroundColor: '#00FFF6',
                   color: '#0d3037',
@@ -207,6 +250,8 @@ export default function ImageUploader({
                   justifyContent: 'center',
                   transition: 'all 0.2s',
                   zIndex: 10,
+                  WebkitTapHighlightColor: 'transparent',
+                  touchAction: 'manipulation',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = '#01e6dd';
@@ -217,7 +262,7 @@ export default function ImageUploader({
                   e.currentTarget.style.transform = 'scale(1)';
                 }}
               >
-                <X size={14} strokeWidth={3} />
+                <X size={16} strokeWidth={3} />
               </button>
             </div>
           ))}
