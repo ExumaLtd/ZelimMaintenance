@@ -59,7 +59,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [engEmail, setEngEmail] = useState("");
   const [engPhone, setEngPhone] = useState("");
   const [answers, setAnswers] = useState({});
-  const [questionImages, setQuestionImages] = useState({}); // NEW: Store images per question
+  const [questionImages, setQuestionImages] = useState({});
 
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
@@ -142,7 +142,9 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           console.error("Geo fetch error", err);
         }
       },
-      null,
+      (error) => {
+        console.error("Geolocation error:", error);
+      },
       { enableHighAccuracy: true, timeout: 8000 }
     );
   }, []);
@@ -187,7 +189,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
-  // NEW: Handle image changes for a specific question
   const handleImagesChange = (questionKey, images) => {
     setQuestionImages(prev => ({
       ...prev,
@@ -224,14 +225,14 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
     // Prepare email-friendly answers WITH images
     const emailFriendlyAnswers = {};
-    (template?.questions || []).forEach((qText, i) => {
+    (template?.questionsData || []).forEach((q, i) => {
       const questionKey = `q${i + 1}`;
       const textAnswer = answers[questionKey] || "Not answered";
       const images = questionImages[questionKey] || [];
       
-      emailFriendlyAnswers[qText] = {
+      emailFriendlyAnswers[q.title] = {
         text: textAnswer,
-        images: images.map(img => img.url) // Just the URLs for email
+        images: images.map(img => img.url)
       };
     });
 
@@ -246,13 +247,13 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       engineer_phone: engPhone,
       unit_record_id: unit?.record_id,
       checklist_template_id: template?.id,
-      serial_number: unit?.serial_number, // NEW: For Cloudinary folder
-      answers: (template?.questions || []).map((_, i) => {
+      serial_number: unit?.serial_number,
+      answers: (template?.questionsData || []).map((q, i) => {
         const questionKey = `q${i + 1}`;
         return {
           question: questionKey,
           answer: answers[questionKey] || "",
-          images: (questionImages[questionKey] || []).map(img => img.url) // NEW: Include image URLs
+          images: (questionImages[questionKey] || []).map(img => img.url)
         };
       }),
     };
@@ -290,7 +291,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       });
 
       // Clear image localStorage after successful submission
-      (template?.questions || []).forEach((_, i) => {
+      (template?.questionsData || []).forEach((_, i) => {
         const questionKey = `q${i + 1}`;
         const imageStorageKey = `images_annual_${unit?.serial_number}_${questionKey}`;
         localStorage.removeItem(imageStorageKey);
@@ -468,25 +469,41 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                 </div>
 
                 {/* QUESTIONS WITH IMAGE UPLOADERS */}
-                {(template?.questions || []).map((q, i) => (
+                {(template?.questionsData || []).map((q, i) => (
                   <div key={i} style={{ marginTop: "24px" }}>
-                    <label className="checklist-label">{q}</label>
+                    <label className="checklist-label">
+                      {q.title}
+                      {q.instruction && (
+                        <span style={{ 
+                          display: 'block', 
+                          fontSize: '13px', 
+                          color: '#7d8f93', 
+                          fontWeight: '400', 
+                          marginTop: '4px' 
+                        }}>
+                          {q.instruction}
+                        </span>
+                      )}
+                    </label>
                     <textarea
                       name={`q${i + 1}`}
                       className="checklist-textarea"
                       onInput={autoGrow}
                       value={answers[`q${i + 1}`] || ""}
                       onChange={(e) => setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }))}
+                      required={q.required}
                     />
                     
                     {/* IMAGE UPLOADER */}
-                    <ImageUploader
-                      questionKey={`q${i + 1}`}
-                      questionText={q}
-                      serialNumber={unit?.serial_number}
-                      maintenanceType="annual"
-                      onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
-                    />
+                    {q.allow_uploads && (
+                      <ImageUploader
+                        questionKey={`q${i + 1}`}
+                        questionText={q.title}
+                        serialNumber={unit?.serial_number}
+                        maintenanceType="annual"
+                        onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
+                      />
+                    )}
                   </div>
                 ))}
 
@@ -553,8 +570,11 @@ export async function getServerSideProps({ params }) {
         },
         template: {
           id: templateData.records?.[0]?.id || "",
-          questions: templateData.records?.[0]?.fields.questions_json
+          questionsData: templateData.records?.[0]?.fields.questions_json
             ? JSON.parse(templateData.records[0].fields.questions_json)
+            : [],
+          questions: templateData.records?.[0]?.fields.questions_json
+            ? JSON.parse(templateData.records[0].fields.questions_json).map(q => q.title)
             : [],
         },
         allCompanies: Object.values(companyLookup).filter(Boolean),
