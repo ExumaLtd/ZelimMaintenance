@@ -491,6 +491,20 @@
     width: 100%;
     margin-top: 8px;
   }
+  
+  /* Mobile: Reduce heights to 110px */
+  .form-scope .checklist-textarea {
+    min-height: 110px !important;
+  }
+  
+  .form-scope .image-drop-zone {
+    min-height: 110px;
+  }
+  
+  /* Increase spacing between question fields on mobile */
+  .form-scope div[style*="margin-top: 24px"] {
+    margin-top: 30px !important;
+  }
 }
 
 .form-scope .image-drop-zone {
@@ -609,7 +623,8 @@
 
   .form-scope .upload-prompt span,
   .form-scope .upload-status span {
-    font-size: 12px;
+    font-size: 14px;
+    line-height: 16px;
   }
 
   .form-scope .thumbnail-item {
