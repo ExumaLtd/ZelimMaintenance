@@ -8,6 +8,7 @@ import Head from "next/head";
 import Script from "next/script"; 
 import { useEffect } from "react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/react";
 
 export default function MyApp({ Component, pageProps }) {
   
@@ -37,6 +38,7 @@ export default function MyApp({ Component, pageProps }) {
 
       <Component {...pageProps} />
       <SpeedInsights />
+      <Analytics />
     </>
   );
 }
