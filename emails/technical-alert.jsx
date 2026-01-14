@@ -3,6 +3,7 @@ import {
   Button,
   Container,
   Head,
+  Hr,
   Html,
   Img,
   Preview,
@@ -11,7 +12,6 @@ import {
   Heading,
   Row,
   Column,
-  Font,
 } from '@react-email/components';
 import * as React from 'react';
 
@@ -24,36 +24,36 @@ export const TechnicalAlertEmail = ({
   logoUrl = '/logo/zelim-logo-dark.png',
   previewUrl = null
 }) => {
+  // Format date and time
   const submissionDate = new Date();
   const formattedDate = submissionDate.toLocaleDateString('en-GB', {
-    day: 'numeric', month: 'long', year: 'numeric',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
   });
   const formattedTime = submissionDate.toLocaleTimeString('en-GB', {
-    hour: '2-digit', minute: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
   });
 
+  // Airtable configuration
   const airtableBaseId = 'appOQXbopTwn0SdnL'; 
   const airtableTableId = 'tblo0gVrtd422UQgd';
   const airtableUrl = technicalData?.unit_record_id 
     ? `https://airtable.com/${airtableBaseId}/${airtableTableId}/${technicalData.unit_record_id}`
     : '#';
 
+  // Ensure logo URL is absolute for email clients
   const absoluteLogoUrl = logoUrl?.startsWith('http') 
     ? logoUrl 
     : `https://maintenance.exuma.co.uk${logoUrl?.startsWith('/') ? logoUrl : `/${logoUrl}`}`;
 
   return (
     <Html>
-      <Head>
-        <Font
-          fontFamily="Montserrat"
-          fallbackFontFamily="Arial"
-          fontWeight={400}
-          fontStyle="normal"
-        />
-      </Head>
+      <Head />
       <Preview>{serialNumber} {displayType} Submitted</Preview>
       <Body style={main}>
+        {/* View in browser link */}
         {previewUrl && (
           <Container style={previewLinkContainer}>
             <Text style={previewLinkText}>
@@ -62,25 +62,23 @@ export const TechnicalAlertEmail = ({
             </Text>
           </Container>
         )}
-        
-        {/* Container: Border and 1px outline removed */}
         <Container style={container}>
-          {/* Header Section */}
-          <Section style={headerSection}>
+          {/* Header with Brand Color Accent */}
+          <Section style={{ ...headerSection, borderTop: `6px solid ${brandColor}` }}>
             {logoUrl && (
               <Img
                 src={absoluteLogoUrl}
                 width="250"
+                height="40"
                 alt="Company Logo"
                 style={logo}
               />
             )}
           </Section>
 
-          {/* Adjusted Padding for Mobile responsiveness (20px gutters) */}
           <Section style={contentPadding}>
             <Heading style={h1}>{serialNumber}</Heading>
-            <Text style={subTitle}>
+            <Text style={{ ...subTitle, color: brandColor }}>
               {displayType} Submitted
             </Text>
             
@@ -89,7 +87,9 @@ export const TechnicalAlertEmail = ({
               <strong>{serialNumber}</strong>.
             </Text>
 
-            {/* Status Cards - Text colors updated to #152a31 */}
+            <Hr style={hr} />
+
+            {/* Status Card - Submission Details */}
             <Section style={statusCard}>
               <Row>
                 <Column style={{ paddingRight: '20px' }}>
@@ -116,40 +116,63 @@ export const TechnicalAlertEmail = ({
               </Row>
             </Section>
 
-            {/* Left Aligned Button Styled per requirements */}
+            <Section style={statusCard}>
+              <Row>
+                <Column>
+                  <Text style={label}>Time</Text>
+                  <Text style={value}>{formattedTime}</Text>
+                </Column>
+              </Row>
+            </Section>
+
+            {/* CTA Button */}
             {technicalData?.unit_record_id && (
-              <Section style={buttonAligner}>
-                <Button 
-                  style={submissionButton} 
-                  href={airtableUrl}
-                >
-                  View submission online
-                </Button>
-              </Section>
+              <>
+                <Hr style={hr} />
+                <Section style={buttonContainer}>
+                  <Button 
+                    pX={28} 
+                    pY={14} 
+                    style={{ ...button, backgroundColor: brandColor }} 
+                    href={airtableUrl}
+                  >
+                    View Record in Airtable
+                  </Button>
+                </Section>
+              </>
             )}
 
+            {/* Only show checklist if there are answers */}
             {Object.keys(answers).length > 0 && (
               <>
+                <Hr style={hr} />
                 <Heading as="h2" style={h2}>Checklist Details</Heading>
+                
                 <Section>
                   {Object.entries(answers).map(([question, answerData], i) => {
+                    // Handle both old format (string) and new format (object with text/images)
                     const isObject = typeof answerData === 'object' && answerData !== null;
-                    const answerContent = isObject ? answerData.text : answerData;
+                    const answerText = isObject ? answerData.text : answerData;
                     const images = isObject ? (answerData.images || []) : [];
 
                     return (
                       <div key={i} style={answerBlock}>
                         <Text style={questionText}>{question}</Text>
-                        <Text style={answerValueText}>
-                          {answerContent !== null && answerContent !== undefined && answerContent !== '' 
-                            ? String(answerContent) 
+                        <Text style={answerText}>
+                          {answerText !== null && answerText !== undefined && answerText !== '' 
+                            ? String(answerText) 
                             : 'Not answered'}
                         </Text>
                         
+                        {/* Display images if present */}
                         {images.length > 0 && (
                           <Section style={imageGallery}>
                             {images.map((imageUrl, imgIndex) => (
-                              <a key={imgIndex} href={imageUrl} style={imageLink}>
+                              <a 
+                                key={imgIndex} 
+                                href={imageUrl}
+                                style={imageLink}
+                              >
                                 <Img
                                   src={imageUrl}
                                   alt={`Image ${imgIndex + 1}`}
@@ -167,6 +190,8 @@ export const TechnicalAlertEmail = ({
                 </Section>
               </>
             )}
+
+            <Hr style={hr} />
           </Section>
 
           <Section style={footerSection}>
@@ -174,6 +199,7 @@ export const TechnicalAlertEmail = ({
               <Img
                 src="https://maintenance.exuma.co.uk/logo/zelim-logo-dark.png"
                 width="120"
+                height="40"
                 alt="Zelim logo"
                 style={footerLogo}
               />
@@ -190,49 +216,78 @@ export const TechnicalAlertEmail = ({
 
 export default TechnicalAlertEmail;
 
+// --- Styles: Professional Maritime Aesthetic (matching maintenance-report) ---
+const previewLinkContainer = {
+  maxWidth: '600px',
+  margin: '0 auto 10px auto',
+  textAlign: 'center',
+};
+
+const previewLinkText = {
+  fontSize: '12px',
+  color: '#64748B',
+  margin: '0',
+};
+
+const previewLink = {
+  color: '#172F36',
+  textDecoration: 'underline',
+};
+
 const main = {
-  backgroundColor: '#ffffff',
-  padding: '10px 0',
-  fontFamily: 'Montserrat, -apple-system, sans-serif',
+  backgroundColor: '#F8FAFC',
+  padding: '40px 0',
+  fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
 };
 
 const container = {
   backgroundColor: '#ffffff',
   margin: '0 auto',
   maxWidth: '600px',
-  // Removed border and outline
+  borderRadius: '12px',
+  border: '1px solid #E2E8F0',
+  overflow: 'hidden',
 };
 
 const headerSection = {
-  padding: '20px 0',
+  padding: '40px 0 20px 0',
   textAlign: 'center',
 };
 
+const logo = {
+  margin: '0 auto',
+  display: 'block',
+  maxWidth: '250px',
+  maxHeight: '40px',
+  width: '100%',
+  height: 'auto',
+  objectFit: 'contain',
+};
+
 const contentPadding = {
-  // Mobile fix: Using 20px padding for the standard margin look
-  padding: '0 20px 40px 20px',
+  padding: '0 50px 50px 50px',
 };
 
 const h1 = {
-  color: '#152a31',
-  fontSize: '32px',
+  color: '#0F172A',
+  fontSize: '36px',
   fontWeight: '800',
   margin: '0',
-  textAlign: 'left',
+  textAlign: 'center',
+  letterSpacing: '-1px',
 };
 
 const subTitle = {
   fontSize: '13px',
   fontWeight: '700',
   textTransform: 'uppercase',
-  textAlign: 'left',
+  textAlign: 'center',
   letterSpacing: '1.5px',
-  margin: '4px 0 24px 0',
-  color: '#152a31',
+  margin: '4px 0 40px 0',
 };
 
 const text = {
-  color: '#152a31',
+  color: '#475569',
   fontSize: '15px',
   lineHeight: '24px',
   margin: '12px 0',
@@ -241,79 +296,130 @@ const text = {
 const statusCard = {
   backgroundColor: '#F1F5F9',
   borderRadius: '8px',
-  padding: '16px',
-  margin: '12px 0',
+  padding: '24px',
+  margin: '16px 0',
 };
 
 const label = {
   fontSize: '11px',
-  color: '#152a31',
+  color: '#64748B',
   textTransform: 'uppercase',
   fontWeight: '700',
   margin: '0',
-  opacity: 0.7,
+  letterSpacing: '0.5px',
 };
 
 const value = {
-  fontSize: '15px',
-  color: '#152a31',
+  fontSize: '16px',
+  color: '#0F172A',
   fontWeight: '600',
   margin: '4px 0 0 0',
 };
 
-const buttonAligner = {
-  textAlign: 'left',
-  margin: '30px 0',
+const buttonContainer = {
+  textAlign: 'center',
+  margin: '32px 0',
 };
 
-const submissionButton = {
-  backgroundColor: '#00fff6',
-  color: '#0d3037',
-  padding: '8px 16px',
+const button = {
   borderRadius: '8px',
-  border: '2px solid hsla(0, 0%, 100%, .12)',
+  color: '#ffffff',
+  fontSize: '16px',
   fontWeight: '600',
-  fontSize: '14px',
-  lineHeight: '20px',
   textDecoration: 'none',
+  textAlign: 'center',
   display: 'inline-block',
-  fontFamily: 'Montserrat, sans-serif',
+  padding: '14px 28px',
 };
 
 const h2 = {
-  color: '#152a31',
+  color: '#0F172A',
   fontSize: '18px',
   fontWeight: '700',
-  margin: '40px 0 20px 0',
+  margin: '40px 0 24px 0',
 };
 
 const answerBlock = {
-  marginBottom: '24px',
+  marginBottom: '20px',
+  paddingLeft: '12px',
+  borderLeft: '2px solid #E2E8F0',
 };
 
 const questionText = {
   fontSize: '14px',
   fontWeight: '700',
-  color: '#152a31',
+  color: '#1E293B',
   margin: '0 0 4px 0',
 };
 
-const answerValueText = {
+const answerText = {
   fontSize: '14px',
-  color: '#152a31',
+  color: '#475569',
   margin: '0',
   lineHeight: '1.5',
+  whiteSpace: 'pre-wrap',
 };
 
-// ... Remaining styles updated for text color
-const logo = { margin: '0 auto', display: 'block', maxWidth: '250px' };
-const imageGallery = { display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' };
-const imageLink = { display: 'inline-block', marginRight: '8px' };
-const imageThumbnail = { width: '150px', height: '150px', objectFit: 'cover', borderRadius: '8px' };
-const footerSection = { padding: '40px 20px', textAlign: 'center' };
-const footerLogo = { margin: '0 auto', display: 'block', width: '100px' };
-const attribution = { fontSize: '12px', color: '#152a31', opacity: 0.5, marginTop: '12px' };
-const footerLink = { textDecoration: 'none' };
-const previewLinkContainer = { maxWidth: '600px', margin: '0 auto 10px auto', textAlign: 'center' };
-const previewLinkText = { fontSize: '12px', color: '#152a31', margin: '0' };
-const previewLink = { color: '#152a31', textDecoration: 'underline' };
+const imageGallery = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '8px',
+  marginTop: '12px',
+};
+
+const imageLink = {
+  display: 'inline-block',
+  marginRight: '8px',
+  marginBottom: '8px',
+};
+
+const imageThumbnail = {
+  width: '150px',
+  height: '150px',
+  objectFit: 'cover',
+  borderRadius: '8px',
+  border: '2px solid #E2E8F0',
+};
+
+const hr = {
+  borderColor: '#F1F5F9',
+  margin: '40px 0',
+};
+
+const footerContactText = {
+  fontSize: '13px',
+  color: '#94A3B8',
+  textAlign: 'center',
+  margin: '0',
+};
+
+const emailLink = {
+  color: '#172F36',
+  textDecoration: 'underline',
+  fontWeight: '600',
+};
+
+const footerSection = {
+  paddingBottom: '40px',
+  textAlign: 'center',
+};
+
+const footerLink = {
+  textDecoration: 'none',
+  display: 'inline-block',
+  marginBottom: '12px',
+};
+
+const footerLogo = {
+  margin: '0 auto',
+  display: 'block',
+  width: '120px',
+  height: 'auto',
+  objectFit: 'contain',
+};
+
+const attribution = {
+  fontSize: '12px',
+  color: '#CBD5E1',
+  margin: '0',
+};
