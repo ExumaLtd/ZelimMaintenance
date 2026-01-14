@@ -1,15 +1,15 @@
 const axios = require('axios');
-const { Dropbox } = require('dropbox');
 
 async function backupAirtable() {
     try {
         const AIRTABLE_PAT = process.env.AIRTABLE_PAT;
         const BASE_ID = 'appOQXbopTwn0SdnL'; 
+        const DROPBOX_ACCESS_TOKEN = process.env.DROPBOX_ACCESS_TOKEN;
 
         console.log("Testing Airtable authentication...");
         console.log("Token starts with:", AIRTABLE_PAT ? AIRTABLE_PAT.substring(0, 10) + '...' : 'TOKEN MISSING!');
-        console.log("Base ID:", BASE_ID);
 
+        // --- START OF YOUR NAMING LOGIC ---
         const now = new Date();
         const year = now.getFullYear();
         const monthName = now.toLocaleString('default', { month: 'long' });
@@ -17,13 +17,7 @@ async function backupAirtable() {
         const monthNum = String(now.getMonth() + 1).padStart(2, '0');
         const dateStamp = `${day}${monthNum}${year}`;
         const dayFolderName = `${day}-${monthNum}-${year}`;
-
-        // Updated only this section to support the refresh token flow
-        const dbx = new Dropbox({ 
-            accessToken: process.env.DROPBOX_ACCESS_TOKEN,
-            clientId: process.env.DROPBOX_APP_KEY,
-            clientSecret: process.env.DROPBOX_APP_SECRET
-        });
+        // --- END OF YOUR NAMING LOGIC ---
 
         console.log("Fetching list of all tables from Airtable...");
         
@@ -33,63 +27,57 @@ async function backupAirtable() {
                 headers: { 
                     Authorization: `Bearer ${AIRTABLE_PAT}`,
                     'Content-Type': 'application/json'
-                },
-                validateStatus: false // Don't throw on any status
+                }
             }
         );
-
-        console.log("Schema response status:", schemaResponse.status);
-        
-        if (schemaResponse.status !== 200) {
-            console.error("Schema fetch failed:", JSON.stringify(schemaResponse.data, null, 2));
-            process.exit(1);
-        }
 
         const tables = schemaResponse.data.tables;
         console.log(`Found ${tables.length} tables to backup`);
 
         for (const table of tables) {
-            console.log(`Backing up table: ${table.name} (ID: ${table.id})...`);
+            console.log(`Backing up table: ${table.name}...`);
             
             const url = `https://api.airtable.com/v0/${BASE_ID}/${table.id}`;
-            console.log(`Fetching from: ${url}`);
-            
             const recordsResponse = await axios.get(url, {
                 headers: { 
                     Authorization: `Bearer ${AIRTABLE_PAT}`,
                     'Content-Type': 'application/json'
-                },
-                validateStatus: false
+                }
             });
 
-            console.log(`Records response status: ${recordsResponse.status}`);
-            
-            if (recordsResponse.status !== 200) {
-                console.error(`Failed to fetch records for ${table.name}`);
-                console.error('Response:', JSON.stringify(recordsResponse.data, null, 2));
-                throw new Error(`Failed to backup table ${table.name}`);
-            }
-
+            // These variables use your exact naming logic from above
             const folderPath = `/Airtable/${year}/${monthName}/${dayFolderName}`;
             const fileName = `zelim_backup_${table.name.toLowerCase().replace(/\s+/g, '_')}_${dateStamp}.json`;
+            const fullPath = `${folderPath}/${fileName}`;
 
-            await dbx.filesUpload({
-                path: `${folderPath}/${fileName}`,
-                contents: JSON.stringify(recordsResponse.data.records, null, 2),
-                mode: 'overwrite'
+            // "Direct Upload" method to bypass Dropbox library limitations
+            const dropboxResponse = await axios({
+                method: 'post',
+                url: 'https://content.dropboxapi.com/2/files/upload',
+                headers: {
+                    'Authorization': `Bearer ${DROPBOX_ACCESS_TOKEN}`,
+                    'Dropbox-API-Arg': JSON.stringify({
+                        path: fullPath,
+                        mode: 'overwrite',
+                        autorename: true,
+                        mute: false,
+                        strict_conflict: false
+                    }),
+                    'Content-Type': 'application/octet-stream'
+                },
+                data: JSON.stringify(recordsResponse.data.records, null, 2)
             });
             
-            console.log(`✓ Successfully backed up ${table.name}`);
+            console.log(`✓ Successfully backed up ${table.name} (Status: ${dropboxResponse.status})`);
         }
 
         console.log('SUCCESS: All tables backed up to Dropbox.');
     } catch (e) {
         console.error('BACKUP FAILED');
-        console.error('Error message:', e.message);
-        if (e.response) {
-            console.error('Status:', e.response.status);
-            console.error('Headers:', JSON.stringify(e.response.headers, null, 2));
-            console.error('Data:', JSON.stringify(e.response.data, null, 2));
+        if (e.response && e.response.data) {
+            console.error('Error Detail:', JSON.stringify(e.response.data, null, 2));
+        } else {
+            console.error('Error message:', e.message);
         }
         process.exit(1);
     }
