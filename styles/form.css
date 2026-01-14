@@ -125,11 +125,11 @@
   margin-bottom: 6px;
 }
 
-/* Question instruction styling */
+/* Question instruction styling (between label and textarea) - ONLY for questions */
 .form-scope .question-instruction {
   color: #7d8f93;
   font-size: 14px;
-  margin: 4px 0 8px 0;
+  margin: 2px 0 10px 0;
   line-height: 1.4;
   font-family: "Montserrat", sans-serif;
 }
@@ -449,6 +449,40 @@
 
 .form-scope .image-uploader-container {
   margin-top: 8px;
+}
+
+/* Desktop: Side-by-side layout for textarea + uploader */
+@media (min-width: 992px) {
+  .form-scope .question-with-upload {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  
+  .form-scope .question-with-upload .textarea-wrapper {
+    flex: 2; /* 2/3 width */
+  }
+  
+  .form-scope .question-with-upload .image-uploader-container {
+    flex: 1; /* 1/3 width */
+    margin-top: 0;
+  }
+}
+
+/* Mobile: Stack vertically */
+@media (max-width: 991px) {
+  .form-scope .question-with-upload {
+    display: block;
+  }
+  
+  .form-scope .question-with-upload .textarea-wrapper {
+    width: 100%;
+  }
+  
+  .form-scope .question-with-upload .image-uploader-container {
+    width: 100%;
+    margin-top: 8px;
+  }
 }
 
 .form-scope .image-drop-zone {

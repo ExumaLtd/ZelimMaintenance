@@ -477,25 +477,31 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                     {q.instruction && (
                       <p className="question-instruction">{q.instruction}</p>
                     )}
-                    <textarea
-                      name={`q${i + 1}`}
-                      className="checklist-textarea"
-                      onInput={autoGrow}
-                      value={answers[`q${i + 1}`] || ""}
-                      onChange={(e) => setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }))}
-                      required={q.required}
-                    />
                     
-                    {/* IMAGE UPLOADER */}
-                    {q.allow_uploads && (
-                      <ImageUploader
-                        questionKey={`q${i + 1}`}
-                        questionText={q.title}
-                        serialNumber={unit?.serial_number}
-                        maintenanceType="annual"
-                        onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
-                      />
-                    )}
+                    {/* Wrapper for side-by-side layout on desktop */}
+                    <div className="question-with-upload">
+                      <div className="textarea-wrapper">
+                        <textarea
+                          name={`q${i + 1}`}
+                          className="checklist-textarea"
+                          onInput={autoGrow}
+                          value={answers[`q${i + 1}`] || ""}
+                          onChange={(e) => setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }))}
+                          required={q.required}
+                        />
+                      </div>
+                      
+                      {/* IMAGE UPLOADER */}
+                      {q.allow_uploads && (
+                        <ImageUploader
+                          questionKey={`q${i + 1}`}
+                          questionText={q.title}
+                          serialNumber={unit?.serial_number}
+                          maintenanceType="annual"
+                          onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
+                        />
+                      )}
+                    </div>
                   </div>
                 ))}
 
