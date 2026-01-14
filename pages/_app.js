@@ -5,7 +5,6 @@ import "/styles/form.css";
 import "/styles/form-complete.css";
 
 import Head from "next/head";
-import Script from "next/script"; 
 import { useEffect } from "react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
@@ -29,12 +28,6 @@ export default function MyApp({ Component, pageProps }) {
         />
         <link rel="icon" href="/favicon/ZelimFavicon_192x192.png" />
       </Head>
-
-      <Script 
-        src="https://kit.fontawesome.com/7d09bbd1e9.js" 
-        crossOrigin="anonymous"
-        strategy="afterInteractive" 
-      />
 
       <Component {...pageProps} />
       <SpeedInsights />

@@ -132,11 +132,17 @@
   align-items: center;
 }
 
-.form-scope .field-icon-wrapper i {
+/* Updated to target the new Lucide container and svg */
+.form-scope .field-icon-wrapper .field-icon-inside,
+.form-scope .field-icon-wrapper i,
+.form-scope .field-icon-wrapper svg {
   position: absolute;
   right: 16px;
   color: #f7f7f7;
   pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .form-scope .custom-dropdown-container {
@@ -198,14 +204,14 @@
   align-items: center;
 }
 
-.form-scope .input-icon-wrapper i {
+.form-scope .input-icon-wrapper i,
+.form-scope .input-icon-wrapper svg {
   position: absolute;
   right: 15px;
   top: 50%;
   transform: translateY(-50%);
   color: #fff;
   pointer-events: none;
-  font-size: 16px;
   z-index: 10;
 }
 
@@ -446,7 +452,9 @@
 }
 
 .form-scope .upload-prompt i,
-.form-scope .upload-status i {
+.form-scope .upload-status i,
+.form-scope .upload-prompt svg,
+.form-scope .upload-status svg {
   font-size: 28px;
   color: #00FFF6;
 }
@@ -528,7 +536,9 @@
   }
 
   .form-scope .upload-prompt i,
-  .form-scope .upload-status i {
+  .form-scope .upload-status i,
+  .form-scope .upload-prompt svg,
+  .form-scope .upload-status svg {
     font-size: 32px;
   }
 

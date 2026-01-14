@@ -3,6 +3,8 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import Image from "next/image";
 import { getCompanyLogoUrl } from '../../../utils/get-company-logo';
+// Added Lucide Imports
+import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
 
 const autoGrow = (e) => {
   const el = e.target || e;
@@ -316,7 +318,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                           onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
                           style={{ cursor: "pointer", paddingRight: "40px" }}
                         />
-                        <i className={showCompanyDropdown ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}></i>
+                        {/* Swapped FontAwesome for Lucide ChevronDown/Up */}
+                        <div className="field-icon-inside">
+                          {showCompanyDropdown ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                        </div>
                       </div>
                       {showCompanyDropdown && (
                         <ul className="custom-dropdown-list">
@@ -357,7 +362,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                         required
                         style={{ paddingRight: "40px" }}
                       />
-                      <i className="fa-regular fa-calendar"></i>
+                      {/* Swapped FontAwesome for Lucide Calendar */}
+                      <div className="field-icon-inside">
+                        <Calendar size={20} />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -386,8 +394,11 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                             paddingRight: selectedCompany && (hasEngineerResults || hasClearEng) ? "40px" : "16px",
                           }}
                         />
+                        {/* Swapped FontAwesome for Lucide ChevronDown/Up */}
                         {selectedCompany && (hasEngineerResults || hasClearEng) && (
-                          <i className={showEngineerDropdown ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}></i>
+                          <div className="field-icon-inside">
+                            {showEngineerDropdown ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                          </div>
                         )}
                       </div>
                       {shouldShowEngDropdown && (
