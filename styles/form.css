@@ -416,3 +416,129 @@
     margin: 30px 0 0 0 !important;
   }
 }
+
+.form-scope .image-uploader-container {
+  margin-top: 12px;
+}
+
+.form-scope .image-drop-zone {
+  border: 2px dashed #425558;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: rgba(66, 85, 88, 0.05);
+}
+
+.form-scope .image-drop-zone:hover {
+  border-color: #00FFF6;
+  background-color: rgba(0, 255, 246, 0.05);
+}
+
+.form-scope .upload-prompt,
+.form-scope .upload-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #a0acaf;
+}
+
+.form-scope .upload-prompt i,
+.form-scope .upload-status i {
+  font-size: 28px;
+  color: #00FFF6;
+}
+
+.form-scope .upload-prompt span,
+.form-scope .upload-status span {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.form-scope .upload-error {
+  margin-top: 8px;
+  padding: 12px;
+  background-color: rgba(255, 77, 77, 0.1);
+  color: #ff6b6b;
+  border-radius: 6px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 77, 77, 0.2);
+}
+
+.form-scope .image-thumbnails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.form-scope .thumbnail-item {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #27454b;
+  transition: border-color 0.2s;
+}
+
+.form-scope .thumbnail-item:hover {
+  border-color: #00FFF6;
+}
+
+.form-scope .thumbnail-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.form-scope .thumbnail-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.form-scope .thumbnail-remove:hover {
+  background-color: #ff4d4d;
+  transform: scale(1.1);
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+  .form-scope .image-drop-zone {
+    padding: 24px 16px;
+  }
+
+  .form-scope .upload-prompt i,
+  .form-scope .upload-status i {
+    font-size: 32px;
+  }
+
+  .form-scope .upload-prompt span,
+  .form-scope .upload-status span {
+    font-size: 13px;
+  }
+
+  .form-scope .thumbnail-item {
+    width: 80px;
+    height: 80px;
+  }
+}

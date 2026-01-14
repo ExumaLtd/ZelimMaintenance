@@ -15,7 +15,7 @@ export default async function handler(req, res) {
       engineerEmail, 
       engineerName, 
       serialNumber, 
-      answers, 
+      answers, // Now: { "Question text": { text: "answer", images: ["url1", "url2"] } }
       reportType, 
       technicalData,
       companyLogoUrl 
@@ -50,7 +50,7 @@ export default async function handler(req, res) {
         react: MaintenanceReportEmail({ 
           engineerName, 
           serialNumber, 
-          answers,
+          answers, // Component will handle displaying images
           brandColor: ZELIM_GREEN,
           logoUrl: logoUrl,
           previewUrl: engineerPreviewUrl
@@ -70,7 +70,7 @@ export default async function handler(req, res) {
             engineer_name: technicalData?.engineer_name || engineerName,
             location_display: technicalData?.location_display || 'N/A',
           },
-          answers,
+          answers, // Component will handle displaying images
           brandColor: ZELIM_GREEN,
           logoUrl: logoUrl,
           previewUrl: internalPreviewUrl

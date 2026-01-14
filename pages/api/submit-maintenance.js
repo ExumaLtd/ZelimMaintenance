@@ -12,8 +12,8 @@ export default async function handler(req, res) {
     location_display,
     location_town,
     location_country,
-    answers, 
-    photoUrls, 
+    answers, // Now includes images: [{ question: "q1", answer: "text", images: ["url1", "url2"] }]
+    serial_number, // For cloudinary_folder
     checklist_template_id 
   } = req.body;
 
@@ -63,8 +63,32 @@ export default async function handler(req, res) {
     // Prepare the trimmed date (YYYY-MM-DD) for standard Date fields
     const trimmedDate = date_of_maintenance.split('T')[0];
 
-    // 3. SUBMIT TO MAINTENANCE_LOGS
-    // Note: We do NOT send "submitted_at" because it is an automatic Created Time field
+    // Generate Cloudinary folder path for archival reference
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const yyyy = today.getFullYear();
+    const dateStr = `${dd}-${mm}-${yyyy}`;
+    const cloudinaryFolder = `zelimmaintenance/SWIFT/${maintenance_type.toLowerCase()}/${serial_number}/${dateStr}`;
+
+    // Format answers with images into structured JSON
+    const formattedAnswers = answers.reduce((acc, item) => {
+      acc[item.question] = {
+        text: item.answer,
+        images: item.images || []
+      };
+      return acc;
+    }, {});
+
+    // Collect all image URLs for photos field (if you want to use it)
+    const allImageUrls = answers.reduce((urls, item) => {
+      if (item.images && item.images.length > 0) {
+        return [...urls, ...item.images];
+      }
+      return urls;
+    }, []);
+
+    // 3. SUBMIT TO MAINTENANCE_LOGS (Historical Archive)
     const logRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_logs`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
@@ -76,13 +100,14 @@ export default async function handler(req, res) {
           "engineer_name": engineer_name,
           "engineer_email": engineer_email,
           "location_display": location_display || "",
-          "checklist_json": JSON.stringify(answers),
-          "photos": photoUrls ? photoUrls.map(url => ({ url })) : []
+          "checklist_json": JSON.stringify(formattedAnswers), // Structured JSON with images
+          "cloudinary_folder": cloudinaryFolder, // Archive folder path
+          "photos": allImageUrls.length > 0 ? allImageUrls.map(url => ({ url })) : []
         }
       })
     });
 
-    // 4. Submit to MAINTENANCE_CHECKS
+    // 4. Submit to MAINTENANCE_CHECKS (Current Status)
     const finalTown = location_town || location_display || "";
     const checkRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_checks`, {
       method: 'POST',
@@ -98,8 +123,9 @@ export default async function handler(req, res) {
           "location_town": finalTown,
           "location_country": location_country || "",
           "checklist_template": [checklist_template_id],
-          "checklist_json": JSON.stringify(answers),
-          "photos": photoUrls ? photoUrls.map(url => ({ url })) : []
+          "checklist_json": JSON.stringify(formattedAnswers), // Structured JSON with images
+          "cloudinary_folder": cloudinaryFolder, // Archive folder path
+          "photos": allImageUrls.length > 0 ? allImageUrls.map(url => ({ url })) : []
         }
       })
     });
