@@ -3,6 +3,8 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import Image from "next/image";
 import { getCompanyLogoUrl } from '../../../utils/get-company-logo';
+import ImageUploader from '../../../components/image-uploader';
+import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
 
 const autoGrow = (e) => {
   const el = e.target || e;
@@ -57,6 +59,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   const [engEmail, setEngEmail] = useState("");
   const [engPhone, setEngPhone] = useState("");
   const [answers, setAnswers] = useState({});
+  const [questionImages, setQuestionImages] = useState({});
 
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
@@ -99,6 +102,13 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   const scrollToField = useCallback((ref) => {
     ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }, []);
+
+  const handleImagesChange = (questionKey, images) => {
+    setQuestionImages(prev => ({
+      ...prev,
+      [questionKey]: images
+    }));
+  };
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -165,7 +175,9 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
           console.error("Geo fetch error", err);
         }
       },
-      null,
+      (error) => {
+        console.error("Geolocation error:", error);
+      },
       { enableHighAccuracy: true, timeout: 8000 }
     );
   }, []);
@@ -211,10 +223,17 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
     setSubmitting(true);
 
-    // Prepare email-friendly answers
+    // Prepare email-friendly answers WITH images
     const emailFriendlyAnswers = {};
-    (template?.questions || []).forEach((qText, i) => {
-      emailFriendlyAnswers[qText] = answers[`q${i + 1}`] || "Not answered";
+    (template?.questionsData || []).forEach((q, i) => {
+      const questionKey = `q${i + 1}`;
+      const textAnswer = answers[questionKey] || "Not answered";
+      const images = questionImages[questionKey] || [];
+      
+      emailFriendlyAnswers[q.title] = {
+        text: textAnswer,
+        images: images.map(img => img.url)
+      };
     });
 
     const payload = {
@@ -228,10 +247,15 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       engineer_phone: engPhone,
       unit_record_id: unit?.record_id,
       checklist_template_id: template?.id,
-      answers: (template?.questions || []).map((_, i) => ({
-        question: `q${i + 1}`,
-        answer: answers[`q${i + 1}`] || "",
-      })),
+      serial_number: unit?.serial_number,
+      answers: (template?.questionsData || []).map((q, i) => {
+        const questionKey = `q${i + 1}`;
+        return {
+          question: questionKey,
+          answer: answers[questionKey] || "",
+          images: (questionImages[questionKey] || []).map(img => img.url)
+        };
+      }),
     };
 
     try {
@@ -256,14 +280,21 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
           answers: emailFriendlyAnswers,
           reportType: "Depth",
           companyLogoUrl: companyLogoUrl,
-technicalData: {
-  unit_record_id: unit?.record_id,
-  checklist_template_id: template?.id,
-  maintenance_company: selectedCompany,
-  engineer_name: engName,
-  location_display: locationDisplay,
-},
+          technicalData: {
+            unit_record_id: unit?.record_id,
+            checklist_template_id: template?.id,
+            maintenance_company: selectedCompany,
+            engineer_name: engName,
+            location_display: locationDisplay,
+          },
         }),
+      });
+
+      // Clear image localStorage after successful submission
+      (template?.questionsData || []).forEach((_, i) => {
+        const questionKey = `q${i + 1}`;
+        const imageStorageKey = `images_depth_${unit?.serial_number}_${questionKey}`;
+        localStorage.removeItem(imageStorageKey);
       });
 
       localStorage.setItem("last_submitted_sn", unit?.serial_number);
@@ -316,7 +347,9 @@ technicalData: {
                           onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
                           style={{ cursor: "pointer", paddingRight: "40px" }}
                         />
-                        <i className={showCompanyDropdown ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}></i>
+                        <div className="field-icon-inside">
+                          {showCompanyDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
+                        </div>
                       </div>
                       {showCompanyDropdown && (
                         <ul className="custom-dropdown-list">
@@ -357,7 +390,9 @@ technicalData: {
                         required
                         style={{ paddingRight: "40px" }}
                       />
-                      <i className="fa-regular fa-calendar"></i>
+                      <div className="field-icon-inside">
+                        <Calendar size={20} strokeWidth={1.5} />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -387,7 +422,9 @@ technicalData: {
                           }}
                         />
                         {selectedCompany && (hasEngineerResults || hasClearEng) && (
-                          <i className={showEngineerDropdown ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down"}></i>
+                          <div className="field-icon-inside">
+                            {showEngineerDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
+                          </div>
                         )}
                       </div>
                       {shouldShowEngDropdown && (
@@ -431,16 +468,40 @@ technicalData: {
                   </div>
                 </div>
 
-                {(template?.questions || []).map((q, i) => (
+                {/* QUESTIONS WITH IMAGE UPLOADERS */}
+                {(template?.questionsData || []).map((q, i) => (
                   <div key={i} style={{ marginTop: "24px" }}>
-                    <label className="checklist-label">{q}</label>
-                    <textarea
-                      name={`q${i + 1}`}
-                      className="checklist-textarea"
-                      onInput={autoGrow}
-                      value={answers[`q${i + 1}`] || ""}
-                      onChange={(e) => setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }))}
-                    />
+                    <label className="checklist-label">
+                      {q.title}
+                    </label>
+                    {q.instruction && (
+                      <p className="question-instruction">{q.instruction}</p>
+                    )}
+                    
+                    {/* Wrapper for side-by-side layout on desktop */}
+                    <div className="question-with-upload">
+                      <div className="textarea-wrapper">
+                        <textarea
+                          name={`q${i + 1}`}
+                          className="checklist-textarea"
+                          onInput={autoGrow}
+                          value={answers[`q${i + 1}`] || ""}
+                          onChange={(e) => setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }))}
+                          required={q.required}
+                        />
+                      </div>
+                      
+                      {/* IMAGE UPLOADER */}
+                      {q.allow_uploads && (
+                        <ImageUploader
+                          questionKey={`q${i + 1}`}
+                          questionText={q.title}
+                          serialNumber={unit?.serial_number}
+                          maintenanceType="depth"
+                          onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
+                        />
+                      )}
+                    </div>
                   </div>
                 ))}
 
@@ -507,8 +568,11 @@ export async function getServerSideProps({ params }) {
         },
         template: {
           id: templateData.records?.[0]?.id || "",
-          questions: templateData.records?.[0]?.fields.questions_json
+          questionsData: templateData.records?.[0]?.fields.questions_json
             ? JSON.parse(templateData.records[0].fields.questions_json)
+            : [],
+          questions: templateData.records?.[0]?.fields.questions_json
+            ? JSON.parse(templateData.records[0].fields.questions_json).map(q => q.title)
             : [],
         },
         allCompanies: Object.values(companyLookup).filter(Boolean),
