@@ -23,10 +23,21 @@ export default function ImageUploader({
   const [images, setImages] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const [isMobile, setIsMobile] = useState(false);
   const fileInputRef = useRef(null);
   const isInitialMount = useRef(true);
 
   const storageKey = `images_${maintenanceType}_${serialNumber}_${questionKey}`;
+
+  // Detect if mobile on mount
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768 || 'ontouchstart' in window);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Load saved images from localStorage on mount ONLY
   useEffect(() => {
@@ -191,9 +202,9 @@ export default function ImageUploader({
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*,application/pdf"
+          accept={isMobile ? "image/*" : "image/*,application/pdf"}
           multiple
-          capture="environment"
+          capture={isMobile ? "environment" : undefined}
           style={{ display: 'none' }}
           onChange={(e) => {
             handleFileSelect(e.target.files);
@@ -210,7 +221,12 @@ export default function ImageUploader({
         ) : (
           <div className="upload-prompt">
             <Camera size={28} />
-            <span>Take photo or drag images here</span>
+            <span>
+              {isMobile 
+                ? "Take photo or select from gallery" 
+                : "Click to upload images or PDFs, or drag files here"
+              }
+            </span>
           </div>
         )}
       </div>
