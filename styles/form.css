@@ -125,6 +125,15 @@
   margin-bottom: 6px;
 }
 
+/* Question instruction styling */
+.form-scope .question-instruction {
+  color: #7d8f93;
+  font-size: 14px;
+  margin: 4px 0 8px 0;
+  line-height: 1.4;
+  font-family: "Montserrat", sans-serif;
+}
+
 /* Dropdown & Icon Wrappers - Lucide Icons */
 .form-scope .field-icon-wrapper {
   position: relative;
@@ -225,12 +234,15 @@
   padding: 0;
 }
 
+/* Input and Textarea base styles - PREVENTS MOBILE ZOOM */
 .form-scope .checklist-input,
 .form-scope .checklist-textarea {
   width: 100%;
   background-color: #27454b !important;
   border: 1px solid transparent !important;
   padding: 14px 16px !important;
+  color: #F7F7F7 !important;
+  font-size: 16px !important;
   font-family: "Montserrat", sans-serif;
   border-radius: 8px !important;
   box-sizing: border-box !important;
@@ -241,22 +253,19 @@
   line-height: 20px !important;
 }
 
-/* Keep regular inputs at #F7F7F7 color */
-.form-scope .checklist-input {
-  height: 48px;
-  min-height: 48px;
-  appearance: none;
-  -webkit-appearance: none;
-  color: #F7F7F7;
-  font-size: 16px !important;
-}
-
 .form-scope .checklist-input:-webkit-autofill,
 .form-scope .checklist-input:-webkit-autofill:hover,
 .form-scope .checklist-input:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0 50px #27454b inset !important;
   -webkit-text-fill-color: #F7F7F7 !important;
   transition: background-color 5000s ease-in-out 0s;
+}
+
+.form-scope .checklist-input {
+  height: 48px;
+  min-height: 48px;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .form-scope .checklist-input:focus,
@@ -297,10 +306,8 @@
 .form-scope .checklist-textarea {
   resize: none !important;
   overflow: hidden;
-  min-height: 78px !important;
+  min-height: 100px !important;
   display: block;
-  color: #7d8f93;
-  font-size: 14px !important;
 }
 
 /* Submit Button */

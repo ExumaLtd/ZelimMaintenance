@@ -474,15 +474,16 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                     <label className="checklist-label">
                       {q.title}
                     </label>
+                    {q.instruction && (
+                      <p className="question-instruction">{q.instruction}</p>
+                    )}
                     <textarea
                       name={`q${i + 1}`}
                       className="checklist-textarea"
-                      placeholder={q.instruction || ""}
                       onInput={autoGrow}
                       value={answers[`q${i + 1}`] || ""}
                       onChange={(e) => setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }))}
                       required={q.required}
-                      style={{ fontSize: '14px', color: '#7d8f93' }}
                     />
                     
                     {/* IMAGE UPLOADER */}

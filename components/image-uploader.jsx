@@ -227,7 +227,7 @@ export default function ImageUploader({
             </div>
             <span>
               {isMobile 
-                ? "Take photo or select from gallery" 
+                ? "Take photo/s or upload from gallery" 
                 : "Click to upload images or PDFs, or drag files here"
               }
             </span>
