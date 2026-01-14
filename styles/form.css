@@ -499,9 +499,15 @@
     margin-top: 8px;
   }
   
+  /* Remove margin-top from engineer row on mobile (second checklist-inline-group) */
+  .form-scope .checklist-inline-group[style*="margin-top: 24px"],
+  .form-scope .checklist-inline-group[style*="margin-top:24px"] {
+    margin-top: 0 !important;
+  }
+  
   /* Increase spacing between question fields on mobile to match desktop */
-  .form-scope div[style*="margin-top: 24px"],
-  .form-scope div[style*="margin-top:24px"] {
+  .form-scope div[style*="margin-top: 24px"]:not(.checklist-inline-group),
+  .form-scope div[style*="margin-top:24px"]:not(.checklist-inline-group) {
     margin-top: 30px !important;
   }
 }
@@ -592,8 +598,8 @@
 
 .form-scope .thumbnail-item {
   position: relative;
-  width: 76px;
-  height: 76px;
+  width: calc((100% - 24px) / 3); /* 3 per row with 12px gaps */
+  aspect-ratio: 1 / 1; /* Keep square */
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid #27454b;
@@ -631,11 +637,6 @@
   .form-scope .upload-status span {
     font-size: 14px;
     line-height: 16px;
-  }
-
-  .form-scope .thumbnail-item {
-    width: 76px;
-    height: 76px;
   }
 }
 
