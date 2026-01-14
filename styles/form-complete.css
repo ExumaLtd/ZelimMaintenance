@@ -33,9 +33,14 @@
     margin: 0 auto 24px;
 }
 
-.form-scope .complete-icon-circle i {
-    font-size: 26px;
+.form-scope .complete-icon-circle svg {
+    width: 26px;
+    height: 26px;
     color: #00FFF6;
+    stroke: #00FFF6;
+    display: block;
+    margin: 0;
+    padding: 0;
 }
 
 .form-scope .complete-title {
@@ -110,8 +115,9 @@
         margin: 0 auto 20px; 
     }
 
-    .form-scope .complete-icon-circle i {
-        font-size: 24px; 
+    .form-scope .complete-icon-circle svg {
+        width: 24px;
+        height: 24px;
     }
 
     .form-scope .complete-title {
