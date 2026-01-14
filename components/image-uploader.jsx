@@ -94,11 +94,18 @@ export default function ImageUploader({
     formData.append('upload_preset', 'maintenance-uploads');
     formData.append('folder', getFolderPath());
 
-    // Determine if it's a PDF
+    // Determine resource type based on file
     const isPDF = file.type === 'application/pdf';
-    const uploadUrl = isPDF 
-      ? 'https://api.cloudinary.com/v1_1/zelimmaintenanceportal/raw/upload'
-      : 'https://api.cloudinary.com/v1_1/zelimmaintenanceportal/image/upload';
+    const isVideo = file.type.startsWith('video/');
+    
+    let uploadUrl;
+    if (isPDF) {
+      uploadUrl = 'https://api.cloudinary.com/v1_1/zelimmaintenanceportal/raw/upload';
+    } else if (isVideo) {
+      uploadUrl = 'https://api.cloudinary.com/v1_1/zelimmaintenanceportal/video/upload';
+    } else {
+      uploadUrl = 'https://api.cloudinary.com/v1_1/zelimmaintenanceportal/image/upload';
+    }
 
     try {
       const response = await fetch(uploadUrl, {
@@ -117,6 +124,9 @@ export default function ImageUploader({
       if (isPDF) {
         // For PDFs, use first page as thumbnail
         thumbnail = data.secure_url.replace('/upload/', '/upload/w_150,h_150,c_fill,pg_1,f_jpg/');
+      } else if (isVideo) {
+        // For videos, use first frame as thumbnail
+        thumbnail = data.secure_url.replace('/upload/', '/upload/w_150,h_150,c_fill,so_0/').replace(/\.\w+$/, '.jpg');
       } else {
         // For images, create thumbnail
         thumbnail = data.secure_url.replace('/upload/', '/upload/w_150,h_150,c_fill/');
@@ -127,7 +137,7 @@ export default function ImageUploader({
         publicId: data.public_id,
         thumbnail: thumbnail,
         filename: file.name,
-        fileType: isPDF ? 'pdf' : 'image',
+        fileType: isPDF ? 'pdf' : isVideo ? 'video' : 'image',
       };
     } catch (err) {
       console.error('Cloudinary upload error:', err);
@@ -202,7 +212,7 @@ export default function ImageUploader({
         <input
           ref={fileInputRef}
           type="file"
-          accept={isMobile ? "image/*" : "image/*,application/pdf"}
+          accept="image/*,video/*,application/pdf,.pdf"
           multiple
           style={{ display: 'none' }}
           onChange={(e) => {
@@ -226,8 +236,8 @@ export default function ImageUploader({
             </div>
             <span>
               {isMobile 
-                ? "Take photo/s or upload from gallery" 
-                : "Click to upload images or PDFs, or drag files here"
+                ? "Take photo/video or upload files from gallery" 
+                : "Click to upload images, videos or PDFs, or drag files here"
               }
             </span>
           </div>
