@@ -215,12 +215,16 @@ export default function ImageUploader({
         
         {uploading ? (
           <div className="upload-status">
-            <Loader2 className="animate-spin" size={28} strokeWidth={1.5} />
+            <div className="upload-icon-circle">
+              <Loader2 className="animate-spin" size={24} strokeWidth={1.5} />
+            </div>
             <span>Uploading...</span>
           </div>
         ) : (
           <div className="upload-prompt">
-            <Camera size={28} strokeWidth={1.5} />
+            <div className="upload-icon-circle">
+              <Camera size={24} strokeWidth={1.5} />
+            </div>
             <span>
               {isMobile 
                 ? "Take photo or select from gallery" 

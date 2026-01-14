@@ -438,17 +438,17 @@
 ========================================================================= */
 
 .form-scope .image-uploader-container {
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 .form-scope .image-drop-zone {
   border: 2px dashed #425558;
   border-radius: 8px;
-  padding: 20px;
+  padding: 16px;
   text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
-  background-color: rgba(66, 85, 88, 0.05);
+  background-color: rgba(66, 85, 88, 0.03);
 }
 
 .form-scope .image-drop-zone:hover {
@@ -461,23 +461,36 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   color: #a0acaf;
 }
 
-.form-scope .upload-prompt svg,
-.form-scope .upload-status svg {
+/* Icon circle - matches success page style */
+.form-scope .upload-icon-circle {
+  width: 48px;
+  height: 48px;
+  background: rgba(0, 255, 246, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
+}
+
+.form-scope .upload-icon-circle svg {
   color: #00FFF6;
   stroke: #00FFF6;
   display: block;
-  margin: 0 auto;
-  stroke-width: 2;
+  margin: 0;
+  padding: 0;
+  stroke-width: 1.5;
 }
 
 .form-scope .upload-prompt span,
 .form-scope .upload-status span {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
+  line-height: 1.4;
 }
 
 .form-scope .upload-error {
@@ -524,18 +537,22 @@
 /* Mobile adjustments */
 @media (max-width: 600px) {
   .form-scope .image-drop-zone {
-    padding: 24px 16px;
+    padding: 20px 16px;
   }
 
-  .form-scope .upload-prompt svg,
-  .form-scope .upload-status svg {
-    width: 32px;
-    height: 32px;
+  .form-scope .upload-icon-circle {
+    width: 44px;
+    height: 44px;
+  }
+
+  .form-scope .upload-icon-circle svg {
+    width: 22px;
+    height: 22px;
   }
 
   .form-scope .upload-prompt span,
   .form-scope .upload-status span {
-    font-size: 13px;
+    font-size: 12px;
   }
 
   .form-scope .thumbnail-item {
@@ -558,4 +575,29 @@
   display: block;
   margin: 0;
   padding: 0;
+}
+
+/* Better responsive breakpoint for engineer fields */
+@media (max-width: 991px) {
+  .form-scope .checklist-inline-group {
+    display: block !important;
+  }
+  
+  .form-scope .checklist-inline-group .checklist-field {
+    width: 100%;
+    margin-bottom: 16px;
+  }
+  
+  .form-scope .checklist-inline-group .checklist-field:last-child {
+    margin-bottom: 0;
+  }
+}
+
+/* Keep desktop layout only on larger screens */
+@media (min-width: 992px) {
+  .form-scope .checklist-inline-group {
+    display: flex;
+    gap: 20px;
+    align-items: flex-end;
+  }
 }

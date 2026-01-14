@@ -149,16 +149,44 @@ export const TechnicalAlertEmail = ({
                 <Heading as="h2" style={h2}>Checklist Details</Heading>
                 
                 <Section>
-                  {Object.entries(answers).map(([question, answer], i) => (
-                    <div key={i} style={answerBlock}>
-                      <Text style={questionText}>{question}</Text>
-                      <Text style={answerText}>
-                        {answer !== null && answer !== undefined && answer !== '' 
-                          ? String(answer) 
-                          : 'Not answered'}
-                      </Text>
-                    </div>
-                  ))}
+                  {Object.entries(answers).map(([question, answerData], i) => {
+                    // Handle both old format (string) and new format (object with text/images)
+                    const isObject = typeof answerData === 'object' && answerData !== null;
+                    const answerText = isObject ? answerData.text : answerData;
+                    const images = isObject ? (answerData.images || []) : [];
+
+                    return (
+                      <div key={i} style={answerBlock}>
+                        <Text style={questionText}>{question}</Text>
+                        <Text style={answerText}>
+                          {answerText !== null && answerText !== undefined && answerText !== '' 
+                            ? String(answerText) 
+                            : 'Not answered'}
+                        </Text>
+                        
+                        {/* Display images if present */}
+                        {images.length > 0 && (
+                          <Section style={imageGallery}>
+                            {images.map((imageUrl, imgIndex) => (
+                              <a 
+                                key={imgIndex} 
+                                href={imageUrl}
+                                style={imageLink}
+                              >
+                                <Img
+                                  src={imageUrl}
+                                  alt={`Image ${imgIndex + 1}`}
+                                  width="150"
+                                  height="150"
+                                  style={imageThumbnail}
+                                />
+                              </a>
+                            ))}
+                          </Section>
+                        )}
+                      </div>
+                    );
+                  })}
                 </Section>
               </>
             )}
@@ -330,6 +358,27 @@ const answerText = {
   margin: '0',
   lineHeight: '1.5',
   whiteSpace: 'pre-wrap',
+};
+
+const imageGallery = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '8px',
+  marginTop: '12px',
+};
+
+const imageLink = {
+  display: 'inline-block',
+  marginRight: '8px',
+  marginBottom: '8px',
+};
+
+const imageThumbnail = {
+  width: '150px',
+  height: '150px',
+  objectFit: 'cover',
+  borderRadius: '8px',
+  border: '2px solid #E2E8F0',
 };
 
 const hr = {
