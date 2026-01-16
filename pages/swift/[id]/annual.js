@@ -254,6 +254,9 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     if (!selectedCompany || selectedCompany === "Please select") {
       errors.push({ field: 'company', message: 'Please select a maintenance company.' });
       if (!firstErrorField) firstErrorField = companyFieldRef;
+      // Add error class to the company dropdown input
+      const companyInput = companyFieldRef.current?.querySelector('.checklist-input');
+      if (companyInput) companyInput.classList.add('has-error');
     }
 
     // Validation - Location
@@ -294,14 +297,22 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       if (errors.length === 1) {
         setErrorMsg(errors[0].message);
       } else {
-        setErrorMsg(`Please check for multiple errors (${errors.length} fields need attention)`);
+        setErrorMsg("Please check for multiple errors");
       }
       
       // Scroll to first error
       if (firstErrorField) {
         if (firstErrorField.current) {
           firstErrorField.current.scrollIntoView({ behavior: "smooth", block: "center" });
-          setTimeout(() => firstErrorField.current.focus(), 300);
+          setTimeout(() => {
+            if (firstErrorField.current.focus) {
+              firstErrorField.current.focus();
+            } else if (firstErrorField.current.querySelector) {
+              // For dropdown containers, try to focus the input inside
+              const input = firstErrorField.current.querySelector('.checklist-input');
+              if (input) input.focus();
+            }
+          }, 300);
         }
       }
       return;
