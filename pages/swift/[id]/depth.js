@@ -39,20 +39,6 @@ const getClientLogo = (companyName, serialNumber) => {
   return null;
 };
 
-// Equipment checklist items
-const EQUIPMENT_ITEMS = [
-  { id: 1, name: "SWIFT" },
-  { id: 2, name: "Vessel hinge mounting bracket" },
-  { id: 3, name: "Winch (including rope)" },
-  { id: 4, name: "Control box" },
-  { id: 5, name: "3-push-button control box" },
-  { id: 6, name: "Emergency stop button" },
-  { id: 7, name: "Electrical cabling" },
-  { id: 8, name: "Securing pins (×2)" },
-  { id: 9, name: "Ratchet spanner and 24 mm socket" },
-  { id: 10, name: "Packing crate" },
-];
-
 export default function Depth({ unit, template, allCompanies = [], allEngineers = [] }) {
   const router = useRouter();
 
@@ -73,17 +59,11 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     engineerPhone: false,
   });
 
-  // Step control
-  const [currentStep, setCurrentStep] = useState(1); // 1 = checklist, 2 = form
+  // Step control - 1 = checklist, 2 = questions
+  const [currentStep, setCurrentStep] = useState(1);
 
-  // Checklist data
-  const [checklistData, setChecklistData] = useState(
-    EQUIPMENT_ITEMS.map(item => ({
-      ...item,
-      returned: null,
-      condition: null,
-    }))
-  );
+  // Checklist data - initialize from template
+  const [checklistData, setChecklistData] = useState([]);
 
   const [locationDisplay, setLocationDisplay] = useState("");
   const [locationCountry, setLocationCountry] = useState("");
@@ -98,6 +78,19 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
 
   const storageKey = useMemo(() => `draft_depth_${unit?.serial_number}`, [unit?.serial_number]);
+
+  // Initialize checklist data from template
+  useEffect(() => {
+    if (template?.equipmentChecklist) {
+      setChecklistData(
+        template.equipmentChecklist.map(item => ({
+          ...item,
+          returned: null,
+          condition: null,
+        }))
+      );
+    }
+  }, [template]);
 
   const filteredEngineers = useMemo(() => {
     if (!selectedCompany) return [];
@@ -149,10 +142,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     setShowEngineerDropdown(false);
   }, []);
 
-  const scrollToField = useCallback((ref) => {
-    ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, []);
-
   const handleImagesChange = (questionKey, images) => {
     setQuestionImages(prev => ({
       ...prev,
@@ -180,6 +169,53 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       if (item.returned === true && item.condition === null) return false;
       return true;
     });
+  };
+
+  const handleContinueToQuestions = () => {
+    // Validate top fields before continuing
+    const errors = [];
+    const newFieldErrors = {
+      company: false,
+      location: false,
+      engineerName: false,
+      engineerEmail: false,
+      engineerPhone: false,
+    };
+
+    if (!selectedCompany || selectedCompany === "Please select") {
+      errors.push('company');
+      newFieldErrors.company = true;
+    }
+
+    if (!locationDisplay || !locationDisplay.trim()) {
+      errors.push('location');
+      newFieldErrors.location = true;
+    }
+
+    if (!engName || engName === "Please select" || !engName.trim()) {
+      errors.push('engineer');
+      newFieldErrors.engineerName = true;
+    }
+
+    if (!engEmail || !engEmail.trim()) {
+      errors.push('email');
+      newFieldErrors.engineerEmail = true;
+    }
+
+    if (!engPhone || !engPhone.trim()) {
+      errors.push('phone');
+      newFieldErrors.engineerPhone = true;
+    }
+
+    setFieldErrors(newFieldErrors);
+
+    if (errors.length > 0) {
+      setErrorMsg("Please complete all required fields before continuing.");
+      return;
+    }
+
+    setErrorMsg("");
+    setCurrentStep(2);
   };
 
   // Close dropdowns on outside click
@@ -223,10 +259,9 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     }
   }, [storageKey]);
 
-  // Get geolocation - IMPROVED VERSION
+  // Get geolocation
   useEffect(() => {
     if (typeof window === "undefined" || !navigator.geolocation) return;
-
     if (locationDisplay && locationDisplay.trim() !== "") return;
 
     const options = {
@@ -308,59 +343,8 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
     const errors = [];
     let firstErrorField = null;
-    const newFieldErrors = {
-      company: false,
-      location: false,
-      engineerName: false,
-      engineerEmail: false,
-      engineerPhone: false,
-    };
 
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
-
-    if (!selectedCompany || selectedCompany === "Please select") {
-      errors.push({ field: 'company', message: 'Please select a maintenance company.' });
-      newFieldErrors.company = true;
-      if (!firstErrorField) firstErrorField = companyFieldRef;
-    }
-
-    if (!locationDisplay || !locationDisplay.trim()) {
-      errors.push({ field: 'location', message: 'Please provide a location.' });
-      newFieldErrors.location = true;
-      if (!firstErrorField) firstErrorField = locationFieldRef;
-      const locationInput = document.querySelector('[name="location_display"]');
-      if (locationInput) locationInput.classList.add('has-error');
-    }
-
-    if (!engName || engName === "Please select" || !engName.trim()) {
-      errors.push({ field: 'engineer', message: 'Please select or enter an engineer name.' });
-      newFieldErrors.engineerName = true;
-      if (!firstErrorField) firstErrorField = engineerFieldRef;
-      const engineerInput = document.querySelector('[name="engineer_name"]');
-      if (engineerInput) engineerInput.classList.add('has-error');
-    }
-
-    if (!engEmail || !engEmail.trim()) {
-      errors.push({ field: 'engineer_email', message: 'Please provide an engineer email.' });
-      newFieldErrors.engineerEmail = true;
-      if (!firstErrorField) {
-        const emailInput = document.querySelector('[name="engineer_email"]');
-        if (emailInput) firstErrorField = { current: emailInput };
-      }
-      const emailInput = document.querySelector('[name="engineer_email"]');
-      if (emailInput) emailInput.classList.add('has-error');
-    }
-
-    if (!engPhone || !engPhone.trim()) {
-      errors.push({ field: 'engineer_phone', message: 'Please provide an engineer phone number.' });
-      newFieldErrors.engineerPhone = true;
-      if (!firstErrorField) {
-        const phoneInput = document.querySelector('[name="engineer_phone"]');
-        if (phoneInput) firstErrorField = { current: phoneInput };
-      }
-      const phoneInput = document.querySelector('[name="engineer_phone"]');
-      if (phoneInput) phoneInput.classList.add('has-error');
-    }
 
     const requiredQuestions = (template?.questionsData || []).filter(q => q.required);
     for (let i = 0; i < requiredQuestions.length; i++) {
@@ -378,8 +362,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       }
     }
 
-    setFieldErrors(newFieldErrors);
-
     if (errors.length > 0) {
       if (errors.length === 1) {
         setErrorMsg(errors[0].message);
@@ -387,18 +369,13 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
         setErrorMsg("Please check for multiple errors.");
       }
       
-      if (firstErrorField) {
-        if (firstErrorField.current) {
-          firstErrorField.current.scrollIntoView({ behavior: "smooth", block: "center" });
-          setTimeout(() => {
-            if (firstErrorField.current.focus) {
-              firstErrorField.current.focus();
-            } else if (firstErrorField.current.querySelector) {
-              const input = firstErrorField.current.querySelector('.checklist-input');
-              if (input) input.focus();
-            }
-          }, 300);
-        }
+      if (firstErrorField?.current) {
+        firstErrorField.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        setTimeout(() => {
+          if (firstErrorField.current.focus) {
+            firstErrorField.current.focus();
+          }
+        }, 300);
       }
       return;
     }
@@ -429,7 +406,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       unit_record_id: unit?.record_id,
       checklist_template_id: template?.id,
       serial_number: unit?.serial_number,
-      equipment_checklist: JSON.stringify(checklistData), // ADD CHECKLIST DATA
+      equipment_checklist: JSON.stringify(checklistData),
       answers: (template?.questionsData || []).map((q, i) => {
         const questionKey = `q${i + 1}`;
         return {
@@ -511,292 +488,302 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
               <span className="break-point">depth maintenance</span>
             </h1>
 
-            {/* STEP 1: EQUIPMENT CHECKLIST */}
-            {currentStep === 1 && (
-              <div className="checklist-step">
-                <h2 className="checklist-step-title">Equipment Return Checklist</h2>
-                <p className="checklist-step-subtitle">
-                  Check equipment condition before starting maintenance
-                </p>
-                
-                <div className="equipment-table">
-                  <div className="equipment-header">
-                    <div className="header-number">No</div>
-                    <div className="header-item">Item</div>
-                    <div className="header-returned">Returned?</div>
-                    <div className="header-condition">Condition</div>
-                  </div>
-                  
-                  {checklistData.map((item, index) => (
-                    <div key={item.id} className="equipment-row">
-                      <div className="item-number">{item.id}</div>
-                      <div className="item-name">{item.name}</div>
-                      
-                      <div className="toggle-group">
-                        <button 
-                          type="button"
-                          className={`toggle-btn ${item.returned === true ? 'active' : ''}`}
-                          onClick={() => updateChecklist(index, 'returned', true)}
-                        >
-                          Y
-                        </button>
-                        <button 
-                          type="button"
-                          className={`toggle-btn ${item.returned === false ? 'active' : ''}`}
-                          onClick={() => updateChecklist(index, 'returned', false)}
-                        >
-                          N
-                        </button>
-                      </div>
-                      
-                      <div className="toggle-group condition-group">
-                        {item.returned === true ? (
-                          <>
-                            <button 
-                              type="button"
-                              className={`toggle-btn ${item.condition === 'good' ? 'active' : ''}`}
-                              onClick={() => updateChecklist(index, 'condition', 'good')}
-                            >
-                              Good
-                            </button>
-                            <button 
-                              type="button"
-                              className={`toggle-btn ${item.condition === 'fair' ? 'active' : ''}`}
-                              onClick={() => updateChecklist(index, 'condition', 'fair')}
-                            >
-                              Fair
-                            </button>
-                            <button 
-                              type="button"
-                              className={`toggle-btn ${item.condition === 'poor' ? 'active' : ''}`}
-                              onClick={() => updateChecklist(index, 'condition', 'poor')}
-                            >
-                              Poor
-                            </button>
-                          </>
-                        ) : (
-                          <span className="condition-placeholder">—</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                <button 
-                  type="button"
-                  className="continue-btn"
-                  disabled={!isChecklistComplete()}
-                  onClick={() => setCurrentStep(2)}
-                >
-                  Continue to Maintenance Form
-                </button>
-              </div>
-            )}
-
-            {/* STEP 2: MAINTENANCE FORM */}
-            {currentStep === 2 && (
-              <div className="checklist-form-card">
-                <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-                  <div className="checklist-inline-group">
-                    <div className="checklist-field" ref={companyFieldRef}>
-                      <label className="checklist-label">Maintenance company</label>
-                      <div className="custom-dropdown-container" ref={companyDropdownRef}>
-                        <div className="field-icon-wrapper">
-                          <input
-                            readOnly
-                            className={`checklist-input ${selectedCompany ? "is-active" : "is-placeholder"} ${
-                              showCompanyDropdown ? "is-focused" : ""
-                            } ${fieldErrors.company ? "has-error" : ""}`}
-                            value={selectedCompany || "Please select"}
-                            onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
-                            style={{ cursor: "pointer", paddingRight: "40px" }}
-                          />
-                          <div className="field-icon-inside">
-                            {showCompanyDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
-                          </div>
-                        </div>
-                        {showCompanyDropdown && (
-                          <ul className={`custom-dropdown-list ${fieldErrors.company ? "has-error" : ""}`}>
-                            {allCompanies.sort().map((c, i) => (
-                              <li
-                                key={i}
-                                className={`custom-dropdown-item ${selectedCompany === c ? "active" : ""}`}
-                                onClick={() => selectCompany(c)}
-                              >
-                                {c}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="checklist-field" ref={locationFieldRef}>
-                      <label className="checklist-label">Location</label>
-                      <input
-                        className="checklist-input"
-                        name="location_display"
-                        required
-                        value={locationDisplay}
-                        onChange={(e) => {
-                          setLocationDisplay(e.target.value);
-                          if (e.target.value.trim()) {
-                            e.target.classList.remove('has-error');
-                          }
-                        }}
-                      />
-                    </div>
-
-                    <div className="checklist-field">
-                      <label className="checklist-label">Date</label>
+            {/* FORM CARD - ALWAYS VISIBLE */}
+            <div className="checklist-form-card">
+              <form onSubmit={handleSubmit} autoComplete="off" noValidate>
+                {/* TOP FIELDS - ALWAYS VISIBLE ON BOTH STEPS */}
+                <div className="checklist-inline-group">
+                  <div className="checklist-field" ref={companyFieldRef}>
+                    <label className="checklist-label">Maintenance company</label>
+                    <div className="custom-dropdown-container" ref={companyDropdownRef}>
                       <div className="field-icon-wrapper">
                         <input
-                          type="date"
-                          className="checklist-input"
-                          name="date_of_maintenance"
-                          defaultValue={today}
-                          max={today}
-                          required
-                          style={{ paddingRight: "40px" }}
+                          readOnly
+                          className={`checklist-input ${selectedCompany ? "is-active" : "is-placeholder"} ${
+                            showCompanyDropdown ? "is-focused" : ""
+                          } ${fieldErrors.company ? "has-error" : ""}`}
+                          value={selectedCompany || "Please select"}
+                          onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
+                          style={{ cursor: "pointer", paddingRight: "40px" }}
                         />
                         <div className="field-icon-inside">
-                          <Calendar size={20} strokeWidth={1.5} />
+                          {showCompanyDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
                         </div>
                       </div>
+                      {showCompanyDropdown && (
+                        <ul className={`custom-dropdown-list ${fieldErrors.company ? "has-error" : ""}`}>
+                          {allCompanies.sort().map((c, i) => (
+                            <li
+                              key={i}
+                              className={`custom-dropdown-item ${selectedCompany === c ? "active" : ""}`}
+                              onClick={() => selectCompany(c)}
+                            >
+                              {c}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   </div>
 
-                  <div className="checklist-inline-group" style={{ marginTop: "24px" }}>
-                    <div className="checklist-field" ref={engineerFieldRef}>
-                      <label className="checklist-label">Engineer name</label>
-                      <div className="custom-dropdown-container" ref={engineerDropdownRef}>
-                        <div className="field-icon-wrapper">
-                          <input
-                            className={`checklist-input ${
-                              engName === "Please select" || !engName ? "is-placeholder" : "is-active"
-                            } ${shouldShowEngDropdown ? "is-focused" : ""} ${fieldErrors.engineerName ? "has-error" : ""}`}
-                            name="engineer_name"
-                            required
-                            value={engName}
-                            autoComplete="off"
-                            onFocus={() => {
-                              if (selectedCompany) setShowEngineerDropdown(true);
-                            }}
-                            onChange={(e) => {
-                              setEngName(e.target.value);
-                              if (selectedCompany) setShowEngineerDropdown(true);
-                              if (e.target.value.trim() && e.target.value !== "Please select") {
-                                setFieldErrors(prev => ({ ...prev, engineerName: false }));
-                              }
-                            }}
-                            style={{
-                              paddingRight: selectedCompany && (hasEngineerResults || hasClearEng) ? "40px" : "16px",
-                            }}
-                          />
-                          {selectedCompany && (hasEngineerResults || hasClearEng) && (
-                            <div className="field-icon-inside">
-                              {showEngineerDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
-                            </div>
+                  <div className="checklist-field" ref={locationFieldRef}>
+                    <label className="checklist-label">Location</label>
+                    <input
+                      className="checklist-input"
+                      name="location_display"
+                      required
+                      value={locationDisplay}
+                      onChange={(e) => {
+                        setLocationDisplay(e.target.value);
+                        if (e.target.value.trim()) {
+                          e.target.classList.remove('has-error');
+                          setFieldErrors(prev => ({ ...prev, location: false }));
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <div className="checklist-field">
+                    <label className="checklist-label">Date</label>
+                    <div className="field-icon-wrapper">
+                      <input
+                        type="date"
+                        className="checklist-input"
+                        name="date_of_maintenance"
+                        defaultValue={today}
+                        max={today}
+                        required
+                        style={{ paddingRight: "40px" }}
+                      />
+                      <div className="field-icon-inside">
+                        <Calendar size={20} strokeWidth={1.5} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="checklist-inline-group" style={{ marginTop: "24px" }}>
+                  <div className="checklist-field" ref={engineerFieldRef}>
+                    <label className="checklist-label">Engineer name</label>
+                    <div className="custom-dropdown-container" ref={engineerDropdownRef}>
+                      <div className="field-icon-wrapper">
+                        <input
+                          className={`checklist-input ${
+                            engName === "Please select" || !engName ? "is-placeholder" : "is-active"
+                          } ${shouldShowEngDropdown ? "is-focused" : ""} ${fieldErrors.engineerName ? "has-error" : ""}`}
+                          name="engineer_name"
+                          required
+                          value={engName}
+                          autoComplete="off"
+                          onFocus={() => {
+                            if (selectedCompany) setShowEngineerDropdown(true);
+                          }}
+                          onChange={(e) => {
+                            setEngName(e.target.value);
+                            if (selectedCompany) setShowEngineerDropdown(true);
+                            if (e.target.value.trim() && e.target.value !== "Please select") {
+                              setFieldErrors(prev => ({ ...prev, engineerName: false }));
+                            }
+                          }}
+                          style={{
+                            paddingRight: selectedCompany && (hasEngineerResults || hasClearEng) ? "40px" : "16px",
+                          }}
+                        />
+                        {selectedCompany && (hasEngineerResults || hasClearEng) && (
+                          <div className="field-icon-inside">
+                            {showEngineerDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
+                          </div>
+                        )}
+                      </div>
+                      {shouldShowEngDropdown && (
+                        <ul className={`custom-dropdown-list ${fieldErrors.engineerName ? "has-error" : ""}`}>
+                          {hasClearEng && (
+                            <li className="custom-dropdown-item" onClick={clearEngineer}>
+                              Clear details
+                            </li>
+                          )}
+                          {filteredEngineers.map((eng, i) => (
+                            <li key={i} className="custom-dropdown-item" onClick={() => selectEngineer(eng)}>
+                              {eng.name}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="checklist-field">
+                    <label className="checklist-label">Engineer email</label>
+                    <input
+                      type="email"
+                      className="checklist-input"
+                      name="engineer_email"
+                      required
+                      value={engEmail}
+                      onChange={(e) => {
+                        setEngEmail(e.target.value);
+                        if (e.target.value.trim()) {
+                          e.target.classList.remove('has-error');
+                          setFieldErrors(prev => ({ ...prev, engineerEmail: false }));
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <div className="checklist-field">
+                    <label className="checklist-label">Engineer phone</label>
+                    <input
+                      type="tel"
+                      className="checklist-input"
+                      name="engineer_phone"
+                      required
+                      value={engPhone}
+                      onChange={(e) => {
+                        setEngPhone(e.target.value);
+                        if (e.target.value.trim()) {
+                          e.target.classList.remove('has-error');
+                          setFieldErrors(prev => ({ ...prev, engineerPhone: false }));
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* STEP 1: EQUIPMENT CHECKLIST */}
+                {currentStep === 1 && (
+                  <div style={{ marginTop: "32px", paddingTop: "32px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+                    <h3 className="checklist-section-title">Equipment Return Checklist</h3>
+                    <p className="checklist-section-subtitle">
+                      Check equipment condition before proceeding
+                    </p>
+                    
+                    <div className="equipment-table">
+                      <div className="equipment-header">
+                        <div className="header-number">No</div>
+                        <div className="header-item">Item</div>
+                        <div className="header-returned">Returned?</div>
+                        <div className="header-condition">Condition</div>
+                      </div>
+                      
+                      {checklistData.map((item, index) => (
+                        <div key={item.id} className="equipment-row">
+                          <div className="item-number">{item.id}</div>
+                          <div className="item-name">{item.name}</div>
+                          
+                          <div className="toggle-group">
+                            <button 
+                              type="button"
+                              className={`toggle-btn ${item.returned === true ? 'active' : ''}`}
+                              onClick={() => updateChecklist(index, 'returned', true)}
+                            >
+                              Y
+                            </button>
+                            <button 
+                              type="button"
+                              className={`toggle-btn ${item.returned === false ? 'active' : ''}`}
+                              onClick={() => updateChecklist(index, 'returned', false)}
+                            >
+                              N
+                            </button>
+                          </div>
+                          
+                          <div className="toggle-group condition-group">
+                            {item.returned === true ? (
+                              <>
+                                <button 
+                                  type="button"
+                                  className={`toggle-btn ${item.condition === 'good' ? 'active' : ''}`}
+                                  onClick={() => updateChecklist(index, 'condition', 'good')}
+                                >
+                                  Good
+                                </button>
+                                <button 
+                                  type="button"
+                                  className={`toggle-btn ${item.condition === 'fair' ? 'active' : ''}`}
+                                  onClick={() => updateChecklist(index, 'condition', 'fair')}
+                                >
+                                  Fair
+                                </button>
+                                <button 
+                                  type="button"
+                                  className={`toggle-btn ${item.condition === 'poor' ? 'active' : ''}`}
+                                  onClick={() => updateChecklist(index, 'condition', 'poor')}
+                                >
+                                  Poor
+                                </button>
+                              </>
+                            ) : (
+                              <span className="condition-placeholder">—</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {errorMsg && <p className="error-message">{errorMsg}</p>}
+                    
+                    <button 
+                      type="button"
+                      className="checklist-submit"
+                      style={{ marginTop: "24px" }}
+                      disabled={!isChecklistComplete()}
+                      onClick={handleContinueToQuestions}
+                    >
+                      Continue to Maintenance Questions
+                    </button>
+                  </div>
+                )}
+
+                {/* STEP 2: MAINTENANCE QUESTIONS */}
+                {currentStep === 2 && (
+                  <div style={{ marginTop: "32px", paddingTop: "32px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+                    {(template?.questionsData || []).map((q, i) => (
+                      <div key={i} style={{ marginTop: i === 0 ? "0" : "24px" }}>
+                        <label className="checklist-label">
+                          {q.title}
+                        </label>
+                        {q.instruction && (
+                          <p className="question-instruction">{q.instruction}</p>
+                        )}
+                        
+                        <div className="question-with-upload">
+                          <div className="textarea-wrapper">
+                            <textarea
+                              name={`q${i + 1}`}
+                              className="checklist-textarea"
+                              onInput={autoGrow}
+                              value={answers[`q${i + 1}`] || ""}
+                              onChange={(e) => {
+                                setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+                                if (e.target.value.trim()) {
+                                  e.target.classList.remove('has-error');
+                                }
+                              }}
+                              required={q.required}
+                            />
+                          </div>
+                          
+                          {q.allow_uploads && (
+                            <ImageUploader
+                              questionKey={`q${i + 1}`}
+                              questionText={q.title}
+                              serialNumber={unit?.serial_number}
+                              maintenanceType="depth"
+                              onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
+                            />
                           )}
                         </div>
-                        {shouldShowEngDropdown && (
-                          <ul className={`custom-dropdown-list ${fieldErrors.engineerName ? "has-error" : ""}`}>
-                            {hasClearEng && (
-                              <li className="custom-dropdown-item" onClick={clearEngineer}>
-                                Clear details
-                              </li>
-                            )}
-                            {filteredEngineers.map((eng, i) => (
-                              <li key={i} className="custom-dropdown-item" onClick={() => selectEngineer(eng)}>
-                                {eng.name}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
                       </div>
-                    </div>
+                    ))}
 
-                    <div className="checklist-field">
-                      <label className="checklist-label">Engineer email</label>
-                      <input
-                        type="email"
-                        className="checklist-input"
-                        name="engineer_email"
-                        required
-                        value={engEmail}
-                        onChange={(e) => {
-                          setEngEmail(e.target.value);
-                          if (e.target.value.trim()) {
-                            e.target.classList.remove('has-error');
-                          }
-                        }}
-                      />
-                    </div>
-
-                    <div className="checklist-field">
-                      <label className="checklist-label">Engineer phone</label>
-                      <input
-                        type="tel"
-                        className="checklist-input"
-                        name="engineer_phone"
-                        required
-                        value={engPhone}
-                        onChange={(e) => {
-                          setEngPhone(e.target.value);
-                          if (e.target.value.trim()) {
-                            e.target.classList.remove('has-error');
-                          }
-                        }}
-                      />
-                    </div>
+                    {errorMsg && <p className="error-message">{errorMsg}</p>}
+                    <button className="checklist-submit" disabled={submitting}>
+                      {submitting ? "Submitting..." : "Submit maintenance"}
+                    </button>
                   </div>
-
-                  {(template?.questionsData || []).map((q, i) => (
-                    <div key={i} style={{ marginTop: "24px" }}>
-                      <label className="checklist-label">
-                        {q.title}
-                      </label>
-                      {q.instruction && (
-                        <p className="question-instruction">{q.instruction}</p>
-                      )}
-                      
-                      <div className="question-with-upload">
-                        <div className="textarea-wrapper">
-                          <textarea
-                            name={`q${i + 1}`}
-                            className="checklist-textarea"
-                            onInput={autoGrow}
-                            value={answers[`q${i + 1}`] || ""}
-                            onChange={(e) => {
-                              setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-                              if (e.target.value.trim()) {
-                                e.target.classList.remove('has-error');
-                              }
-                            }}
-                            required={q.required}
-                          />
-                        </div>
-                        
-                        {q.allow_uploads && (
-                          <ImageUploader
-                            questionKey={`q${i + 1}`}
-                            questionText={q.title}
-                            serialNumber={unit?.serial_number}
-                            maintenanceType="depth"
-                            onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  ))}
-
-                  {errorMsg && <p className="error-message">{errorMsg}</p>}
-                  <button className="checklist-submit" disabled={submitting}>
-                    {submitting ? "Submitting..." : "Submit maintenance"}
-                  </button>
-                </form>
-              </div>
-            )}
+                )}
+              </form>
+            </div>
           </div>
         </div>
 
@@ -844,6 +831,16 @@ export async function getServerSideProps({ params }) {
       });
     }
 
+    // Parse the questions_json to get both equipment checklist and questions
+    let parsedJson = {};
+    try {
+      if (templateData.records?.[0]?.fields.questions_json) {
+        parsedJson = JSON.parse(templateData.records[0].fields.questions_json);
+      }
+    } catch (e) {
+      console.error("Failed to parse questions_json:", e);
+    }
+
     return {
       props: {
         unit: {
@@ -854,12 +851,9 @@ export async function getServerSideProps({ params }) {
         },
         template: {
           id: templateData.records?.[0]?.id || "",
-          questionsData: templateData.records?.[0]?.fields.questions_json
-            ? JSON.parse(templateData.records[0].fields.questions_json)
-            : [],
-          questions: templateData.records?.[0]?.fields.questions_json
-            ? JSON.parse(templateData.records[0].fields.questions_json).map(q => q.title)
-            : [],
+          equipmentChecklist: parsedJson.equipment_checklist || [],
+          questionsData: parsedJson.questions || [],
+          questions: parsedJson.questions?.map(q => q.title) || [],
         },
         allCompanies: Object.values(companyLookup).filter(Boolean),
         allEngineers:

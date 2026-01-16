@@ -1018,3 +1018,32 @@
     flex: 0 0 auto;
   }
 }
+
+/* Section Titles for within form card */
+.checklist-section-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 6px;
+  font-family: "Montserrat", sans-serif;
+}
+
+.checklist-section-subtitle {
+  font-size: 14px;
+  color: #a0acaf;
+  margin-bottom: 24px;
+  font-family: "Montserrat", sans-serif;
+}
+
+/* Reduce equipment table padding when inside form card */
+.equipment-table {
+  background: #1a3d45;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 0 0 20px;
+}
+
+/* Adjust equipment row styling */
+.equipment-row {
+  padding: 14px;
+}
