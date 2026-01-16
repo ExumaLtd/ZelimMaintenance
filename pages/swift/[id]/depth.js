@@ -565,7 +565,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                         <input
                           className={`checklist-input ${
                             engName === "Please select" || !engName ? "is-placeholder" : "is-active"
-                          } ${shouldShowEngDropdown ? "is-focused" : ""}`}
+                          } ${shouldShowEngDropdown ? "is-focused" : ""} ${fieldErrors.engineerName ? "has-error" : ""}`}
                           name="engineer_name"
                           required
                           value={engName}
@@ -576,6 +576,10 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                           onChange={(e) => {
                             setEngName(e.target.value);
                             if (selectedCompany) setShowEngineerDropdown(true);
+                            // Remove error when user types
+                            if (e.target.value.trim() && e.target.value !== "Please select") {
+                              setFieldErrors(prev => ({ ...prev, engineerName: false }));
+                            }
                           }}
                           style={{
                             paddingRight: selectedCompany && (hasEngineerResults || hasClearEng) ? "40px" : "16px",
@@ -588,7 +592,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                         )}
                       </div>
                       {shouldShowEngDropdown && (
-                        <ul className="custom-dropdown-list">
+                        <ul className={`custom-dropdown-list ${fieldErrors.engineerName ? "has-error" : ""}`}>
                           {hasClearEng && (
                             <li className="custom-dropdown-item" onClick={clearEngineer}>
                               Clear details
