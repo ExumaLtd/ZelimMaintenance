@@ -51,6 +51,13 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [today, setToday] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({
+    company: false,
+    location: false,
+    engineerName: false,
+    engineerEmail: false,
+    engineerPhone: false,
+  });
 
   const [locationDisplay, setLocationDisplay] = useState("");
   const [locationCountry, setLocationCountry] = useState("");
@@ -205,10 +212,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     setEngEmail("");
     setEngPhone("");
     setShowCompanyDropdown(false);
-    // Remove error class when valid selection made - use stored input reference
-    if (companyFieldRef.current?._input) {
-      companyFieldRef.current._input.classList.remove('has-error');
-    }
+    // Remove error state when valid selection made
+    setFieldErrors(prev => ({ ...prev, company: false }));
   };
 
   const selectEngineer = (engineer) => {
@@ -216,7 +221,14 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     setEngEmail(engineer.email || "");
     setEngPhone(engineer.phone || "");
     setShowEngineerDropdown(false);
-    // Remove error class when valid selection made
+    // Remove error states when valid selection made
+    setFieldErrors(prev => ({
+      ...prev,
+      engineerName: false,
+      engineerEmail: engineer.email ? false : prev.engineerEmail,
+      engineerPhone: engineer.phone ? false : prev.engineerPhone,
+    }));
+    // Remove error class from engineer name input
     const engineerInput = document.querySelector('[name="engineer_name"]');
     if (engineerInput) engineerInput.classList.remove('has-error');
     // Also remove error from email if it gets filled
@@ -257,23 +269,28 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     // Collect all errors
     const errors = [];
     let firstErrorField = null;
+    const newFieldErrors = {
+      company: false,
+      location: false,
+      engineerName: false,
+      engineerEmail: false,
+      engineerPhone: false,
+    };
 
-    // Remove all error classes first
+    // Remove all error classes from textareas/questions
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
 
     // Validation - Maintenance company
     if (!selectedCompany || selectedCompany === "Please select") {
       errors.push({ field: 'company', message: 'Please select a maintenance company.' });
+      newFieldErrors.company = true;
       if (!firstErrorField) firstErrorField = companyFieldRef;
-      // Add error class to the company dropdown input using stored reference
-      if (companyFieldRef.current?._input) {
-        companyFieldRef.current._input.classList.add('has-error');
-      }
     }
 
     // Validation - Location
     if (!locationDisplay || !locationDisplay.trim()) {
       errors.push({ field: 'location', message: 'Please provide a location.' });
+      newFieldErrors.location = true;
       if (!firstErrorField) firstErrorField = locationFieldRef;
       const locationInput = document.querySelector('[name="location_display"]');
       if (locationInput) locationInput.classList.add('has-error');
@@ -282,6 +299,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     // Validation - Engineer name
     if (!engName || engName === "Please select" || !engName.trim()) {
       errors.push({ field: 'engineer', message: 'Please select or enter an engineer name.' });
+      newFieldErrors.engineerName = true;
       if (!firstErrorField) firstErrorField = engineerFieldRef;
       const engineerInput = document.querySelector('[name="engineer_name"]');
       if (engineerInput) engineerInput.classList.add('has-error');
@@ -290,6 +308,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     // Validation - Engineer email
     if (!engEmail || !engEmail.trim()) {
       errors.push({ field: 'engineer_email', message: 'Please provide an engineer email.' });
+      newFieldErrors.engineerEmail = true;
       if (!firstErrorField) {
         const emailInput = document.querySelector('[name="engineer_email"]');
         if (emailInput) firstErrorField = { current: emailInput };
@@ -301,6 +320,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     // Validation - Engineer phone
     if (!engPhone || !engPhone.trim()) {
       errors.push({ field: 'engineer_phone', message: 'Please provide an engineer phone number.' });
+      newFieldErrors.engineerPhone = true;
       if (!firstErrorField) {
         const phoneInput = document.querySelector('[name="engineer_phone"]');
         if (phoneInput) firstErrorField = { current: phoneInput };
@@ -325,6 +345,9 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
         }
       }
     }
+
+    // Update field errors state
+    setFieldErrors(newFieldErrors);
 
     // If there are errors, show message and scroll to first error
     if (errors.length > 0) {
@@ -473,16 +496,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                           readOnly
                           className={`checklist-input ${selectedCompany ? "is-active" : "is-placeholder"} ${
                             showCompanyDropdown ? "is-focused" : ""
-                          }`}
+                          } ${fieldErrors.company ? "has-error" : ""}`}
                           value={selectedCompany || "Please select"}
                           onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
                           style={{ cursor: "pointer", paddingRight: "40px" }}
-                          ref={(el) => {
-                            // Store reference for error handling
-                            if (el && companyFieldRef.current) {
-                              companyFieldRef.current._input = el;
-                            }
-                          }}
                         />
                         <div className="field-icon-inside">
                           {showCompanyDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
