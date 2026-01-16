@@ -190,6 +190,10 @@
   overflow-y: auto;
 }
 
+.form-scope .custom-dropdown-list.has-error {
+  border-color: rgb(255, 77, 77) !important;
+}
+
 .form-scope .custom-dropdown-item {
   padding: 6px 16px;
   color: #F7F7F7;

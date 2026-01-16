@@ -337,7 +337,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       const answer = answers[`q${questionIndex}`];
       
       if (!answer || !answer.trim()) {
-        errors.push({ field: `q${questionIndex}`, message: `Please answer: ${q.title}` });
+        errors.push({ field: `q${questionIndex}`, message: `Please answer: ${q.title}.` });
         const questionElement = document.querySelector(`[name="q${questionIndex}"]`);
         if (questionElement) {
           questionElement.classList.add('has-error');
@@ -354,7 +354,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       if (errors.length === 1) {
         setErrorMsg(errors[0].message);
       } else {
-        setErrorMsg("Please check for multiple errors");
+        setErrorMsg("Please check for multiple errors.");
       }
       
       // Scroll to first error
@@ -506,7 +506,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                         </div>
                       </div>
                       {showCompanyDropdown && (
-                        <ul className="custom-dropdown-list">
+                        <ul className={`custom-dropdown-list ${fieldErrors.company ? "has-error" : ""}`}>
                           {allCompanies.sort().map((c, i) => (
                             <li
                               key={i}

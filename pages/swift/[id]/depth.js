@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Image from "next/image";
@@ -51,6 +51,13 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [today, setToday] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({
+    company: false,
+    location: false,
+    engineerName: false,
+    engineerEmail: false,
+    engineerPhone: false,
+  });
 
   const [locationDisplay, setLocationDisplay] = useState("");
   const [locationCountry, setLocationCountry] = useState("");
@@ -64,51 +71,18 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
 
-  const storageKey = useMemo(() => `draft_depth_${unit?.serial_number}`, [unit?.serial_number]);
+  const storageKey = `draft_depth_${unit?.serial_number}`;
 
   const filteredEngineers = useMemo(() => {
     if (!selectedCompany) return [];
     let list = allEngineers.filter(e => e.companyName === selectedCompany && e.name !== engName);
-
+    
     if (engName && engName !== "Please select" && engName.trim()) {
       const search = engName.toLowerCase();
       return list.filter(e => e.name.toLowerCase().includes(search));
     }
     return list;
   }, [selectedCompany, engName, allEngineers]);
-
-  const selectCompany = useCallback((company) => {
-    setSelectedCompany(company);
-    setEngName("Please select");
-    setEngEmail("");
-    setEngPhone("");
-    setShowCompanyDropdown(false);
-  }, []);
-
-  const selectEngineer = useCallback((engineer) => {
-    setEngName(engineer.name);
-    setEngEmail(engineer.email || "");
-    setEngPhone(engineer.phone || "");
-    setShowEngineerDropdown(false);
-  }, []);
-
-  const clearEngineer = useCallback(() => {
-    setEngName("");
-    setEngEmail("");
-    setEngPhone("");
-    setShowEngineerDropdown(false);
-  }, []);
-
-  const scrollToField = useCallback((ref) => {
-    ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, []);
-
-  const handleImagesChange = (questionKey, images) => {
-    setQuestionImages(prev => ({
-      ...prev,
-      [questionKey]: images
-    }));
-  };
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -232,29 +206,127 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     localStorage.setItem(storageKey, JSON.stringify(draftData));
   }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, answers, storageKey]);
 
+  const selectCompany = (company) => {
+    setSelectedCompany(company);
+    setEngName("Please select");
+    setEngEmail("");
+    setEngPhone("");
+    setShowCompanyDropdown(false);
+    // Remove error state when valid selection made
+    setFieldErrors(prev => ({ ...prev, company: false }));
+  };
+
+  const selectEngineer = (engineer) => {
+    setEngName(engineer.name);
+    setEngEmail(engineer.email || "");
+    setEngPhone(engineer.phone || "");
+    setShowEngineerDropdown(false);
+    // Remove error states when valid selection made
+    setFieldErrors(prev => ({
+      ...prev,
+      engineerName: false,
+      engineerEmail: engineer.email ? false : prev.engineerEmail,
+      engineerPhone: engineer.phone ? false : prev.engineerPhone,
+    }));
+    // Remove error class from engineer name input
+    const engineerInput = document.querySelector('[name="engineer_name"]');
+    if (engineerInput) engineerInput.classList.remove('has-error');
+    // Also remove error from email if it gets filled
+    if (engineer.email) {
+      const emailInput = document.querySelector('[name="engineer_email"]');
+      if (emailInput) emailInput.classList.remove('has-error');
+    }
+    // Also remove error from phone if it gets filled
+    if (engineer.phone) {
+      const phoneInput = document.querySelector('[name="engineer_phone"]');
+      if (phoneInput) phoneInput.classList.remove('has-error');
+    }
+  };
+
+  const clearEngineer = () => {
+    setEngName("");
+    setEngEmail("");
+    setEngPhone("");
+    setShowEngineerDropdown(false);
+  };
+
+  const scrollToField = (ref) => {
+    ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  const handleImagesChange = (questionKey, images) => {
+    setQuestionImages(prev => ({
+      ...prev,
+      [questionKey]: images
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
     if (submitting) return;
 
-    // Validation
+    // Collect all errors
+    const errors = [];
+    let firstErrorField = null;
+    const newFieldErrors = {
+      company: false,
+      location: false,
+      engineerName: false,
+      engineerEmail: false,
+      engineerPhone: false,
+    };
+
+    // Remove all error classes from textareas/questions
+    document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+
+    // Validation - Maintenance company
     if (!selectedCompany || selectedCompany === "Please select") {
-      setErrorMsg("Please select a maintenance company.");
-      scrollToField(companyFieldRef);
-      setShowCompanyDropdown(true);
-      return;
+      errors.push({ field: 'company', message: 'Please select a maintenance company.' });
+      newFieldErrors.company = true;
+      if (!firstErrorField) firstErrorField = companyFieldRef;
     }
 
-    if (!locationDisplay?.trim()) {
-      setErrorMsg("Please provide a location.");
-      scrollToField(locationFieldRef);
-      return;
+    // Validation - Location
+    if (!locationDisplay || !locationDisplay.trim()) {
+      errors.push({ field: 'location', message: 'Please provide a location.' });
+      newFieldErrors.location = true;
+      if (!firstErrorField) firstErrorField = locationFieldRef;
+      const locationInput = document.querySelector('[name="location_display"]');
+      if (locationInput) locationInput.classList.add('has-error');
     }
 
+    // Validation - Engineer name
     if (!engName || engName === "Please select" || !engName.trim()) {
-      setErrorMsg("Please select or enter an engineer name.");
-      scrollToField(engineerFieldRef);
-      return;
+      errors.push({ field: 'engineer', message: 'Please select or enter an engineer name.' });
+      newFieldErrors.engineerName = true;
+      if (!firstErrorField) firstErrorField = engineerFieldRef;
+      const engineerInput = document.querySelector('[name="engineer_name"]');
+      if (engineerInput) engineerInput.classList.add('has-error');
+    }
+
+    // Validation - Engineer email
+    if (!engEmail || !engEmail.trim()) {
+      errors.push({ field: 'engineer_email', message: 'Please provide an engineer email.' });
+      newFieldErrors.engineerEmail = true;
+      if (!firstErrorField) {
+        const emailInput = document.querySelector('[name="engineer_email"]');
+        if (emailInput) firstErrorField = { current: emailInput };
+      }
+      const emailInput = document.querySelector('[name="engineer_email"]');
+      if (emailInput) emailInput.classList.add('has-error');
+    }
+
+    // Validation - Engineer phone
+    if (!engPhone || !engPhone.trim()) {
+      errors.push({ field: 'engineer_phone', message: 'Please provide an engineer phone number.' });
+      newFieldErrors.engineerPhone = true;
+      if (!firstErrorField) {
+        const phoneInput = document.querySelector('[name="engineer_phone"]');
+        if (phoneInput) firstErrorField = { current: phoneInput };
+      }
+      const phoneInput = document.querySelector('[name="engineer_phone"]');
+      if (phoneInput) phoneInput.classList.add('has-error');
     }
 
     // Validate required questions
@@ -265,15 +337,42 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       const answer = answers[`q${questionIndex}`];
       
       if (!answer || !answer.trim()) {
-        setErrorMsg(`Please answer: ${q.title}`);
-        // Scroll to the question
+        errors.push({ field: `q${questionIndex}`, message: `Please answer: ${q.title}.` });
         const questionElement = document.querySelector(`[name="q${questionIndex}"]`);
         if (questionElement) {
-          questionElement.scrollIntoView({ behavior: "smooth", block: "center" });
-          questionElement.focus();
+          questionElement.classList.add('has-error');
+          if (!firstErrorField) firstErrorField = { current: questionElement };
         }
-        return;
       }
+    }
+
+    // Update field errors state
+    setFieldErrors(newFieldErrors);
+
+    // If there are errors, show message and scroll to first error
+    if (errors.length > 0) {
+      if (errors.length === 1) {
+        setErrorMsg(errors[0].message);
+      } else {
+        setErrorMsg("Please check for multiple errors.");
+      }
+      
+      // Scroll to first error
+      if (firstErrorField) {
+        if (firstErrorField.current) {
+          firstErrorField.current.scrollIntoView({ behavior: "smooth", block: "center" });
+          setTimeout(() => {
+            if (firstErrorField.current.focus) {
+              firstErrorField.current.focus();
+            } else if (firstErrorField.current.querySelector) {
+              // For dropdown containers, try to focus the input inside
+              const input = firstErrorField.current.querySelector('.checklist-input');
+              if (input) input.focus();
+            }
+          }, 300);
+        }
+      }
+      return;
     }
 
     setSubmitting(true);
@@ -397,7 +496,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                           readOnly
                           className={`checklist-input ${selectedCompany ? "is-active" : "is-placeholder"} ${
                             showCompanyDropdown ? "is-focused" : ""
-                          }`}
+                          } ${fieldErrors.company ? "has-error" : ""}`}
                           value={selectedCompany || "Please select"}
                           onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
                           style={{ cursor: "pointer", paddingRight: "40px" }}
@@ -407,7 +506,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                         </div>
                       </div>
                       {showCompanyDropdown && (
-                        <ul className="custom-dropdown-list">
+                        <ul className={`custom-dropdown-list ${fieldErrors.company ? "has-error" : ""}`}>
                           {allCompanies.sort().map((c, i) => (
                             <li
                               key={i}
@@ -429,7 +528,13 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                       name="location_display"
                       required
                       value={locationDisplay}
-                      onChange={(e) => setLocationDisplay(e.target.value)}
+                      onChange={(e) => {
+                        setLocationDisplay(e.target.value);
+                        // Remove error class when user types
+                        if (e.target.value.trim()) {
+                          e.target.classList.remove('has-error');
+                        }
+                      }}
                     />
                   </div>
 
@@ -507,7 +612,13 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                       name="engineer_email"
                       required
                       value={engEmail}
-                      onChange={(e) => setEngEmail(e.target.value)}
+                      onChange={(e) => {
+                        setEngEmail(e.target.value);
+                        // Remove error class when user types valid email
+                        if (e.target.value.trim()) {
+                          e.target.classList.remove('has-error');
+                        }
+                      }}
                     />
                   </div>
 
@@ -517,8 +628,15 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                       type="tel"
                       className="checklist-input"
                       name="engineer_phone"
+                      required
                       value={engPhone}
-                      onChange={(e) => setEngPhone(e.target.value)}
+                      onChange={(e) => {
+                        setEngPhone(e.target.value);
+                        // Remove error class when user types
+                        if (e.target.value.trim()) {
+                          e.target.classList.remove('has-error');
+                        }
+                      }}
                     />
                   </div>
                 </div>
@@ -541,7 +659,13 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                           className="checklist-textarea"
                           onInput={autoGrow}
                           value={answers[`q${i + 1}`] || ""}
-                          onChange={(e) => setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }))}
+                          onChange={(e) => {
+                            setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+                            // Remove error class when user types
+                            if (e.target.value.trim()) {
+                              e.target.classList.remove('has-error');
+                            }
+                          }}
                           required={q.required}
                         />
                       </div>
@@ -560,7 +684,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                   </div>
                 ))}
 
-                {errorMsg && <p style={{ color: "#ff4d4d", marginTop: "16px", fontWeight: "500" }}>{errorMsg}</p>}
+                {errorMsg && <p className="error-message">{errorMsg}</p>}
                 <button className="checklist-submit" disabled={submitting}>
                   {submitting ? "Submitting..." : "Submit maintenance"}
                 </button>
