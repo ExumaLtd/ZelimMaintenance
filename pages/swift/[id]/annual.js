@@ -107,7 +107,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     try {
       const data = JSON.parse(savedDraft);
       if (data.maintained_by) setSelectedCompany(data.maintained_by);
-      if (data.location_display) setLocationDisplay(data.location_display);
+      // Only load location if it has a non-empty value
+      if (data.location_display && data.location_display.trim()) {
+        setLocationDisplay(data.location_display);
+      }
       if (data.location_country) setLocationCountry(data.location_country);
       if (data.engineer_name) setEngName(data.engineer_name);
       if (data.engineer_email) setEngEmail(data.engineer_email);
