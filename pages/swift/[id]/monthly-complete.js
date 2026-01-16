@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { ThumbsUp } from "lucide-react";
 
 export default function MonthlyComplete() {
   const router = useRouter();
@@ -11,7 +12,10 @@ export default function MonthlyComplete() {
 
   useEffect(() => {
     const savedSN = localStorage.getItem("last_submitted_sn");
-    if (savedSN) setUnitSN(savedSN);
+    if (savedSN) {
+      setUnitSN(savedSN);
+      localStorage.removeItem("last_submitted_sn");
+    }
   }, []);
 
   return (
@@ -24,7 +28,7 @@ export default function MonthlyComplete() {
         <div className="complete-page-wrapper">
           <div className="complete-card">
             <div className="complete-icon-circle">
-              <i className="fa-regular fa-thumbs-up"></i>
+              <ThumbsUp size={32} strokeWidth={1.5} />
             </div>
 
             <h1 className="complete-title">

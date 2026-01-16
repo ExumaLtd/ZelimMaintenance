@@ -257,6 +257,25 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       return;
     }
 
+    // Validate required questions
+    const requiredQuestions = (template?.questionsData || []).filter(q => q.required);
+    for (let i = 0; i < requiredQuestions.length; i++) {
+      const q = requiredQuestions[i];
+      const questionIndex = (template?.questionsData || []).indexOf(q) + 1;
+      const answer = answers[`q${questionIndex}`];
+      
+      if (!answer || !answer.trim()) {
+        setErrorMsg(`Please answer: ${q.title}`);
+        // Scroll to the question
+        const questionElement = document.querySelector(`[name="q${questionIndex}"]`);
+        if (questionElement) {
+          questionElement.scrollIntoView({ behavior: "smooth", block: "center" });
+          questionElement.focus();
+        }
+        return;
+      }
+    }
+
     setSubmitting(true);
 
     // Prepare email-friendly answers WITH images
