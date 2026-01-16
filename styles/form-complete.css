@@ -23,8 +23,8 @@
 }
 
 .form-scope .complete-icon-circle {
-    width: 54px;
-    height: 54px;
+    width: 60px;
+    height: 60px;
     background: rgba(0, 255, 246, 0.1);
     border-radius: 50%;
     display: flex;
@@ -59,6 +59,7 @@
     font-weight: 600; 
     color: #FFFFFF;
     white-space: nowrap;
+    margin-top: 0;
 }
 
 .form-scope .complete-text {
@@ -111,7 +112,7 @@
 
     .form-scope .complete-icon-circle {
         width: 54px;   
-        height: 54px;  
+        height: 55px;  
         margin: 0 auto 20px; 
     }
 
@@ -130,11 +131,12 @@
     }
 
     .form-scope .complete-title span {
-        display: inline; 
+        display: block; 
         font-size: 20px;
         font-weight: 600;
         color: #f7f7f7;
         white-space: normal;
+        margin-top: 0;
     }
 
     .form-scope .complete-text {
