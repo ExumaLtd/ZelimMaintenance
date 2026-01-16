@@ -237,24 +237,33 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     setErrorMsg("");
     if (submitting) return;
 
-    // Validation
+    // Collect all errors
+    const errors = [];
+    let firstErrorField = null;
+
+    // Remove all error classes first
+    document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+
+    // Validation - Maintenance company
     if (!selectedCompany || selectedCompany === "Please select") {
-      setErrorMsg("Please select a maintenance company.");
-      scrollToField(companyFieldRef);
-      setShowCompanyDropdown(true);
-      return;
+      errors.push({ field: 'company', message: 'Please select a maintenance company.' });
+      if (!firstErrorField) firstErrorField = companyFieldRef;
     }
 
+    // Validation - Location
     if (!locationDisplay || !locationDisplay.trim()) {
-      setErrorMsg("Please provide a location.");
-      scrollToField(locationFieldRef);
-      return;
+      errors.push({ field: 'location', message: 'Please provide a location.' });
+      if (!firstErrorField) firstErrorField = locationFieldRef;
+      const locationInput = document.querySelector('[name="location_display"]');
+      if (locationInput) locationInput.classList.add('has-error');
     }
 
+    // Validation - Engineer name
     if (!engName || engName === "Please select" || !engName.trim()) {
-      setErrorMsg("Please select or enter an engineer name.");
-      scrollToField(engineerFieldRef);
-      return;
+      errors.push({ field: 'engineer', message: 'Please select or enter an engineer name.' });
+      if (!firstErrorField) firstErrorField = engineerFieldRef;
+      const engineerInput = document.querySelector('[name="engineer_name"]');
+      if (engineerInput) engineerInput.classList.add('has-error');
     }
 
     // Validate required questions
@@ -265,15 +274,31 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       const answer = answers[`q${questionIndex}`];
       
       if (!answer || !answer.trim()) {
-        setErrorMsg(`Please answer: ${q.title}`);
-        // Scroll to the question
+        errors.push({ field: `q${questionIndex}`, message: `Please answer: ${q.title}` });
         const questionElement = document.querySelector(`[name="q${questionIndex}"]`);
         if (questionElement) {
-          questionElement.scrollIntoView({ behavior: "smooth", block: "center" });
-          questionElement.focus();
+          questionElement.classList.add('has-error');
+          if (!firstErrorField) firstErrorField = { current: questionElement };
         }
-        return;
       }
+    }
+
+    // If there are errors, show message and scroll to first error
+    if (errors.length > 0) {
+      if (errors.length === 1) {
+        setErrorMsg(errors[0].message);
+      } else {
+        setErrorMsg(`Please check for multiple errors (${errors.length} fields need attention)`);
+      }
+      
+      // Scroll to first error
+      if (firstErrorField) {
+        if (firstErrorField.current) {
+          firstErrorField.current.scrollIntoView({ behavior: "smooth", block: "center" });
+          setTimeout(() => firstErrorField.current.focus(), 300);
+        }
+      }
+      return;
     }
 
     setSubmitting(true);
@@ -560,7 +585,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                   </div>
                 ))}
 
-                {errorMsg && <p style={{ color: "#ff4d4d", marginTop: "16px", fontWeight: "500" }}>{errorMsg}</p>}
+                {errorMsg && <p className="error-message">{errorMsg}</p>}
                 <button className="checklist-submit" disabled={submitting}>
                   {submitting ? "Submitting..." : "Submit maintenance"}
                 </button>
