@@ -116,16 +116,36 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     }
   }, [storageKey]);
 
-  // Get geolocation
+  // Get geolocation - IMPROVED VERSION
   useEffect(() => {
     if (typeof window === "undefined" || !navigator.geolocation) return;
+
+    // Only run geolocation if location field is empty
+    if (locationDisplay && locationDisplay.trim() !== "") return;
+
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 15000, // Increased to 15 seconds for slower connections
+      maximumAge: 0 // Don't use cached position
+    };
 
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
           const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14&accept-language=en-GB`
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14&accept-language=en-GB`,
+            {
+              headers: {
+                'User-Agent': 'SWIFT Maintenance App' // Nominatim requires User-Agent
+              }
+            }
           );
+          
+          if (!res.ok) {
+            console.error('Geocoding failed:', res.status);
+            return;
+          }
+
           const data = await res.json();
 
           if (data?.address) {
@@ -135,19 +155,35 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             const shortCountry = displayCountry === "GB" ? "UK" : displayCountry;
             const combinedDisplay = loc ? `${loc}, ${shortCountry}` : shortCountry;
 
+            // Only set if field is still empty (user hasn't typed anything)
             setLocationDisplay((prev) => (!prev || prev.trim() === "") ? combinedDisplay : prev);
             setLocationCountry(formalCountry);
           }
         } catch (err) {
-          console.error("Geo fetch error", err);
+          console.error("Geocoding error:", err);
+          // Silently fail - user can enter location manually
         }
       },
       (error) => {
-        console.error("Geolocation error:", error);
+        // Handle different error codes
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            console.log("User denied location permission");
+            break;
+          case error.POSITION_UNAVAILABLE:
+            console.log("Location information unavailable");
+            break;
+          case error.TIMEOUT:
+            console.log("Location request timed out");
+            break;
+          default:
+            console.log("Unknown location error:", error.message);
+        }
+        // Don't show error to user - they can enter location manually
       },
-      { enableHighAccuracy: true, timeout: 8000 }
+      options
     );
-  }, []);
+  }, []); // Only run once on mount
 
   // Save draft to localStorage
   useEffect(() => {
