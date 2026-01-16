@@ -205,9 +205,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     setEngEmail("");
     setEngPhone("");
     setShowCompanyDropdown(false);
-    // Remove error class when valid selection made
-    const companyInput = companyFieldRef.current?.querySelector('.checklist-input');
-    if (companyInput) companyInput.classList.remove('has-error');
+    // Remove error class when valid selection made - use stored input reference
+    if (companyFieldRef.current?._input) {
+      companyFieldRef.current._input.classList.remove('has-error');
+    }
   };
 
   const selectEngineer = (engineer) => {
@@ -218,6 +219,16 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     // Remove error class when valid selection made
     const engineerInput = document.querySelector('[name="engineer_name"]');
     if (engineerInput) engineerInput.classList.remove('has-error');
+    // Also remove error from email if it gets filled
+    if (engineer.email) {
+      const emailInput = document.querySelector('[name="engineer_email"]');
+      if (emailInput) emailInput.classList.remove('has-error');
+    }
+    // Also remove error from phone if it gets filled
+    if (engineer.phone) {
+      const phoneInput = document.querySelector('[name="engineer_phone"]');
+      if (phoneInput) phoneInput.classList.remove('has-error');
+    }
   };
 
   const clearEngineer = () => {
@@ -254,9 +265,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     if (!selectedCompany || selectedCompany === "Please select") {
       errors.push({ field: 'company', message: 'Please select a maintenance company.' });
       if (!firstErrorField) firstErrorField = companyFieldRef;
-      // Add error class to the company dropdown input
-      const companyInput = companyFieldRef.current?.querySelector('.checklist-input');
-      if (companyInput) companyInput.classList.add('has-error');
+      // Add error class to the company dropdown input using stored reference
+      if (companyFieldRef.current?._input) {
+        companyFieldRef.current._input.classList.add('has-error');
+      }
     }
 
     // Validation - Location
@@ -273,6 +285,28 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       if (!firstErrorField) firstErrorField = engineerFieldRef;
       const engineerInput = document.querySelector('[name="engineer_name"]');
       if (engineerInput) engineerInput.classList.add('has-error');
+    }
+
+    // Validation - Engineer email
+    if (!engEmail || !engEmail.trim()) {
+      errors.push({ field: 'engineer_email', message: 'Please provide an engineer email.' });
+      if (!firstErrorField) {
+        const emailInput = document.querySelector('[name="engineer_email"]');
+        if (emailInput) firstErrorField = { current: emailInput };
+      }
+      const emailInput = document.querySelector('[name="engineer_email"]');
+      if (emailInput) emailInput.classList.add('has-error');
+    }
+
+    // Validation - Engineer phone
+    if (!engPhone || !engPhone.trim()) {
+      errors.push({ field: 'engineer_phone', message: 'Please provide an engineer phone number.' });
+      if (!firstErrorField) {
+        const phoneInput = document.querySelector('[name="engineer_phone"]');
+        if (phoneInput) firstErrorField = { current: phoneInput };
+      }
+      const phoneInput = document.querySelector('[name="engineer_phone"]');
+      if (phoneInput) phoneInput.classList.add('has-error');
     }
 
     // Validate required questions
@@ -443,6 +477,12 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                           value={selectedCompany || "Please select"}
                           onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
                           style={{ cursor: "pointer", paddingRight: "40px" }}
+                          ref={(el) => {
+                            // Store reference for error handling
+                            if (el && companyFieldRef.current) {
+                              companyFieldRef.current._input = el;
+                            }
+                          }}
                         />
                         <div className="field-icon-inside">
                           {showCompanyDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
@@ -555,7 +595,13 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       name="engineer_email"
                       required
                       value={engEmail}
-                      onChange={(e) => setEngEmail(e.target.value)}
+                      onChange={(e) => {
+                        setEngEmail(e.target.value);
+                        // Remove error class when user types valid email
+                        if (e.target.value.trim()) {
+                          e.target.classList.remove('has-error');
+                        }
+                      }}
                     />
                   </div>
 
@@ -565,8 +611,15 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       type="tel"
                       className="checklist-input"
                       name="engineer_phone"
+                      required
                       value={engPhone}
-                      onChange={(e) => setEngPhone(e.target.value)}
+                      onChange={(e) => {
+                        setEngPhone(e.target.value);
+                        // Remove error class when user types
+                        if (e.target.value.trim()) {
+                          e.target.classList.remove('has-error');
+                        }
+                      }}
                     />
                   </div>
                 </div>
