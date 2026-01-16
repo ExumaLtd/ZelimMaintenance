@@ -205,6 +205,9 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     setEngEmail("");
     setEngPhone("");
     setShowCompanyDropdown(false);
+    // Remove error class when valid selection made
+    const companyInput = companyFieldRef.current?.querySelector('.checklist-input');
+    if (companyInput) companyInput.classList.remove('has-error');
   };
 
   const selectEngineer = (engineer) => {
@@ -212,6 +215,9 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     setEngEmail(engineer.email || "");
     setEngPhone(engineer.phone || "");
     setShowEngineerDropdown(false);
+    // Remove error class when valid selection made
+    const engineerInput = document.querySelector('[name="engineer_name"]');
+    if (engineerInput) engineerInput.classList.remove('has-error');
   };
 
   const clearEngineer = () => {
@@ -454,7 +460,13 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       name="location_display"
                       required
                       value={locationDisplay}
-                      onChange={(e) => setLocationDisplay(e.target.value)}
+                      onChange={(e) => {
+                        setLocationDisplay(e.target.value);
+                        // Remove error class when user types
+                        if (e.target.value.trim()) {
+                          e.target.classList.remove('has-error');
+                        }
+                      }}
                     />
                   </div>
 
@@ -566,7 +578,13 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                           className="checklist-textarea"
                           onInput={autoGrow}
                           value={answers[`q${i + 1}`] || ""}
-                          onChange={(e) => setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }))}
+                          onChange={(e) => {
+                            setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+                            // Remove error class when user types
+                            if (e.target.value.trim()) {
+                              e.target.classList.remove('has-error');
+                            }
+                          }}
                           required={q.required}
                         />
                       </div>
