@@ -651,7 +651,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
                 {/* STEP 1: EQUIPMENT CHECKLIST */}
                 {currentStep === 1 && (
-                  <div style={{ marginTop: "32px", paddingTop: "32px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+                  <div style={{ marginTop: "40px" }}>
                     <h3 className="checklist-section-title">Pre-disassembly inspection</h3>
                     <p className="checklist-section-subtitle">
                       Check equipment condition before proceeding
@@ -659,7 +659,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                     
                     <div className="equipment-table">
                       <div className="equipment-header">
-                        <div className="header-number">No</div>
                         <div className="header-item">Item</div>
                         <div className="header-returned">Returned?</div>
                         <div className="header-condition">Condition</div>
@@ -667,7 +666,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                       
                       {checklistData.map((item, index) => (
                         <div key={item.id} className="equipment-row">
-                          <div className="item-number">{item.id}</div>
                           <div className="item-name">{item.name}</div>
                           
                           <div className="toggle-group">

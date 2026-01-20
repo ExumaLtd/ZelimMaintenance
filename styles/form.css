@@ -854,25 +854,24 @@
 
 .equipment-header {
   display: grid;
-  grid-template-columns: 60px 1fr 140px 280px;
+  grid-template-columns: 1fr 140px 280px;
   gap: 16px;
   padding: 12px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   margin-bottom: 8px;
 }
 
 .equipment-header > div {
   font-size: 12px;
   font-weight: 600;
-  color: #ffffff;
+  color: #fff;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
   font-family: "Montserrat", sans-serif;
 }
 
 .equipment-row {
   display: grid;
-  grid-template-columns: 60px 1fr 140px 280px;
+  grid-template-columns: 1fr 140px 280px;
   gap: 16px;
   align-items: center;
   padding: 16px;
@@ -989,14 +988,7 @@
     border-bottom: none;
   }
   
-  .item-number {
-    position: absolute;
-    left: 16px;
-    top: 20px;
-  }
-  
   .item-name {
-    padding-left: 40px;
     margin-bottom: 12px;
   }
   
@@ -1015,7 +1007,7 @@
 
 /* Section Titles for within form card */
 .checklist-section-title {
-  font-size: 20px;
+  font-size: 18px;
   line-height: 26px;
   font-weight: 600;
   color: #fff;
@@ -1035,7 +1027,7 @@
   background: #1a3d45;
   border-radius: 8px;
   padding: 20px;
-  margin: 0 0 20px;
+  margin: 0 0 8px;
 }
 
 /* Adjust equipment row styling */
