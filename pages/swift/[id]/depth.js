@@ -660,8 +660,8 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                     <div className="equipment-table">
                       <div className="equipment-header">
                         <div className="header-item"></div>
-                        <div className="header-returned">Returned</div>
-                        <div className="header-condition">Condition</div>
+                        <div className="header-returned">Returned?</div>
+                        <div className="header-condition">Condition?</div>
                       </div>
                       
                       {checklistData.map((item, index) => (
