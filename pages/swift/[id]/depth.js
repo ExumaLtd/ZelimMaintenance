@@ -64,6 +64,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
   // Checklist data - initialize from template
   const [checklistData, setChecklistData] = useState([]);
+  const [closingItems, setClosingItems] = useState(new Set());
 
   const [locationDisplay, setLocationDisplay] = useState("");
   const [locationCountry, setLocationCountry] = useState("");
@@ -161,6 +162,20 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   const updateChecklist = (index, field, value) => {
     setChecklistData(prev => {
       const updated = [...prev];
+      const item = updated[index];
+      
+      // If changing condition from 'poor' to something else, trigger closing animation
+      if (field === 'condition' && item.condition === 'poor' && value !== 'poor') {
+        setClosingItems(prev => new Set(prev).add(item.id));
+        setTimeout(() => {
+          setClosingItems(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(item.id);
+            return newSet;
+          });
+        }, 300); // Match animation duration
+      }
+      
       updated[index] = { ...updated[index], [field]: value };
       
       if (field === 'returned' && value === false) {
@@ -731,15 +746,19 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                           </div>
                           
                           {/* CONDITIONAL UPLOAD SECTION FOR POOR CONDITION */}
-                          {item.condition === 'poor' && (
-                            <div className="checklist-upload-section">
-                              <ImageUploader
-                                questionKey={`checklist_item_${item.id}`}
-                                questionText={`${item.name} - Poor condition photos`}
-                                serialNumber={unit?.serial_number}
-                                maintenanceType="depth"
-                                onImagesChange={(images) => handleChecklistImagesChange(item.id, images)}
-                              />
+                          {(item.condition === 'poor' || closingItems.has(item.id)) && (
+                            <div className="checklist-upload-wrapper">
+                              <div></div>
+                              <div></div>
+                              <div className={`checklist-upload-section ${closingItems.has(item.id) ? 'closing' : ''}`}>
+                                <ImageUploader
+                                  questionKey={`checklist_item_${item.id}`}
+                                  questionText={`${item.name} - Poor condition photos`}
+                                  serialNumber={unit?.serial_number}
+                                  maintenanceType="depth"
+                                  onImagesChange={(images) => handleChecklistImagesChange(item.id, images)}
+                                />
+                              </div>
                             </div>
                           )}
                         </div>
