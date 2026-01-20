@@ -733,7 +733,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                           {/* CONDITIONAL UPLOAD SECTION FOR POOR CONDITION */}
                           {item.condition === 'poor' && (
                             <div className="checklist-upload-section">
-                              <p className="checklist-upload-label">Upload photos of damage (optional)</p>
                               <ImageUploader
                                 questionKey={`checklist_item_${item.id}`}
                                 questionText={`${item.name} - Poor condition photos`}

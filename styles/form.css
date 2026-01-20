@@ -904,10 +904,10 @@
 
 /* Checklist Upload Section */
 .checklist-upload-section {
-  background: #1a2f35;
+  background: #21353b;
   padding: 16px;
   border-radius: 0 0 8px 8px;
-  border-top: 1px solid rgba(0, 255, 246, 0.1);
+  overflow: hidden;
   animation: slideDown 0.3s ease-out;
 }
 
@@ -924,14 +924,6 @@
     padding-top: 16px;
     padding-bottom: 16px;
   }
-}
-
-.checklist-upload-label {
-  font-size: 13px;
-  color: #a0acaf;
-  margin: 0 0 12px 0;
-  font-family: "Montserrat", sans-serif;
-  font-style: italic;
 }
 
 .item-number {
