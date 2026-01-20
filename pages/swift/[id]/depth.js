@@ -652,7 +652,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                 {/* STEP 1: EQUIPMENT CHECKLIST */}
                 {currentStep === 1 && (
                   <div style={{ marginTop: "32px", paddingTop: "32px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
-                    <h3 className="checklist-section-title">Equipment Return Checklist</h3>
+                    <h3 className="checklist-section-title">Pre-disassembly inspection</h3>
                     <p className="checklist-section-subtitle">
                       Check equipment condition before proceeding
                     </p>
@@ -688,7 +688,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                           </div>
                           
                           <div className="toggle-group condition-group">
-                            {item.returned === true ? (
+                            {item.returned !== false ? (
                               <>
                                 <button 
                                   type="button"
@@ -712,9 +712,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                                   Poor
                                 </button>
                               </>
-                            ) : (
-                              <span className="condition-placeholder">—</span>
-                            )}
+                            ) : null}
                           </div>
                         </div>
                       ))}
@@ -729,7 +727,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                       disabled={!isChecklistComplete()}
                       onClick={handleContinueToQuestions}
                     >
-                      Continue to Maintenance Questions
+                      Continue
                     </button>
                   </div>
                 )}
