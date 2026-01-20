@@ -874,6 +874,7 @@
   grid-template-columns: 1fr 120px 240px;
   gap: 24px;
   align-items: center;
+  padding: 12px 14px;
   border-radius: 8px;
   transition: background 0.2s;
   margin-bottom: 10px;
@@ -896,7 +897,6 @@
   font-size: 14px;
   font-weight: 500;
   font-family: "Montserrat", sans-serif;
-  padding: 12px 14px;
 }
 
 /* Toggle Buttons */
@@ -904,7 +904,6 @@
   display: flex;
   gap: 6px;
   justify-content: center;
-  padding: 12px 14px;
 }
 
 .toggle-btn {
@@ -1019,7 +1018,8 @@
   font-size: 14px;
   color: #a0acaf;
   margin-bottom: 8px !important;
-  padding-bottom: 0 !important;
+  margin-top: 0 !important;
+  padding: 0 !important;
   font-family: "Montserrat", sans-serif;
 }
 
