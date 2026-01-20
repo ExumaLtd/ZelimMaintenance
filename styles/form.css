@@ -867,6 +867,7 @@
   text-transform: uppercase;
   letter-spacing: 1px;
   font-family: "Montserrat", sans-serif;
+  text-align: center;
 }
 
 .equipment-row {
@@ -874,7 +875,7 @@
   grid-template-columns: 1fr 120px 240px;
   gap: 24px;
   align-items: center;
-  padding: 14px 16px;
+  padding: 12px 14px;
   border-radius: 8px;
   transition: background 0.2s;
   margin-bottom: 10px;
@@ -907,6 +908,7 @@
 .toggle-group {
   display: flex;
   gap: 6px;
+  justify-content: center;
 }
 
 .toggle-btn {
@@ -914,7 +916,7 @@
   background: #27454b;
   border: 0px solid #425558;
   border-radius: 6px;
-  color: #7d8f93;
+  color: #ffffff;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
