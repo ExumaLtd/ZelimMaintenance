@@ -205,6 +205,9 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       engineerPhone: false,
     };
 
+    // Remove all error classes first
+    document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+
     if (!selectedCompany || selectedCompany === "Please select") {
       errors.push('company');
       newFieldErrors.company = true;
@@ -213,21 +216,29 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     if (!locationDisplay || !locationDisplay.trim()) {
       errors.push('location');
       newFieldErrors.location = true;
+      const locationInput = document.querySelector('[name="location_display"]');
+      if (locationInput) locationInput.classList.add('has-error');
     }
 
     if (!engName || engName === "Please select" || !engName.trim()) {
       errors.push('engineer');
       newFieldErrors.engineerName = true;
+      const engineerInput = document.querySelector('[name="engineer_name"]');
+      if (engineerInput) engineerInput.classList.add('has-error');
     }
 
     if (!engEmail || !engEmail.trim()) {
       errors.push('email');
       newFieldErrors.engineerEmail = true;
+      const emailInput = document.querySelector('[name="engineer_email"]');
+      if (emailInput) emailInput.classList.add('has-error');
     }
 
     if (!engPhone || !engPhone.trim()) {
       errors.push('phone');
       newFieldErrors.engineerPhone = true;
+      const phoneInput = document.querySelector('[name="engineer_phone"]');
+      if (phoneInput) phoneInput.classList.add('has-error');
     }
 
     setFieldErrors(newFieldErrors);
@@ -682,7 +693,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                   <div style={{ marginTop: "40px" }}>
                     <h3 className="checklist-section-title">Pre-disassembly inspection</h3>
                     <p className="checklist-section-subtitle">
-                      Check equipment condition before proceeding
+                      Please report equipment condition before starting maintenance.
                     </p>
                     
                     <div className="equipment-table">
@@ -747,18 +758,14 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                           
                           {/* CONDITIONAL UPLOAD SECTION FOR POOR CONDITION */}
                           {(item.condition === 'poor' || closingItems.has(item.id)) && (
-                            <div className="checklist-upload-wrapper">
-                              <div></div>
-                              <div></div>
-                              <div className={`checklist-upload-section ${closingItems.has(item.id) ? 'closing' : ''}`}>
-                                <ImageUploader
-                                  questionKey={`checklist_item_${item.id}`}
-                                  questionText={`${item.name} - Poor condition photos`}
-                                  serialNumber={unit?.serial_number}
-                                  maintenanceType="depth"
-                                  onImagesChange={(images) => handleChecklistImagesChange(item.id, images)}
-                                />
-                              </div>
+                            <div className={`checklist-upload-section ${closingItems.has(item.id) ? 'closing' : ''}`}>
+                              <ImageUploader
+                                questionKey={`checklist_item_${item.id}`}
+                                questionText={`${item.name} - Poor condition photos`}
+                                serialNumber={unit?.serial_number}
+                                maintenanceType="depth"
+                                onImagesChange={(images) => handleChecklistImagesChange(item.id, images)}
+                              />
                             </div>
                           )}
                         </div>
