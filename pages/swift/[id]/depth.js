@@ -659,7 +659,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                     
                     <div className="equipment-table">
                       <div className="equipment-header">
-                        <div className="header-item">Item</div>
+                        <div></div>
                         <div className="header-returned">Returned?</div>
                         <div className="header-condition">Condition</div>
                       </div>
@@ -674,43 +674,45 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                               className={`toggle-btn ${item.returned === true ? 'active' : ''}`}
                               onClick={() => updateChecklist(index, 'returned', true)}
                             >
-                              Y
+                              Yes
                             </button>
                             <button 
                               type="button"
                               className={`toggle-btn ${item.returned === false ? 'active' : ''}`}
                               onClick={() => updateChecklist(index, 'returned', false)}
                             >
-                              N
+                              No
                             </button>
                           </div>
                           
                           <div className="toggle-group condition-group">
-                            {item.returned !== false ? (
-                              <>
-                                <button 
-                                  type="button"
-                                  className={`toggle-btn ${item.condition === 'good' ? 'active' : ''}`}
-                                  onClick={() => updateChecklist(index, 'condition', 'good')}
-                                >
-                                  Good
-                                </button>
-                                <button 
-                                  type="button"
-                                  className={`toggle-btn ${item.condition === 'fair' ? 'active' : ''}`}
-                                  onClick={() => updateChecklist(index, 'condition', 'fair')}
-                                >
-                                  Fair
-                                </button>
-                                <button 
-                                  type="button"
-                                  className={`toggle-btn ${item.condition === 'poor' ? 'active' : ''}`}
-                                  onClick={() => updateChecklist(index, 'condition', 'poor')}
-                                >
-                                  Poor
-                                </button>
-                              </>
-                            ) : null}
+                            <button 
+                              type="button"
+                              className={`toggle-btn ${item.condition === 'good' ? 'active' : ''}`}
+                              onClick={() => updateChecklist(index, 'condition', 'good')}
+                              disabled={item.returned === false}
+                              style={{ opacity: item.returned === false ? 0.4 : 1 }}
+                            >
+                              Good
+                            </button>
+                            <button 
+                              type="button"
+                              className={`toggle-btn ${item.condition === 'fair' ? 'active' : ''}`}
+                              onClick={() => updateChecklist(index, 'condition', 'fair')}
+                              disabled={item.returned === false}
+                              style={{ opacity: item.returned === false ? 0.4 : 1 }}
+                            >
+                              Fair
+                            </button>
+                            <button 
+                              type="button"
+                              className={`toggle-btn ${item.condition === 'poor' ? 'active' : ''}`}
+                              onClick={() => updateChecklist(index, 'condition', 'poor')}
+                              disabled={item.returned === false}
+                              style={{ opacity: item.returned === false ? 0.4 : 1 }}
+                            >
+                              Poor
+                            </button>
                           </div>
                         </div>
                       ))}
