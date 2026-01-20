@@ -73,6 +73,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   const [engPhone, setEngPhone] = useState("");
   const [answers, setAnswers] = useState({});
   const [questionImages, setQuestionImages] = useState({});
+  const [checklistImages, setChecklistImages] = useState({}); // NEW: Track images for checklist items
 
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
@@ -146,6 +147,13 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     setQuestionImages(prev => ({
       ...prev,
       [questionKey]: images
+    }));
+  };
+
+  const handleChecklistImagesChange = (itemId, images) => {
+    setChecklistImages(prev => ({
+      ...prev,
+      [`item_${itemId}`]: images
     }));
   };
 
@@ -406,7 +414,12 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       unit_record_id: unit?.record_id,
       checklist_template_id: template?.id,
       serial_number: unit?.serial_number,
-      equipment_checklist: JSON.stringify(checklistData),
+      equipment_checklist: JSON.stringify(
+        checklistData.map(item => ({
+          ...item,
+          images: checklistImages[`item_${item.id}`]?.map(img => img.url) || []
+        }))
+      ),
       answers: (template?.questionsData || []).map((q, i) => {
         const questionKey = `q${i + 1}`;
         return {
@@ -665,55 +678,71 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                       </div>
                       
                       {checklistData.map((item, index) => (
-                        <div key={item.id} className="equipment-row">
-                          <div className="item-name">{item.name}</div>
-                          
-                          <div className="toggle-group">
-                            <button 
-                              type="button"
-                              className={`toggle-btn ${item.returned === true ? 'active' : ''}`}
-                              onClick={() => updateChecklist(index, 'returned', true)}
-                            >
-                              Yes
-                            </button>
-                            <button 
-                              type="button"
-                              className={`toggle-btn ${item.returned === false ? 'active' : ''}`}
-                              onClick={() => updateChecklist(index, 'returned', false)}
-                            >
-                              No
-                            </button>
+                        <div key={item.id} className="equipment-row-wrapper">
+                          <div className="equipment-row">
+                            <div className="item-name">{item.name}</div>
+                            
+                            <div className="toggle-group">
+                              <button 
+                                type="button"
+                                className={`toggle-btn ${item.returned === true ? 'active' : ''}`}
+                                onClick={() => updateChecklist(index, 'returned', true)}
+                              >
+                                Yes
+                              </button>
+                              <button 
+                                type="button"
+                                className={`toggle-btn ${item.returned === false ? 'active' : ''}`}
+                                onClick={() => updateChecklist(index, 'returned', false)}
+                              >
+                                No
+                              </button>
+                            </div>
+                            
+                            <div className="toggle-group condition-group">
+                              <button 
+                                type="button"
+                                className={`toggle-btn ${item.condition === 'good' ? 'active' : ''}`}
+                                onClick={() => updateChecklist(index, 'condition', 'good')}
+                                disabled={item.returned === false}
+                                style={{ opacity: item.returned === false ? 0.4 : 1 }}
+                              >
+                                Good
+                              </button>
+                              <button 
+                                type="button"
+                                className={`toggle-btn ${item.condition === 'fair' ? 'active' : ''}`}
+                                onClick={() => updateChecklist(index, 'condition', 'fair')}
+                                disabled={item.returned === false}
+                                style={{ opacity: item.returned === false ? 0.4 : 1 }}
+                              >
+                                Fair
+                              </button>
+                              <button 
+                                type="button"
+                                className={`toggle-btn ${item.condition === 'poor' ? 'active' : ''}`}
+                                onClick={() => updateChecklist(index, 'condition', 'poor')}
+                                disabled={item.returned === false}
+                                style={{ opacity: item.returned === false ? 0.4 : 1 }}
+                              >
+                                Poor
+                              </button>
+                            </div>
                           </div>
                           
-                          <div className="toggle-group condition-group">
-                            <button 
-                              type="button"
-                              className={`toggle-btn ${item.condition === 'good' ? 'active' : ''}`}
-                              onClick={() => updateChecklist(index, 'condition', 'good')}
-                              disabled={item.returned === false}
-                              style={{ opacity: item.returned === false ? 0.4 : 1 }}
-                            >
-                              Good
-                            </button>
-                            <button 
-                              type="button"
-                              className={`toggle-btn ${item.condition === 'fair' ? 'active' : ''}`}
-                              onClick={() => updateChecklist(index, 'condition', 'fair')}
-                              disabled={item.returned === false}
-                              style={{ opacity: item.returned === false ? 0.4 : 1 }}
-                            >
-                              Fair
-                            </button>
-                            <button 
-                              type="button"
-                              className={`toggle-btn ${item.condition === 'poor' ? 'active' : ''}`}
-                              onClick={() => updateChecklist(index, 'condition', 'poor')}
-                              disabled={item.returned === false}
-                              style={{ opacity: item.returned === false ? 0.4 : 1 }}
-                            >
-                              Poor
-                            </button>
-                          </div>
+                          {/* CONDITIONAL UPLOAD SECTION FOR POOR CONDITION */}
+                          {item.condition === 'poor' && (
+                            <div className="checklist-upload-section">
+                              <p className="checklist-upload-label">Upload photos of damage (optional)</p>
+                              <ImageUploader
+                                questionKey={`checklist_item_${item.id}`}
+                                questionText={`${item.name} - Poor condition photos`}
+                                serialNumber={unit?.serial_number}
+                                maintenanceType="depth"
+                                onImagesChange={(images) => handleChecklistImagesChange(item.id, images)}
+                              />
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
