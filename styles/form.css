@@ -1079,6 +1079,11 @@
     font-size: 15px !important;
   }
   
+  /* Remove margin-bottom only from engineer phone (last field in second inline group) */
+  .checklist-inline-group:nth-child(2) .checklist-field:last-child {
+    margin-bottom: 0 !important;
+  }
+  
   /* Mobile item name - outside box like questions */
   .item-name-mobile {
     display: block;
@@ -1180,7 +1185,7 @@
   font-size: 14px;
   line-height: 20px;
   color: #a0acaf;
-  margin: 0 0 30px;
+  margin: 0 0 20px;
   padding: 0 !important;
   font-family: "Montserrat", sans-serif;
 }
