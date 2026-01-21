@@ -899,7 +899,8 @@
 
 /* Checklist Upload Section */
 .checklist-upload-section {
-  margin-top: 0px;
+  margin-top: 10px;
+  margin-bottom: 16px;
   overflow: hidden;
   animation: slideDown 0.3s ease-out;
 }
