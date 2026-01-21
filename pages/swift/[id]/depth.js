@@ -784,7 +784,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                               </button>
                             </div>
                             
-                            <div className="toggle-group condition-group">
+                            <div className={`toggle-group condition-group ${item.returned === true ? 'show-on-mobile' : ''}`}>
                               <button 
                                 type="button"
                                 className={`toggle-btn ${item.condition === 'good' ? 'active' : ''}`}
