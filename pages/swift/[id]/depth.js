@@ -195,10 +195,11 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
         updated[index].condition = null;
       }
       
-      // Remove error class when item is updated
-      const rows = document.querySelectorAll('.equipment-row');
+      // Remove error class from buttons when item is updated
+      const rows = document.querySelectorAll('.equipment-row-wrapper');
       if (rows[index]) {
-        rows[index].classList.remove('has-error');
+        const allButtons = rows[index].querySelectorAll('.toggle-btn');
+        allButtons.forEach(btn => btn.classList.remove('has-error'));
       }
       
       return updated;
@@ -264,19 +265,27 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     const incompleteItems = [];
     checklistData.forEach((item, index) => {
       if (item.returned === null) {
-        incompleteItems.push(index);
+        incompleteItems.push({ index, type: 'returned' });
       } else if (item.returned === true && item.condition === null) {
-        incompleteItems.push(index);
+        incompleteItems.push({ index, type: 'condition' });
       }
     });
 
     if (incompleteItems.length > 0) {
       errors.push('checklist');
-      // Add red border to incomplete checklist rows
-      incompleteItems.forEach(index => {
-        const rows = document.querySelectorAll('.equipment-row');
-        if (rows[index]) {
-          rows[index].classList.add('has-error');
+      // Add red border to incomplete checklist buttons
+      incompleteItems.forEach(item => {
+        const rows = document.querySelectorAll('.equipment-row-wrapper');
+        if (rows[item.index]) {
+          if (item.type === 'returned') {
+            // Add error to Yes/No buttons
+            const returnedButtons = rows[item.index].querySelectorAll('.toggle-group:not(.condition-group) .toggle-btn');
+            returnedButtons.forEach(btn => btn.classList.add('has-error'));
+          } else if (item.type === 'condition') {
+            // Add error to Good/Fair/Poor buttons
+            const conditionButtons = rows[item.index].querySelectorAll('.condition-group .toggle-btn');
+            conditionButtons.forEach(btn => btn.classList.add('has-error'));
+          }
         }
       });
     }
@@ -781,7 +790,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                                 className={`toggle-btn ${item.condition === 'good' ? 'active' : ''}`}
                                 onClick={() => updateChecklist(index, 'condition', 'good')}
                                 disabled={item.returned === false}
-                                style={{ opacity: item.returned === false ? 0.4 : 1 }}
+                                style={{ opacity: item.returned === false ? 0.2 : 1 }}
                               >
                                 Good
                               </button>
@@ -790,7 +799,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                                 className={`toggle-btn ${item.condition === 'fair' ? 'active' : ''}`}
                                 onClick={() => updateChecklist(index, 'condition', 'fair')}
                                 disabled={item.returned === false}
-                                style={{ opacity: item.returned === false ? 0.4 : 1 }}
+                                style={{ opacity: item.returned === false ? 0.2 : 1 }}
                               >
                                 Fair
                               </button>
@@ -799,7 +808,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                                 className={`toggle-btn ${item.condition === 'poor' ? 'active' : ''}`}
                                 onClick={() => updateChecklist(index, 'condition', 'poor')}
                                 disabled={item.returned === false}
-                                style={{ opacity: item.returned === false ? 0.4 : 1 }}
+                                style={{ opacity: item.returned === false ? 0.2 : 1 }}
                               >
                                 Poor
                               </button>

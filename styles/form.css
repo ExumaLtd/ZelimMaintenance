@@ -878,11 +878,6 @@
   border-radius: 8px;
   transition: background 0.2s;
   background: #21353b;
-  border: 2px solid transparent;
-}
-
-.equipment-row.has-error {
-  border-color: rgb(255, 77, 77);
 }
 
 /* When upload section is present, adjust row radius */
@@ -974,7 +969,7 @@
 .toggle-btn {
   padding: 7px 14px;
   background: #27454b;
-  border: 0px solid #425558;
+  border: 1px solid transparent;
   border-radius: 6px;
   color: #ffffff;
   font-size: 14px;
@@ -995,6 +990,10 @@
   color: #0d3037;
   border-color: #00fff6;
   font-weight: 500 !important;
+}
+
+.toggle-btn.has-error {
+  border-color: rgb(255, 77, 77) !important;
 }
 
 .toggle-btn:disabled {
