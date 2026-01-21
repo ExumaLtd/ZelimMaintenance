@@ -1049,13 +1049,18 @@
 
 /* Mobile Responsive */
 @media (max-width: 991px) {
-  /* Override 991px rules for last inline-group */
+  /* Override 991px rules for last inline-group - remove margin from group but keep on fields */
   .form-scope .checklist-inline-group:last-of-type,
   .form-scope .swift-checklist-container .checklist-inline-group:last-of-type {
     margin-bottom: 0 !important;
   }
   
+  /* But keep margin on fields inside last inline-group except the last one */
   .form-scope .checklist-inline-group:last-of-type .checklist-field {
+    margin-bottom: 16px !important;
+  }
+  
+  .form-scope .checklist-inline-group:last-of-type .checklist-field:last-child {
     margin-bottom: 0 !important;
   }
 }
