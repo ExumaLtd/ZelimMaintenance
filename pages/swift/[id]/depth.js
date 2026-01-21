@@ -310,6 +310,9 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     setErrorMsg("");
     setCurrentStep(2);
     
+    // Add history entry for step 2 so back button works
+    window.history.pushState({ step: 2 }, '', window.location.href);
+    
     // Scroll to top of page on mobile
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -329,6 +332,21 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Handle browser back button for step navigation
+  useEffect(() => {
+    const handlePopState = (event) => {
+      if (event.state?.step) {
+        setCurrentStep(event.state.step);
+      } else if (currentStep === 2) {
+        // If on step 2 and back is pressed without state, go to step 1
+        setCurrentStep(1);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [currentStep]);
 
   // Load draft from localStorage
   useEffect(() => {
