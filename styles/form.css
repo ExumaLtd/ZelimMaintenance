@@ -898,9 +898,9 @@
 }
 
 /* Checklist Upload Section */
-.checklist-upload-section {
-  margin-top: 10px;
-  margin-bottom: 16px;
+.form-scope .checklist-upload-section {
+  margin-top: 10px !important;
+  margin-bottom: 16px !important;
   overflow: hidden;
   animation: slideDown 0.3s ease-out;
 }
@@ -914,16 +914,32 @@
   margin-bottom: 6px;
 }
 
-/* Desktop image size - match other forms (150px) */
-.checklist-upload-section [class*="thumbnail-item"] {
-  width: 150px !important;
-  height: 150px !important;
+/* Desktop image size - 150px fixed size on desktop only */
+@media (min-width: 992px) {
+  .checklist-upload-section [class*="thumbnail-item"] {
+    width: 150px !important;
+    height: 150px !important;
+  }
+  
+  .checklist-upload-section [class*="thumbnail-item"] img {
+    width: 150px !important;
+    height: 150px !important;
+    object-fit: cover !important;
+  }
 }
 
-.checklist-upload-section [class*="thumbnail-item"] img {
-  width: 150px !important;
-  height: 150px !important;
-  object-fit: cover !important;
+/* Mobile image size - 100px for 3 per row */
+@media (max-width: 991px) {
+  .checklist-upload-section [class*="thumbnail-item"] {
+    width: 100px !important;
+    height: 100px !important;
+  }
+  
+  .checklist-upload-section [class*="thumbnail-item"] img {
+    width: 100px !important;
+    height: 100px !important;
+    object-fit: cover !important;
+  }
 }
 
 .checklist-upload-section.closing {

@@ -870,7 +870,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                           
                           {/* CONDITIONAL UPLOAD SECTION FOR POOR CONDITION */}
                           {(item.condition === 'poor' || closingItems.has(item.id)) && (
-                            <div style={{ marginTop: '12px' }} className={closingItems.has(item.id) ? 'closing' : ''}>
+                            <div className={`checklist-upload-section ${closingItems.has(item.id) ? 'closing' : ''}`}>
                               <ImageUploader
                                 questionKey={`checklist_item_${item.id}`}
                                 questionText={`${item.name} - Poor condition photos`}
