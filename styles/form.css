@@ -1080,8 +1080,9 @@
   }
   
   /* Remove margin-bottom only from engineer phone (last field before Card 2) */
-  .checklist-form-card .checklist-inline-group:last-of-type .checklist-field:last-child,
-  .checklist-inline-group[style*="margin-top: 24px"] .checklist-field:last-child {
+  .checklist-form-card form .checklist-inline-group:last-child .checklist-field:last-child,
+  .checklist-inline-group + .checklist-inline-group .checklist-field:nth-child(3),
+  .checklist-field[style*="margin-bottom"]:last-child {
     margin-bottom: 0 !important;
   }
   

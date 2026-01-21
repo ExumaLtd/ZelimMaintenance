@@ -309,6 +309,11 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
     setErrorMsg("");
     setCurrentStep(2);
+    
+    // Scroll to top of page on mobile
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
   };
 
   // Close dropdowns on outside click
@@ -588,7 +593,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
               <span className="break-point">depth maintenance</span>
             </h1>
 
-            {/* FORM CARD - ALWAYS VISIBLE */}
+            {/* CARD 1: ADMIN FIELDS */}
             <div className="checklist-form-card">
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
                 {/* TOP FIELDS - ALWAYS VISIBLE ON BOTH STEPS */}
@@ -751,7 +756,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
               </form>
             </div>
 
-            {/* CARD 2: CHECKLIST/QUESTIONS FORM */}
+            {/* CARD 2: CHECKLIST/QUESTIONS */}
             <div className="checklist-form-card" style={{ marginTop: "20px" }}>
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
                 {/* STEP 1: EQUIPMENT CHECKLIST */}
