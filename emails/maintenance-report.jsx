@@ -17,8 +17,10 @@ import * as React from 'react';
 
 export const MaintenanceReportEmail = ({ 
   engineerName = 'Engineer', 
-  serialNumber = 'N/A', 
+  serialNumber = 'N/A',
+  reportType = 'Maintenance',
   answers = {},
+  equipmentChecklist = null, // NEW: Equipment checklist data
   brandColor = '#172F36',
   logoUrl = '/logo/zelim-logo-dark.png',
   previewUrl = null
@@ -28,6 +30,18 @@ export const MaintenanceReportEmail = ({
     month: 'long',
     year: 'numeric',
   });
+
+  // Parse equipment checklist if it's a string
+  let parsedEquipmentChecklist = null;
+  if (equipmentChecklist) {
+    try {
+      parsedEquipmentChecklist = typeof equipmentChecklist === 'string' 
+        ? JSON.parse(equipmentChecklist) 
+        : equipmentChecklist;
+    } catch (e) {
+      console.error('Error parsing equipment checklist:', e);
+    }
+  }
 
   // Ensure logo URL is absolute for email clients
   const absoluteLogoUrl = logoUrl?.startsWith('http') 
@@ -65,7 +79,7 @@ export const MaintenanceReportEmail = ({
           <Section style={contentPadding}>
             <Heading style={h1}>{serialNumber}</Heading>
             <Text style={{ ...subTitle, color: brandColor }}>
-              Maintenance Confirmation
+              {reportType} Maintenance Confirmation
             </Text>
             
             <Text style={text}>
@@ -93,10 +107,67 @@ export const MaintenanceReportEmail = ({
               </Row>
             </Section>
 
-            {/* Only show checklist if there are answers */}
+            {/* Equipment Checklist Section */}
+            {parsedEquipmentChecklist && parsedEquipmentChecklist.length > 0 && (
+              <>
+                <Hr style={hr} />
+                <Heading as="h2" style={h2}>Pre-disassembly Inspection</Heading>
+                
+                <Section>
+                  {parsedEquipmentChecklist.map((item, i) => (
+                    <div key={i} style={checklistItemBlock}>
+                      <Text style={checklistItemName}>{item.name}</Text>
+                      <Row>
+                        <Column style={{ paddingRight: '10px' }}>
+                          <Text style={checklistLabel}>Returned:</Text>
+                          <Text style={checklistValue}>
+                            {item.returned === true ? '✓ Yes' : item.returned === false ? '✗ No' : 'Not answered'}
+                          </Text>
+                        </Column>
+                        {item.returned === true && (
+                          <Column style={{ paddingLeft: '10px' }}>
+                            <Text style={checklistLabel}>Condition:</Text>
+                            <Text style={{
+                              ...checklistValue,
+                              color: item.condition === 'poor' ? '#EF4444' : item.condition === 'fair' ? '#F59E0B' : '#10B981'
+                            }}>
+                              {item.condition ? item.condition.charAt(0).toUpperCase() + item.condition.slice(1) : 'Not answered'}
+                            </Text>
+                          </Column>
+                        )}
+                      </Row>
+                      
+                      {/* Display images if item has poor condition */}
+                      {item.images && item.images.length > 0 && (
+                        <Section style={imageGallery}>
+                          {item.images.map((imageUrl, imgIndex) => (
+                            <Link 
+                              key={imgIndex} 
+                              href={imageUrl}
+                              style={imageLink}
+                            >
+                              <Img
+                                src={imageUrl}
+                                alt={`${item.name} - Image ${imgIndex + 1}`}
+                                width="150"
+                                height="150"
+                                style={imageThumbnail}
+                              />
+                            </Link>
+                          ))}
+                        </Section>
+                      )}
+                    </div>
+                  ))}
+                </Section>
+              </>
+            )}
+
+            {/* Maintenance Questions Section */}
             {Object.keys(answers).length > 0 && (
               <>
-                <Heading as="h2" style={h2}>Checklist Details</Heading>
+                <Hr style={hr} />
+                <Heading as="h2" style={h2}>{reportType} Maintenance Details</Heading>
                 
                 <Section>
                   {Object.entries(answers).map(([question, answerData], i) => {
@@ -278,6 +349,37 @@ const h2 = {
   fontSize: '18px',
   fontWeight: '700',
   margin: '40px 0 24px 0',
+};
+
+const checklistItemBlock = {
+  marginBottom: '24px',
+  padding: '16px',
+  backgroundColor: '#F8FAFC',
+  borderRadius: '8px',
+  border: '1px solid #E2E8F0',
+};
+
+const checklistItemName = {
+  fontSize: '15px',
+  fontWeight: '700',
+  color: '#0F172A',
+  margin: '0 0 12px 0',
+};
+
+const checklistLabel = {
+  fontSize: '11px',
+  color: '#64748B',
+  textTransform: 'uppercase',
+  fontWeight: '700',
+  margin: '0',
+  letterSpacing: '0.5px',
+};
+
+const checklistValue = {
+  fontSize: '14px',
+  color: '#0F172A',
+  fontWeight: '600',
+  margin: '4px 0 0 0',
 };
 
 const answerBlock = {

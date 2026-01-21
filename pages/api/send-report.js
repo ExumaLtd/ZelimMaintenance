@@ -16,6 +16,7 @@ export default async function handler(req, res) {
       engineerName, 
       serialNumber, 
       answers, // Now: { "Question text": { text: "answer", images: ["url1", "url2"] } }
+      equipmentChecklist, // NEW: Equipment checklist data (array)
       reportType, 
       technicalData,
       companyLogoUrl 
@@ -49,8 +50,10 @@ export default async function handler(req, res) {
         subject: engineerSubject,
         react: MaintenanceReportEmail({ 
           engineerName, 
-          serialNumber, 
+          serialNumber,
+          reportType: displayType, // NEW: Pass displayType
           answers, // Component will handle displaying images
+          equipmentChecklist, // NEW: Pass equipment checklist
           brandColor: ZELIM_GREEN,
           logoUrl: logoUrl,
           previewUrl: engineerPreviewUrl
@@ -71,6 +74,7 @@ export default async function handler(req, res) {
             location_display: technicalData?.location_display || 'N/A',
           },
           answers, // Component will handle displaying images
+          equipmentChecklist, // NEW: Pass equipment checklist
           brandColor: ZELIM_GREEN,
           logoUrl: logoUrl,
           previewUrl: internalPreviewUrl
