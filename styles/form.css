@@ -1047,14 +1047,14 @@
   
   .equipment-row {
     grid-template-columns: 1fr;
-    gap: 16px;
-    padding: 20px !important;
+    gap: 0;
+    padding: 20px 20px 12px 20px !important;
     transition: padding-bottom 0.3s ease-out;
   }
   
-  /* Reduce bottom padding when condition is hidden */
-  .equipment-row:not(:has(.condition-group.show-on-mobile)) {
-    padding-bottom: 12px !important;
+  /* Add bottom padding when condition is visible */
+  .equipment-row:has(.condition-group.show-on-mobile) {
+    padding-bottom: 20px !important;
   }
   
   .item-name {
@@ -1098,8 +1098,8 @@
     max-height: 0;
     opacity: 0;
     overflow: hidden;
-    transition: max-height 0.3s ease-out, opacity 0.3s ease-out, margin-top 0.3s ease-out;
-    margin-top: 0;
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+    margin-top: 16px;
   }
   
   .condition-group::before {
@@ -1110,7 +1110,6 @@
   .condition-group.show-on-mobile {
     max-height: 200px;
     opacity: 1;
-    margin-top: 16px;
   }
   
   .condition-group.show-on-mobile::before {
