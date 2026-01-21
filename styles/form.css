@@ -880,11 +880,6 @@
   background: #27454b !important;
 }
 
-/* When upload section is present, adjust row radius */
-.equipment-row-wrapper:has(.checklist-upload-section) .equipment-row {
-  border-radius: 10px 10px 0 0;
-}
-
 .equipment-row:last-child {
   margin-bottom: 0;
 }
@@ -905,8 +900,9 @@
 /* Checklist Upload Section */
 .checklist-upload-section {
   background: #27454b !important;
-  padding: 0px 16px 16px 16px;
-  border-radius: 0 0 12px 12px;
+  padding: 16px;
+  border-radius: 12px;
+  margin-top: 12px;
   overflow: hidden;
   animation: slideDown 0.3s ease-out;
 }
@@ -1118,6 +1114,17 @@
     color: #fff;
     margin-bottom: 6px;
     font-family: "Montserrat", sans-serif;
+  }
+  
+  /* Make images smaller on mobile for 3 per row */
+  .checklist-upload-section [class*="thumbnail-item"] {
+    width: 100px !important;
+    height: 100px !important;
+  }
+  
+  .checklist-upload-section [class*="thumbnail-item"] img {
+    width: 100px !important;
+    height: 100px !important;
   }
   
   /* Desktop item name - hide on mobile */
