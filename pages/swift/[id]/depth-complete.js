@@ -40,7 +40,7 @@ export default function DepthComplete() {
             </div>
 
             <h1 className="complete-title">
-              {maintenanceType} maintenance submitted <span>for {unitSN || "unit"}</span>
+              {maintenanceType} maintenance submitted for {unitSN || "unit"}
             </h1>
 
             <p className="complete-text">
