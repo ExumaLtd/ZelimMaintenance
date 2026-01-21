@@ -746,10 +746,15 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                     />
                   </div>
                 </div>
+              </form>
+            </div>
 
+            {/* CARD 2: CHECKLIST/QUESTIONS FORM */}
+            <div className="checklist-form-card" style={{ marginTop: "40px" }}>
+              <form onSubmit={handleSubmit} autoComplete="off" noValidate>
                 {/* STEP 1: EQUIPMENT CHECKLIST */}
                 {currentStep === 1 && (
-                  <div style={{ marginTop: "40px" }}>
+                  <div>
                     <h3 className="checklist-section-title">Pre-disassembly inspection</h3>
                     <p className="checklist-section-subtitle">
                       Please report equipment condition before starting maintenance.
