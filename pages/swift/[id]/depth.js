@@ -241,10 +241,19 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       if (phoneInput) phoneInput.classList.add('has-error');
     }
 
+    // Check if checklist is complete
+    if (!isChecklistComplete()) {
+      errors.push('checklist');
+    }
+
     setFieldErrors(newFieldErrors);
 
     if (errors.length > 0) {
-      setErrorMsg("Please complete all required fields before continuing.");
+      if (errors.includes('checklist')) {
+        setErrorMsg("Please complete the equipment checklist before continuing.");
+      } else {
+        setErrorMsg("Please complete all required fields before continuing.");
+      }
       return;
     }
 
@@ -777,8 +786,11 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                     <button 
                       type="button"
                       className="checklist-submit"
-                      style={{ marginTop: "24px" }}
-                      disabled={!isChecklistComplete()}
+                      style={{ 
+                        marginTop: "24px",
+                        opacity: !isChecklistComplete() ? 0.4 : 1,
+                        cursor: !isChecklistComplete() ? 'not-allowed' : 'pointer'
+                      }}
                       onClick={handleContinueToQuestions}
                     >
                       Continue
