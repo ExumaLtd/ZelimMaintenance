@@ -891,7 +891,7 @@
 
 /* Equipment Row Wrapper for conditional uploads */
 .equipment-row-wrapper {
-  margin-bottom: 10px;
+  margin-bottom: 24px;
 }
 
 .equipment-row-wrapper:last-child {
@@ -957,6 +957,10 @@
   font-size: 14px;
   font-weight: 500;
   font-family: "Montserrat", sans-serif;
+}
+
+.item-name-mobile {
+  display: none;
 }
 
 /* Toggle Buttons */
@@ -1045,22 +1049,35 @@
     display: none;
   }
   
+  /* Spacing between items - matches question spacing */
+  .equipment-row-wrapper {
+    margin-bottom: 24px;
+  }
+  
+  .equipment-row-wrapper:last-child {
+    margin-bottom: 0;
+  }
+  
+  /* Mobile item name - outside box like questions */
+  .item-name-mobile {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 8px;
+    font-family: "Montserrat", sans-serif;
+  }
+  
+  /* Desktop item name - hide on mobile */
+  .item-name {
+    display: none;
+  }
+  
   .equipment-row {
     grid-template-columns: 1fr;
     gap: 0;
     padding: 20px 20px 20px 20px !important;
     transition: padding-bottom 0.3s ease-out;
-  }
-  
-  /* Add bottom padding when condition is visible */
-  .equipment-row:has(.condition-group.show-on-mobile) {
-    padding-bottom: 20px !important;
-  }
-  
-  .item-name {
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 12px;
   }
   
   .toggle-group {
@@ -1143,9 +1160,4 @@
   border-radius: 8px;
   padding: 0;
   margin: 0 0 8px;
-}
-
-/* Adjust equipment row styling */
-.equipment-row {
-  padding: 14px;
 }
