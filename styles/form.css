@@ -875,14 +875,14 @@
   gap: 24px;
   align-items: center;
   padding: 10px 20px 10px 20px;
-  border-radius: 12px;
+  border-radius: 8px;
   transition: background 0.2s;
-  background: #21353b;
+  background: #27454b !important;
 }
 
 /* When upload section is present, adjust row radius */
 .equipment-row-wrapper:has(.checklist-upload-section) .equipment-row {
-  border-radius: 12px 12px 0 0;
+  border-radius: 8px 8px 0 0;
 }
 
 .equipment-row:last-child {
@@ -972,10 +972,10 @@
 
 .toggle-btn {
   padding: 7px 14px;
-  background: #27454b;
+  background: #1a3942;
   border: 1px solid transparent;
   border-radius: 6px;
-  color: #ffffff;
+  color: #7d8f93;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -987,13 +987,13 @@
 }
 
 .toggle-btn:hover {
-  background: #324e54;
+  background: #1f4450;
 }
 
 .toggle-btn.active {
-  background: #00fff6;
-  color: #0d3037;
-  border-color: #00fff6;
+  background: #00a8e8;
+  color: #0d1f26;
+  border-color: #00a8e8;
   font-weight: 600;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
