@@ -1088,7 +1088,7 @@
   /* Mobile item name - outside box like questions */
   .item-name-mobile {
     display: block;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 500;
     color: #fff;
     margin-bottom: 6px;
@@ -1115,11 +1115,9 @@
   
   .toggle-group::before {
     display: block;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 500;
     color: #fff;
-    text-transform: uppercase;
-    letter-spacing: 1px;
     font-family: "Montserrat", sans-serif;
     grid-column: 1 / -1;
   }
