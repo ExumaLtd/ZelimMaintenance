@@ -40,7 +40,8 @@ export default function AnnualComplete() {
             </div>
 
             <h1 className="complete-title">
-              {maintenanceType} maintenance submitted <span>for {unitSN || "unit"}</span>
+              <span className="complete-title-main">{maintenanceType} maintenance</span>
+              <span className="complete-title-sub">submitted for {unitSN || "unit"}</span>
             </h1>
 
             <p className="complete-text">

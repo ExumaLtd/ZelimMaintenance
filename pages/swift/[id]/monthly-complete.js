@@ -5,11 +5,11 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { ThumbsUp } from "lucide-react";
 
-export default function MonthlyComplete() {
+export default function AnnualComplete() {
   const router = useRouter();
   const { id } = router.query;
   const [unitSN, setUnitSN] = useState("");
-  const [maintenanceType, setMaintenanceType] = useState("Monthly");
+  const [maintenanceType, setMaintenanceType] = useState("Annual");
 
   useEffect(() => {
     const savedSN = localStorage.getItem("last_submitted_sn");
@@ -40,7 +40,8 @@ export default function MonthlyComplete() {
             </div>
 
             <h1 className="complete-title">
-              {maintenanceType} maintenance submitted <span>for {unitSN || "unit"}</span>
+              <span className="complete-title-main">{maintenanceType} maintenance</span>
+              <span className="complete-title-sub">submitted for {unitSN || "unit"}</span>
             </h1>
 
             <p className="complete-text">
