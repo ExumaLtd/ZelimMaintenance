@@ -852,7 +852,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
                 {/* STEP 2: MAINTENANCE QUESTIONS */}
                 {currentStep === 2 && (
-                  <div>
                   <div style={{ marginTop: "32px", paddingTop: "32px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
                     {(template?.questionsData || []).map((q, i) => (
                       <div key={i} style={{ marginTop: i === 0 ? "0" : "24px" }}>
