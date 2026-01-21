@@ -750,7 +750,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
             </div>
 
             {/* CARD 2: CHECKLIST/QUESTIONS FORM */}
-            <div className="checklist-form-card" style={{ marginTop: "40px" }}>
+            <div className="checklist-form-card" style={{ marginTop: "20px" }}>
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
                 {/* STEP 1: EQUIPMENT CHECKLIST */}
                 {currentStep === 1 && (

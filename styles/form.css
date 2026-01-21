@@ -904,7 +904,7 @@
 
 /* Checklist Upload Section */
 .checklist-upload-section {
-  background: #21353b;
+  background: #27454b !important;
   padding: 0px 16px 16px 16px;
   border-radius: 0 0 12px 12px;
   overflow: hidden;
@@ -1159,8 +1159,49 @@
   font-size: 14px;
   line-height: 20px;
   color: #a0acaf;
-  margin: 0 0 20px;
+  margin: 0 0 30px;
   padding: 0 !important;
+  font-family: "Montserrat", sans-serif;
+}
+
+/* Submit Button */
+.form-scope .checklist-submit {
+  display: flex;
+  width: max-content;
+  padding: 8px 16px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 2px solid hsla(0, 0%, 100%, 0.12);
+  border-radius: 8px;
+  background-color: #00fff6 !important;
+  color: #0d3037 !important;
+  font-weight: 600;
+  text-transform: none !important;
+  transition: background-color 0.2s, border-color 0.2s;
+  margin: 34px 0 0;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 20px;
+  font-family: "Montserrat", sans-serif;
+}
+
+.form-scope .checklist-submit:hover {
+  background-color: #00e5d6 !important;
+}
+
+.form-scope .checklist-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Question Instruction */
+.form-scope .question-instruction {
+  color: #a0acaf;
+  font-size: 14px;
+  margin: 2px 0 10px;
+  line-height: 1.4;
   font-family: "Montserrat", sans-serif;
 }
 
