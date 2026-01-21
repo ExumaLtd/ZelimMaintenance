@@ -975,7 +975,7 @@ export async function getServerSideProps({ params }) {
 
     const headers = { Authorization: `Bearer ${apiKey}` };
     const unitFormula = encodeURIComponent(`{public_token}='${token}'`);
-    const templateFormula = encodeURIComponent(`FIND('depth', LOWER({type}))`);
+    const templateFormula = encodeURIComponent(`FIND('depth', LOWER({type})) > 0`);
 
     const urls = [
       `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${unitFormula}`,
