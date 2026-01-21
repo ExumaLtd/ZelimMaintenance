@@ -12,7 +12,8 @@ export default async function handler(req, res) {
     location_display,
     location_town,
     location_country,
-    answers, // Now includes images: [{ question: "q1", answer: "text", images: ["url1", "url2"] }]
+    answers, // Array: [{ question: "q1", answer: "text", images: ["url1", "url2"] }]
+    equipment_checklist, // NEW: Stringified checklist data
     serial_number, // For cloudinary_folder
     checklist_template_id 
   } = req.body;
@@ -80,54 +81,54 @@ export default async function handler(req, res) {
       return acc;
     }, {});
 
-    // Collect all image URLs for photos field (if you want to use it)
-    const allImageUrls = answers.reduce((urls, item) => {
-      if (item.images && item.images.length > 0) {
-        return [...urls, ...item.images];
-      }
-      return urls;
-    }, []);
-
     // 3. SUBMIT TO MAINTENANCE_LOGS (Historical Archive)
+    const logFields = {
+      "unit_link": [unit_record_id],
+      "date_of_maintenance": trimmedDate,
+      "maintenance_type": maintenance_type,
+      "engineer_name": engineer_name,
+      "engineer_email": engineer_email,
+      "location_display": location_display || "",
+      "checklist_json": JSON.stringify(formattedAnswers), // Structured JSON with images
+      "cloudinary_folder": cloudinaryFolder // Archive folder path
+    };
+
+    // Add equipment_checklist if it exists
+    if (equipment_checklist) {
+      logFields["equipment_checklist"] = equipment_checklist;
+    }
+
     const logRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_logs`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        fields: {
-          "unit_link": [unit_record_id],
-          "date_of_maintenance": trimmedDate,
-          "maintenance_type": maintenance_type,
-          "engineer_name": engineer_name,
-          "engineer_email": engineer_email,
-          "location_display": location_display || "",
-          "checklist_json": JSON.stringify(formattedAnswers), // Structured JSON with images
-          "cloudinary_folder": cloudinaryFolder, // Archive folder path
-          "photos": allImageUrls.length > 0 ? allImageUrls.map(url => ({ url })) : []
-        }
-      })
+      body: JSON.stringify({ fields: logFields })
     });
 
     // 4. Submit to MAINTENANCE_CHECKS (Current Status)
     const finalTown = location_town || location_display || "";
+    const checkFields = {
+      "unit": [unit_record_id],
+      "maintained_by": companyRecordId ? [companyRecordId] : [],
+      "engineer_name": [engineerRecordId],
+      "date_of_maintenance": trimmedDate, 
+      "maintenance_type": maintenance_type,
+      "location_display": location_display || "",
+      "location_town": finalTown,
+      "location_country": location_country || "",
+      "checklist_template": [checklist_template_id],
+      "checklist_json": JSON.stringify(formattedAnswers), // Structured JSON with images
+      "cloudinary_folder": cloudinaryFolder // Archive folder path
+    };
+
+    // Add equipment_checklist if it exists
+    if (equipment_checklist) {
+      checkFields["equipment_checklist"] = equipment_checklist;
+    }
+
     const checkRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_checks`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        fields: {
-          "unit": [unit_record_id],
-          "maintained_by": companyRecordId ? [companyRecordId] : [],
-          "engineer_name": [engineerRecordId],
-          "date_of_maintenance": trimmedDate, 
-          "maintenance_type": maintenance_type,
-          "location_display": location_display || "",
-          "location_town": finalTown,
-          "location_country": location_country || "",
-          "checklist_template": [checklist_template_id],
-          "checklist_json": JSON.stringify(formattedAnswers), // Structured JSON with images
-          "cloudinary_folder": cloudinaryFolder, // Archive folder path
-          "photos": allImageUrls.length > 0 ? allImageUrls.map(url => ({ url })) : []
-        }
-      })
+      body: JSON.stringify({ fields: checkFields })
     });
 
     if (!checkRes.ok || !logRes.ok) {
