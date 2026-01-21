@@ -852,7 +852,12 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
                 {/* STEP 2: MAINTENANCE QUESTIONS */}
                 {currentStep === 2 && (
-                  <div style={{ marginTop: "32px", paddingTop: "32px", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+                  <div>
+                    <h3 className="checklist-section-title">Depth maintenance</h3>
+                    <p className="checklist-section-subtitle">
+                      All depth maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual and Installation Guide.
+                    </p>
+                    
                     {(template?.questionsData || []).map((q, i) => (
                       <div key={i} style={{ marginTop: i === 0 ? "0" : "24px" }}>
                         <label className="checklist-label">

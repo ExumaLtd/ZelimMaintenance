@@ -1136,12 +1136,22 @@
 }
 
 /* Section Titles for within form card */
+.form-scope .checklist-form-card {
+  background: #152a31 !important;
+  padding: 38px;
+  border-radius: 20px;
+  width: 100%;
+  text-align: left;
+  box-sizing: border-box;
+}
+
 .checklist-section-title {
   font-size: 18px;
   line-height: 26px;
   font-weight: 600;
   color: #fff;
-  margin-bottom: 8px;
+  margin: 0 0 8px 0;
+  padding: 0;
   font-family: "Montserrat", sans-serif;
 }
 
