@@ -39,8 +39,8 @@ export default function DepthComplete() {
               <ThumbsUp size={32} strokeWidth={1.5} />
             </div>
 
-            <h1 className="complete-title">
-              {maintenanceType} maintenance submitted for {unitSN || "unit"}
+            <h1 className="complete-title" style={{ minWidth: '560px' }}>
+              {maintenanceType} maintenance<br />submitted for {unitSN || "unit"}
             </h1>
 
             <p className="complete-text">
