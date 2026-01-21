@@ -1300,9 +1300,30 @@
   margin: 0 0 8px;
 }
 
-/* Complete card - content-based width with minimum */
-.form-scope .complete-page-wrapper .complete-card {
-  max-width: none !important;
-  width: auto !important;
-  min-width: 480px;
+/* Complete title - responsive line breaks */
+.form-scope .complete-title-main,
+.form-scope .complete-title-sub {
+  display: inline;
+}
+
+/* Desktop: line break and min-width */
+@media (min-width: 769px) {
+  .form-scope .complete-title-main {
+    display: block;
+  }
+  
+  .form-scope .complete-title-sub {
+    display: block;
+  }
+  
+  .form-scope .complete-page-wrapper .complete-card {
+    min-width: 480px;
+  }
+}
+
+/* Mobile: all on one line, no min-width */
+@media (max-width: 768px) {
+  .form-scope .complete-title-main::after {
+    content: " ";
+  }
 }
