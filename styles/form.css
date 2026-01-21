@@ -914,30 +914,37 @@
   margin-bottom: 6px;
 }
 
-/* Desktop image size - 150px fixed size on desktop only */
+/* Desktop image size - 9 per row */
 @media (min-width: 992px) {
+  /* Remove margin-top from uploader inside checklist */
+  .checklist-upload-section .image-uploader-container {
+    margin-top: 0 !important;
+  }
+  
   .checklist-upload-section [class*="thumbnail-item"] {
-    width: 150px !important;
-    height: 150px !important;
+    width: calc((100% - 96px) / 9) !important;
+    height: auto !important;
+    aspect-ratio: 1 / 1 !important;
   }
   
   .checklist-upload-section [class*="thumbnail-item"] img {
-    width: 150px !important;
-    height: 150px !important;
+    width: 100% !important;
+    height: 100% !important;
     object-fit: cover !important;
   }
 }
 
-/* Mobile image size - 100px for 3 per row */
+/* Mobile image size - 3 per row responsive */
 @media (max-width: 991px) {
   .checklist-upload-section [class*="thumbnail-item"] {
-    width: 100px !important;
-    height: 100px !important;
+    width: calc((100% - 24px) / 3) !important;
+    height: auto !important;
+    aspect-ratio: 1 / 1 !important;
   }
   
   .checklist-upload-section [class*="thumbnail-item"] img {
-    width: 100px !important;
-    height: 100px !important;
+    width: 100% !important;
+    height: 100% !important;
     object-fit: cover !important;
   }
 }
