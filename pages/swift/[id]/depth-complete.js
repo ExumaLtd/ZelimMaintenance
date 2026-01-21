@@ -9,19 +9,27 @@ export default function DepthComplete() {
   const router = useRouter();
   const { id } = router.query;
   const [unitSN, setUnitSN] = useState("");
+  const [maintenanceType, setMaintenanceType] = useState("Depth");
 
   useEffect(() => {
     const savedSN = localStorage.getItem("last_submitted_sn");
+    const savedType = localStorage.getItem("last_maintenance_type");
+    
     if (savedSN) {
       setUnitSN(savedSN);
       localStorage.removeItem("last_submitted_sn");
+    }
+    
+    if (savedType) {
+      setMaintenanceType(savedType);
+      localStorage.removeItem("last_maintenance_type");
     }
   }, []);
 
   return (
     <div className="form-scope">
       <Head>
-        <title>Depth maintenance submitted | Zelim</title>
+        <title>{maintenanceType} maintenance submitted | Zelim</title>
       </Head>
 
       <div className="swift-main-layout-wrapper">
@@ -32,11 +40,11 @@ export default function DepthComplete() {
             </div>
 
             <h1 className="complete-title">
-              Depth maintenance submitted <span>for {unitSN || "unit"}</span>
+              {maintenanceType} maintenance submitted <span>for {unitSN || "unit"}</span>
             </h1>
 
             <p className="complete-text">
-              Your depth maintenance has successfully been recorded. You will receive email confirmation shortly.
+              Your {maintenanceType.toLowerCase()} maintenance has successfully been recorded. You will receive email confirmation shortly.
             </p>
 
             <Link href={`/swift/${id}`} className="return-dashboard-btn">

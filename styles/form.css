@@ -1073,6 +1073,12 @@
     margin-bottom: 0;
   }
   
+  /* All labels font size on mobile */
+  .checklist-label,
+  label {
+    font-size: 15px !important;
+  }
+  
   /* Mobile item name - outside box like questions */
   .item-name-mobile {
     display: block;
