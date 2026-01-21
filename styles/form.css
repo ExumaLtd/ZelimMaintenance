@@ -899,20 +899,29 @@
 
 /* Checklist Upload Section */
 .checklist-upload-section {
-  margin-top: 12px;
+  margin-top: 0px;
   overflow: hidden;
   animation: slideDown 0.3s ease-out;
 }
 
-/* Make checklist upload images smaller on desktop */
+/* Image thumbnails styling - desktop only */
+.form-scope .checklist-upload-section .image-thumbnails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+  margin-bottom: 6px;
+}
+
+/* Desktop image size - match other forms (150px) */
 .checklist-upload-section [class*="thumbnail-item"] {
-  width: 120px !important;
-  height: 120px !important;
+  width: 150px !important;
+  height: 150px !important;
 }
 
 .checklist-upload-section [class*="thumbnail-item"] img {
-  width: 120px !important;
-  height: 120px !important;
+  width: 150px !important;
+  height: 150px !important;
   object-fit: cover !important;
 }
 
