@@ -380,6 +380,11 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       if (data.engineer_name) setEngName(data.engineer_name);
       if (data.engineer_email) setEngEmail(data.engineer_email);
       if (data.engineer_phone) setEngPhone(data.engineer_phone);
+      
+      // Restore checklist data if it exists
+      if (data.checklist_data && Array.isArray(data.checklist_data)) {
+        setChecklistData(data.checklist_data);
+      }
 
       const draftAnswers = {};
       Object.keys(data).forEach((key) => {
@@ -463,10 +468,11 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       engineer_name: engName,
       engineer_email: engEmail,
       engineer_phone: engPhone,
+      checklist_data: checklistData, // Save checklist selections
       ...answers,
     };
     localStorage.setItem(storageKey, JSON.stringify(draftData));
-  }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, answers, storageKey]);
+  }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, checklistData, answers, storageKey]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -864,7 +870,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                           
                           {/* CONDITIONAL UPLOAD SECTION FOR POOR CONDITION */}
                           {(item.condition === 'poor' || closingItems.has(item.id)) && (
-                            <div className={`checklist-upload-section ${closingItems.has(item.id) ? 'closing' : ''}`}>
+                            <div style={{ marginTop: '12px' }} className={closingItems.has(item.id) ? 'closing' : ''}>
                               <ImageUploader
                                 questionKey={`checklist_item_${item.id}`}
                                 questionText={`${item.name} - Poor condition photos`}
@@ -1013,6 +1019,7 @@ export async function getServerSideProps({ params }) {
         template: {
           id: templateData.records?.[0]?.id || "",
           type: templateData.records?.[0]?.fields?.type || "Depth",
+          name: templateData.records?.[0]?.fields?.name || templateData.records?.[0]?.fields?.type || "Depth",
           equipmentChecklist: parsedJson.equipment_checklist || [],
           questionsData: parsedJson.questions || [],
           questions: parsedJson.questions?.map(q => q.title) || [],
