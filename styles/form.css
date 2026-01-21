@@ -1299,3 +1299,10 @@
   padding: 0;
   margin: 0 0 8px;
 }
+
+/* Complete card - content-based width with minimum */
+.form-scope .complete-page-wrapper .complete-card {
+  max-width: none !important;
+  width: auto !important;
+  min-width: 480px;
+}

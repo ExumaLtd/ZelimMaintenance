@@ -192,6 +192,11 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
         updated[index] = { ...updated[index], [field]: value };
       }
       
+      // Auto-select 'good' when returned is set to 'Yes'
+      if (field === 'returned' && value === true) {
+        updated[index].condition = 'good';
+      }
+      
       if (field === 'returned' && value === false) {
         updated[index].condition = null;
       }
