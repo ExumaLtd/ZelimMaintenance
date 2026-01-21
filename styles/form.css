@@ -878,6 +878,11 @@
   border-radius: 8px;
   transition: background 0.2s;
   background: #21353b;
+  border: 2px solid transparent;
+}
+
+.equipment-row.has-error {
+  border-color: rgb(255, 77, 77);
 }
 
 /* When upload section is present, adjust row radius */
@@ -973,7 +978,7 @@
   border-radius: 6px;
   color: #ffffff;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 500 !important;
   cursor: pointer;
   transition: all 0.15s;
   font-family: "Montserrat", sans-serif;
@@ -982,13 +987,14 @@
 
 .toggle-btn:hover {
   background: #324e54;
+  font-weight: 500 !important;
 }
 
 .toggle-btn.active {
   background: #00fff6;
   color: #0d3037;
   border-color: #00fff6;
-  font-weight: 500;
+  font-weight: 500 !important;
 }
 
 .toggle-btn:disabled {

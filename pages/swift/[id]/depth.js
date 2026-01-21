@@ -176,10 +176,29 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
         }, 300); // Match animation duration
       }
       
-      updated[index] = { ...updated[index], [field]: value };
+      // Toggle Poor button - if already poor and clicked again, set to null
+      if (field === 'condition' && item.condition === 'poor' && value === 'poor') {
+        updated[index] = { ...updated[index], [field]: null };
+        setClosingItems(prev => new Set(prev).add(item.id));
+        setTimeout(() => {
+          setClosingItems(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(item.id);
+            return newSet;
+          });
+        }, 300);
+      } else {
+        updated[index] = { ...updated[index], [field]: value };
+      }
       
       if (field === 'returned' && value === false) {
         updated[index].condition = null;
+      }
+      
+      // Remove error class when item is updated
+      const rows = document.querySelectorAll('.equipment-row');
+      if (rows[index]) {
+        rows[index].classList.remove('has-error');
       }
       
       return updated;
@@ -242,8 +261,24 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     }
 
     // Check if checklist is complete
-    if (!isChecklistComplete()) {
+    const incompleteItems = [];
+    checklistData.forEach((item, index) => {
+      if (item.returned === null) {
+        incompleteItems.push(index);
+      } else if (item.returned === true && item.condition === null) {
+        incompleteItems.push(index);
+      }
+    });
+
+    if (incompleteItems.length > 0) {
       errors.push('checklist');
+      // Add red border to incomplete checklist rows
+      incompleteItems.forEach(index => {
+        const rows = document.querySelectorAll('.equipment-row');
+        if (rows[index]) {
+          rows[index].classList.add('has-error');
+        }
+      });
     }
 
     setFieldErrors(newFieldErrors);
