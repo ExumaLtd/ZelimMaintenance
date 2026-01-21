@@ -586,27 +586,28 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
               <span className="break-point">depth maintenance</span>
             </h1>
 
-            {/* CARD 1: ADMIN FIELDS - ALWAYS VISIBLE, NOT IN FORM */}
+            {/* FORM CARD - ALWAYS VISIBLE */}
             <div className="checklist-form-card">
-              {/* TOP FIELDS - ALWAYS VISIBLE ON BOTH STEPS */}
-              <div className="checklist-inline-group">
-                <div className="checklist-field" ref={companyFieldRef}>
-                  <label className="checklist-label">Maintenance company</label>
-                  <div className="custom-dropdown-container" ref={companyDropdownRef}>
-                    <div className="field-icon-wrapper">
-                      <input
-                        readOnly
-                        className={`checklist-input ${selectedCompany ? "is-active" : "is-placeholder"} ${
-                          showCompanyDropdown ? "is-focused" : ""
-                        } ${fieldErrors.company ? "has-error" : ""}`}
-                        value={selectedCompany || "Please select"}
-                        onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
-                        style={{ cursor: "pointer", paddingRight: "40px" }}
-                      />
-                      <div className="field-icon-inside">
-                        {showCompanyDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
+              <form onSubmit={handleSubmit} autoComplete="off" noValidate>
+                {/* TOP FIELDS - ALWAYS VISIBLE ON BOTH STEPS */}
+                <div className="checklist-inline-group">
+                  <div className="checklist-field" ref={companyFieldRef}>
+                    <label className="checklist-label">Maintenance company</label>
+                    <div className="custom-dropdown-container" ref={companyDropdownRef}>
+                      <div className="field-icon-wrapper">
+                        <input
+                          readOnly
+                          className={`checklist-input ${selectedCompany ? "is-active" : "is-placeholder"} ${
+                            showCompanyDropdown ? "is-focused" : ""
+                          } ${fieldErrors.company ? "has-error" : ""}`}
+                          value={selectedCompany || "Please select"}
+                          onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
+                          style={{ cursor: "pointer", paddingRight: "40px" }}
+                        />
+                        <div className="field-icon-inside">
+                          {showCompanyDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
+                        </div>
                       </div>
-                    </div>
                       {showCompanyDropdown && (
                         <ul className={`custom-dropdown-list ${fieldErrors.company ? "has-error" : ""}`}>
                           {allCompanies.sort().map((c, i) => (
@@ -745,22 +746,16 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                     />
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* CARD 2: CHECKLIST/QUESTIONS - ALWAYS VISIBLE, CONTAINS THE FORM */}
-            <div className="checklist-form-card" style={{ marginTop: "40px" }}>
-              <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-                
                 {/* STEP 1: EQUIPMENT CHECKLIST */}
                 {currentStep === 1 && (
-                  <div>
+                  <div style={{ marginTop: "40px" }}>
                     <h3 className="checklist-section-title">Pre-disassembly inspection</h3>
-                <p className="checklist-section-subtitle">
-                  Please report equipment condition before starting maintenance.
-                </p>
-                
-                <div className="equipment-table">
+                    <p className="checklist-section-subtitle">
+                      Please report equipment condition before starting maintenance.
+                    </p>
+                    
+                    <div className="equipment-table">
                       <div className="equipment-header">
                         <div className="header-item"></div>
                         <div className="header-returned">Returned?</div>
