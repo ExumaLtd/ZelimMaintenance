@@ -1079,8 +1079,8 @@
     font-size: 15px !important;
   }
   
-  /* Remove margin-bottom from engineer phone field specifically */
-  .checklist-inline-group:last-of-type .checklist-field:last-of-type {
+  /* Remove margin-bottom from last inline group (engineer fields) on mobile */
+  .checklist-inline-group:last-of-type {
     margin-bottom: 0 !important;
   }
   

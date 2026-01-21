@@ -47,6 +47,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   const engineerFieldRef = useRef(null);
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
+  const card2Ref = useRef(null); // Ref for Card 2 to scroll to
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -313,9 +314,11 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     // Add history entry for step 2 so back button works
     window.history.pushState({ step: 2 }, '', window.location.href);
     
-    // Scroll to top of page on mobile
+    // Scroll to Card 2 on mobile
     setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (card2Ref.current) {
+        card2Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }, 100);
   };
 
@@ -338,9 +341,22 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     const handlePopState = (event) => {
       if (event.state?.step) {
         setCurrentStep(event.state.step);
+        // Scroll to Card 2 when going back to step 1
+        if (event.state.step === 1) {
+          setTimeout(() => {
+            if (card2Ref.current) {
+              card2Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 100);
+        }
       } else if (currentStep === 2) {
         // If on step 2 and back is pressed without state, go to step 1
         setCurrentStep(1);
+        setTimeout(() => {
+          if (card2Ref.current) {
+            card2Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
       }
     };
 
@@ -775,7 +791,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
             </div>
 
             {/* CARD 2: CHECKLIST/QUESTIONS */}
-            <div className="checklist-form-card" style={{ marginTop: "20px" }}>
+            <div ref={card2Ref} className="checklist-form-card" style={{ marginTop: "20px" }}>
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
                 {/* STEP 1: EQUIPMENT CHECKLIST */}
                 {currentStep === 1 && (
