@@ -793,7 +793,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                       type="button"
                       className="checklist-submit"
                       style={{ marginTop: "24px" }}
-                      disabled={!isChecklistComplete()}
                       onClick={handleContinueToQuestions}
                     >
                       Continue
