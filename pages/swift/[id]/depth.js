@@ -249,10 +249,16 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     setFieldErrors(newFieldErrors);
 
     if (errors.length > 0) {
-      if (errors.includes('checklist')) {
-        setErrorMsg("Please complete the equipment checklist before continuing.");
+      if (errors.length === 1) {
+        // Show specific error for single field
+        if (errors.includes('company')) setErrorMsg("Please select a maintenance company.");
+        else if (errors.includes('location')) setErrorMsg("Please provide a location.");
+        else if (errors.includes('engineer')) setErrorMsg("Please select or enter an engineer name.");
+        else if (errors.includes('email')) setErrorMsg("Please provide an engineer email.");
+        else if (errors.includes('phone')) setErrorMsg("Please provide an engineer phone number.");
+        else if (errors.includes('checklist')) setErrorMsg("Please complete the equipment checklist.");
       } else {
-        setErrorMsg("Please complete all required fields before continuing.");
+        setErrorMsg("Please check for multiple errors.");
       }
       return;
     }
@@ -786,11 +792,8 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                     <button 
                       type="button"
                       className="checklist-submit"
-                      style={{ 
-                        marginTop: "24px",
-                        opacity: !isChecklistComplete() ? 0.4 : 1,
-                        cursor: !isChecklistComplete() ? 'not-allowed' : 'pointer'
-                      }}
+                      style={{ marginTop: "24px" }}
+                      disabled={!isChecklistComplete()}
                       onClick={handleContinueToQuestions}
                     >
                       Continue
