@@ -856,8 +856,7 @@
   display: grid;
   grid-template-columns: 1fr 120px 240px;
   gap: 24px;
-  padding: 0 16px 12px 16px;
-  margin-bottom: 12px;
+  padding: 0 16px 12px;
 }
 
 .equipment-header > div {
@@ -892,7 +891,7 @@
 
 /* Equipment Row Wrapper for conditional uploads */
 .equipment-row-wrapper {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .equipment-row-wrapper:last-child {
@@ -1160,7 +1159,7 @@
   font-size: 14px;
   line-height: 20px;
   color: #a0acaf;
-  margin: 0 0 14px;
+  margin: 0 0 30px;
   padding: 0 !important;
   font-family: "Montserrat", sans-serif;
 }
