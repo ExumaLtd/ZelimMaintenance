@@ -891,7 +891,7 @@
 
 /* Equipment Row Wrapper for conditional uploads */
 .equipment-row-wrapper {
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 
 .equipment-row-wrapper:last-child {
@@ -972,7 +972,7 @@
 
 .toggle-btn {
   padding: 7px 14px;
-  background: #1a3942;
+  background: #152a31 !important;
   border: 1px solid transparent;
   border-radius: 6px;
   color: #7d8f93;
@@ -983,7 +983,7 @@
   font-family: "Montserrat", sans-serif;
   min-width: 38px;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  -moz-osx-font-smoothing: auto;
 }
 
 .toggle-btn:hover {
@@ -991,12 +991,12 @@
 }
 
 .toggle-btn.active {
-  background: #00a8e8;
-  color: #0d1f26;
-  border-color: #00a8e8;
+  background: #00fff6 !important;
+  color: #0d3037;
+  border-color: #00fff6;
   font-weight: 600;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  -moz-osx-font-smoothing: auto;
 }
 
 .toggle-btn.has-error {
