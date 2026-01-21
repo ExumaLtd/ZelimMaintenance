@@ -1048,11 +1048,23 @@
 }
 
 /* Mobile Responsive */
-@media (max-width: 767px) {
-  /* Override global margin-bottom for last inline-group only - must be very specific */
-  .form-scope .swift-checklist-container .checklist-form-card .checklist-inline-group:last-of-type,
+@media (max-width: 991px) {
+  /* Override 991px rules for last inline-group */
   .form-scope .checklist-inline-group:last-of-type,
-  div.checklist-inline-group:last-of-type {
+  .form-scope .swift-checklist-container .checklist-inline-group:last-of-type {
+    margin-bottom: 0 !important;
+  }
+  
+  .form-scope .checklist-inline-group:last-of-type .checklist-field {
+    margin-bottom: 0 !important;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Target the exact selector used in global CSS - div with inline margin-top style */
+  .form-scope div.checklist-inline-group[style*="margin-top: 24px"],
+  .form-scope div.checklist-inline-group[style*="margin-top:24px"],
+  .form-scope .checklist-inline-group:last-of-type {
     margin-bottom: 0 !important;
   }
 }
