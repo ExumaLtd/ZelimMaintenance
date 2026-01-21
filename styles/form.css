@@ -1079,8 +1079,9 @@
     font-size: 15px !important;
   }
   
-  /* Remove margin-bottom only from engineer phone (last field in second inline group) */
-  .checklist-inline-group:nth-child(2) .checklist-field:last-child {
+  /* Remove margin-bottom only from engineer phone (last field before Card 2) */
+  .checklist-form-card .checklist-inline-group:last-of-type .checklist-field:last-child,
+  .checklist-inline-group[style*="margin-top: 24px"] .checklist-field:last-child {
     margin-bottom: 0 !important;
   }
   
