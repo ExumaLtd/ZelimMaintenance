@@ -874,15 +874,15 @@
   grid-template-columns: 1fr 120px 240px;
   gap: 24px;
   align-items: center;
-  padding: 12px 14px;
-  border-radius: 8px;
+  padding: 10px 20px 10px 20px;
+  border-radius: 12px;
   transition: background 0.2s;
   background: #21353b;
 }
 
 /* When upload section is present, adjust row radius */
 .equipment-row-wrapper:has(.checklist-upload-section) .equipment-row {
-  border-radius: 8px 8px 0 0;
+  border-radius: 12px 12px 0 0;
 }
 
 .equipment-row:last-child {
@@ -906,7 +906,7 @@
 .checklist-upload-section {
   background: #21353b;
   padding: 0px 16px 16px 16px;
-  border-radius: 0 0 8px 8px;
+  border-radius: 0 0 12px 12px;
   overflow: hidden;
   animation: slideDown 0.3s ease-out;
 }
@@ -1060,7 +1060,7 @@
   .item-name {
     font-size: 14px;
     font-weight: 500;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
   
   .toggle-group {
@@ -1110,6 +1110,7 @@
   .condition-group.show-on-mobile {
     max-height: 200px;
     opacity: 1;
+    margin-top: 14px;
   }
   
   .condition-group.show-on-mobile::before {
