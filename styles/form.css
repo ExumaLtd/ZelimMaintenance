@@ -876,13 +876,14 @@
   align-items: center;
   padding: 12px 14px;
   border-radius: 8px;
-  transition: background 0.2s;
+  transition: background 0.2s, border-radius 0s;
   background: #21353b;
 }
 
-/* When upload section is present, adjust row radius */
+/* When upload section is present, adjust row radius immediately */
 .equipment-row-wrapper:has(.checklist-upload-section) .equipment-row {
   border-radius: 8px 8px 0 0;
+  transition: background 0.2s, border-radius 0s;
 }
 
 .equipment-row:last-child {
@@ -973,23 +974,22 @@
   border-radius: 6px;
   color: #ffffff;
   font-size: 14px;
-  font-weight: 500 !important;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
   font-family: "Montserrat", sans-serif;
   min-width: 38px;
 }
 
 .toggle-btn:hover {
   background: #324e54;
-  font-weight: 500 !important;
 }
 
 .toggle-btn.active {
   background: #00fff6;
   color: #0d3037;
   border-color: #00fff6;
-  font-weight: 500 !important;
+  font-weight: 500;
 }
 
 .toggle-btn.has-error {

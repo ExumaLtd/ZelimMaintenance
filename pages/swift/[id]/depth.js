@@ -176,9 +176,9 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
         }, 300); // Match animation duration
       }
       
-      // Toggle Poor button - if already poor and clicked again, set to null
+      // Toggle Poor button - if already poor and clicked again, set to null (unselect)
       if (field === 'condition' && item.condition === 'poor' && value === 'poor') {
-        updated[index] = { ...updated[index], [field]: null };
+        updated[index] = { ...updated[index], condition: null };
         setClosingItems(prev => new Set(prev).add(item.id));
         setTimeout(() => {
           setClosingItems(prev => {
