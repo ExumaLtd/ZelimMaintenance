@@ -856,7 +856,8 @@
   display: grid;
   grid-template-columns: 1fr 120px 240px;
   gap: 24px;
-  padding: 12px 16px;
+  padding: 0 16px 12px 16px;
+  margin-bottom: 12px;
 }
 
 .equipment-header > div {
@@ -1159,7 +1160,7 @@
   font-size: 14px;
   line-height: 20px;
   color: #a0acaf;
-  margin: 0 0 30px;
+  margin: 0 0 14px;
   padding: 0 !important;
   font-family: "Montserrat", sans-serif;
 }

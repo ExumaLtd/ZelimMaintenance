@@ -491,7 +491,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       maintained_by: selectedCompany,
       location_display: locationDisplay,
       location_country: locationCountry,
-      maintenance_type: "Depth",
+      maintenance_type: template?.type || "Depth",
       date_of_maintenance: new Date().toISOString(),
       engineer_name: engName,
       engineer_email: engEmail,
@@ -534,7 +534,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
           engineerName: engName,
           serialNumber: unit?.serial_number,
           answers: emailFriendlyAnswers,
-          reportType: "Depth",
+          reportType: template?.type || "Depth",
           companyLogoUrl: companyLogoUrl,
           technicalData: {
             unit_record_id: unit?.record_id,
@@ -842,7 +842,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                     <button 
                       type="button"
                       className="checklist-submit"
-                      style={{ marginTop: "24px" }}
                       onClick={handleContinueToQuestions}
                     >
                       Continue
@@ -853,9 +852,9 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                 {/* STEP 2: MAINTENANCE QUESTIONS */}
                 {currentStep === 2 && (
                   <div>
-                    <h3 className="checklist-section-title">Depth maintenance</h3>
+                    <h3 className="checklist-section-title">{template?.type || "Depth"} maintenance</h3>
                     <p className="checklist-section-subtitle">
-                      All depth maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual and Installation Guide.
+                      All {(template?.type || "depth").toLowerCase()} maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual and Installation Guide.
                     </p>
                     
                     {(template?.questionsData || []).map((q, i) => (
@@ -972,6 +971,7 @@ export async function getServerSideProps({ params }) {
         },
         template: {
           id: templateData.records?.[0]?.id || "",
+          type: templateData.records?.[0]?.fields?.type || "Depth",
           equipmentChecklist: parsedJson.equipment_checklist || [],
           questionsData: parsedJson.questions || [],
           questions: parsedJson.questions?.map(q => q.title) || [],
