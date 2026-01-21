@@ -1048,7 +1048,7 @@
   .equipment-row {
     grid-template-columns: 1fr;
     gap: 0;
-    padding: 20px 20px 12px 20px !important;
+    padding: 20px 20px 20px 20px !important;
     transition: padding-bottom 0.3s ease-out;
   }
   
@@ -1060,6 +1060,7 @@
   .item-name {
     font-size: 14px;
     font-weight: 500;
+    margin-bottom: 16px;
   }
   
   .toggle-group {
@@ -1070,11 +1071,11 @@
   
   .toggle-group::before {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     color: #fff;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
     font-family: "Montserrat", sans-serif;
     grid-column: 1 / -1;
   }
@@ -1099,7 +1100,6 @@
     opacity: 0;
     overflow: hidden;
     transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
-    margin-top: 16px;
   }
   
   .condition-group::before {
