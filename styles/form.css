@@ -899,9 +899,6 @@
 
 /* Checklist Upload Section */
 .checklist-upload-section {
-  background: #27454b !important;
-  padding: 16px;
-  border-radius: 12px;
   margin-top: 12px;
   overflow: hidden;
   animation: slideDown 0.3s ease-out;
