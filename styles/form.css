@@ -875,14 +875,14 @@
   gap: 24px;
   align-items: center;
   padding: 10px 20px 10px 20px;
-  border-radius: 8px;
+  border-radius: 10px;
   transition: background 0.2s;
   background: #27454b !important;
 }
 
 /* When upload section is present, adjust row radius */
 .equipment-row-wrapper:has(.checklist-upload-section) .equipment-row {
-  border-radius: 8px 8px 0 0;
+  border-radius: 10px 10px 0 0;
 }
 
 .equipment-row:last-child {
@@ -909,6 +909,19 @@
   border-radius: 0 0 12px 12px;
   overflow: hidden;
   animation: slideDown 0.3s ease-out;
+}
+
+/* Make checklist upload images smaller on desktop */
+.checklist-upload-section .uploaded-image,
+.checklist-upload-section .preview-image {
+  width: 120px !important;
+  height: 120px !important;
+}
+
+.checklist-upload-section img {
+  max-width: 120px !important;
+  max-height: 120px !important;
+  object-fit: cover;
 }
 
 .checklist-upload-section.closing {
@@ -1051,7 +1064,7 @@
   
   /* Spacing between items - matches question spacing */
   .equipment-row-wrapper {
-    margin-bottom: 24px;
+    margin-bottom: 16px;
   }
   
   .equipment-row-wrapper:last-child {
@@ -1061,10 +1074,10 @@
   /* Mobile item name - outside box like questions */
   .item-name-mobile {
     display: block;
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 500;
     color: #fff;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     font-family: "Montserrat", sans-serif;
   }
   
@@ -1076,7 +1089,7 @@
   .equipment-row {
     grid-template-columns: 1fr;
     gap: 0;
-    padding: 20px 20px 20px 20px !important;
+    padding: 14px 20px 18px 20px !important;
     transition: padding-bottom 0.3s ease-out;
   }
   
