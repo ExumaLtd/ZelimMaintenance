@@ -534,6 +534,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
           engineerName: engName,
           serialNumber: unit?.serial_number,
           answers: emailFriendlyAnswers,
+          equipmentChecklist: checklistData, // NEW: Send checklist data for email
           reportType: template?.type || "Depth",
           companyLogoUrl: companyLogoUrl,
           technicalData: {
