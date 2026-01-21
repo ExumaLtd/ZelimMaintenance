@@ -789,8 +789,8 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                                 type="button"
                                 className={`toggle-btn ${item.condition === 'good' ? 'active' : ''}`}
                                 onClick={() => updateChecklist(index, 'condition', 'good')}
-                                disabled={item.returned === false}
-                                style={{ opacity: item.returned === false ? 0.2 : 1 }}
+                                disabled={item.returned !== true}
+                                style={{ opacity: item.returned !== true ? 0.2 : 1 }}
                               >
                                 Good
                               </button>
@@ -798,8 +798,8 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                                 type="button"
                                 className={`toggle-btn ${item.condition === 'fair' ? 'active' : ''}`}
                                 onClick={() => updateChecklist(index, 'condition', 'fair')}
-                                disabled={item.returned === false}
-                                style={{ opacity: item.returned === false ? 0.2 : 1 }}
+                                disabled={item.returned !== true}
+                                style={{ opacity: item.returned !== true ? 0.2 : 1 }}
                               >
                                 Fair
                               </button>
@@ -807,8 +807,8 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                                 type="button"
                                 className={`toggle-btn ${item.condition === 'poor' ? 'active' : ''}`}
                                 onClick={() => updateChecklist(index, 'condition', 'poor')}
-                                disabled={item.returned === false}
-                                style={{ opacity: item.returned === false ? 0.2 : 1 }}
+                                disabled={item.returned !== true}
+                                style={{ opacity: item.returned !== true ? 0.2 : 1 }}
                               >
                                 Poor
                               </button>

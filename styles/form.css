@@ -1030,43 +1030,67 @@
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
+  .checklist-section-title {
+    text-align: center;
+  }
+  
+  .checklist-section-subtitle {
+    text-align: center;
+  }
+  
   .equipment-header {
     display: none;
   }
   
   .equipment-row {
     grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 20px 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 0;
-  }
-  
-  .equipment-row:first-child {
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-  }
-  
-  .equipment-row:last-child {
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
-    border-bottom: none;
+    gap: 16px;
+    padding: 16px;
   }
   
   .item-name {
-    margin-bottom: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
   
   .toggle-group {
     justify-content: flex-start;
+    gap: 8px;
   }
   
-  .condition-group {
-    flex-wrap: wrap;
+  .toggle-group::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #7d8f93;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    font-family: "Montserrat", sans-serif;
+  }
+  
+  /* Add labels via pseudo-elements */
+  .toggle-group:not(.condition-group)::before {
+    content: "Returned?";
+  }
+  
+  .condition-group::before {
+    content: "Condition?";
   }
   
   .toggle-btn {
-    flex: 0 0 auto;
+    flex: 1;
+    min-width: 70px;
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+  
+  .condition-group {
+    flex-wrap: nowrap;
   }
 }
 
@@ -1082,9 +1106,9 @@
 
 .checklist-section-subtitle {
   font-size: 14px;
-  color: #7d8f93;
-  margin-bottom: 8px !important;
-  margin-top: 0 !important;
+  line-height: 20px;
+  color: #a0acaf;
+  margin: 0 0 20px;
   padding: 0 !important;
   font-family: "Montserrat", sans-serif;
 }
