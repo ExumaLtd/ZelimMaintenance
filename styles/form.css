@@ -1049,6 +1049,12 @@
     grid-template-columns: 1fr;
     gap: 16px;
     padding: 20px !important;
+    transition: padding-bottom 0.3s ease-out;
+  }
+  
+  /* Reduce bottom padding when condition is hidden */
+  .equipment-row:not(:has(.condition-group.show-on-mobile)) {
+    padding-bottom: 12px !important;
   }
   
   .item-name {
