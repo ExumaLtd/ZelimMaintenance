@@ -764,6 +764,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                       
                       {checklistData.map((item, index) => (
                         <div key={item.id} className="equipment-row-wrapper">
+                          <div className="item-name-mobile">{item.name}</div>
                           <div className="equipment-row">
                             <div className="item-name">{item.name}</div>
                             
@@ -790,7 +791,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                                 className={`toggle-btn ${item.condition === 'good' ? 'active' : ''}`}
                                 onClick={() => updateChecklist(index, 'condition', 'good')}
                                 disabled={item.returned !== true}
-                                style={{ opacity: item.returned !== true ? 0.2 : 1 }}
+                                style={{ opacity: item.returned !== true ? 0.3 : 1 }}
                               >
                                 Good
                               </button>
@@ -799,7 +800,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                                 className={`toggle-btn ${item.condition === 'fair' ? 'active' : ''}`}
                                 onClick={() => updateChecklist(index, 'condition', 'fair')}
                                 disabled={item.returned !== true}
-                                style={{ opacity: item.returned !== true ? 0.2 : 1 }}
+                                style={{ opacity: item.returned !== true ? 0.3 : 1 }}
                               >
                                 Fair
                               </button>
@@ -808,7 +809,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                                 className={`toggle-btn ${item.condition === 'poor' ? 'active' : ''}`}
                                 onClick={() => updateChecklist(index, 'condition', 'poor')}
                                 disabled={item.returned !== true}
-                                style={{ opacity: item.returned !== true ? 0.2 : 1 }}
+                                style={{ opacity: item.returned !== true ? 0.3 : 1 }}
                               >
                                 Poor
                               </button>
