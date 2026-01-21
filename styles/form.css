@@ -912,16 +912,15 @@
 }
 
 /* Make checklist upload images smaller on desktop */
-.checklist-upload-section .uploaded-image,
-.checklist-upload-section .preview-image {
+.checklist-upload-section [class*="thumbnail-item"] {
   width: 120px !important;
   height: 120px !important;
 }
 
-.checklist-upload-section img {
-  max-width: 120px !important;
-  max-height: 120px !important;
-  object-fit: cover;
+.checklist-upload-section [class*="thumbnail-item"] img {
+  width: 120px !important;
+  height: 120px !important;
+  object-fit: cover !important;
 }
 
 .checklist-upload-section.closing {
@@ -1051,11 +1050,14 @@
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .checklist-section-title {
-    text-align: center;
+    text-align: left;
   }
   
   .checklist-section-subtitle {
-    text-align: center;
+    text-align: left;
+    color: rgb(160, 172, 175);
+    margin: 0px 0px 20px;
+    padding: 0px !important;
   }
   
   .equipment-header {
@@ -1064,7 +1066,7 @@
   
   /* Spacing between items - matches question spacing */
   .equipment-row-wrapper {
-    margin-bottom: 16px;
+    margin-bottom: 18px;
   }
   
   .equipment-row-wrapper:last-child {
