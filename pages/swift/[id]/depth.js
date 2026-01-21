@@ -901,7 +901,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                 )}
               </form>
             </div>
-            </div>
           </div>
         </div>
 
