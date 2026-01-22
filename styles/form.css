@@ -1361,8 +1361,8 @@
 }
 
 @media (max-width: 768px) {
-  /* Show equipment-header ONLY for monthly (adjacent to equipment-questions-wrapper) */
-  .equipment-questions-wrapper + .equipment-header {
+  /* Show header ONLY when it comes before equipment-questions-wrapper (monthly) */
+  .equipment-header:has(+ .equipment-questions-wrapper) {
     display: block !important;
     grid-template-columns: none !important;
     margin-bottom: 12px;
