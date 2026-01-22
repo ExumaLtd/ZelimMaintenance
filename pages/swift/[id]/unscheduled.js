@@ -561,7 +561,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                   </div>
                 </div>
 
-                <div className="checklist-inline-group">
+                <div className="checklist-inline-group" style={{ marginTop: "24px" }}>
                   <div className="checklist-field" ref={engineerFieldRef}>
                     <label className="checklist-label">Engineer name</label>
                     <div className="custom-dropdown-container" ref={engineerDropdownRef}>
@@ -653,20 +653,21 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
 
             {/* SECTION 2: Maintenance Questions */}
             <div className="checklist-form-card" style={{ marginTop: "24px" }}>
-              <h2 className="checklist-section-title">Maintenance report</h2>
+              <h2 className="checklist-section-title">Unscheduled maintenance</h2>
               <p className="checklist-section-subtitle">
-                Please provide details of the unscheduled maintenance carried out
+                {template?.questionsData?.[0]?.instruction || "Describe the work carried out, reason for maintenance, actions taken, and components affected."}
               </p>
 
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
                 {/* QUESTIONS WITH IMAGE UPLOADERS */}
                 {(template?.questionsData || []).map((q, i) => (
-                  <div key={i} style={{ marginTop: i === 0 ? "0" : "24px" }}>
-                    <label className="checklist-label">
+                  <div key={i} style={{ marginTop: "0" }}>
+                    {/* Hide the individual question title and instruction - they're now in the section header */}
+                    <label className="checklist-label" style={{ display: "none" }}>
                       {q.title}
                     </label>
                     {q.instruction && (
-                      <p className="question-instruction">{q.instruction}</p>
+                      <p className="question-instruction" style={{ display: "none" }}>{q.instruction}</p>
                     )}
                     
                     {/* Wrapper for side-by-side layout on desktop */}
