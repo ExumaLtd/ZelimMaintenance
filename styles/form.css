@@ -815,9 +815,9 @@
     align-items: flex-end;
   }
 }
+
 /* =========================================================================
    DEPTH CHECKLIST STYLES
-   Add these to your existing form.css file
 ========================================================================= */
 
 /* Checklist Step Container */
@@ -1112,11 +1112,12 @@
     padding: 0px !important;
   }
   
-  .equipment-header {
-    display: none;
+  /* Hide ONLY depth header, not monthly */
+  .equipment-table > .equipment-header {
+    display: none !important;
   }
   
-  /* Spacing between items - matches question spacing */
+  /* Spacing between items */
   .equipment-row-wrapper {
     margin-bottom: 18px;
   }
@@ -1131,12 +1132,11 @@
     font-size: 15px !important;
   }
   
-  /* Remove margin-bottom from last inline group (engineer fields) on mobile */
   .checklist-inline-group:last-of-type {
     margin-bottom: 0 !important;
   }
   
-  /* Mobile item name - outside box like questions */
+  /* Mobile item name - outside box */
   .item-name-mobile {
     display: block;
     font-size: 15px;
@@ -1146,7 +1146,6 @@
     font-family: "Montserrat", sans-serif;
   }
   
-  /* Make images smaller on mobile for 3 per row */
   .checklist-upload-section [class*="thumbnail-item"] {
     width: 100px !important;
     height: 100px !important;
@@ -1157,7 +1156,6 @@
     height: 100px !important;
   }
   
-  /* Desktop item name - hide on mobile */
   .item-name {
     display: none;
   }
@@ -1166,10 +1164,9 @@
     grid-template-columns: 1fr;
     gap: 0;
     padding: 14px 20px 18px 20px !important;
-    transition: padding-bottom 0.3s ease-out;
   }
   
-  /* YES/NO BUTTONS FOR DEPTH - 50% width each with "Returned?" label */
+  /* DEPTH: Yes/No buttons 50% width with label */
   .equipment-row .toggle-group:not(.condition-group) {
     display: flex !important;
     flex-wrap: wrap;
@@ -1184,7 +1181,7 @@
     font-weight: 500;
     color: #fff;
     font-family: "Montserrat", sans-serif;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
   
   .equipment-row .toggle-group:not(.condition-group) .toggle-btn {
@@ -1193,7 +1190,7 @@
     font-size: 14px;
   }
   
-  /* CONDITION BUTTONS - 33% width each (Good/Fair/Poor) */
+  /* DEPTH: Condition buttons */
   .equipment-row .condition-group {
     display: grid !important;
     grid-template-columns: 1fr 1fr 1fr !important;
@@ -1212,7 +1209,7 @@
     color: #fff;
     font-family: "Montserrat", sans-serif;
     grid-column: 1 / -1;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
   
   .equipment-row .condition-group .toggle-btn {
@@ -1220,7 +1217,6 @@
     font-size: 14px;
   }
   
-  /* Show condition group when Yes is selected */
   .equipment-row .condition-group.show-on-mobile {
     max-height: 200px;
     opacity: 1;
@@ -1367,7 +1363,7 @@
 }
 
 @media (max-width: 768px) {
-  /* Show equipment-header ONLY inside equipment-questions-wrapper (for monthly/annual) */
+  /* Show equipment-header ONLY for monthly (adjacent to equipment-questions-wrapper) */
   .equipment-questions-wrapper + .equipment-header {
     display: block !important;
     grid-template-columns: none !important;
@@ -1446,29 +1442,5 @@
     color: #a0acaf;
     margin: 0 0 20px;
     padding: 0 !important;
-  }
-}
-
-/* =========================================================================
-   TARGETED FIXES - Depth & Monthly Mobile
-========================================================================= */
-
-@media (max-width: 768px) {
-  /* DEPTH: Fix spacing between "Returned?" label and buttons */
-  .equipment-table .equipment-row .toggle-group:not(.condition-group)::before {
-    margin-bottom: 10px !important;
-  }
-  
-  /* MONTHLY: Show the "Conveyor belt" header outside boxes */
-  .equipment-questions-wrapper ~ .equipment-header {
-    display: block !important;
-  }
-  
-  .equipment-questions-wrapper ~ .equipment-header .header-item {
-    display: block !important;
-    font-size: 15px !important;
-    font-weight: 500 !important;
-    color: #fff !important;
-    margin-bottom: 8px !important;
   }
 }
