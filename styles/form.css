@@ -1365,7 +1365,6 @@
   .equipment-header:has(+ .equipment-questions-wrapper) {
     display: block !important;
     grid-template-columns: none !important;
-    margin-bottom: 12px;
     padding: 0;
   }
   
@@ -1404,7 +1403,7 @@
     font-size: 14px;
     font-weight: 500;
     color: #fff;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
   
   .equipment-questions-wrapper .item-name {
