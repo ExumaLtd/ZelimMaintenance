@@ -1429,3 +1429,10 @@
     font-size: 14px !important;
   }
 }
+
+@media (max-width: 768px) {
+  .equipment-questions-wrapper ~ .equipment-header > div,
+  .equipment-header .header-item {
+    letter-spacing: 0 !important;
+  }
+}
