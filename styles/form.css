@@ -1444,3 +1444,21 @@
     padding: 0 !important;
   }
 }
+
+@media (max-width: 768px) {
+  /* DEPTH CHECKLIST - Make Yes/No buttons 50% width */
+  .equipment-row-wrapper:not(.equipment-questions-wrapper *) .toggle-group:not(.condition-group) {
+    display: flex !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px;
+  }
+  
+  .equipment-row-wrapper:not(.equipment-questions-wrapper *) .toggle-group:not(.condition-group) .toggle-btn {
+    flex: 1;
+  }
+  
+  /* Keep condition buttons at 1/3 width and maintain the label */
+  .equipment-row-wrapper:not(.equipment-questions-wrapper *) .condition-group {
+    grid-template-columns: 1fr 1fr 1fr !important;
+  }
+}
