@@ -3,14 +3,7 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import Image from "next/image";
 import { getCompanyLogoUrl } from '../../../utils/get-company-logo';
-import ImageUploader from '../../../components/image-uploader';
 import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
-
-const autoGrow = (e) => {
-  const el = e.target || e;
-  el.style.height = "78px";
-  el.style.height = el.scrollHeight + "px";
-};
 
 const getClientLogo = (companyName, serialNumber) => {
   const logoMap = {
@@ -61,7 +54,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
   // Checklist data - initialize from template
   const [checklistData, setChecklistData] = useState([]);
-  const [closingItems, setClosingItems] = useState(new Set());
 
   const [locationDisplay, setLocationDisplay] = useState("");
   const [locationCountry, setLocationCountry] = useState("");
@@ -69,9 +61,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   const [engName, setEngName] = useState("");
   const [engEmail, setEngEmail] = useState("");
   const [engPhone, setEngPhone] = useState("");
-  const [answers, setAnswers] = useState({});
-  const [questionImages, setQuestionImages] = useState({});
-  const [checklistImages, setChecklistImages] = useState({});
 
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
@@ -80,14 +69,11 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
   // Initialize checklist data from template
   useEffect(() => {
-    if (template?.maintenanceChecklist) {
+    if (template?.maintenanceChecklist && template.maintenanceChecklist.length > 0) {
       setChecklistData(
         template.maintenanceChecklist.map(item => ({
           ...item,
-          answers: item.questions.reduce((acc, q) => {
-            acc[q.id] = null; // null = unanswered, true = Yes, false = No
-            return acc;
-          }, {})
+          answer: null // null = unanswered, true = Yes, false = No
         }))
       );
     }
@@ -143,36 +129,16 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     setShowEngineerDropdown(false);
   }, []);
 
-  const handleImagesChange = (questionKey, images) => {
-    setQuestionImages(prev => ({
-      ...prev,
-      [questionKey]: images
-    }));
-  };
-
-  const handleChecklistImagesChange = (itemId, images) => {
-    setChecklistImages(prev => ({
-      ...prev,
-      [`item_${itemId}`]: images
-    }));
-  };
-
-  // Checklist functions
-  const updateChecklist = (itemIndex, questionId, value) => {
+  // Checklist update function
+  const updateChecklist = (index, value) => {
     setChecklistData(prev => {
       const updated = [...prev];
-      updated[itemIndex] = {
-        ...updated[itemIndex],
-        answers: {
-          ...updated[itemIndex].answers,
-          [questionId]: value
-        }
-      };
+      updated[index] = { ...updated[index], answer: value };
       
       // Remove error class from buttons when item is updated
-      const rows = document.querySelectorAll('.checklist-item-card');
-      if (rows[itemIndex]) {
-        const allButtons = rows[itemIndex].querySelectorAll('.toggle-btn');
+      const rows = document.querySelectorAll('.equipment-row-wrapper');
+      if (rows[index]) {
+        const allButtons = rows[index].querySelectorAll('.toggle-btn');
         allButtons.forEach(btn => btn.classList.remove('has-error'));
       }
       
@@ -215,12 +181,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       if (data.checklist_data && Array.isArray(data.checklist_data)) {
         setChecklistData(data.checklist_data);
       }
-
-      const draftAnswers = {};
-      Object.keys(data).forEach((key) => {
-        if (key.startsWith("q")) draftAnswers[key] = data[key];
-      });
-      setAnswers(draftAnswers);
     } catch (e) {
       console.error("Draft load error:", e);
     }
@@ -299,10 +259,9 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       engineer_email: engEmail,
       engineer_phone: engPhone,
       checklist_data: checklistData,
-      ...answers,
     };
     localStorage.setItem(storageKey, JSON.stringify(draftData));
-  }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, checklistData, answers, storageKey]);
+  }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, checklistData, storageKey]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -352,25 +311,19 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
     // Check if checklist is complete
     const incompleteItems = [];
-    checklistData.forEach((item, itemIndex) => {
-      item.questions.forEach((question) => {
-        if (item.answers[question.id] === null) {
-          incompleteItems.push({ 
-            itemIndex, 
-            itemTitle: item.title,
-            questionText: question.text 
-          });
-        }
-      });
+    checklistData.forEach((item, index) => {
+      if (item.answer === null) {
+        incompleteItems.push({ index, text: item.text });
+      }
     });
 
     if (incompleteItems.length > 0) {
       errors.push({ field: 'checklist', message: 'Please complete all checklist questions.' });
       // Add error styling to incomplete items
       incompleteItems.forEach(incomplete => {
-        const cards = document.querySelectorAll('.checklist-item-card');
-        if (cards[incomplete.itemIndex]) {
-          const buttons = cards[incomplete.itemIndex].querySelectorAll('.toggle-btn');
+        const rows = document.querySelectorAll('.equipment-row-wrapper');
+        if (rows[incomplete.index]) {
+          const buttons = rows[incomplete.index].querySelectorAll('.toggle-btn');
           buttons.forEach(btn => btn.classList.add('has-error'));
         }
       });
@@ -414,12 +367,9 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       serial_number: unit?.serial_number,
       maintenance_checklist: JSON.stringify(
         checklistData.map(item => ({
-          title: item.title,
-          questions: item.questions.map(q => ({
-            id: q.id,
-            text: q.text,
-            answer: item.answers[q.id] === true ? 'Yes' : item.answers[q.id] === false ? 'No' : 'Not answered'
-          }))
+          id: item.id,
+          text: item.text,
+          answer: item.answer === true ? 'Yes' : item.answer === false ? 'No' : 'Not answered'
         }))
       ),
     };
@@ -442,7 +392,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           engineerEmail: engEmail,
           engineerName: engName,
           serialNumber: unit?.serial_number,
-          maintenanceChecklist: checklistData,
+          maintenance_checklist: checklistData,
           reportType: "Monthly",
           companyLogoUrl: companyLogoUrl,
           technicalData: {
@@ -494,209 +444,204 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
             {/* CARD 1: ADMIN FIELDS */}
             <div className="checklist-form-card">
-              <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-                <div className="checklist-inline-group">
-                  <div className="checklist-field" ref={companyFieldRef}>
-                    <label className="checklist-label">Maintenance company</label>
-                    <div className="custom-dropdown-container" ref={companyDropdownRef}>
-                      <div className="field-icon-wrapper">
-                        <input
-                          readOnly
-                          className={`checklist-input ${selectedCompany ? "is-active" : "is-placeholder"} ${
-                            showCompanyDropdown ? "is-focused" : ""
-                          } ${fieldErrors.company ? "has-error" : ""}`}
-                          value={selectedCompany || "Please select"}
-                          onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
-                          style={{ cursor: "pointer", paddingRight: "40px" }}
-                        />
-                        <div className="field-icon-inside">
-                          {showCompanyDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
-                        </div>
-                      </div>
-                      {showCompanyDropdown && (
-                        <ul className={`custom-dropdown-list ${fieldErrors.company ? "has-error" : ""}`}>
-                          {allCompanies.sort().map((c, i) => (
-                            <li
-                              key={i}
-                              className={`custom-dropdown-item ${selectedCompany === c ? "active" : ""}`}
-                              onClick={() => selectCompany(c)}
-                            >
-                              {c}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="checklist-field" ref={locationFieldRef}>
-                    <label className="checklist-label">Location</label>
-                    <input
-                      className="checklist-input"
-                      name="location_display"
-                      required
-                      value={locationDisplay}
-                      onChange={(e) => {
-                        setLocationDisplay(e.target.value);
-                        if (e.target.value.trim()) {
-                          e.target.classList.remove('has-error');
-                          setFieldErrors(prev => ({ ...prev, location: false }));
-                        }
-                      }}
-                    />
-                  </div>
-
-                  <div className="checklist-field">
-                    <label className="checklist-label">Date</label>
+              <div className="checklist-inline-group">
+                <div className="checklist-field" ref={companyFieldRef}>
+                  <label className="checklist-label">Maintenance company</label>
+                  <div className="custom-dropdown-container" ref={companyDropdownRef}>
                     <div className="field-icon-wrapper">
                       <input
-                        type="date"
-                        className="checklist-input"
-                        name="date_of_maintenance"
-                        defaultValue={today}
-                        max={today}
-                        required
-                        style={{ paddingRight: "40px" }}
+                        readOnly
+                        className={`checklist-input ${selectedCompany ? "is-active" : "is-placeholder"} ${
+                          showCompanyDropdown ? "is-focused" : ""
+                        } ${fieldErrors.company ? "has-error" : ""}`}
+                        value={selectedCompany || "Please select"}
+                        onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
+                        style={{ cursor: "pointer", paddingRight: "40px" }}
                       />
                       <div className="field-icon-inside">
-                        <Calendar size={20} strokeWidth={1.5} />
+                        {showCompanyDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
                       </div>
                     </div>
+                    {showCompanyDropdown && (
+                      <ul className={`custom-dropdown-list ${fieldErrors.company ? "has-error" : ""}`}>
+                        {allCompanies.sort().map((c, i) => (
+                          <li
+                            key={i}
+                            className={`custom-dropdown-item ${selectedCompany === c ? "active" : ""}`}
+                            onClick={() => selectCompany(c)}
+                          >
+                            {c}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
 
-                <div className="checklist-inline-group" style={{ marginTop: "24px" }}>
-                  <div className="checklist-field" ref={engineerFieldRef}>
-                    <label className="checklist-label">Engineer name</label>
-                    <div className="custom-dropdown-container" ref={engineerDropdownRef}>
-                      <div className="field-icon-wrapper">
-                        <input
-                          className={`checklist-input ${
-                            engName === "Please select" || !engName ? "is-placeholder" : "is-active"
-                          } ${shouldShowEngDropdown ? "is-focused" : ""} ${fieldErrors.engineerName ? "has-error" : ""}`}
-                          name="engineer_name"
-                          required
-                          value={engName}
-                          autoComplete="off"
-                          onFocus={() => {
-                            if (selectedCompany) setShowEngineerDropdown(true);
-                          }}
-                          onChange={(e) => {
-                            setEngName(e.target.value);
-                            if (selectedCompany) setShowEngineerDropdown(true);
-                            if (e.target.value.trim() && e.target.value !== "Please select") {
-                              setFieldErrors(prev => ({ ...prev, engineerName: false }));
-                            }
-                          }}
-                          style={{
-                            paddingRight: selectedCompany && (hasEngineerResults || hasClearEng) ? "40px" : "16px",
-                          }}
-                        />
-                        {selectedCompany && (hasEngineerResults || hasClearEng) && (
-                          <div className="field-icon-inside">
-                            {showEngineerDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
-                          </div>
-                        )}
-                      </div>
-                      {shouldShowEngDropdown && (
-                        <ul className={`custom-dropdown-list ${fieldErrors.engineerName ? "has-error" : ""}`}>
-                          {hasClearEng && (
-                            <li className="custom-dropdown-item" onClick={clearEngineer}>
-                              Clear details
-                            </li>
-                          )}
-                          {filteredEngineers.map((eng, i) => (
-                            <li key={i} className="custom-dropdown-item" onClick={() => selectEngineer(eng)}>
-                              {eng.name}
-                            </li>
-                          ))}
-                        </ul>
+                <div className="checklist-field" ref={locationFieldRef}>
+                  <label className="checklist-label">Location</label>
+                  <input
+                    className={`checklist-input ${fieldErrors.location ? "has-error" : ""}`}
+                    name="location_display"
+                    required
+                    value={locationDisplay}
+                    onChange={(e) => {
+                      setLocationDisplay(e.target.value);
+                      if (e.target.value.trim()) {
+                        setFieldErrors(prev => ({ ...prev, location: false }));
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="checklist-field">
+                  <label className="checklist-label">Date</label>
+                  <div className="field-icon-wrapper">
+                    <input
+                      type="date"
+                      className="checklist-input"
+                      name="date_of_maintenance"
+                      defaultValue={today}
+                      max={today}
+                      required
+                      style={{ paddingRight: "40px" }}
+                    />
+                    <div className="field-icon-inside">
+                      <Calendar size={20} strokeWidth={1.5} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="checklist-inline-group" style={{ marginTop: "24px" }}>
+                <div className="checklist-field" ref={engineerFieldRef}>
+                  <label className="checklist-label">Engineer name</label>
+                  <div className="custom-dropdown-container" ref={engineerDropdownRef}>
+                    <div className="field-icon-wrapper">
+                      <input
+                        className={`checklist-input ${
+                          engName === "Please select" || !engName ? "is-placeholder" : "is-active"
+                        } ${shouldShowEngDropdown ? "is-focused" : ""} ${fieldErrors.engineerName ? "has-error" : ""}`}
+                        name="engineer_name"
+                        required
+                        value={engName}
+                        autoComplete="off"
+                        onFocus={() => {
+                          if (selectedCompany) setShowEngineerDropdown(true);
+                        }}
+                        onChange={(e) => {
+                          setEngName(e.target.value);
+                          if (selectedCompany) setShowEngineerDropdown(true);
+                          if (e.target.value.trim() && e.target.value !== "Please select") {
+                            setFieldErrors(prev => ({ ...prev, engineerName: false }));
+                          }
+                        }}
+                        style={{
+                          paddingRight: selectedCompany && (hasEngineerResults || hasClearEng) ? "40px" : "16px",
+                        }}
+                      />
+                      {selectedCompany && (hasEngineerResults || hasClearEng) && (
+                        <div className="field-icon-inside">
+                          {showEngineerDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
+                        </div>
                       )}
                     </div>
-                  </div>
-
-                  <div className="checklist-field">
-                    <label className="checklist-label">Engineer email</label>
-                    <input
-                      type="email"
-                      className="checklist-input"
-                      name="engineer_email"
-                      required
-                      value={engEmail}
-                      onChange={(e) => {
-                        setEngEmail(e.target.value);
-                        if (e.target.value.trim()) {
-                          e.target.classList.remove('has-error');
-                          setFieldErrors(prev => ({ ...prev, engineerEmail: false }));
-                        }
-                      }}
-                    />
-                  </div>
-
-                  <div className="checklist-field">
-                    <label className="checklist-label">Engineer phone</label>
-                    <input
-                      type="tel"
-                      className="checklist-input"
-                      name="engineer_phone"
-                      required
-                      value={engPhone}
-                      onChange={(e) => {
-                        setEngPhone(e.target.value);
-                        if (e.target.value.trim()) {
-                          e.target.classList.remove('has-error');
-                          setFieldErrors(prev => ({ ...prev, engineerPhone: false }));
-                        }
-                      }}
-                    />
+                    {shouldShowEngDropdown && (
+                      <ul className={`custom-dropdown-list ${fieldErrors.engineerName ? "has-error" : ""}`}>
+                        {hasClearEng && (
+                          <li className="custom-dropdown-item" onClick={clearEngineer}>
+                            Clear details
+                          </li>
+                        )}
+                        {filteredEngineers.map((eng, i) => (
+                          <li key={i} className="custom-dropdown-item" onClick={() => selectEngineer(eng)}>
+                            {eng.name}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
-              </form>
+
+                <div className="checklist-field">
+                  <label className="checklist-label">Engineer email</label>
+                  <input
+                    type="email"
+                    className={`checklist-input ${fieldErrors.engineerEmail ? "has-error" : ""}`}
+                    name="engineer_email"
+                    required
+                    value={engEmail}
+                    onChange={(e) => {
+                      setEngEmail(e.target.value);
+                      if (e.target.value.trim()) {
+                        setFieldErrors(prev => ({ ...prev, engineerEmail: false }));
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="checklist-field">
+                  <label className="checklist-label">Engineer phone</label>
+                  <input
+                    type="tel"
+                    className={`checklist-input ${fieldErrors.engineerPhone ? "has-error" : ""}`}
+                    name="engineer_phone"
+                    required
+                    value={engPhone}
+                    onChange={(e) => {
+                      setEngPhone(e.target.value);
+                      if (e.target.value.trim()) {
+                        setFieldErrors(prev => ({ ...prev, engineerPhone: false }));
+                      }
+                    }}
+                  />
+                </div>
+              </div>
             </div>
 
-            {/* CARD 2: EQUIPMENT CHECKLIST + QUESTIONS */}
+            {/* CARD 2: CHECKLIST */}
             <div className="checklist-form-card" style={{ marginTop: "20px" }}>
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-                {/* EQUIPMENT CHECKLIST */}
-                <div>
-                  <h3 className="checklist-section-title">Monthly inspection checklist</h3>
-                  <p className="checklist-section-subtitle">
-                    Confirm all monthly inspection records are present, complete, and signed.
-                  </p>
-                  
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {checklistData.map((item, itemIndex) => (
-                      <div key={item.id} className="checklist-item-card">
-                        <h4 className="checklist-item-title">{item.title}</h4>
-                        
-                        {item.questions.map((question) => (
-                          <div key={question.id} className="checklist-question-row">
-                            <div className="question-text">{question.text}</div>
-                            <div className="toggle-group">
-                              <button 
-                                type="button"
-                                className={`toggle-btn ${item.answers[question.id] === true ? 'active' : ''}`}
-                                onClick={() => updateChecklist(itemIndex, question.id, true)}
-                              >
-                                Yes
-                              </button>
-                              <button 
-                                type="button"
-                                className={`toggle-btn ${item.answers[question.id] === false ? 'active' : ''}`}
-                                onClick={() => updateChecklist(itemIndex, question.id, false)}
-                              >
-                                No
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ))}
+                <h3 className="checklist-section-title">Monthly inspection checklist</h3>
+                <p className="checklist-section-subtitle">
+                  Confirm all monthly inspection records are present, complete, and signed.
+                </p>
+                
+                <div className="equipment-table">
+                  <div className="equipment-header">
+                    <div className="header-item"></div>
+                    <div className="header-returned">Completed?</div>
                   </div>
+                  
+                  {checklistData.map((item, index) => (
+                    <div key={item.id} className="equipment-row-wrapper">
+                      <div className="item-name-mobile">{item.text}</div>
+                      <div className="equipment-row" style={{ gridTemplateColumns: '1fr 120px' }}>
+                        <div className="item-name">{item.text}</div>
+                        
+                        <div className="toggle-group">
+                          <button 
+                            type="button"
+                            className={`toggle-btn ${item.answer === true ? 'active' : ''}`}
+                            onClick={() => updateChecklist(index, true)}
+                          >
+                            Yes
+                          </button>
+                          <button 
+                            type="button"
+                            className={`toggle-btn ${item.answer === false ? 'active' : ''}`}
+                            onClick={() => updateChecklist(index, false)}
+                          >
+                            No
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
-                {errorMsg && <p className="error-message" style={{ marginTop: "24px" }}>{errorMsg}</p>}
-                <button className="checklist-submit" disabled={submitting}>
+                {errorMsg && <p className="error-message">{errorMsg}</p>}
+                <button type="submit" className="checklist-submit" disabled={submitting}>
                   {submitting ? "Submitting..." : "Submit maintenance"}
                 </button>
               </form>
@@ -749,7 +694,7 @@ export async function getServerSideProps({ params }) {
     }
 
     // Parse the JSON from checklist_templates
-    let parsedTemplate = { maintenance_checklist: [], questions: [] };
+    let parsedTemplate = { maintenance_checklist: [] };
     if (templateData.records?.[0]?.fields.questions_json) {
       try {
         parsedTemplate = JSON.parse(templateData.records[0].fields.questions_json);
@@ -769,7 +714,6 @@ export async function getServerSideProps({ params }) {
         template: {
           id: templateData.records?.[0]?.id || "",
           maintenanceChecklist: parsedTemplate.maintenance_checklist || [],
-          questions: parsedTemplate.questions || [],
         },
         allCompanies: Object.values(companyLookup).filter(Boolean),
         allEngineers:
