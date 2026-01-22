@@ -3,8 +3,7 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import Image from "next/image";
 import { getCompanyLogoUrl } from '../../../utils/get-company-logo';
-import ImageUploader from '../../../components/image-uploader';
-import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
+import { ChevronDown, ChevronUp, Calendar, Upload } from "lucide-react";
 
 const autoGrow = (e) => {
   const el = e.target || e;
@@ -66,7 +65,10 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   const [engEmail, setEngEmail] = useState("");
   const [engPhone, setEngPhone] = useState("");
   const [answers, setAnswers] = useState({});
-  const [questionImages, setQuestionImages] = useState({});
+
+  // Checklist state
+  const [checklistAnswers, setChecklistAnswers] = useState({});
+  const [checklistImages, setChecklistImages] = useState({});
 
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
@@ -107,7 +109,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     try {
       const data = JSON.parse(savedDraft);
       if (data.maintained_by) setSelectedCompany(data.maintained_by);
-      // Only load location if it has a non-empty value
       if (data.location_display && data.location_display.trim()) {
         setLocationDisplay(data.location_display);
       }
@@ -116,6 +117,10 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       if (data.engineer_email) setEngEmail(data.engineer_email);
       if (data.engineer_phone) setEngPhone(data.engineer_phone);
 
+      // Load checklist answers
+      if (data.checklistAnswers) setChecklistAnswers(data.checklistAnswers);
+
+      // Load text question answers
       const draftAnswers = {};
       Object.keys(data).forEach((key) => {
         if (key.startsWith("q")) draftAnswers[key] = data[key];
@@ -126,17 +131,35 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     }
   }, [storageKey]);
 
-  // Get geolocation - IMPROVED VERSION
+  // Load checklist images from localStorage
+  useEffect(() => {
+    const equipmentList = template?.equipmentChecklist || [];
+    const loadedImages = {};
+    
+    equipmentList.forEach((item) => {
+      const imageStorageKey = `checklist_images_monthly_${unit?.serial_number}_item_${item.id}`;
+      const saved = localStorage.getItem(imageStorageKey);
+      if (saved) {
+        try {
+          loadedImages[item.id] = JSON.parse(saved);
+        } catch (e) {
+          console.error("Failed to load images for item", item.id, e);
+        }
+      }
+    });
+    
+    setChecklistImages(loadedImages);
+  }, [template, unit]);
+
+  // Get geolocation
   useEffect(() => {
     if (typeof window === "undefined" || !navigator.geolocation) return;
-
-    // Only run geolocation if location field is empty
     if (locationDisplay && locationDisplay.trim() !== "") return;
 
     const options = {
       enableHighAccuracy: true,
-      timeout: 15000, // Increased to 15 seconds for slower connections
-      maximumAge: 0 // Don't use cached position
+      timeout: 15000,
+      maximumAge: 0
     };
 
     navigator.geolocation.getCurrentPosition(
@@ -146,7 +169,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14&accept-language=en-GB`,
             {
               headers: {
-                'User-Agent': 'SWIFT Maintenance App' // Nominatim requires User-Agent
+                'User-Agent': 'SWIFT Maintenance App'
               }
             }
           );
@@ -165,17 +188,14 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
             const shortCountry = displayCountry === "GB" ? "UK" : displayCountry;
             const combinedDisplay = loc ? `${loc}, ${shortCountry}` : shortCountry;
 
-            // Only set if field is still empty (user hasn't typed anything)
             setLocationDisplay((prev) => (!prev || prev.trim() === "") ? combinedDisplay : prev);
             setLocationCountry(formalCountry);
           }
         } catch (err) {
           console.error("Geocoding error:", err);
-          // Silently fail - user can enter location manually
         }
       },
       (error) => {
-        // Handle different error codes
         switch(error.code) {
           case error.PERMISSION_DENIED:
             console.log("User denied location permission");
@@ -189,11 +209,10 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           default:
             console.log("Unknown location error:", error.message);
         }
-        // Don't show error to user - they can enter location manually
       },
       options
     );
-  }, []); // Only run once on mount
+  }, []);
 
   // Save draft to localStorage
   useEffect(() => {
@@ -204,10 +223,11 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       engineer_name: engName,
       engineer_email: engEmail,
       engineer_phone: engPhone,
+      checklistAnswers: checklistAnswers,
       ...answers,
     };
     localStorage.setItem(storageKey, JSON.stringify(draftData));
-  }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, answers, storageKey]);
+  }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, answers, checklistAnswers, storageKey]);
 
   const selectCompany = (company) => {
     setSelectedCompany(company);
@@ -215,7 +235,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     setEngEmail("");
     setEngPhone("");
     setShowCompanyDropdown(false);
-    // Remove error state when valid selection made
     setFieldErrors(prev => ({ ...prev, company: false }));
   };
 
@@ -224,26 +243,12 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     setEngEmail(engineer.email || "");
     setEngPhone(engineer.phone || "");
     setShowEngineerDropdown(false);
-    // Remove error states when valid selection made
     setFieldErrors(prev => ({
       ...prev,
       engineerName: false,
       engineerEmail: engineer.email ? false : prev.engineerEmail,
       engineerPhone: engineer.phone ? false : prev.engineerPhone,
     }));
-    // Remove error class from engineer name input
-    const engineerInput = document.querySelector('[name="engineer_name"]');
-    if (engineerInput) engineerInput.classList.remove('has-error');
-    // Also remove error from email if it gets filled
-    if (engineer.email) {
-      const emailInput = document.querySelector('[name="engineer_email"]');
-      if (emailInput) emailInput.classList.remove('has-error');
-    }
-    // Also remove error from phone if it gets filled
-    if (engineer.phone) {
-      const phoneInput = document.querySelector('[name="engineer_phone"]');
-      if (phoneInput) phoneInput.classList.remove('has-error');
-    }
   };
 
   const clearEngineer = () => {
@@ -253,15 +258,90 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     setShowEngineerDropdown(false);
   };
 
-  const scrollToField = (ref) => {
-    ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  // Handle checklist returned change
+  const handleChecklistReturnedChange = (itemId, value) => {
+    setChecklistAnswers(prev => {
+      const updated = { ...prev, [itemId]: { ...prev[itemId], returned: value } };
+      // Auto-select "Good" if "Yes" is selected
+      if (value === "Yes" && !updated[itemId].condition) {
+        updated[itemId].condition = "Good";
+      }
+      return updated;
+    });
   };
 
-  const handleImagesChange = (questionKey, images) => {
-    setQuestionImages(prev => ({
+  // Handle checklist condition change
+  const handleChecklistConditionChange = (itemId, value) => {
+    setChecklistAnswers(prev => ({
       ...prev,
-      [questionKey]: images
+      [itemId]: { ...prev[itemId], condition: value }
     }));
+  };
+
+  // Handle checklist image upload
+  const handleChecklistImageUpload = async (itemId, files) => {
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    const maxSize = 10 * 1024 * 1024; // 10MB
+
+    if (file.size > maxSize) {
+      alert("Image must be less than 10MB");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("questionKey", `item_${itemId}`);
+      formData.append("serialNumber", unit?.serial_number);
+      formData.append("maintenanceType", "monthly");
+
+      const res = await fetch("/api/upload-image", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("Upload failed");
+
+      const data = await res.json();
+      
+      setChecklistImages(prev => {
+        const updated = {
+          ...prev,
+          [itemId]: [...(prev[itemId] || []), { url: data.url, name: file.name }]
+        };
+        
+        // Save to localStorage
+        const imageStorageKey = `checklist_images_monthly_${unit?.serial_number}_item_${itemId}`;
+        localStorage.setItem(imageStorageKey, JSON.stringify(updated[itemId]));
+        
+        return updated;
+      });
+    } catch (err) {
+      console.error("Image upload error:", err);
+      alert("Failed to upload image. Please try again.");
+    }
+  };
+
+  // Handle checklist image removal
+  const handleChecklistImageRemove = (itemId, imageIndex) => {
+    setChecklistImages(prev => {
+      const updated = {
+        ...prev,
+        [itemId]: (prev[itemId] || []).filter((_, i) => i !== imageIndex)
+      };
+      
+      // Update localStorage
+      const imageStorageKey = `checklist_images_monthly_${unit?.serial_number}_item_${itemId}`;
+      if (updated[itemId].length === 0) {
+        localStorage.removeItem(imageStorageKey);
+      } else {
+        localStorage.setItem(imageStorageKey, JSON.stringify(updated[itemId]));
+      }
+      
+      return updated;
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -269,7 +349,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     setErrorMsg("");
     if (submitting) return;
 
-    // Collect all errors
     const errors = [];
     let firstErrorField = null;
     const newFieldErrors = {
@@ -280,7 +359,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       engineerPhone: false,
     };
 
-    // Remove all error classes from textareas/questions
+    // Remove all error classes
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
 
     // Validation - Maintenance company
@@ -295,8 +374,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       errors.push({ field: 'location', message: 'Please provide a location.' });
       newFieldErrors.location = true;
       if (!firstErrorField) firstErrorField = locationFieldRef;
-      const locationInput = document.querySelector('[name="location_display"]');
-      if (locationInput) locationInput.classList.add('has-error');
     }
 
     // Validation - Engineer name
@@ -304,44 +381,38 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       errors.push({ field: 'engineer', message: 'Please select or enter an engineer name.' });
       newFieldErrors.engineerName = true;
       if (!firstErrorField) firstErrorField = engineerFieldRef;
-      const engineerInput = document.querySelector('[name="engineer_name"]');
-      if (engineerInput) engineerInput.classList.add('has-error');
     }
 
     // Validation - Engineer email
     if (!engEmail || !engEmail.trim()) {
       errors.push({ field: 'engineer_email', message: 'Please provide an engineer email.' });
       newFieldErrors.engineerEmail = true;
-      if (!firstErrorField) {
-        const emailInput = document.querySelector('[name="engineer_email"]');
-        if (emailInput) firstErrorField = { current: emailInput };
-      }
-      const emailInput = document.querySelector('[name="engineer_email"]');
-      if (emailInput) emailInput.classList.add('has-error');
     }
 
     // Validation - Engineer phone
     if (!engPhone || !engPhone.trim()) {
       errors.push({ field: 'engineer_phone', message: 'Please provide an engineer phone number.' });
       newFieldErrors.engineerPhone = true;
-      if (!firstErrorField) {
-        const phoneInput = document.querySelector('[name="engineer_phone"]');
-        if (phoneInput) firstErrorField = { current: phoneInput };
-      }
-      const phoneInput = document.querySelector('[name="engineer_phone"]');
-      if (phoneInput) phoneInput.classList.add('has-error');
     }
 
-    // Validate required questions
-    const requiredQuestions = (template?.questionsData || []).filter(q => q.required);
-    for (let i = 0; i < requiredQuestions.length; i++) {
-      const q = requiredQuestions[i];
-      const questionIndex = (template?.questionsData || []).indexOf(q) + 1;
-      const answer = answers[`q${questionIndex}`];
-      
+    // Validate checklist - all items must have returned status and condition
+    const equipmentList = template?.equipmentChecklist || [];
+    for (const item of equipmentList) {
+      const answer = checklistAnswers[item.id];
+      if (!answer || !answer.returned) {
+        errors.push({ field: `checklist_${item.id}`, message: `Please mark if "${item.name}" was returned.` });
+      } else if (answer.returned === "Yes" && !answer.condition) {
+        errors.push({ field: `checklist_${item.id}`, message: `Please select condition for "${item.name}".` });
+      }
+    }
+
+    // Validate required text questions
+    const requiredQuestions = (template?.questions || []).filter(q => q.required);
+    for (const q of requiredQuestions) {
+      const answer = answers[`q${q.id}`];
       if (!answer || !answer.trim()) {
-        errors.push({ field: `q${questionIndex}`, message: `Please answer: ${q.title}.` });
-        const questionElement = document.querySelector(`[name="q${questionIndex}"]`);
+        errors.push({ field: `q${q.id}`, message: `Please answer: ${q.title}.` });
+        const questionElement = document.querySelector(`[name="q${q.id}"]`);
         if (questionElement) {
           questionElement.classList.add('has-error');
           if (!firstErrorField) firstErrorField = { current: questionElement };
@@ -349,10 +420,8 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       }
     }
 
-    // Update field errors state
     setFieldErrors(newFieldErrors);
 
-    // If there are errors, show message and scroll to first error
     if (errors.length > 0) {
       if (errors.length === 1) {
         setErrorMsg(errors[0].message);
@@ -360,17 +429,12 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
         setErrorMsg("Please check for multiple errors.");
       }
       
-      // Scroll to first error
       if (firstErrorField) {
         if (firstErrorField.current) {
           firstErrorField.current.scrollIntoView({ behavior: "smooth", block: "center" });
           setTimeout(() => {
             if (firstErrorField.current.focus) {
               firstErrorField.current.focus();
-            } else if (firstErrorField.current.querySelector) {
-              // For dropdown containers, try to focus the input inside
-              const input = firstErrorField.current.querySelector('.checklist-input');
-              if (input) input.focus();
             }
           }, 300);
         }
@@ -380,16 +444,26 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
     setSubmitting(true);
 
-    // Prepare email-friendly answers WITH images
+    // Prepare checklist data for email and database
+    const checklistData = equipmentList.map(item => {
+      const answer = checklistAnswers[item.id] || {};
+      const images = checklistImages[item.id] || [];
+      return {
+        id: item.id,
+        name: item.name,
+        returned: answer.returned || "No",
+        condition: answer.condition || "N/A",
+        images: images.map(img => img.url)
+      };
+    });
+
+    // Prepare text question answers for email
     const emailFriendlyAnswers = {};
-    (template?.questionsData || []).forEach((q, i) => {
-      const questionKey = `q${i + 1}`;
-      const textAnswer = answers[questionKey] || "Not answered";
-      const images = questionImages[questionKey] || [];
-      
+    (template?.questions || []).forEach((q) => {
+      const textAnswer = answers[`q${q.id}`] || "Not answered";
       emailFriendlyAnswers[q.title] = {
         text: textAnswer,
-        images: images.map(img => img.url)
+        images: [] // Text questions don't have image uploads in monthly
       };
     });
 
@@ -405,14 +479,12 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       unit_record_id: unit?.record_id,
       checklist_template_id: template?.id,
       serial_number: unit?.serial_number,
-      answers: (template?.questionsData || []).map((q, i) => {
-        const questionKey = `q${i + 1}`;
-        return {
-          question: questionKey,
-          answer: answers[questionKey] || "",
-          images: (questionImages[questionKey] || []).map(img => img.url)
-        };
-      }),
+      equipment_checklist: checklistData,
+      answers: (template?.questions || []).map((q) => ({
+        question: `q${q.id}`,
+        answer: answers[`q${q.id}`] || "",
+        images: []
+      })),
     };
 
     try {
@@ -434,6 +506,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           engineerEmail: engEmail,
           engineerName: engName,
           serialNumber: unit?.serial_number,
+          checklistData: checklistData,
           answers: emailFriendlyAnswers,
           reportType: "Monthly",
           companyLogoUrl: companyLogoUrl,
@@ -443,14 +516,15 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
             maintenance_company: selectedCompany,
             engineer_name: engName,
             location_display: locationDisplay,
+            date_of_maintenance: new Date().toISOString().split('T')[0],
+            time_of_maintenance: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
           },
         }),
       });
 
-      // Clear image localStorage after successful submission
-      (template?.questionsData || []).forEach((_, i) => {
-        const questionKey = `q${i + 1}`;
-        const imageStorageKey = `images_monthly_${unit?.serial_number}_${questionKey}`;
+      // Clear checklist image localStorage after successful submission
+      equipmentList.forEach((item) => {
+        const imageStorageKey = `checklist_images_monthly_${unit?.serial_number}_item_${item.id}`;
         localStorage.removeItem(imageStorageKey);
       });
 
@@ -490,6 +564,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
             <div className="checklist-form-card">
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
+                {/* FORM FIELDS */}
                 <div className="checklist-inline-group">
                   <div className="checklist-field" ref={companyFieldRef}>
                     <label className="checklist-label">Maintenance company</label>
@@ -531,13 +606,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                       name="location_display"
                       required
                       value={locationDisplay}
-                      onChange={(e) => {
-                        setLocationDisplay(e.target.value);
-                        // Remove error class when user types
-                        if (e.target.value.trim()) {
-                          e.target.classList.remove('has-error');
-                        }
-                      }}
+                      onChange={(e) => setLocationDisplay(e.target.value)}
                     />
                   </div>
 
@@ -579,7 +648,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                           onChange={(e) => {
                             setEngName(e.target.value);
                             if (selectedCompany) setShowEngineerDropdown(true);
-                            // Remove error when user types
                             if (e.target.value.trim() && e.target.value !== "Please select") {
                               setFieldErrors(prev => ({ ...prev, engineerName: false }));
                             }
@@ -619,13 +687,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                       name="engineer_email"
                       required
                       value={engEmail}
-                      onChange={(e) => {
-                        setEngEmail(e.target.value);
-                        // Remove error class when user types valid email
-                        if (e.target.value.trim()) {
-                          e.target.classList.remove('has-error');
-                        }
-                      }}
+                      onChange={(e) => setEngEmail(e.target.value)}
                     />
                   </div>
 
@@ -637,57 +699,150 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                       name="engineer_phone"
                       required
                       value={engPhone}
-                      onChange={(e) => {
-                        setEngPhone(e.target.value);
-                        // Remove error class when user types
-                        if (e.target.value.trim()) {
-                          e.target.classList.remove('has-error');
-                        }
-                      }}
+                      onChange={(e) => setEngPhone(e.target.value)}
                     />
                   </div>
                 </div>
 
-                {/* QUESTIONS WITH IMAGE UPLOADERS */}
-                {(template?.questionsData || []).map((q, i) => (
-                  <div key={i} style={{ marginTop: "24px" }}>
+                {/* EQUIPMENT CHECKLIST */}
+                <div className="checklist-section" style={{ marginTop: "32px" }}>
+                  <h3>Equipment checklist</h3>
+                  <div className="checklist-items">
+                    {(template?.equipmentChecklist || []).map((item, index) => (
+                      <div key={item.id} className="checklist-item">
+                        <div className="item-header">
+                          <div className="item-number">{index + 1}</div>
+                          <h4 className="item-title">{item.name}</h4>
+                        </div>
+
+                        <div className="item-fields">
+                          <div className="form-group">
+                            <label>Returned</label>
+                            <div className="radio-group">
+                              <div className="radio-option">
+                                <input
+                                  type="radio"
+                                  id={`item_${item.id}_yes`}
+                                  name={`item_${item.id}_returned`}
+                                  checked={checklistAnswers[item.id]?.returned === "Yes"}
+                                  onChange={() => handleChecklistReturnedChange(item.id, "Yes")}
+                                />
+                                <label htmlFor={`item_${item.id}_yes`}>Yes</label>
+                              </div>
+                              <div className="radio-option">
+                                <input
+                                  type="radio"
+                                  id={`item_${item.id}_no`}
+                                  name={`item_${item.id}_returned`}
+                                  checked={checklistAnswers[item.id]?.returned === "No"}
+                                  onChange={() => handleChecklistReturnedChange(item.id, "No")}
+                                />
+                                <label htmlFor={`item_${item.id}_no`}>No</label>
+                              </div>
+                            </div>
+                          </div>
+
+                          {checklistAnswers[item.id]?.returned === "Yes" && (
+                            <div className="form-group">
+                              <label>Condition</label>
+                              <div className="radio-group">
+                                <div className="radio-option">
+                                  <input
+                                    type="radio"
+                                    id={`item_${item.id}_good`}
+                                    name={`item_${item.id}_condition`}
+                                    checked={checklistAnswers[item.id]?.condition === "Good"}
+                                    onChange={() => handleChecklistConditionChange(item.id, "Good")}
+                                  />
+                                  <label htmlFor={`item_${item.id}_good`}>Good</label>
+                                </div>
+                                <div className="radio-option">
+                                  <input
+                                    type="radio"
+                                    id={`item_${item.id}_fair`}
+                                    name={`item_${item.id}_condition`}
+                                    checked={checklistAnswers[item.id]?.condition === "Fair"}
+                                    onChange={() => handleChecklistConditionChange(item.id, "Fair")}
+                                  />
+                                  <label htmlFor={`item_${item.id}_fair`}>Fair</label>
+                                </div>
+                                <div className="radio-option">
+                                  <input
+                                    type="radio"
+                                    id={`item_${item.id}_poor`}
+                                    name={`item_${item.id}_condition`}
+                                    checked={checklistAnswers[item.id]?.condition === "Poor"}
+                                    onChange={() => handleChecklistConditionChange(item.id, "Poor")}
+                                  />
+                                  <label htmlFor={`item_${item.id}_poor`}>Poor</label>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* IMAGE UPLOAD SECTION */}
+                        <div className="checklist-upload-section">
+                          <h4>Upload images (optional)</h4>
+                          <div className="checklist-file-upload-wrapper">
+                            <input
+                              type="file"
+                              id={`upload_item_${item.id}`}
+                              className="checklist-file-upload-input"
+                              accept="image/*"
+                              onChange={(e) => handleChecklistImageUpload(item.id, e.target.files)}
+                            />
+                            <label htmlFor={`upload_item_${item.id}`} className="checklist-file-upload-label">
+                              <Upload size={20} />
+                              Choose image
+                            </label>
+                          </div>
+
+                          {checklistImages[item.id] && checklistImages[item.id].length > 0 && (
+                            <div className="checklist-image-grid">
+                              {checklistImages[item.id].map((img, imgIndex) => (
+                                <div key={imgIndex} className="checklist-preview-item">
+                                  <img src={img.url} alt={`${item.name} ${imgIndex + 1}`} />
+                                  <button
+                                    type="button"
+                                    className="checklist-remove-image"
+                                    onClick={() => handleChecklistImageRemove(item.id, imgIndex)}
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* TEXT QUESTIONS */}
+                {(template?.questions || []).map((q) => (
+                  <div key={q.id} style={{ marginTop: "24px" }}>
                     <label className="checklist-label">
                       {q.title}
+                      {q.required && <span style={{ color: '#e74c3c' }}> *</span>}
                     </label>
                     {q.instruction && (
                       <p className="question-instruction">{q.instruction}</p>
                     )}
-                    
-                    {/* Wrapper for side-by-side layout on desktop */}
-                    <div className="question-with-upload">
-                      <div className="textarea-wrapper">
-                        <textarea
-                          name={`q${i + 1}`}
-                          className="checklist-textarea"
-                          onInput={autoGrow}
-                          value={answers[`q${i + 1}`] || ""}
-                          onChange={(e) => {
-                            setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-                            // Remove error class when user types
-                            if (e.target.value.trim()) {
-                              e.target.classList.remove('has-error');
-                            }
-                          }}
-                          required={q.required}
-                        />
-                      </div>
-                      
-                      {/* IMAGE UPLOADER */}
-                      {q.allow_uploads && (
-                        <ImageUploader
-                          questionKey={`q${i + 1}`}
-                          questionText={q.title}
-                          serialNumber={unit?.serial_number}
-                          maintenanceType="monthly"
-                          onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
-                        />
-                      )}
-                    </div>
+                    <textarea
+                      name={`q${q.id}`}
+                      className="checklist-textarea"
+                      onInput={autoGrow}
+                      value={answers[`q${q.id}`] || ""}
+                      onChange={(e) => {
+                        setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+                        if (e.target.value.trim()) {
+                          e.target.classList.remove('has-error');
+                        }
+                      }}
+                      required={q.required}
+                    />
                   </div>
                 ))}
 
@@ -721,7 +876,7 @@ export async function getServerSideProps({ params }) {
 
     const headers = { Authorization: `Bearer ${apiKey}` };
     const unitFormula = encodeURIComponent(`{public_token}='${token}'`);
-    const templateFormula = encodeURIComponent(`{type}='Monthly'`);
+    const templateFormula = encodeURIComponent(`{template_name}='Monthly maintenance'`);
 
     const urls = [
       `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${unitFormula}`,
@@ -744,6 +899,16 @@ export async function getServerSideProps({ params }) {
       });
     }
 
+    // Parse the JSON from checklist_templates
+    let parsedTemplate = { equipmentChecklist: [], questions: [] };
+    if (templateData.records?.[0]?.fields.questions_json) {
+      try {
+        parsedTemplate = JSON.parse(templateData.records[0].fields.questions_json);
+      } catch (e) {
+        console.error("Failed to parse template JSON:", e);
+      }
+    }
+
     return {
       props: {
         unit: {
@@ -754,12 +919,8 @@ export async function getServerSideProps({ params }) {
         },
         template: {
           id: templateData.records?.[0]?.id || "",
-          questionsData: templateData.records?.[0]?.fields.questions_json
-            ? JSON.parse(templateData.records[0].fields.questions_json)
-            : [],
-          questions: templateData.records?.[0]?.fields.questions_json
-            ? JSON.parse(templateData.records[0].fields.questions_json).map(q => q.title)
-            : [],
+          equipmentChecklist: parsedTemplate.equipment_checklist || [],
+          questions: parsedTemplate.questions || [],
         },
         allCompanies: Object.values(companyLookup).filter(Boolean),
         allEngineers:
@@ -775,6 +936,7 @@ export async function getServerSideProps({ params }) {
       },
     };
   } catch (err) {
+    console.error("getServerSideProps error:", err);
     return { notFound: true };
   }
 }
