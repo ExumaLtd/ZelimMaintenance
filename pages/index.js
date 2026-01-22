@@ -46,8 +46,8 @@ export default function Home() {
     } catch {}
   }, []);
 
-  const navigateToToken = (token, fromScanner = false) => {
-    const url = `/swift/${token}`;
+  const navigateToToken = (token, accessType, fromScanner = false) => {
+    const url = `/swift/${token}?access=${accessType}`;
     fromScanner ? window.location.href = url : router.push(url);
   };
 
@@ -58,7 +58,7 @@ export default function Home() {
       if (!res.ok) return null;
       
       const data = await res.json();
-      return data?.publicToken || null;
+      return data?.publicToken && data?.accessType ? data : null;
     } catch (err) {
       console.error('PIN resolution error:', err);
       return null;
@@ -81,10 +81,10 @@ export default function Home() {
       setIsSubmitting(true);
     }
 
-    const token = await resolveAndNavigate(code);
+    const data = await resolveAndNavigate(code);
     
-    if (token) {
-      navigateToToken(token, !isManualSubmit);
+    if (data) {
+      navigateToToken(data.publicToken, data.accessType, !isManualSubmit);
     } else if (isManualSubmit) {
       setError('Invalid access code.');
       setIsSubmitting(false);
@@ -116,10 +116,10 @@ export default function Home() {
 
     // Extract code from path-like strings
     const code = decodedText.includes('/') ? decodedText.split('/').pop() : decodedText;
-    const token = await resolveAndNavigate(code);
+    const data = await resolveAndNavigate(code);
     
-    if (token) {
-      navigateToToken(token, true);
+    if (data) {
+      navigateToToken(data.publicToken, data.accessType, true);
     }
   };
 

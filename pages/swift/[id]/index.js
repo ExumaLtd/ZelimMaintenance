@@ -4,6 +4,7 @@ import Image from "next/image";
 import Airtable from "airtable";
 import fs from "fs";
 import path from "path";
+import { useRouter } from "next/router";
 
 // File size utility
 const getFileSize = (filePath) => {
@@ -114,10 +115,14 @@ export default function SwiftUnitPage({
   maintenanceManualSize,
   installationGuideSize,
 }) {
+  const router = useRouter();
+  const { access } = router.query;
+  const accessType = access || "maintenance";
+
   const { serial_number: serialNumber, company: companyName } = unit;
   const logoProps = getClientLogo(companyName, serialNumber);
 
-  const maintenanceTypes = [
+  const allMaintenanceTypes = [
     {
       title: "Monthly\nmaintenance",
       description: "To be completed in accordance with the SWIFT Survivor Recovery System Maintenance Manual.",
@@ -139,6 +144,12 @@ export default function SwiftUnitPage({
       href: `/swift/${publicToken}/unscheduled`,
     },
   ];
+
+  const maintenanceTypes = accessType === "crew"
+    ? allMaintenanceTypes.filter(type => 
+        type.title.includes("Monthly") || type.title.includes("Unscheduled")
+      )
+    : allMaintenanceTypes;
 
   const downloads = [
     {

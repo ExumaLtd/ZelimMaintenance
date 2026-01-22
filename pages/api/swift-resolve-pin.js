@@ -17,12 +17,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing pin" });
     }
 
-    // Lookup using access_pin
+    // Lookup using either access_pin OR crew_pin
     const records = await base(TABLE_NAME)
       .select({
         maxRecords: 1,
-        filterByFormula: `{access_pin} = "${pin}"`,
-        fields: ["public_token"],
+        filterByFormula: `OR({access_pin} = "${pin}", {crew_pin} = "${pin}")`,
+        fields: ["public_token", "access_pin", "crew_pin"],
       })
       .firstPage();
 
@@ -30,9 +30,18 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "Code not recognised" });
     }
 
-    const publicToken = records[0].get("public_token");
+    const record = records[0];
+    const publicToken = record.get("public_token");
+    const accessPin = record.get("access_pin");
+    const crewPin = record.get("crew_pin");
 
-    return res.status(200).json({ publicToken });
+    // Determine access type based on which PIN was entered
+    const accessType = pin === accessPin ? "maintenance" : "crew";
+
+    return res.status(200).json({ 
+      publicToken,
+      accessType 
+    });
 
   } catch (err) {
     console.error("PIN lookup error:", err);
