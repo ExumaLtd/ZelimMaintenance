@@ -1448,3 +1448,7 @@
     margin-bottom: 0 !important;
   }
 }
+/* Consistent gap between form cards on all breakpoints */
+.checklist-second-card {
+  margin-top: 20px;
+}
