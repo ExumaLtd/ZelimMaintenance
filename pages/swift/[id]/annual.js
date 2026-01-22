@@ -488,6 +488,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
               <span className="break-point">annual maintenance</span>
             </h1>
 
+            {/* SECTION 1: Engineer Details */}
             <div className="checklist-form-card">
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
                 <div className="checklist-inline-group">
@@ -647,15 +648,26 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                     />
                   </div>
                 </div>
+              </form>
+            </div>
 
+            {/* SECTION 2: Annual Maintenance Questions */}
+            <div className="checklist-form-card" style={{ marginTop: "20px" }}>
+              <h2 className="checklist-section-title">Annual maintenance</h2>
+              <p className="checklist-section-subtitle">
+                {template?.questionsData?.[0]?.instruction || "Record all annual maintenance activities and observations"}
+              </p>
+
+              <form onSubmit={handleSubmit} autoComplete="off" noValidate>
                 {/* QUESTIONS WITH IMAGE UPLOADERS */}
                 {(template?.questionsData || []).map((q, i) => (
-                  <div key={i} style={{ marginTop: "24px" }}>
-                    <label className="checklist-label">
+                  <div key={i} style={{ marginTop: "0" }}>
+                    {/* Hide all individual question labels and instructions */}
+                    <label className="checklist-label" style={{ display: "none" }}>
                       {q.title}
                     </label>
                     {q.instruction && (
-                      <p className="question-instruction">{q.instruction}</p>
+                      <p className="question-instruction" style={{ display: "none" }}>{q.instruction}</p>
                     )}
                     
                     {/* Wrapper for side-by-side layout on desktop */}
