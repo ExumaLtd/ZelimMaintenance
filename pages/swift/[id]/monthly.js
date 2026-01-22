@@ -3,7 +3,14 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import Image from "next/image";
 import { getCompanyLogoUrl } from '../../../utils/get-company-logo';
+import ImageUploader from '../../../components/image-uploader';
 import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
+
+const autoGrow = (e) => {
+  const el = e.target || e;
+  el.style.height = "78px";
+  el.style.height = el.scrollHeight + "px";
+};
 
 const getClientLogo = (companyName, serialNumber) => {
   const logoMap = {
@@ -52,8 +59,12 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     engineerPhone: false,
   });
 
-  // Checklist data - initialize from template
+  // Checklist data - initialize from template (grouped structure)
   const [checklistData, setChecklistData] = useState([]);
+  
+  // Further comments
+  const [furtherComments, setFurtherComments] = useState("");
+  const [commentImages, setCommentImages] = useState([]);
 
   const [locationDisplay, setLocationDisplay] = useState("");
   const [locationCountry, setLocationCountry] = useState("");
@@ -67,13 +78,16 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
   const storageKey = useMemo(() => `draft_monthly_${unit?.serial_number}`, [unit?.serial_number]);
 
-  // Initialize checklist data from template
+  // Initialize checklist data from template (grouped structure)
   useEffect(() => {
     if (template?.maintenanceChecklist && template.maintenanceChecklist.length > 0) {
       setChecklistData(
-        template.maintenanceChecklist.map(item => ({
-          ...item,
-          answer: null // null = unanswered, true = Yes, false = No
+        template.maintenanceChecklist.map(group => ({
+          ...group,
+          questions: group.questions.map(q => ({
+            ...q,
+            answer: null // null = unanswered, true = Yes, false = No
+          }))
         }))
       );
     }
@@ -129,21 +143,31 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     setShowEngineerDropdown(false);
   }, []);
 
-  // Checklist update function
-  const updateChecklist = (index, value) => {
+  // Checklist update function (for grouped structure)
+  const updateChecklist = (groupIndex, questionIndex, value) => {
     setChecklistData(prev => {
       const updated = [...prev];
-      updated[index] = { ...updated[index], answer: value };
+      updated[groupIndex] = {
+        ...updated[groupIndex],
+        questions: updated[groupIndex].questions.map((q, qIdx) => 
+          qIdx === questionIndex ? { ...q, answer: value } : q
+        )
+      };
       
       // Remove error class from buttons when item is updated
-      const rows = document.querySelectorAll('.equipment-row-wrapper');
-      if (rows[index]) {
-        const allButtons = rows[index].querySelectorAll('.toggle-btn');
+      const row = document.querySelector(`[data-group="${groupIndex}"][data-question="${questionIndex}"]`);
+      if (row) {
+        const allButtons = row.querySelectorAll('.toggle-btn');
         allButtons.forEach(btn => btn.classList.remove('has-error'));
       }
       
       return updated;
     });
+  };
+
+  // Handle comment images
+  const handleCommentImagesChange = (images) => {
+    setCommentImages(images);
   };
 
   // Close dropdowns on outside click
@@ -176,6 +200,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       if (data.engineer_name) setEngName(data.engineer_name);
       if (data.engineer_email) setEngEmail(data.engineer_email);
       if (data.engineer_phone) setEngPhone(data.engineer_phone);
+      if (data.further_comments) setFurtherComments(data.further_comments);
       
       // Restore checklist data if it exists
       if (data.checklist_data && Array.isArray(data.checklist_data)) {
@@ -259,9 +284,10 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       engineer_email: engEmail,
       engineer_phone: engPhone,
       checklist_data: checklistData,
+      further_comments: furtherComments,
     };
     localStorage.setItem(storageKey, JSON.stringify(draftData));
-  }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, checklistData, storageKey]);
+  }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, checklistData, furtherComments, storageKey]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -309,21 +335,23 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       newFieldErrors.engineerPhone = true;
     }
 
-    // Check if checklist is complete
+    // Check if checklist is complete (grouped structure)
     const incompleteItems = [];
-    checklistData.forEach((item, index) => {
-      if (item.answer === null) {
-        incompleteItems.push({ index, text: item.text });
-      }
+    checklistData.forEach((group, groupIndex) => {
+      group.questions.forEach((question, questionIndex) => {
+        if (question.answer === null) {
+          incompleteItems.push({ groupIndex, questionIndex, text: question.text });
+        }
+      });
     });
 
     if (incompleteItems.length > 0) {
       errors.push({ field: 'checklist', message: 'Please complete all checklist questions.' });
       // Add error styling to incomplete items
       incompleteItems.forEach(incomplete => {
-        const rows = document.querySelectorAll('.equipment-row-wrapper');
-        if (rows[incomplete.index]) {
-          const buttons = rows[incomplete.index].querySelectorAll('.toggle-btn');
+        const row = document.querySelector(`[data-group="${incomplete.groupIndex}"][data-question="${incomplete.questionIndex}"]`);
+        if (row) {
+          const buttons = row.querySelectorAll('.toggle-btn');
           buttons.forEach(btn => btn.classList.add('has-error'));
         }
       });
@@ -353,6 +381,15 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
     setSubmitting(true);
 
+    // Build answers object for further comments
+    const answers = {};
+    if (furtherComments || commentImages.length > 0) {
+      answers["Further comments"] = {
+        text: furtherComments || "",
+        images: commentImages.map(img => img.url || img)
+      };
+    }
+
     const payload = {
       maintained_by: selectedCompany,
       location_display: locationDisplay,
@@ -366,12 +403,17 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       checklist_template_id: template?.id,
       serial_number: unit?.serial_number,
       maintenance_checklist: JSON.stringify(
-        checklistData.map(item => ({
-          id: item.id,
-          text: item.text,
-          answer: item.answer === true ? 'Yes' : item.answer === false ? 'No' : 'Not answered'
+        checklistData.map(group => ({
+          id: group.id,
+          title: group.title,
+          questions: group.questions.map(q => ({
+            id: q.id,
+            text: q.text,
+            answer: q.answer === true ? 'Yes' : q.answer === false ? 'No' : 'Not answered'
+          }))
         }))
       ),
+      answers: JSON.stringify(answers),
     };
 
     try {
@@ -393,6 +435,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           engineerName: engName,
           serialNumber: unit?.serial_number,
           maintenance_checklist: checklistData,
+          answers: answers,
           reportType: "Monthly",
           companyLogoUrl: companyLogoUrl,
           technicalData: {
@@ -599,7 +642,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
               </div>
             </div>
 
-            {/* CARD 2: CHECKLIST */}
+            {/* CARD 2: CHECKLIST + COMMENTS */}
             <div className="checklist-form-card" style={{ marginTop: "20px" }}>
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
                 <h3 className="checklist-section-title">Monthly inspection checklist</h3>
@@ -607,37 +650,74 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                   Confirm all monthly inspection records are present, complete, and signed.
                 </p>
                 
-                <div className="equipment-table">
-                  <div className="equipment-header">
-                    <div className="header-item"></div>
-                    <div className="header-returned">Completed?</div>
-                  </div>
-                  
-                  {checklistData.map((item, index) => (
-                    <div key={item.id} className="equipment-row-wrapper">
-                      <div className="item-name-mobile">{item.text}</div>
-                      <div className="equipment-row" style={{ gridTemplateColumns: '1fr 120px' }}>
-                        <div className="item-name">{item.text}</div>
-                        
-                        <div className="toggle-group">
-                          <button 
-                            type="button"
-                            className={`toggle-btn ${item.answer === true ? 'active' : ''}`}
-                            onClick={() => updateChecklist(index, true)}
-                          >
-                            Yes
-                          </button>
-                          <button 
-                            type="button"
-                            className={`toggle-btn ${item.answer === false ? 'active' : ''}`}
-                            onClick={() => updateChecklist(index, false)}
-                          >
-                            No
-                          </button>
+                {checklistData.map((group, groupIndex) => (
+                  <div key={group.id} className="equipment-table" style={{ marginBottom: groupIndex < checklistData.length - 1 ? '24px' : '0' }}>
+                    {/* Group Header with Title on left, Completed? on right */}
+                    <div className="equipment-header" style={{ gridTemplateColumns: '1fr 120px' }}>
+                      <div className="header-item" style={{ textAlign: 'left' }}>{group.title}</div>
+                      <div className="header-returned">Completed?</div>
+                    </div>
+                    
+                    {/* Questions within this group */}
+                    {group.questions.map((question, questionIndex) => (
+                      <div 
+                        key={question.id} 
+                        className="equipment-row-wrapper"
+                        data-group={groupIndex}
+                        data-question={questionIndex}
+                      >
+                        <div className="item-name-mobile">{question.text}</div>
+                        <div className="equipment-row" style={{ gridTemplateColumns: '1fr 120px' }}>
+                          <div className="item-name">{question.text}</div>
+                          
+                          <div className="toggle-group">
+                            <button 
+                              type="button"
+                              className={`toggle-btn ${question.answer === true ? 'active' : ''}`}
+                              onClick={() => updateChecklist(groupIndex, questionIndex, true)}
+                            >
+                              Yes
+                            </button>
+                            <button 
+                              type="button"
+                              className={`toggle-btn ${question.answer === false ? 'active' : ''}`}
+                              onClick={() => updateChecklist(groupIndex, questionIndex, false)}
+                            >
+                              No
+                            </button>
+                          </div>
                         </div>
                       </div>
+                    ))}
+                  </div>
+                ))}
+
+                {/* FURTHER COMMENTS SECTION */}
+                <div style={{ marginTop: "32px" }}>
+                  <label className="checklist-label" style={{ marginTop: 0 }}>Further comments</label>
+                  <p className="question-instruction">Record any additional observations, defects, or actions.</p>
+                  
+                  <div className="question-with-upload">
+                    <div className="textarea-wrapper">
+                      <textarea
+                        className="checklist-textarea"
+                        value={furtherComments}
+                        onChange={(e) => {
+                          setFurtherComments(e.target.value);
+                          autoGrow(e);
+                        }}
+                        onInput={autoGrow}
+                        placeholder=""
+                      />
                     </div>
-                  ))}
+                    <ImageUploader
+                      questionKey="further_comments"
+                      questionText="Further comments"
+                      serialNumber={unit?.serial_number}
+                      maintenanceType="monthly"
+                      onImagesChange={handleCommentImagesChange}
+                    />
+                  </div>
                 </div>
 
                 {errorMsg && <p className="error-message">{errorMsg}</p>}
