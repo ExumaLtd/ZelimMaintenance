@@ -1335,10 +1335,10 @@
 
 /* Monthly checklist card layout */
 .checklist-item-card {
-  background: #27454b;
+  background: rgba(15, 82, 96, 0.25);
+  border: 1px solid rgba(15, 82, 96, 0.4);
   border-radius: 12px;
   padding: 20px 24px;
-  border: none;
   margin-bottom: 12px;
 }
 
@@ -1347,7 +1347,7 @@
 }
 
 .checklist-item-title {
-  color: #fff;
+  color: #e5f8ff;
   font-size: 16px;
   font-weight: 600;
   margin: 0 0 16px 0;
@@ -1374,7 +1374,7 @@
 }
 
 .question-text {
-  color: #fff;
+  color: #b8dce6;
   font-size: 14px;
   font-weight: 500;
   flex: 1;
@@ -1415,6 +1415,7 @@
 
 .checklist-question-row .toggle-btn.has-error {
   border-color: rgb(255, 77, 77) !important;
+  animation: shake 0.3s ease-in-out;
 }
 
 /* Mobile responsive */
@@ -1431,7 +1432,7 @@
   .checklist-question-row {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 10px;
     padding: 14px 0;
   }
   
@@ -1446,18 +1447,26 @@
   .question-text {
     padding-right: 0;
     font-size: 14px;
+    width: 100%;
   }
   
   .checklist-question-row .toggle-group {
     width: 100%;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
     gap: 8px;
   }
   
   .checklist-question-row .toggle-btn {
     flex: 1;
-    padding: 10px 16px;
+    padding: 12px 16px;
+    min-height: 44px;
     text-align: center;
   }
+}
+
+/* Error shake animation */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
 }
