@@ -678,7 +678,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                 {checklistData.map((group, groupIndex) => (
                   <div key={group.id} className="equipment-table" style={{ marginBottom: groupIndex < checklistData.length - 1 ? '24px' : '0' }}>
                     {/* Group Header with Title on left, Completed? on right */}
-                    <div className="equipment-header" style={{ gridTemplateColumns: '1fr 120px' }}>
+                    <div className="equipment-header equipment-header-monthly" style={{ gridTemplateColumns: '1fr 120px' }}>
                       <div className="header-item" style={{ textAlign: 'left' }}>{group.title}</div>
                       <div className="header-returned">Completed?</div>
                     </div>
