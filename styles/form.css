@@ -1441,3 +1441,10 @@
     padding: 0 !important;
   }
 }
+
+@media (min-width: 768px) {
+  /* Remove margin-bottom from last inline-group */
+  .form-scope .checklist-inline-group:last-of-type {
+    margin-bottom: 0 !important;
+  }
+}
