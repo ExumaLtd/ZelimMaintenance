@@ -84,8 +84,10 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       setChecklistData(
         template.equipmentChecklist.map(item => ({
           ...item,
-          returned: null,
-          condition: null,
+          answers: item.questions.reduce((acc, q) => {
+            acc[q.id] = null; // null = unanswered, true = Yes, false = No
+            return acc;
+          }, {})
         }))
       );
     }
@@ -156,51 +158,21 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   };
 
   // Checklist functions
-  const updateChecklist = (index, field, value) => {
+  const updateChecklist = (itemIndex, questionId, value) => {
     setChecklistData(prev => {
       const updated = [...prev];
-      const item = updated[index];
-      
-      // If changing condition from 'poor' to something else, trigger closing animation
-      if (field === 'condition' && item.condition === 'poor' && value !== 'poor') {
-        setClosingItems(prev => new Set(prev).add(item.id));
-        setTimeout(() => {
-          setClosingItems(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(item.id);
-            return newSet;
-          });
-        }, 300);
-      }
-      
-      // Toggle Poor button - if already poor and clicked again, set to null (unselect)
-      if (field === 'condition' && item.condition === 'poor' && value === 'poor') {
-        updated[index] = { ...updated[index], condition: null };
-        setClosingItems(prev => new Set(prev).add(item.id));
-        setTimeout(() => {
-          setClosingItems(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(item.id);
-            return newSet;
-          });
-        }, 300);
-      } else {
-        updated[index] = { ...updated[index], [field]: value };
-      }
-      
-      // Auto-select 'good' when returned is set to 'Yes'
-      if (field === 'returned' && value === true) {
-        updated[index].condition = 'good';
-      }
-      
-      if (field === 'returned' && value === false) {
-        updated[index].condition = null;
-      }
+      updated[itemIndex] = {
+        ...updated[itemIndex],
+        answers: {
+          ...updated[itemIndex].answers,
+          [questionId]: value
+        }
+      };
       
       // Remove error class from buttons when item is updated
-      const rows = document.querySelectorAll('.equipment-row-wrapper');
-      if (rows[index]) {
-        const allButtons = rows[index].querySelectorAll('.toggle-btn');
+      const rows = document.querySelectorAll('.checklist-item-card');
+      if (rows[itemIndex]) {
+        const allButtons = rows[itemIndex].querySelectorAll('.toggle-btn');
         allButtons.forEach(btn => btn.classList.remove('has-error'));
       }
       
@@ -380,42 +352,28 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
     // Check if checklist is complete
     const incompleteItems = [];
-    checklistData.forEach((item, index) => {
-      if (item.returned === null) {
-        incompleteItems.push({ index, type: 'returned', name: item.name });
-      } else if (item.returned === true && item.condition === null) {
-        incompleteItems.push({ index, type: 'condition', name: item.name });
-      }
+    checklistData.forEach((item, itemIndex) => {
+      item.questions.forEach((question) => {
+        if (item.answers[question.id] === null) {
+          incompleteItems.push({ 
+            itemIndex, 
+            itemTitle: item.title,
+            questionText: question.text 
+          });
+        }
+      });
     });
 
     if (incompleteItems.length > 0) {
-      errors.push({ field: 'checklist', message: 'Please complete the equipment checklist.' });
-      incompleteItems.forEach(item => {
-        const rows = document.querySelectorAll('.equipment-row-wrapper');
-        if (rows[item.index]) {
-          if (item.type === 'returned') {
-            const returnedButtons = rows[item.index].querySelectorAll('.toggle-group:not(.condition-group) .toggle-btn');
-            returnedButtons.forEach(btn => btn.classList.add('has-error'));
-          } else if (item.type === 'condition') {
-            const conditionButtons = rows[item.index].querySelectorAll('.condition-group .toggle-btn');
-            conditionButtons.forEach(btn => btn.classList.add('has-error'));
-          }
+      errors.push({ field: 'checklist', message: 'Please complete all checklist questions.' });
+      // Add error styling to incomplete items
+      incompleteItems.forEach(incomplete => {
+        const cards = document.querySelectorAll('.checklist-item-card');
+        if (cards[incomplete.itemIndex]) {
+          const buttons = cards[incomplete.itemIndex].querySelectorAll('.toggle-btn');
+          buttons.forEach(btn => btn.classList.add('has-error'));
         }
       });
-    }
-
-    // Validate required text questions
-    const requiredQuestions = (template?.questions || []).filter(q => q.required);
-    for (const q of requiredQuestions) {
-      const answer = answers[`q${q.id}`];
-      if (!answer || !answer.trim()) {
-        errors.push({ field: `q${q.id}`, message: `Please answer: ${q.title}.` });
-        const questionElement = document.querySelector(`[name="q${q.id}"]`);
-        if (questionElement) {
-          questionElement.classList.add('has-error');
-          if (!firstErrorField) firstErrorField = { current: questionElement };
-        }
-      }
     }
 
     setFieldErrors(newFieldErrors);
@@ -442,16 +400,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
     setSubmitting(true);
 
-    // Prepare text question answers for email
-    const emailFriendlyAnswers = {};
-    (template?.questions || []).forEach((q) => {
-      const textAnswer = answers[`q${q.id}`] || "Not answered";
-      emailFriendlyAnswers[q.title] = {
-        text: textAnswer,
-        images: []
-      };
-    });
-
     const payload = {
       maintained_by: selectedCompany,
       location_display: locationDisplay,
@@ -466,15 +414,14 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       serial_number: unit?.serial_number,
       equipment_checklist: JSON.stringify(
         checklistData.map(item => ({
-          ...item,
-          images: checklistImages[`item_${item.id}`]?.map(img => img.url) || []
+          title: item.title,
+          questions: item.questions.map(q => ({
+            id: q.id,
+            text: q.text,
+            answer: item.answers[q.id] === true ? 'Yes' : item.answers[q.id] === false ? 'No' : 'Not answered'
+          }))
         }))
       ),
-      answers: (template?.questions || []).map((q) => ({
-        question: `q${q.id}`,
-        answer: answers[`q${q.id}`] || "",
-        images: []
-      })),
     };
 
     try {
@@ -495,7 +442,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           engineerEmail: engEmail,
           engineerName: engName,
           serialNumber: unit?.serial_number,
-          answers: emailFriendlyAnswers,
           equipmentChecklist: checklistData,
           reportType: "Monthly",
           companyLogoUrl: companyLogoUrl,
@@ -718,132 +664,38 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                     Confirm all monthly inspection records are present, complete, and signed.
                   </p>
                   
-                  <div className="equipment-table">
-                    <div className="equipment-header">
-                      <div className="header-item"></div>
-                      <div className="header-returned">Returned?</div>
-                      <div className="header-condition">Condition?</div>
-                    </div>
-                    
-                    {checklistData.map((item, index) => (
-                      <div key={item.id} className="equipment-row-wrapper">
-                        <div className="item-name-mobile">{item.name}</div>
-                        <div className="equipment-row">
-                          <div className="item-name">{item.name}</div>
-                          
-                          <div className="toggle-group">
-                            <button 
-                              type="button"
-                              className={`toggle-btn ${item.returned === true ? 'active' : ''}`}
-                              onClick={() => updateChecklist(index, 'returned', true)}
-                            >
-                              Yes
-                            </button>
-                            <button 
-                              type="button"
-                              className={`toggle-btn ${item.returned === false ? 'active' : ''}`}
-                              onClick={() => updateChecklist(index, 'returned', false)}
-                            >
-                              No
-                            </button>
-                          </div>
-                          
-                          <div className={`toggle-group condition-group ${item.returned === true ? 'show-on-mobile' : ''}`}>
-                            <button 
-                              type="button"
-                              className={`toggle-btn ${item.condition === 'good' ? 'active' : ''}`}
-                              onClick={() => updateChecklist(index, 'condition', 'good')}
-                              disabled={item.returned !== true}
-                              style={{ opacity: item.returned !== true ? 0.3 : 1 }}
-                            >
-                              Good
-                            </button>
-                            <button 
-                              type="button"
-                              className={`toggle-btn ${item.condition === 'fair' ? 'active' : ''}`}
-                              onClick={() => updateChecklist(index, 'condition', 'fair')}
-                              disabled={item.returned !== true}
-                              style={{ opacity: item.returned !== true ? 0.3 : 1 }}
-                            >
-                              Fair
-                            </button>
-                            <button 
-                              type="button"
-                              className={`toggle-btn ${item.condition === 'poor' ? 'active' : ''}`}
-                              onClick={() => updateChecklist(index, 'condition', 'poor')}
-                              disabled={item.returned !== true}
-                              style={{ opacity: item.returned !== true ? 0.3 : 1 }}
-                            >
-                              Poor
-                            </button>
-                          </div>
-                        </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {checklistData.map((item, itemIndex) => (
+                      <div key={item.id} className="checklist-item-card">
+                        <h4 className="checklist-item-title">{item.title}</h4>
                         
-                        {/* CONDITIONAL UPLOAD SECTION FOR POOR CONDITION */}
-                        {(item.condition === 'poor' || closingItems.has(item.id)) && (
-                          <div className={`checklist-upload-section ${closingItems.has(item.id) ? 'closing' : ''}`}>
-                            <ImageUploader
-                              questionKey={`checklist_item_${item.id}`}
-                              questionText={`${item.name} - Poor condition photos`}
-                              serialNumber={unit?.serial_number}
-                              maintenanceType="monthly"
-                              onImagesChange={(images) => handleChecklistImagesChange(item.id, images)}
-                            />
+                        {item.questions.map((question) => (
+                          <div key={question.id} className="checklist-question-row">
+                            <div className="question-text">{question.text}</div>
+                            <div className="toggle-group">
+                              <button 
+                                type="button"
+                                className={`toggle-btn ${item.answers[question.id] === true ? 'active' : ''}`}
+                                onClick={() => updateChecklist(itemIndex, question.id, true)}
+                              >
+                                Yes
+                              </button>
+                              <button 
+                                type="button"
+                                className={`toggle-btn ${item.answers[question.id] === false ? 'active' : ''}`}
+                                onClick={() => updateChecklist(itemIndex, question.id, false)}
+                              >
+                                No
+                              </button>
+                            </div>
                           </div>
-                        )}
+                        ))}
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* TEXT QUESTIONS */}
-                <div style={{ marginTop: "32px" }}>
-                  <h3 className="checklist-section-title">Monthly maintenance</h3>
-                  <p className="checklist-section-subtitle">
-                    All monthly maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual and Installation Guide.
-                  </p>
-                  
-                  {(template?.questions || []).map((q, i) => (
-                    <div key={q.id} style={{ marginTop: i === 0 ? "0" : "24px" }}>
-                      <label className="checklist-label">
-                        {q.title}
-                      </label>
-                      {q.instruction && (
-                        <p className="question-instruction">{q.instruction}</p>
-                      )}
-                      
-                      <div className="question-with-upload">
-                        <div className="textarea-wrapper">
-                          <textarea
-                            name={`q${q.id}`}
-                            className="checklist-textarea"
-                            onInput={autoGrow}
-                            value={answers[`q${q.id}`] || ""}
-                            onChange={(e) => {
-                              setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-                              if (e.target.value.trim()) {
-                                e.target.classList.remove('has-error');
-                              }
-                            }}
-                            required={q.required}
-                          />
-                        </div>
-                        
-                        {q.allow_uploads && (
-                          <ImageUploader
-                            questionKey={`q${q.id}`}
-                            questionText={q.title}
-                            serialNumber={unit?.serial_number}
-                            maintenanceType="monthly"
-                            onImagesChange={(images) => handleImagesChange(`q${q.id}`, images)}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {errorMsg && <p className="error-message">{errorMsg}</p>}
+                {errorMsg && <p className="error-message" style={{ marginTop: "24px" }}>{errorMsg}</p>}
                 <button className="checklist-submit" disabled={submitting}>
                   {submitting ? "Submitting..." : "Submit maintenance"}
                 </button>
