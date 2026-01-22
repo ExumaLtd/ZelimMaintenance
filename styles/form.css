@@ -1484,24 +1484,29 @@
   padding: 0 0 12px 0;
 }
 
+/* MONTHLY CHECKLIST */
 .equipment-questions-wrapper {
   background: #27454b;
   border-radius: 10px;
-  padding: 20px;
+  padding: 20px 24px;
 }
 
 .equipment-row-wrapper {
-  background: none !important;
-  border: none !important;
-  padding: 0 !important;
-  margin-bottom: 10px !important;
+  margin-bottom: 10px;
 }
 
 .equipment-row-wrapper:last-child {
-  margin-bottom: 0 !important;
+  margin-bottom: 0;
 }
 
 .equipment-row {
-  background: none !important;
+  background: none;
   padding: 10px 20px;
+  border-radius: 0;
+}
+
+@media (max-width: 768px) {
+  .equipment-questions-wrapper {
+    padding: 18px 20px;
+  }
 }
