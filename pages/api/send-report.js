@@ -16,7 +16,8 @@ export default async function handler(req, res) {
       engineerName, 
       serialNumber, 
       answers, // Now: { "Question text": { text: "answer", images: ["url1", "url2"] } }
-      maintenance_checklist, // Equipment checklist data (array)
+      equipment_checklist, // Depth maintenance: [{ name, returned, condition, images }]
+      maintenance_checklist, // Monthly maintenance: [{ id, title, questions: [{ text, answer }] }]
       reportType, 
       technicalData,
       companyLogoUrl 
@@ -53,7 +54,8 @@ export default async function handler(req, res) {
           serialNumber,
           reportType: displayType,
           answers,
-          maintenance_checklist, // Pass maintenance checklist
+          equipmentChecklist: equipment_checklist, // Depth maintenance (returned/condition)
+          maintenanceChecklist: maintenance_checklist, // Monthly maintenance (yes/no questions)
           brandColor: ZELIM_GREEN,
           logoUrl: logoUrl,
           previewUrl: engineerPreviewUrl
@@ -74,7 +76,8 @@ export default async function handler(req, res) {
             location_display: technicalData?.location_display || 'N/A',
           },
           answers,
-          maintenance_checklist, // Pass maintenance checklist
+          equipmentChecklist: equipment_checklist, // Depth maintenance (returned/condition)
+          maintenanceChecklist: maintenance_checklist, // Monthly maintenance (yes/no questions)
           brandColor: ZELIM_GREEN,
           logoUrl: logoUrl,
           previewUrl: internalPreviewUrl
