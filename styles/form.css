@@ -1472,53 +1472,40 @@
 }
 
 /* =========================================================================
-   MONTHLY CHECKLIST - GROUP QUESTIONS TOGETHER
-   Add this after your existing .equipment-table styles
+   MONTHLY CHECKLIST FIX - Multiple questions in same card
 ========================================================================= */
 
-/* Remove individual card styling from equipment-row-wrapper */
-.equipment-row-wrapper {
-  background: none !important;
-  border: none !important;
-  padding: 0 !important;
-  margin-bottom: 0 !important;
-  border-radius: 0 !important;
+/* On desktop: Keep header outside, questions get individual dark backgrounds */
+.equipment-table .equipment-row-wrapper {
+  margin-bottom: 10px;
 }
 
-/* Add the card background to the parent equipment-table instead */
-.equipment-table {
-  background: rgba(15, 82, 96, 0.25);
-  border: 1px solid rgba(15, 82, 96, 0.4);
-  border-radius: 12px;
-  padding: 20px 24px;
+.equipment-table .equipment-row-wrapper:last-child {
+  margin-bottom: 0;
 }
 
-/* Spacing between question rows inside the card */
-.equipment-row-wrapper:not(:last-child) {
-  margin-bottom: 10px !important;
-}
-
-/* Keep the equipment-row styling the same */
-.equipment-row {
-  background: #27454b !important;
-  padding: 10px 20px;
-  border-radius: 10px;
-}
-
-/* Mobile adjustments */
+/* On mobile: Wrap everything in one teal card */
 @media (max-width: 768px) {
+  /* Add teal background wrapper to the table */
   .equipment-table {
+    background: rgba(15, 82, 96, 0.25);
+    border: 1px solid rgba(15, 82, 96, 0.4);
+    border-radius: 12px;
     padding: 18px 20px;
   }
   
-  .equipment-row-wrapper:not(:last-child) {
+  /* Remove any card styling from individual wrappers */
+  .equipment-table .equipment-row-wrapper {
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+  }
+  
+  /* Add divider between questions (not on last one) */
+  .equipment-table .equipment-row-wrapper:not(:last-child) {
     padding-bottom: 16px !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
     margin-bottom: 16px !important;
-  }
-  
-  .equipment-row {
-    background: none !important;
-    padding: 0 !important;
   }
 }
