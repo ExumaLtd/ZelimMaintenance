@@ -652,7 +652,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
             </div>
 
             {/* SECTION 2: Maintenance Questions */}
-            <div className="checklist-form-card" style={{ marginTop: "24px" }}>
+            <div className="checklist-form-card" style={{ marginTop: "20px" }}>
               <h2 className="checklist-section-title">Unscheduled maintenance</h2>
               <p className="checklist-section-subtitle">
                 {template?.questionsData?.[0]?.instruction || "Describe the work carried out, reason for maintenance, actions taken, and components affected."}
