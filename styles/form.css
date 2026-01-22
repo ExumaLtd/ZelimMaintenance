@@ -1445,3 +1445,38 @@
   }
 }
 
+/* =========================================================================
+   FIX: Remove floating CONDITION? label on depth mobile
+========================================================================= */
+
+@media (max-width: 768px) {
+  /* Only show ::before labels INSIDE equipment-row, not outside */
+  .equipment-row .toggle-group::before {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    font-family: "Montserrat", sans-serif;
+    grid-column: 1 / -1;
+    margin-bottom: 10px;
+  }
+  
+  /* Hide any ::before that appears outside equipment-row */
+  .toggle-group::before {
+    display: none !important;
+  }
+  
+  /* Then re-enable inside equipment-row with proper labels */
+  .equipment-row .toggle-group:not(.condition-group)::before {
+    display: block !important;
+    content: "Returned?";
+  }
+  
+  .equipment-row .condition-group::before {
+    content: "Condition?";
+  }
+  
+  .equipment-row .condition-group.show-on-mobile::before {
+    display: block !important;
+  }
+}
