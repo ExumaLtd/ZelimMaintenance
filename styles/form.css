@@ -1169,10 +1169,22 @@
     transition: padding-bottom 0.3s ease-out;
   }
   
-  /* YES/NO BUTTONS - Same as monthly: flex with 50% width, NO ::before label */
+  /* YES/NO BUTTONS FOR DEPTH - 50% width each with "Returned?" label */
   .equipment-row .toggle-group:not(.condition-group) {
     display: flex !important;
+    flex-wrap: wrap;
     gap: 8px;
+  }
+  
+  .equipment-row .toggle-group:not(.condition-group)::before {
+    content: "Returned?";
+    display: block;
+    width: 100%;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    font-family: "Montserrat", sans-serif;
+    margin-bottom: 10px;
   }
   
   .equipment-row .toggle-group:not(.condition-group) .toggle-btn {
@@ -1355,29 +1367,24 @@
 }
 
 @media (max-width: 768px) {
-  /* ONLY show equipment-header on mobile for MONTHLY (inside equipment-questions-wrapper) */
-  .equipment-questions-wrapper + .equipment-header,
-  .equipment-questions-wrapper .equipment-header {
+  /* Show equipment-header ONLY inside equipment-questions-wrapper (for monthly/annual) */
+  .equipment-questions-wrapper + .equipment-header {
     display: block !important;
     grid-template-columns: none !important;
     margin-bottom: 12px;
     padding: 0;
   }
   
-  /* Keep it hidden for DEPTH */
-  .equipment-table > .equipment-header {
-    display: none !important;
+  .equipment-header .header-item {
+    display: block;
+    font-size: 15px;
+    font-weight: 500;
+    color: #fff;
+    text-align: left;
+    margin-bottom: 8px;
+    text-transform: none;
+    letter-spacing: 0 !important;
   }
-  
-.equipment-header .header-item {
-  display: block;
-  font-size: 15px;
-  font-weight: 500;
-  color: #fff;
-  text-align: left;
-  margin-bottom: 8px;
-  text-transform: none;
-}
   
   .equipment-header .header-returned {
     display: none !important;
@@ -1431,13 +1438,6 @@
     flex: 1 !important;
     padding: 10px 16px !important;
     font-size: 14px !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .equipment-questions-wrapper ~ .equipment-header > div,
-  .equipment-header .header-item {
-    letter-spacing: 0 !important;
   }
 }
 
