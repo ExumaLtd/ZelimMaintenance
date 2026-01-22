@@ -84,9 +84,9 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
   // Initialize checklist data from template
   useEffect(() => {
-    if (template?.equipmentChecklist) {
+    if (template?.maintenanceChecklist) {
       setChecklistData(
-        template.equipmentChecklist.map(item => ({
+        template.maintenanceChecklist.map(item => ({
           ...item,
           returned: null,
           condition: null,
@@ -584,7 +584,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
           engineerName: engName,
           serialNumber: unit?.serial_number,
           answers: emailFriendlyAnswers,
-          equipmentChecklist: checklistData, // NEW: Send checklist data for email
+          maintenanceChecklist: checklistData, // NEW: Send checklist data for email
           reportType: template?.type || "Depth",
           companyLogoUrl: companyLogoUrl,
           technicalData: {
@@ -1025,7 +1025,7 @@ export async function getServerSideProps({ params }) {
           id: templateData.records?.[0]?.id || "",
           type: templateData.records?.[0]?.fields?.type || "Depth",
           name: templateData.records?.[0]?.fields?.name || templateData.records?.[0]?.fields?.type || "Depth",
-          equipmentChecklist: parsedJson.equipment_checklist || [],
+          maintenanceChecklist: parsedJson.equipment_checklist || [],
           questionsData: parsedJson.questions || [],
           questions: parsedJson.questions?.map(q => q.title) || [],
         },

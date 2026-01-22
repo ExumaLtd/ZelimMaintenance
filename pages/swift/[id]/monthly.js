@@ -80,9 +80,9 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
   // Initialize checklist data from template
   useEffect(() => {
-    if (template?.equipmentChecklist) {
+    if (template?.maintenanceChecklist) {
       setChecklistData(
-        template.equipmentChecklist.map(item => ({
+        template.maintenanceChecklist.map(item => ({
           ...item,
           answers: item.questions.reduce((acc, q) => {
             acc[q.id] = null; // null = unanswered, true = Yes, false = No
@@ -412,7 +412,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       unit_record_id: unit?.record_id,
       checklist_template_id: template?.id,
       serial_number: unit?.serial_number,
-      equipment_checklist: JSON.stringify(
+      maintenance_checklist: JSON.stringify(
         checklistData.map(item => ({
           title: item.title,
           questions: item.questions.map(q => ({
@@ -442,7 +442,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           engineerEmail: engEmail,
           engineerName: engName,
           serialNumber: unit?.serial_number,
-          equipmentChecklist: checklistData,
+          maintenanceChecklist: checklistData,
           reportType: "Monthly",
           companyLogoUrl: companyLogoUrl,
           technicalData: {
@@ -749,7 +749,7 @@ export async function getServerSideProps({ params }) {
     }
 
     // Parse the JSON from checklist_templates
-    let parsedTemplate = { equipment_checklist: [], questions: [] };
+    let parsedTemplate = { maintenance_checklist: [], questions: [] };
     if (templateData.records?.[0]?.fields.questions_json) {
       try {
         parsedTemplate = JSON.parse(templateData.records[0].fields.questions_json);
@@ -768,7 +768,7 @@ export async function getServerSideProps({ params }) {
         },
         template: {
           id: templateData.records?.[0]?.id || "",
-          equipmentChecklist: parsedTemplate.equipment_checklist || [],
+          maintenanceChecklist: parsedTemplate.maintenance_checklist || [],
           questions: parsedTemplate.questions || [],
         },
         allCompanies: Object.values(companyLookup).filter(Boolean),

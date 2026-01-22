@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     location_town,
     location_country,
     answers, // Array: [{ question: "q1", answer: "text", images: ["url1", "url2"] }]
-    equipment_checklist, // NEW: Stringified checklist data
+    maintenance_checklist, // Stringified checklist data
     serial_number, // For cloudinary_folder
     checklist_template_id 
   } = req.body;
@@ -93,9 +93,9 @@ export default async function handler(req, res) {
       "cloudinary_folder": cloudinaryFolder // Archive folder path
     };
 
-    // Add equipment_checklist if it exists
-    if (equipment_checklist) {
-      logFields["equipment_checklist"] = equipment_checklist;
+    // Add maintenance_checklist if it exists
+    if (maintenance_checklist) {
+      logFields["maintenance_checklist"] = maintenance_checklist;
     }
 
     const logRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_logs`, {
@@ -120,9 +120,9 @@ export default async function handler(req, res) {
       "cloudinary_folder": cloudinaryFolder // Archive folder path
     };
 
-    // Add equipment_checklist if it exists
-    if (equipment_checklist) {
-      checkFields["equipment_checklist"] = equipment_checklist;
+    // Add maintenance_checklist if it exists
+    if (maintenance_checklist) {
+      checkFields["maintenance_checklist"] = maintenance_checklist;
     }
 
     const checkRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_checks`, {
