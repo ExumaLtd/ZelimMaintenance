@@ -337,10 +337,15 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
     // Check if checklist is complete (grouped structure)
     const incompleteItems = [];
+    let hasNoAnswers = false;
+    
     checklistData.forEach((group, groupIndex) => {
       group.questions.forEach((question, questionIndex) => {
         if (question.answer === null) {
           incompleteItems.push({ groupIndex, questionIndex, text: question.text });
+        }
+        if (question.answer === false) {
+          hasNoAnswers = true;
         }
       });
     });
@@ -355,6 +360,16 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           buttons.forEach(btn => btn.classList.add('has-error'));
         }
       });
+    }
+    
+    // Require further comments if any question answered "No"
+    if (hasNoAnswers && (!furtherComments || !furtherComments.trim())) {
+      errors.push({ field: 'comments', message: 'Further comments are required when any question is answered "No".' });
+      const textarea = document.querySelector('.checklist-textarea');
+      if (textarea) {
+        textarea.classList.add('has-error');
+        textarea.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
     }
 
     setFieldErrors(newFieldErrors);
@@ -381,13 +396,14 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
     setSubmitting(true);
 
-    // Build answers object for further comments
-    const answers = {};
+    // Build answers array for API (not object)
+    const answers = [];
     if (furtherComments || commentImages.length > 0) {
-      answers["Further comments"] = {
-        text: furtherComments || "",
+      answers.push({
+        question: "Further comments",
+        answer: furtherComments || "",
         images: commentImages.map(img => img.url || img)
-      };
+      });
     }
 
     const payload = {
@@ -413,7 +429,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           }))
         }))
       ),
-      answers: JSON.stringify(answers),
+      answers: answers,
     };
 
     try {
@@ -427,6 +443,15 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
       const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
 
+      // Build answers object for email report
+      const answersForEmail = {};
+      if (furtherComments || commentImages.length > 0) {
+        answersForEmail["Further comments"] = {
+          text: furtherComments || "",
+          images: commentImages.map(img => img.url || img)
+        };
+      }
+
       await fetch("/api/send-report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -435,7 +460,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           engineerName: engName,
           serialNumber: unit?.serial_number,
           maintenance_checklist: checklistData,
-          answers: answers,
+          answers: answersForEmail,
           reportType: "Monthly",
           companyLogoUrl: companyLogoUrl,
           technicalData: {
@@ -707,6 +732,10 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                         onChange={(e) => {
                           setFurtherComments(e.target.value);
                           autoGrow(e);
+                          // Remove error styling when user types
+                          if (e.target.value.trim()) {
+                            e.target.classList.remove('has-error');
+                          }
                         }}
                         onInput={autoGrow}
                         placeholder=""
