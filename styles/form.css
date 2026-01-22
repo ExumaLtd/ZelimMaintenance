@@ -1356,13 +1356,19 @@
   grid-template-columns: 1fr 110px;
 }
 
-/* Mobile */
 @media (max-width: 768px) {
-  .equipment-header {
+  /* ONLY show equipment-header on mobile for MONTHLY (inside equipment-questions-wrapper) */
+  .equipment-questions-wrapper + .equipment-header,
+  .equipment-questions-wrapper .equipment-header {
     display: block !important;
     grid-template-columns: none !important;
     margin-bottom: 12px;
     padding: 0;
+  }
+  
+  /* Keep it hidden for DEPTH */
+  .equipment-table > .equipment-header {
+    display: none !important;
   }
   
 .equipment-header .header-item {
