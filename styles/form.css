@@ -1448,3 +1448,27 @@
     padding: 0 !important;
   }
 }
+
+/* =========================================================================
+   TARGETED FIXES - Depth & Monthly Mobile
+========================================================================= */
+
+@media (max-width: 768px) {
+  /* DEPTH: Fix spacing between "Returned?" label and buttons */
+  .equipment-table .equipment-row .toggle-group:not(.condition-group)::before {
+    margin-bottom: 10px !important;
+  }
+  
+  /* MONTHLY: Show the "Conveyor belt" header outside boxes */
+  .equipment-questions-wrapper ~ .equipment-header {
+    display: block !important;
+  }
+  
+  .equipment-questions-wrapper ~ .equipment-header .header-item {
+    display: block !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    color: #fff !important;
+    margin-bottom: 8px !important;
+  }
+}
