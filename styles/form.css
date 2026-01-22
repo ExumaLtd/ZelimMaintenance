@@ -1471,24 +1471,29 @@
   75% { transform: translateX(5px); }
 }
 
-/* =========================================================================
-   MONTHLY CHECKLIST - Group multiple questions in one card
-========================================================================= */
-
-/* Add teal background to the equipment-table (wraps all questions) */
+/* MONTHLY CHECKLIST - Multiple questions in one box */
 .equipment-table {
-  background: rgba(15, 82, 96, 0.25);
-  border: 1px solid rgba(15, 82, 96, 0.4);
-  border-radius: 12px;
-  padding: 20px 24px;
+  background: none;
+  padding: 0;
+  border: none;
 }
 
-/* Remove individual card styling from each question row */
+.equipment-header {
+  background: none;
+  border: none;
+  padding: 0 0 12px 0;
+}
+
+.equipment-questions-wrapper {
+  background: #27454b;
+  border-radius: 10px;
+  padding: 20px;
+}
+
 .equipment-row-wrapper {
   background: none !important;
   border: none !important;
   padding: 0 !important;
-  border-radius: 0 !important;
   margin-bottom: 10px !important;
 }
 
@@ -1496,27 +1501,7 @@
   margin-bottom: 0 !important;
 }
 
-/* Keep the dark background on the actual row with text/buttons */
 .equipment-row {
-  background: #27454b !important;
+  background: none !important;
   padding: 10px 20px;
-  border-radius: 10px;
-}
-
-/* Mobile adjustments */
-@media (max-width: 768px) {
-  .equipment-table {
-    padding: 18px 20px;
-  }
-  
-  .equipment-row {
-    background: none !important;
-    padding: 0 !important;
-  }
-  
-  .equipment-row-wrapper:not(:last-child) {
-    padding-bottom: 16px !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-    margin-bottom: 16px !important;
-  }
 }
