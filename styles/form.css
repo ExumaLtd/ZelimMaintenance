@@ -1365,14 +1365,15 @@
     padding: 0;
   }
   
-  .equipment-header .header-item {
-    display: block;
-    font-size: 15px;
-    font-weight: 600;
-    color: #fff;
-    text-align: left;
-    margin-bottom: 8px;
-  }
+.equipment-header .header-item {
+  display: block;
+  font-size: 15px;
+  font-weight: 500;
+  color: #fff;
+  text-align: left;
+  margin-bottom: 8px;
+  text-transform: none;
+}
   
   .equipment-header .header-returned {
     display: none !important;

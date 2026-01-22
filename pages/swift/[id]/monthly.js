@@ -647,7 +647,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
                 <h3 className="checklist-section-title">Monthly inspection checklist</h3>
                 <p className="checklist-section-subtitle">
-                  Confirm all monthly inspection records are present, complete, and signed.
+                  All monthly maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual.
                 </p>
                 
                 {checklistData.map((group, groupIndex) => (
