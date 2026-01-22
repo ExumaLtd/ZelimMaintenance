@@ -1328,34 +1328,39 @@
   }
 }
 
+/* =========================================================================
+   MONTHLY CHECKLIST CARD STYLES
+   Replace the existing .checklist-item-card styles in form.css with these
+========================================================================= */
+
 /* Monthly checklist card layout */
 .checklist-item-card {
-  background: rgba(255, 255, 255, 0.05);
+  background: #27454b;
   border-radius: 12px;
-  padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
+  padding: 20px 24px;
+  border: none;
+  margin-bottom: 12px;
 }
 
-.checklist-item-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
+.checklist-item-card:last-child {
+  margin-bottom: 0;
 }
 
 .checklist-item-title {
   color: #fff;
-  font-size: 1.25rem;
+  font-size: 16px;
   font-weight: 600;
   margin: 0 0 16px 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-family: "Montserrat", sans-serif;
 }
 
 .checklist-question-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 0;
+  padding: 14px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -1364,38 +1369,95 @@
   padding-top: 0;
 }
 
+.checklist-question-row:last-of-type {
+  padding-bottom: 0;
+}
+
 .question-text {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 1rem;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
   flex: 1;
-  padding-right: 16px;
+  padding-right: 20px;
+  font-family: "Montserrat", sans-serif;
+}
+
+/* Toggle buttons inside monthly checklist */
+.checklist-question-row .toggle-group {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.checklist-question-row .toggle-btn {
+  padding: 8px 18px;
+  background: #152a31 !important;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #7d8f93;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  font-family: "Montserrat", sans-serif;
+  min-width: 50px;
+}
+
+.checklist-question-row .toggle-btn:hover {
+  background: #1f4450 !important;
+}
+
+.checklist-question-row .toggle-btn.active {
+  background: #00fff6 !important;
+  color: #0d3037;
+  border-color: #00fff6;
+}
+
+.checklist-question-row .toggle-btn.has-error {
+  border-color: rgb(255, 77, 77) !important;
 }
 
 /* Mobile responsive */
 @media (max-width: 768px) {
   .checklist-item-card {
-    padding: 16px;
+    padding: 18px 20px;
   }
 
   .checklist-item-title {
-    font-size: 1.1rem;
+    font-size: 15px;
+    margin-bottom: 14px;
   }
 
   .checklist-question-row {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
+    padding: 14px 0;
+  }
+  
+  .checklist-question-row:first-of-type {
+    padding-top: 0;
+  }
+  
+  .checklist-question-row:last-of-type {
+    padding-bottom: 0;
   }
   
   .question-text {
     padding-right: 0;
+    font-size: 14px;
   }
   
   .checklist-question-row .toggle-group {
     width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
   
   .checklist-question-row .toggle-btn {
     flex: 1;
+    padding: 10px 16px;
+    text-align: center;
   }
 }
