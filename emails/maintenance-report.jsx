@@ -20,7 +20,8 @@ export const MaintenanceReportEmail = ({
   serialNumber = 'N/A',
   reportType = 'Maintenance',
   answers = {},
-  equipmentChecklist = null, // NEW: Equipment checklist data
+  equipmentChecklist = null, // For depth maintenance (returned/condition format)
+  maintenanceChecklist = null, // For monthly maintenance (grouped yes/no questions)
   brandColor = '#172F36',
   logoUrl = '/logo/zelim-logo-dark.png',
   previewUrl = null
@@ -31,7 +32,7 @@ export const MaintenanceReportEmail = ({
     year: 'numeric',
   });
 
-  // Parse equipment checklist if it's a string
+  // Parse equipment checklist if it's a string (depth maintenance)
   let parsedEquipmentChecklist = null;
   if (equipmentChecklist) {
     try {
@@ -40,6 +41,18 @@ export const MaintenanceReportEmail = ({
         : equipmentChecklist;
     } catch (e) {
       console.error('Error parsing equipment checklist:', e);
+    }
+  }
+
+  // Parse maintenance checklist if it's a string (monthly maintenance)
+  let parsedMaintenanceChecklist = null;
+  if (maintenanceChecklist) {
+    try {
+      parsedMaintenanceChecklist = typeof maintenanceChecklist === 'string' 
+        ? JSON.parse(maintenanceChecklist) 
+        : maintenanceChecklist;
+    } catch (e) {
+      console.error('Error parsing maintenance checklist:', e);
     }
   }
 
@@ -107,7 +120,7 @@ export const MaintenanceReportEmail = ({
               </Row>
             </Section>
 
-            {/* Equipment Checklist Section */}
+            {/* Equipment Checklist Section (Depth Maintenance) */}
             {parsedEquipmentChecklist && parsedEquipmentChecklist.length > 0 && (
               <>
                 <Hr style={hr} />
@@ -163,11 +176,45 @@ export const MaintenanceReportEmail = ({
               </>
             )}
 
-            {/* Maintenance Questions Section */}
+            {/* Maintenance Checklist Section (Monthly Maintenance) */}
+            {parsedMaintenanceChecklist && parsedMaintenanceChecklist.length > 0 && (
+              <>
+                <Hr style={hr} />
+                <Heading as="h2" style={h2}>Monthly Inspection Checklist</Heading>
+                
+                <Section>
+                  {parsedMaintenanceChecklist.map((group, groupIndex) => (
+                    <div key={groupIndex} style={monthlyGroupBlock}>
+                      <Text style={monthlyGroupTitle}>{group.title}</Text>
+                      
+                      {group.questions && group.questions.map((question, qIndex) => (
+                        <Row key={qIndex} style={monthlyQuestionRow}>
+                          <Column style={{ width: '70%' }}>
+                            <Text style={monthlyQuestionText}>{question.text}</Text>
+                          </Column>
+                          <Column style={{ width: '30%', textAlign: 'right' }}>
+                            <Text style={{
+                              ...monthlyAnswerText,
+                              color: question.answer === 'Yes' ? '#10B981' : question.answer === 'No' ? '#EF4444' : '#94A3B8'
+                            }}>
+                              {question.answer === 'Yes' ? '✓ Yes' : question.answer === 'No' ? '✗ No' : 'Not answered'}
+                            </Text>
+                          </Column>
+                        </Row>
+                      ))}
+                    </div>
+                  ))}
+                </Section>
+              </>
+            )}
+
+            {/* Maintenance Questions Section (Annual, Unscheduled, or Further Comments) */}
             {Object.keys(answers).length > 0 && (
               <>
                 <Hr style={hr} />
-                <Heading as="h2" style={h2}>{reportType} Maintenance Details</Heading>
+                <Heading as="h2" style={h2}>
+                  {reportType === 'Monthly' ? 'Additional Comments' : `${reportType} Maintenance Details`}
+                </Heading>
                 
                 <Section>
                   {Object.entries(answers).map(([question, answerData], i) => {
@@ -179,7 +226,7 @@ export const MaintenanceReportEmail = ({
                     return (
                       <div key={i} style={answerBlock}>
                         <Text style={questionText}>{question}</Text>
-                        <Text style={answerText}>
+                        <Text style={answerTextStyle}>
                           {answerText !== null && answerText !== undefined && answerText !== '' 
                             ? String(answerText) 
                             : 'Not answered'}
@@ -196,7 +243,7 @@ export const MaintenanceReportEmail = ({
                               >
                                 <Img
                                   src={imageUrl}
-                                  alt={`Image ${imgIndex + 1}`}
+                                  alt={`${question} - Image ${imgIndex + 1}`}
                                   width="150"
                                   height="150"
                                   style={imageThumbnail}
@@ -382,6 +429,42 @@ const checklistValue = {
   margin: '4px 0 0 0',
 };
 
+// Monthly maintenance specific styles
+const monthlyGroupBlock = {
+  marginBottom: '24px',
+  padding: '16px',
+  backgroundColor: '#F8FAFC',
+  borderRadius: '8px',
+  border: '1px solid #E2E8F0',
+};
+
+const monthlyGroupTitle = {
+  fontSize: '15px',
+  fontWeight: '700',
+  color: '#0F172A',
+  margin: '0 0 12px 0',
+  paddingBottom: '8px',
+  borderBottom: '2px solid #E2E8F0',
+};
+
+const monthlyQuestionRow = {
+  padding: '8px 0',
+  borderBottom: '1px solid #F1F5F9',
+};
+
+const monthlyQuestionText = {
+  fontSize: '14px',
+  color: '#475569',
+  margin: '0',
+  fontWeight: '500',
+};
+
+const monthlyAnswerText = {
+  fontSize: '14px',
+  fontWeight: '600',
+  margin: '0',
+};
+
 const answerBlock = {
   marginBottom: '20px',
   paddingLeft: '12px',
@@ -395,7 +478,7 @@ const questionText = {
   margin: '0 0 4px 0',
 };
 
-const answerText = {
+const answerTextStyle = {
   fontSize: '14px',
   color: '#475569',
   margin: '0',
