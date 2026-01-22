@@ -651,34 +651,41 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                 </p>
                 
                 {checklistData.map((group, groupIndex) => (
-                  <div key={group.id} className="checklist-item-card">
-                    <h4 className="checklist-item-title">{group.title}</h4>
+                  <div key={group.id} className="equipment-table" style={{ marginBottom: groupIndex < checklistData.length - 1 ? '24px' : '0' }}>
+                    {/* Group Header with Title on left, Completed? on right */}
+                    <div className="equipment-header" style={{ gridTemplateColumns: '1fr 120px' }}>
+                      <div className="header-item" style={{ textAlign: 'left' }}>{group.title}</div>
+                      <div className="header-returned">Completed?</div>
+                    </div>
                     
                     {/* Questions within this group */}
                     {group.questions.map((question, questionIndex) => (
                       <div 
                         key={question.id} 
-                        className="checklist-question-row"
+                        className="equipment-row-wrapper"
                         data-group={groupIndex}
                         data-question={questionIndex}
                       >
-                        <div className="question-text">{question.text}</div>
-                        
-                        <div className="toggle-group">
-                          <button 
-                            type="button"
-                            className={`toggle-btn ${question.answer === true ? 'active' : ''}`}
-                            onClick={() => updateChecklist(groupIndex, questionIndex, true)}
-                          >
-                            Yes
-                          </button>
-                          <button 
-                            type="button"
-                            className={`toggle-btn ${question.answer === false ? 'active' : ''}`}
-                            onClick={() => updateChecklist(groupIndex, questionIndex, false)}
-                          >
-                            No
-                          </button>
+                        <div className="item-name-mobile">{question.text}</div>
+                        <div className="equipment-row" style={{ gridTemplateColumns: '1fr 120px' }}>
+                          <div className="item-name">{question.text}</div>
+                          
+                          <div className="toggle-group">
+                            <button 
+                              type="button"
+                              className={`toggle-btn ${question.answer === true ? 'active' : ''}`}
+                              onClick={() => updateChecklist(groupIndex, questionIndex, true)}
+                            >
+                              Yes
+                            </button>
+                            <button 
+                              type="button"
+                              className={`toggle-btn ${question.answer === false ? 'active' : ''}`}
+                              onClick={() => updateChecklist(groupIndex, questionIndex, false)}
+                            >
+                              No
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))}
