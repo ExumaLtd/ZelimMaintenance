@@ -488,6 +488,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
               <span className="break-point">unscheduled maintenance</span>
             </h1>
 
+            {/* SECTION 1: Engineer Details */}
             <div className="checklist-form-card">
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
                 <div className="checklist-inline-group">
@@ -560,7 +561,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                   </div>
                 </div>
 
-                <div className="checklist-inline-group" style={{ marginTop: "24px" }}>
+                <div className="checklist-inline-group">
                   <div className="checklist-field" ref={engineerFieldRef}>
                     <label className="checklist-label">Engineer name</label>
                     <div className="custom-dropdown-container" ref={engineerDropdownRef}>
@@ -647,10 +648,20 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                     />
                   </div>
                 </div>
+              </form>
+            </div>
 
+            {/* SECTION 2: Maintenance Questions */}
+            <div className="checklist-form-card" style={{ marginTop: "24px" }}>
+              <h2 className="checklist-section-title">Maintenance report</h2>
+              <p className="checklist-section-subtitle">
+                Please provide details of the unscheduled maintenance carried out
+              </p>
+
+              <form onSubmit={handleSubmit} autoComplete="off" noValidate>
                 {/* QUESTIONS WITH IMAGE UPLOADERS */}
                 {(template?.questionsData || []).map((q, i) => (
-                  <div key={i} style={{ marginTop: "24px" }}>
+                  <div key={i} style={{ marginTop: i === 0 ? "0" : "24px" }}>
                     <label className="checklist-label">
                       {q.title}
                     </label>
