@@ -1181,7 +1181,6 @@
     font-weight: 500;
     color: #fff;
     font-family: "Montserrat", sans-serif;
-    margin-bottom: 8px;
   }
   
   .equipment-row .toggle-group:not(.condition-group) .toggle-btn {
@@ -1209,7 +1208,6 @@
     color: #fff;
     font-family: "Montserrat", sans-serif;
     grid-column: 1 / -1;
-    margin-bottom: 8px;
   }
   
   .equipment-row .condition-group .toggle-btn {
