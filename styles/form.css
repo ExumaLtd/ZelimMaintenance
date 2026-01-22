@@ -1169,64 +1169,55 @@
     transition: padding-bottom 0.3s ease-out;
   }
   
-  /* RETURNED BUTTONS - 50% each (Yes/No) - ONLY INSIDE EQUIPMENT ROW */
-  .equipment-row .toggle-group:not(.condition-group) {
-    display: flex !important;
-    grid-template-columns: none !important;
+  .toggle-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 8px;
   }
   
-  .equipment-row .toggle-group:not(.condition-group)::before {
-    content: "Returned?";
+  .toggle-group::before {
     display: block;
     font-size: 14px;
     font-weight: 500;
     color: #fff;
     font-family: "Montserrat", sans-serif;
-    margin-bottom: 10px;
+    grid-column: 1 / -1;
   }
   
-  .equipment-row .toggle-group:not(.condition-group) .toggle-btn {
-    flex: 1;
+  /* Add labels via pseudo-elements */
+  .toggle-group:not(.condition-group)::before {
+    content: "Returned?";
+  }
+  
+  .condition-group::before {
+    content: "Condition?";
+  }
+  
+  .toggle-btn {
     padding: 10px 16px;
     font-size: 14px;
   }
   
-  /* CONDITION BUTTONS - 33% each (Good/Fair/Poor) - ONLY INSIDE EQUIPMENT ROW */
-  .equipment-row .condition-group {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr 1fr !important;
-    gap: 8px;
+  /* Hide condition group by default on mobile */
+  .condition-group {
     max-height: 0;
     opacity: 0;
     overflow: hidden;
     transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
   }
   
-  .equipment-row .condition-group::before {
-    content: "Condition?";
+  .condition-group::before {
     display: none;
-    font-size: 14px;
-    font-weight: 500;
-    color: #fff;
-    font-family: "Montserrat", sans-serif;
-    grid-column: 1 / -1;
-    margin-bottom: 10px;
-  }
-  
-  .equipment-row .condition-group .toggle-btn {
-    padding: 10px 16px;
-    font-size: 14px;
   }
   
   /* Show condition group when Yes is selected */
-  .equipment-row .condition-group.show-on-mobile {
+  .condition-group.show-on-mobile {
     max-height: 200px;
     opacity: 1;
     margin-top: 14px;
   }
   
-  .equipment-row .condition-group.show-on-mobile::before {
+  .condition-group.show-on-mobile::before {
     display: block;
   }
 }
@@ -1453,3 +1444,4 @@
     padding: 0 !important;
   }
 }
+
