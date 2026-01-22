@@ -1351,12 +1351,18 @@
   padding: 0;
 }
 
+/* Desktop - adjust header alignment */
+.equipment-questions-wrapper + .equipment-header {
+  grid-template-columns: 1fr 110px;
+}
+
+/* Mobile */
 @media (max-width: 768px) {
   .equipment-questions-wrapper {
     padding: 18px 20px;
   }
   
-  /* Question wrapper - remove all depth styling */
+  /* Override depth maintenance styles */
   .equipment-questions-wrapper .equipment-row-wrapper {
     margin-bottom: 0 !important;
     background: none !important;
@@ -1364,14 +1370,12 @@
     padding: 0 !important;
   }
   
-  /* Dividers between questions */
   .equipment-questions-wrapper .equipment-row-wrapper:not(:last-child) {
     padding-bottom: 16px !important;
     margin-bottom: 16px !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
   }
   
-  /* Show mobile question text */
   .equipment-questions-wrapper .item-name-mobile {
     display: block !important;
     font-size: 14px;
@@ -1380,34 +1384,34 @@
     margin-bottom: 10px;
   }
   
-  /* Hide desktop question text */
   .equipment-questions-wrapper .item-name {
     display: none !important;
   }
   
-  /* Row styling */
   .equipment-questions-wrapper .equipment-row {
     display: block !important;
     padding: 0 !important;
     background: none !important;
     grid-template-columns: none !important;
+    gap: 0 !important;
   }
   
-  /* Button group - NO pseudo-element labels */
-  .equipment-questions-wrapper .toggle-group {
-    display: flex !important;
-    gap: 8px;
-    width: 100%;
-  }
-  
+  /* CRITICAL - Remove "Returned?" label */
   .equipment-questions-wrapper .toggle-group::before {
     display: none !important;
+    content: none !important;
   }
   
-  /* Buttons */
+  .equipment-questions-wrapper .toggle-group {
+    display: flex !important;
+    gap: 8px !important;
+    width: 100% !important;
+    grid-template-columns: none !important;
+  }
+  
   .equipment-questions-wrapper .toggle-btn {
-    flex: 1;
+    flex: 1 !important;
     padding: 12px 16px !important;
-    min-height: 44px;
+    min-height: 44px !important;
   }
 }
