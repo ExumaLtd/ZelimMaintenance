@@ -1169,55 +1169,64 @@
     transition: padding-bottom 0.3s ease-out;
   }
   
-  .toggle-group {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+  /* RETURNED BUTTONS - 50% each (Yes/No) - ONLY INSIDE EQUIPMENT ROW */
+  .equipment-row .toggle-group:not(.condition-group) {
+    display: flex !important;
+    grid-template-columns: none !important;
     gap: 8px;
   }
   
-  .toggle-group::before {
+  .equipment-row .toggle-group:not(.condition-group)::before {
+    content: "Returned?";
     display: block;
     font-size: 14px;
     font-weight: 500;
     color: #fff;
     font-family: "Montserrat", sans-serif;
-    grid-column: 1 / -1;
+    margin-bottom: 10px;
   }
   
-  /* Add labels via pseudo-elements */
-  .toggle-group:not(.condition-group)::before {
-    content: "Returned?";
-  }
-  
-  .condition-group::before {
-    content: "Condition?";
-  }
-  
-  .toggle-btn {
+  .equipment-row .toggle-group:not(.condition-group) .toggle-btn {
+    flex: 1;
     padding: 10px 16px;
     font-size: 14px;
   }
   
-  /* Hide condition group by default on mobile */
-  .condition-group {
+  /* CONDITION BUTTONS - 33% each (Good/Fair/Poor) - ONLY INSIDE EQUIPMENT ROW */
+  .equipment-row .condition-group {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 8px;
     max-height: 0;
     opacity: 0;
     overflow: hidden;
     transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
   }
   
-  .condition-group::before {
+  .equipment-row .condition-group::before {
+    content: "Condition?";
     display: none;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    font-family: "Montserrat", sans-serif;
+    grid-column: 1 / -1;
+    margin-bottom: 10px;
+  }
+  
+  .equipment-row .condition-group .toggle-btn {
+    padding: 10px 16px;
+    font-size: 14px;
   }
   
   /* Show condition group when Yes is selected */
-  .condition-group.show-on-mobile {
+  .equipment-row .condition-group.show-on-mobile {
     max-height: 200px;
     opacity: 1;
     margin-top: 14px;
   }
   
-  .condition-group.show-on-mobile::before {
+  .equipment-row .condition-group.show-on-mobile::before {
     display: block;
   }
 }
@@ -1442,120 +1451,5 @@
     color: #a0acaf;
     margin: 0 0 20px;
     padding: 0 !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .checklist-section-title {
-    text-align: left;
-  }
-  
-  .checklist-section-subtitle {
-    text-align: left;
-    color: rgb(160, 172, 175);
-    margin: 0px 0px 20px;
-    padding: 0px !important;
-  }
-  
-  .equipment-header {
-    display: none;
-  }
-  
-  /* Spacing between items */
-  .equipment-row-wrapper {
-    margin-bottom: 18px;
-  }
-  
-  .equipment-row-wrapper:last-child {
-    margin-bottom: 0;
-  }
-  
-  /* All labels font size on mobile */
-  .checklist-label,
-  label {
-    font-size: 15px !important;
-  }
-  
-  /* Mobile item name - outside box */
-  .item-name-mobile {
-    display: block;
-    font-size: 15px;
-    font-weight: 500;
-    color: #fff;
-    margin-bottom: 6px;
-    font-family: "Montserrat", sans-serif;
-  }
-  
-  /* Desktop item name - hide on mobile */
-  .item-name {
-    display: none;
-  }
-  
-  .equipment-row {
-    grid-template-columns: 1fr;
-    gap: 0;
-    padding: 14px 20px 18px 20px !important;
-  }
-  
-  /* YES/NO BUTTONS - 50% width each */
-  .equipment-row-wrapper .toggle-group:not(.condition-group) {
-    display: flex !important;
-    grid-template-columns: none !important;
-    gap: 8px;
-    margin-bottom: 0;
-  }
-  
-  .equipment-row-wrapper .toggle-group:not(.condition-group)::before {
-    content: "Returned?";
-    display: block;
-    font-size: 14px;
-    font-weight: 500;
-    color: #fff;
-    font-family: "Montserrat", sans-serif;
-    margin-bottom: 10px;
-  }
-  
-  .equipment-row-wrapper .toggle-group:not(.condition-group) .toggle-btn {
-    flex: 1;
-    padding: 10px 16px;
-    font-size: 14px;
-  }
-  
-  /* CONDITION BUTTONS - 33% width each (Good/Fair/Poor) */
-  .equipment-row-wrapper .condition-group {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr 1fr !important;
-    gap: 8px;
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
-  }
-  
-  .equipment-row-wrapper .condition-group::before {
-    content: "Condition?";
-    display: none;
-    font-size: 14px;
-    font-weight: 500;
-    color: #fff;
-    font-family: "Montserrat", sans-serif;
-    grid-column: 1 / -1;
-    margin-bottom: 10px;
-  }
-  
-  .equipment-row-wrapper .condition-group .toggle-btn {
-    padding: 10px 16px;
-    font-size: 14px;
-  }
-  
-  /* Show condition group when Yes is selected */
-  .equipment-row-wrapper .condition-group.show-on-mobile {
-    max-height: 200px;
-    opacity: 1;
-    margin-top: 14px;
-  }
-  
-  .equipment-row-wrapper .condition-group.show-on-mobile::before {
-    display: block;
   }
 }
