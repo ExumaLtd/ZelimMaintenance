@@ -1351,50 +1351,63 @@
   padding: 0;
 }
 
-/* Mobile */
 @media (max-width: 768px) {
   .equipment-questions-wrapper {
     padding: 18px 20px;
   }
   
-  /* Remove margin, add dividers between questions */
+  /* Question wrapper - remove all depth styling */
   .equipment-questions-wrapper .equipment-row-wrapper {
-    margin-bottom: 0;
+    margin-bottom: 0 !important;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
   }
   
+  /* Dividers between questions */
   .equipment-questions-wrapper .equipment-row-wrapper:not(:last-child) {
-    padding-bottom: 16px;
-    margin-bottom: 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 16px !important;
+    margin-bottom: 16px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
   }
   
-  /* Mobile question text appears above buttons */
+  /* Show mobile question text */
   .equipment-questions-wrapper .item-name-mobile {
-    display: block;
+    display: block !important;
     font-size: 14px;
     font-weight: 500;
     color: #fff;
     margin-bottom: 10px;
   }
   
+  /* Hide desktop question text */
   .equipment-questions-wrapper .item-name {
-    display: none;
+    display: none !important;
   }
   
+  /* Row styling */
   .equipment-questions-wrapper .equipment-row {
-    display: block;
-    padding: 0;
+    display: block !important;
+    padding: 0 !important;
+    background: none !important;
+    grid-template-columns: none !important;
   }
   
+  /* Button group - NO pseudo-element labels */
   .equipment-questions-wrapper .toggle-group {
-    display: flex;
+    display: flex !important;
     gap: 8px;
     width: 100%;
   }
   
+  .equipment-questions-wrapper .toggle-group::before {
+    display: none !important;
+  }
+  
+  /* Buttons */
   .equipment-questions-wrapper .toggle-btn {
     flex: 1;
-    padding: 12px 16px;
+    padding: 12px 16px !important;
     min-height: 44px;
   }
 }
