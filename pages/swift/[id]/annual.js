@@ -655,7 +655,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             <div className="checklist-form-card" style={{ marginTop: "20px" }}>
               <h2 className="checklist-section-title">Annual maintenance</h2>
               <p className="checklist-section-subtitle">
-                Record all annual maintenance activities and observations
+                All annual maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual.
               </p>
 
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
