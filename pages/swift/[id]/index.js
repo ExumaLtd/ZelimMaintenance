@@ -90,7 +90,7 @@ export async function getServerSideProps(context) {
     const unitRecordId = record.id;
 
     const unitDetails = {
-      id: unitRecordId,
+      record_id: unitRecordId,
       serial_number: record.get("serial_number") || "N/A",
       company: record.get("company") || "Client Unit",
       annualDue: record.get("annual_maintenance_due")
