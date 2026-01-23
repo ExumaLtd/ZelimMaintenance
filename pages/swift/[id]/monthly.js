@@ -257,6 +257,10 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
         const data = await res.json();
         
         if (data.draft) {
+          console.log('📦 Draft data received:', data.draft);
+          console.log('📦 checklistData type:', typeof data.draft.checklistData);
+          console.log('📦 checklistData value:', data.draft.checklistData);
+          
           // Restore form state from draft
           if (data.draft.checklistData) setChecklistData(data.draft.checklistData);
           if (data.draft.furtherComments) setFurtherComments(data.draft.furtherComments);
