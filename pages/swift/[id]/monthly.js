@@ -280,6 +280,11 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     if (typeof window === "undefined" || !navigator.geolocation) return;
     if (locationDisplay && locationDisplay.trim() !== "") return;
 
+    // IMPORTANT: Don't run if coming from "Continue maintenance"
+    const urlParams = new URLSearchParams(window.location.search);
+    const isDraft = urlParams.get('draft') === 'true';
+    if (isDraft) return; // Skip geolocation if loading a draft
+
     const options = {
       enableHighAccuracy: true,
       timeout: 15000,
