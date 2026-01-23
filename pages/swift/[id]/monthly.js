@@ -84,14 +84,16 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     unitId: unit?.record_id,
     maintenanceType: 'Monthly',
     engineerEmail: engEmail,
-    checklistData,
-    furtherComments,
-    commentImages,
-    selectedCompany,
-    locationDisplay,
-    locationCountry,
-    engName,
-    engPhone,
+    draftData: {
+      checklistData,
+      furtherComments,
+      commentImages,
+      selectedCompany,
+      locationDisplay,
+      locationCountry,
+      engName,
+      engPhone,
+    }
   }, engEmail !== '' && engEmail.includes('@'));
 
   // Initialize checklist data from template (grouped structure)

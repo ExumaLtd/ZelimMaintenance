@@ -8,20 +8,20 @@ import { useEffect, useRef, useCallback } from 'react';
  * - Stops saving after 90 seconds of inactivity
  * - Saves on page unload as backup
  */
-export function useAutoSave(draftData, isEnabled = true) {
+export function useAutoSave(payload, isEnabled = true) {
   const lastActivityRef = useRef(Date.now());
   const saveIntervalRef = useRef(null);
   const idleTimeoutRef = useRef(null);
   const lastSaveRef = useRef(0);
-  const draftDataRef = useRef(draftData);
+  const payloadRef = useRef(payload);
 
-  // Keep draftDataRef up to date
+  // Keep payloadRef up to date with current payload
   useEffect(() => {
-    draftDataRef.current = draftData;
-  }, [draftData]);
+    payloadRef.current = payload;
+  }, [payload]);
 
   const saveDraft = useCallback(async () => {
-    const currentData = draftDataRef.current;
+    const currentPayload = payloadRef.current;
     
     console.log('saveDraft called, isEnabled:', isEnabled);
     
@@ -31,12 +31,12 @@ export function useAutoSave(draftData, isEnabled = true) {
     }
     
     console.log('draftData:', {
-      unitId: currentData.unitId,
-      maintenanceType: currentData.maintenanceType,
-      engineerEmail: currentData.engineerEmail,
+      unitId: currentPayload.unitId,
+      maintenanceType: currentPayload.maintenanceType,
+      engineerEmail: currentPayload.engineerEmail,
     });
     
-    if (!currentData.unitId || !currentData.maintenanceType || !currentData.engineerEmail) {
+    if (!currentPayload.unitId || !currentPayload.maintenanceType || !currentPayload.engineerEmail) {
       console.log('❌ Missing required fields');
       return;
     }
@@ -55,7 +55,7 @@ export function useAutoSave(draftData, isEnabled = true) {
       const response = await fetch('/api/save-draft', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(currentData),
+        body: JSON.stringify(currentPayload),
       });
 
       console.log('Response status:', response.status);
@@ -130,10 +130,10 @@ export function useAutoSave(draftData, isEnabled = true) {
 
     // Save on page close as backup
     const handleBeforeUnload = () => {
-      const currentData = draftDataRef.current;
+      const currentPayload = payloadRef.current;
       // Use navigator.sendBeacon for more reliable save on page close
-      if (currentData.unitId && currentData.maintenanceType && currentData.engineerEmail) {
-        const blob = new Blob([JSON.stringify(currentData)], { type: 'application/json' });
+      if (currentPayload.unitId && currentPayload.maintenanceType && currentPayload.engineerEmail) {
+        const blob = new Blob([JSON.stringify(currentPayload)], { type: 'application/json' });
         navigator.sendBeacon('/api/save-draft', blob);
       }
     };
