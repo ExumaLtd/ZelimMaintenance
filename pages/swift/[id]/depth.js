@@ -5,6 +5,7 @@ import Image from "next/image";
 import { getCompanyLogoUrl } from '../../../utils/get-company-logo';
 import ImageUploader from '../../../components/image-uploader';
 import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
+import { useAutoSave } from '../../../hooks/use-auto-save';
 
 const autoGrow = (e) => {
   const el = e.target || e;
@@ -47,7 +48,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   const engineerFieldRef = useRef(null);
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
-  const card2Ref = useRef(null); // Ref for Card 2 to scroll to
+  const card2Ref = useRef(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -60,10 +61,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     engineerPhone: false,
   });
 
-  // Step control - 1 = checklist, 2 = questions
   const [currentStep, setCurrentStep] = useState(1);
-
-  // Checklist data - initialize from template
   const [checklistData, setChecklistData] = useState([]);
   const [closingItems, setClosingItems] = useState(new Set());
 
@@ -75,15 +73,40 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   const [engPhone, setEngPhone] = useState("");
   const [answers, setAnswers] = useState({});
   const [questionImages, setQuestionImages] = useState({});
-  const [checklistImages, setChecklistImages] = useState({}); // NEW: Track images for checklist items
+  const [checklistImages, setChecklistImages] = useState({});
 
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
 
   const storageKey = useMemo(() => `draft_depth_${unit?.serial_number}`, [unit?.serial_number]);
 
+  // Auto-save draft to Airtable
+  useAutoSave({
+    unitId: unit?.record_id,
+    maintenanceType: '30-month depth',
+    engineerEmail: engEmail,
+    draftData: {
+      checklistData,
+      currentStep,
+      answers,
+      questionImages,
+      checklistImages,
+      selectedCompany,
+      locationDisplay,
+      locationCountry,
+      engName,
+      engEmail,
+      engPhone,
+    }
+  }, engEmail !== '' && engEmail.includes('@'));
+
   // Initialize checklist data from template
   useEffect(() => {
+    // Don't initialize if coming from "Continue maintenance"
+    const urlParams = new URLSearchParams(window.location.search);
+    const isDraft = urlParams.get('draft') === 'true';
+    if (isDraft) return;
+    
     if (template?.maintenanceChecklist) {
       setChecklistData(
         template.maintenanceChecklist.map(item => ({
@@ -159,13 +182,11 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     }));
   };
 
-  // Checklist functions
   const updateChecklist = (index, field, value) => {
     setChecklistData(prev => {
       const updated = [...prev];
       const item = updated[index];
       
-      // If changing condition from 'poor' to something else, trigger closing animation
       if (field === 'condition' && item.condition === 'poor' && value !== 'poor') {
         setClosingItems(prev => new Set(prev).add(item.id));
         setTimeout(() => {
@@ -174,10 +195,9 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
             newSet.delete(item.id);
             return newSet;
           });
-        }, 300); // Match animation duration
+        }, 300);
       }
       
-      // Toggle Poor button - if already poor and clicked again, set to null (unselect)
       if (field === 'condition' && item.condition === 'poor' && value === 'poor') {
         updated[index] = { ...updated[index], condition: null };
         setClosingItems(prev => new Set(prev).add(item.id));
@@ -192,7 +212,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
         updated[index] = { ...updated[index], [field]: value };
       }
       
-      // Auto-select 'good' when returned is set to 'Yes'
       if (field === 'returned' && value === true) {
         updated[index].condition = 'good';
       }
@@ -201,7 +220,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
         updated[index].condition = null;
       }
       
-      // Remove error class from buttons when item is updated
       const rows = document.querySelectorAll('.equipment-row-wrapper');
       if (rows[index]) {
         const allButtons = rows[index].querySelectorAll('.toggle-btn');
@@ -221,7 +239,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   };
 
   const handleContinueToQuestions = () => {
-    // Validate top fields before continuing
     const errors = [];
     const newFieldErrors = {
       company: false,
@@ -231,7 +248,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       engineerPhone: false,
     };
 
-    // Remove all error classes first
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
 
     if (!selectedCompany || selectedCompany === "Please select") {
@@ -267,7 +283,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       if (phoneInput) phoneInput.classList.add('has-error');
     }
 
-    // Check if checklist is complete
     const incompleteItems = [];
     checklistData.forEach((item, index) => {
       if (item.returned === null) {
@@ -279,16 +294,13 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
     if (incompleteItems.length > 0) {
       errors.push('checklist');
-      // Add red border to incomplete checklist buttons
       incompleteItems.forEach(item => {
         const rows = document.querySelectorAll('.equipment-row-wrapper');
         if (rows[item.index]) {
           if (item.type === 'returned') {
-            // Add error to Yes/No buttons
             const returnedButtons = rows[item.index].querySelectorAll('.toggle-group:not(.condition-group) .toggle-btn');
             returnedButtons.forEach(btn => btn.classList.add('has-error'));
           } else if (item.type === 'condition') {
-            // Add error to Good/Fair/Poor buttons
             const conditionButtons = rows[item.index].querySelectorAll('.condition-group .toggle-btn');
             conditionButtons.forEach(btn => btn.classList.add('has-error'));
           }
@@ -300,7 +312,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
     if (errors.length > 0) {
       if (errors.length === 1) {
-        // Show specific error for single field
         if (errors.includes('company')) setErrorMsg("Please select a maintenance company.");
         else if (errors.includes('location')) setErrorMsg("Please provide a location.");
         else if (errors.includes('engineer')) setErrorMsg("Please select or enter an engineer name.");
@@ -316,10 +327,8 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     setErrorMsg("");
     setCurrentStep(2);
     
-    // Add history entry for step 2 so back button works
     window.history.pushState({ step: 2 }, '', window.location.href);
     
-    // Scroll to Card 2 on mobile
     setTimeout(() => {
       if (card2Ref.current) {
         card2Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -327,7 +336,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     }, 100);
   };
 
-  // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (companyDropdownRef.current && !companyDropdownRef.current.contains(event.target)) {
@@ -341,12 +349,10 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Handle browser back button for step navigation
   useEffect(() => {
     const handlePopState = (event) => {
       if (event.state?.step) {
         setCurrentStep(event.state.step);
-        // Scroll to Card 2 when going back to step 1
         if (event.state.step === 1) {
           setTimeout(() => {
             if (card2Ref.current) {
@@ -355,7 +361,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
           }, 100);
         }
       } else if (currentStep === 2) {
-        // If on step 2 and back is pressed without state, go to step 1
         setCurrentStep(1);
         setTimeout(() => {
           if (card2Ref.current) {
@@ -372,6 +377,12 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   // Load draft from localStorage
   useEffect(() => {
     setToday(new Date().toISOString().split("T")[0]);
+    
+    // Don't load localStorage if coming from "Continue maintenance"
+    const urlParams = new URLSearchParams(window.location.search);
+    const isDraft = urlParams.get('draft') === 'true';
+    if (isDraft) return;
+    
     const savedDraft = localStorage.getItem(storageKey);
     if (!savedDraft) return;
 
@@ -386,7 +397,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       if (data.engineer_email) setEngEmail(data.engineer_email);
       if (data.engineer_phone) setEngPhone(data.engineer_phone);
       
-      // Restore checklist data if it exists
       if (data.checklist_data && Array.isArray(data.checklist_data)) {
         setChecklistData(data.checklist_data);
       }
@@ -401,10 +411,57 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     }
   }, [storageKey]);
 
+  // Load draft from Airtable
+  useEffect(() => {
+    const loadDraft = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const isDraft = urlParams.get('draft') === 'true';
+      const emailFromUrl = urlParams.get('email');
+      
+      if (!isDraft || !emailFromUrl) return;
+      
+      const emailToUse = decodeURIComponent(emailFromUrl);
+      
+      if (!unit?.record_id || !emailToUse || !emailToUse.includes('@')) return;
+      
+      try {
+        const res = await fetch(
+          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=30-month depth&engineerEmail=${encodeURIComponent(emailToUse)}`
+        );
+        const data = await res.json();
+        
+        if (data.draft) {
+          if (data.draft.checklistData) setChecklistData(data.draft.checklistData);
+          if (data.draft.currentStep) setCurrentStep(data.draft.currentStep);
+          if (data.draft.answers) setAnswers(data.draft.answers);
+          if (data.draft.questionImages) setQuestionImages(data.draft.questionImages);
+          if (data.draft.checklistImages) setChecklistImages(data.draft.checklistImages);
+          if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
+          if (data.draft.locationDisplay) setLocationDisplay(data.draft.locationDisplay);
+          if (data.draft.locationCountry) setLocationCountry(data.draft.locationCountry);
+          if (data.draft.engName) setEngName(data.draft.engName);
+          if (data.draft.engEmail) setEngEmail(data.draft.engEmail);
+          if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
+          
+          console.log('✓ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
+        }
+      } catch (error) {
+        console.error('Failed to load draft:', error);
+      }
+    };
+    
+    loadDraft();
+  }, [unit?.record_id, template]);
+
   // Get geolocation
   useEffect(() => {
     if (typeof window === "undefined" || !navigator.geolocation) return;
     if (locationDisplay && locationDisplay.trim() !== "") return;
+
+    // Skip geolocation if loading a draft
+    const urlParams = new URLSearchParams(window.location.search);
+    const isDraft = urlParams.get('draft') === 'true';
+    if (isDraft) return;
 
     const options = {
       enableHighAccuracy: true,
@@ -473,7 +530,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       engineer_name: engName,
       engineer_email: engEmail,
       engineer_phone: engPhone,
-      checklist_data: checklistData, // Save checklist selections
+      checklist_data: checklistData,
       ...answers,
     };
     localStorage.setItem(storageKey, JSON.stringify(draftData));
@@ -574,6 +631,17 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
       if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
 
+      // Mark draft as complete
+      await fetch('/api/mark-draft-complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          unitId: unit?.record_id,
+          maintenanceType: '30-month depth',
+          engineerEmail: engEmail,
+        }),
+      });
+
       const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
 
       await fetch("/api/send-report", {
@@ -584,7 +652,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
           engineerName: engName,
           serialNumber: unit?.serial_number,
           answers: emailFriendlyAnswers,
-          maintenanceChecklist: checklistData, // NEW: Send checklist data for email
+          maintenanceChecklist: checklistData,
           reportType: template?.type || "Depth",
           companyLogoUrl: companyLogoUrl,
           technicalData: {
@@ -606,7 +674,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       localStorage.setItem("last_submitted_sn", unit?.serial_number);
       localStorage.setItem("last_maintenance_type", template?.type || "Depth");
       localStorage.removeItem(storageKey);
-      router.push(`/swift/${unit.public_token}/depth-complete`);
+      router.push('/portal/swift/depth-complete');
     } catch (err) {
       setErrorMsg(err.message);
       setSubmitting(false);
@@ -638,10 +706,8 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
               <span className="break-point">depth maintenance</span>
             </h1>
 
-            {/* CARD 1: ADMIN FIELDS */}
             <div className="checklist-form-card">
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-                {/* TOP FIELDS - ALWAYS VISIBLE ON BOTH STEPS */}
                 <div className="checklist-inline-group">
                   <div className="checklist-field" ref={companyFieldRef}>
                     <label className="checklist-label">Maintenance company</label>
@@ -801,10 +867,8 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
               </form>
             </div>
 
-            {/* CARD 2: CHECKLIST/QUESTIONS */}
             <div ref={card2Ref} className="checklist-form-card" style={{ marginTop: "20px" }}>
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-                {/* STEP 1: EQUIPMENT CHECKLIST */}
                 {currentStep === 1 && (
                   <div>
                     <h3 className="checklist-section-title">Pre-disassembly inspection</h3>
@@ -873,7 +937,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                             </div>
                           </div>
                           
-                          {/* CONDITIONAL UPLOAD SECTION FOR POOR CONDITION */}
                           {(item.condition === 'poor' || closingItems.has(item.id)) && (
                             <div className={`checklist-upload-section ${closingItems.has(item.id) ? 'closing' : ''}`}>
                               <ImageUploader
@@ -901,7 +964,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                   </div>
                 )}
 
-                {/* STEP 2: MAINTENANCE QUESTIONS */}
                 {currentStep === 2 && (
                   <div>
                     <h3 className="checklist-section-title">{template?.type || "Depth"} maintenance</h3>
@@ -1003,7 +1065,6 @@ export async function getServerSideProps({ params }) {
       });
     }
 
-    // Parse the questions_json to get both equipment checklist and questions
     let parsedJson = {};
     try {
       if (templateData.records?.[0]?.fields.questions_json) {

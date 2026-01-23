@@ -5,6 +5,7 @@ import Image from "next/image";
 import { getCompanyLogoUrl } from '../../../utils/get-company-logo';
 import ImageUploader from '../../../components/image-uploader';
 import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
+import { useAutoSave } from '../../../hooks/use-auto-save';
 
 const autoGrow = (e) => {
   const el = e.target || e;
@@ -73,6 +74,23 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
 
   const storageKey = `draft_unscheduled_${unit?.serial_number}`;
 
+  // Auto-save draft to Airtable
+  useAutoSave({
+    unitId: unit?.record_id,
+    maintenanceType: 'Unscheduled',
+    engineerEmail: engEmail,
+    draftData: {
+      answers,
+      questionImages,
+      selectedCompany,
+      locationDisplay,
+      locationCountry,
+      engName,
+      engEmail,
+      engPhone,
+    }
+  }, engEmail !== '' && engEmail.includes('@'));
+
   const filteredEngineers = useMemo(() => {
     if (!selectedCompany) return [];
     let list = allEngineers.filter(e => e.companyName === selectedCompany && e.name !== engName);
@@ -101,13 +119,18 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
   // Load draft from localStorage
   useEffect(() => {
     setToday(new Date().toISOString().split("T")[0]);
+    
+    // Don't load localStorage if coming from "Continue maintenance"
+    const urlParams = new URLSearchParams(window.location.search);
+    const isDraft = urlParams.get('draft') === 'true';
+    if (isDraft) return; // Skip localStorage when loading from Airtable
+    
     const savedDraft = localStorage.getItem(storageKey);
     if (!savedDraft) return;
 
     try {
       const data = JSON.parse(savedDraft);
       if (data.maintained_by) setSelectedCompany(data.maintained_by);
-      // Only load location if it has a non-empty value
       if (data.location_display && data.location_display.trim()) {
         setLocationDisplay(data.location_display);
       }
@@ -126,17 +149,59 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
     }
   }, [storageKey]);
 
-  // Get geolocation - IMPROVED VERSION
+  // Load draft from Airtable
+  useEffect(() => {
+    const loadDraft = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const isDraft = urlParams.get('draft') === 'true';
+      const emailFromUrl = urlParams.get('email');
+      
+      if (!isDraft || !emailFromUrl) return;
+      
+      const emailToUse = decodeURIComponent(emailFromUrl);
+      
+      if (!unit?.record_id || !emailToUse || !emailToUse.includes('@')) return;
+      
+      try {
+        const res = await fetch(
+          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Unscheduled&engineerEmail=${encodeURIComponent(emailToUse)}`
+        );
+        const data = await res.json();
+        
+        if (data.draft) {
+          if (data.draft.answers) setAnswers(data.draft.answers);
+          if (data.draft.questionImages) setQuestionImages(data.draft.questionImages);
+          if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
+          if (data.draft.locationDisplay) setLocationDisplay(data.draft.locationDisplay);
+          if (data.draft.locationCountry) setLocationCountry(data.draft.locationCountry);
+          if (data.draft.engName) setEngName(data.draft.engName);
+          if (data.draft.engEmail) setEngEmail(data.draft.engEmail);
+          if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
+          
+          console.log('✓ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
+        }
+      } catch (error) {
+        console.error('Failed to load draft:', error);
+      }
+    };
+    
+    loadDraft();
+  }, [unit?.record_id]);
+
+  // Get geolocation
   useEffect(() => {
     if (typeof window === "undefined" || !navigator.geolocation) return;
-
-    // Only run geolocation if location field is empty
     if (locationDisplay && locationDisplay.trim() !== "") return;
+
+    // Skip geolocation if loading a draft
+    const urlParams = new URLSearchParams(window.location.search);
+    const isDraft = urlParams.get('draft') === 'true';
+    if (isDraft) return;
 
     const options = {
       enableHighAccuracy: true,
-      timeout: 15000, // Increased to 15 seconds for slower connections
-      maximumAge: 0 // Don't use cached position
+      timeout: 15000,
+      maximumAge: 0
     };
 
     navigator.geolocation.getCurrentPosition(
@@ -146,7 +211,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14&accept-language=en-GB`,
             {
               headers: {
-                'User-Agent': 'SWIFT Maintenance App' // Nominatim requires User-Agent
+                'User-Agent': 'SWIFT Maintenance App'
               }
             }
           );
@@ -165,17 +230,14 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
             const shortCountry = displayCountry === "GB" ? "UK" : displayCountry;
             const combinedDisplay = loc ? `${loc}, ${shortCountry}` : shortCountry;
 
-            // Only set if field is still empty (user hasn't typed anything)
             setLocationDisplay((prev) => (!prev || prev.trim() === "") ? combinedDisplay : prev);
             setLocationCountry(formalCountry);
           }
         } catch (err) {
           console.error("Geocoding error:", err);
-          // Silently fail - user can enter location manually
         }
       },
       (error) => {
-        // Handle different error codes
         switch(error.code) {
           case error.PERMISSION_DENIED:
             console.log("User denied location permission");
@@ -189,11 +251,10 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
           default:
             console.log("Unknown location error:", error.message);
         }
-        // Don't show error to user - they can enter location manually
       },
       options
     );
-  }, []); // Only run once on mount
+  }, []);
 
   // Save draft to localStorage
   useEffect(() => {
@@ -215,7 +276,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
     setEngEmail("");
     setEngPhone("");
     setShowCompanyDropdown(false);
-    // Remove error state when valid selection made
     setFieldErrors(prev => ({ ...prev, company: false }));
   };
 
@@ -224,22 +284,18 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
     setEngEmail(engineer.email || "");
     setEngPhone(engineer.phone || "");
     setShowEngineerDropdown(false);
-    // Remove error states when valid selection made
     setFieldErrors(prev => ({
       ...prev,
       engineerName: false,
       engineerEmail: engineer.email ? false : prev.engineerEmail,
       engineerPhone: engineer.phone ? false : prev.engineerPhone,
     }));
-    // Remove error class from engineer name input
     const engineerInput = document.querySelector('[name="engineer_name"]');
     if (engineerInput) engineerInput.classList.remove('has-error');
-    // Also remove error from email if it gets filled
     if (engineer.email) {
       const emailInput = document.querySelector('[name="engineer_email"]');
       if (emailInput) emailInput.classList.remove('has-error');
     }
-    // Also remove error from phone if it gets filled
     if (engineer.phone) {
       const phoneInput = document.querySelector('[name="engineer_phone"]');
       if (phoneInput) phoneInput.classList.remove('has-error');
@@ -269,7 +325,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
     setErrorMsg("");
     if (submitting) return;
 
-    // Collect all errors
     const errors = [];
     let firstErrorField = null;
     const newFieldErrors = {
@@ -280,17 +335,14 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       engineerPhone: false,
     };
 
-    // Remove all error classes from textareas/questions
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
 
-    // Validation - Maintenance company
     if (!selectedCompany || selectedCompany === "Please select") {
       errors.push({ field: 'company', message: 'Please select a maintenance company.' });
       newFieldErrors.company = true;
       if (!firstErrorField) firstErrorField = companyFieldRef;
     }
 
-    // Validation - Location
     if (!locationDisplay || !locationDisplay.trim()) {
       errors.push({ field: 'location', message: 'Please provide a location.' });
       newFieldErrors.location = true;
@@ -299,7 +351,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       if (locationInput) locationInput.classList.add('has-error');
     }
 
-    // Validation - Engineer name
     if (!engName || engName === "Please select" || !engName.trim()) {
       errors.push({ field: 'engineer', message: 'Please select or enter an engineer name.' });
       newFieldErrors.engineerName = true;
@@ -308,7 +359,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       if (engineerInput) engineerInput.classList.add('has-error');
     }
 
-    // Validation - Engineer email
     if (!engEmail || !engEmail.trim()) {
       errors.push({ field: 'engineer_email', message: 'Please provide an engineer email.' });
       newFieldErrors.engineerEmail = true;
@@ -320,7 +370,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       if (emailInput) emailInput.classList.add('has-error');
     }
 
-    // Validation - Engineer phone
     if (!engPhone || !engPhone.trim()) {
       errors.push({ field: 'engineer_phone', message: 'Please provide an engineer phone number.' });
       newFieldErrors.engineerPhone = true;
@@ -332,7 +381,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       if (phoneInput) phoneInput.classList.add('has-error');
     }
 
-    // Validate required questions
     const requiredQuestions = (template?.questionsData || []).filter(q => q.required);
     for (let i = 0; i < requiredQuestions.length; i++) {
       const q = requiredQuestions[i];
@@ -349,10 +397,8 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       }
     }
 
-    // Update field errors state
     setFieldErrors(newFieldErrors);
 
-    // If there are errors, show message and scroll to first error
     if (errors.length > 0) {
       if (errors.length === 1) {
         setErrorMsg(errors[0].message);
@@ -360,7 +406,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
         setErrorMsg("Please check for multiple errors.");
       }
       
-      // Scroll to first error
       if (firstErrorField) {
         if (firstErrorField.current) {
           firstErrorField.current.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -368,7 +413,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
             if (firstErrorField.current.focus) {
               firstErrorField.current.focus();
             } else if (firstErrorField.current.querySelector) {
-              // For dropdown containers, try to focus the input inside
               const input = firstErrorField.current.querySelector('.checklist-input');
               if (input) input.focus();
             }
@@ -380,7 +424,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
 
     setSubmitting(true);
 
-    // Prepare email-friendly answers WITH images
     const emailFriendlyAnswers = {};
     (template?.questionsData || []).forEach((q, i) => {
       const questionKey = `q${i + 1}`;
@@ -424,7 +467,17 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
 
       if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
 
-      // Get company logo URL for email
+      // Mark draft as complete
+      await fetch('/api/mark-draft-complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          unitId: unit?.record_id,
+          maintenanceType: 'Unscheduled',
+          engineerEmail: engEmail,
+        }),
+      });
+
       const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
 
       await fetch("/api/send-report", {
@@ -447,7 +500,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
         }),
       });
 
-      // Clear image localStorage after successful submission
       (template?.questionsData || []).forEach((_, i) => {
         const questionKey = `q${i + 1}`;
         const imageStorageKey = `images_unscheduled_${unit?.serial_number}_${questionKey}`;
@@ -455,8 +507,9 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       });
 
       localStorage.setItem("last_submitted_sn", unit?.serial_number);
+      localStorage.setItem("last_maintenance_type", "Unscheduled");
       localStorage.removeItem(storageKey);
-      router.push(`/swift/${unit.public_token}/unscheduled-complete`);
+      router.push('/portal/swift/unscheduled-complete');
     } catch (err) {
       setErrorMsg(err.message);
       setSubmitting(false);
@@ -488,7 +541,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
               <span className="break-point">unscheduled maintenance</span>
             </h1>
 
-            {/* SECTION 1: Engineer Details */}
             <div className="checklist-form-card">
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
                 <div className="checklist-inline-group">
@@ -534,7 +586,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                       value={locationDisplay}
                       onChange={(e) => {
                         setLocationDisplay(e.target.value);
-                        // Remove error class when user types
                         if (e.target.value.trim()) {
                           e.target.classList.remove('has-error');
                         }
@@ -580,7 +631,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                           onChange={(e) => {
                             setEngName(e.target.value);
                             if (selectedCompany) setShowEngineerDropdown(true);
-                            // Remove error when user types
                             if (e.target.value.trim() && e.target.value !== "Please select") {
                               setFieldErrors(prev => ({ ...prev, engineerName: false }));
                             }
@@ -622,7 +672,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                       value={engEmail}
                       onChange={(e) => {
                         setEngEmail(e.target.value);
-                        // Remove error class when user types valid email
                         if (e.target.value.trim()) {
                           e.target.classList.remove('has-error');
                         }
@@ -640,7 +689,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                       value={engPhone}
                       onChange={(e) => {
                         setEngPhone(e.target.value);
-                        // Remove error class when user types
                         if (e.target.value.trim()) {
                           e.target.classList.remove('has-error');
                         }
@@ -651,7 +699,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
               </form>
             </div>
 
-            {/* SECTION 2: Maintenance Questions */}
             <div className="checklist-form-card" style={{ marginTop: "20px" }}>
               <h2 className="checklist-section-title">Unscheduled maintenance</h2>
               <p className="checklist-section-subtitle">
@@ -659,10 +706,8 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
               </p>
 
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-                {/* QUESTIONS WITH IMAGE UPLOADERS */}
                 {(template?.questionsData || []).map((q, i) => (
                   <div key={i} style={{ marginTop: "0" }}>
-                    {/* Hide the individual question title and instruction - they're now in the section header */}
                     <label className="checklist-label" style={{ display: "none" }}>
                       {q.title}
                     </label>
@@ -670,7 +715,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                       <p className="question-instruction" style={{ display: "none" }}>{q.instruction}</p>
                     )}
                     
-                    {/* Wrapper for side-by-side layout on desktop */}
                     <div className="question-with-upload">
                       <div className="textarea-wrapper">
                         <textarea
@@ -680,7 +724,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                           value={answers[`q${i + 1}`] || ""}
                           onChange={(e) => {
                             setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-                            // Remove error class when user types
                             if (e.target.value.trim()) {
                               e.target.classList.remove('has-error');
                             }
@@ -689,7 +732,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                         />
                       </div>
                       
-                      {/* IMAGE UPLOADER */}
                       {q.allow_uploads && (
                         <ImageUploader
                           questionKey={`q${i + 1}`}
