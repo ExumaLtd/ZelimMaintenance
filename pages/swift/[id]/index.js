@@ -106,7 +106,7 @@ export async function getServerSideProps(context) {
     try {
       const drafts = await base('maintenance_drafts')
         .select({
-          filterByFormula: `AND(SEARCH('${unitRecordId}', ARRAYJOIN({unit_id})), {completed} = FALSE())`,
+          filterByFormula: `AND({unit_id} = '${unitRecordId}', {completed} = FALSE())`,
           fields: ['maintenance_type', 'last_updated', 'engineer_email'],
         })
         .firstPage();
@@ -116,6 +116,8 @@ export async function getServerSideProps(context) {
         lastUpdated: d.get('last_updated'),
         engineerEmail: d.get('engineer_email'),
       }));
+      
+      console.log('Found drafts:', activeDrafts);
     } catch (draftError) {
       console.error('Error fetching drafts:', draftError);
       // Continue without drafts if table doesn't exist yet
