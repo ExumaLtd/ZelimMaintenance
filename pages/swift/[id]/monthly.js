@@ -244,13 +244,9 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       const isDraft = urlParams.get('draft') === 'true';
       const emailFromUrl = urlParams.get('email');
       
-      let emailToUse = engEmail;
+      if (!isDraft || !emailFromUrl) return; // Only run when coming from "Continue maintenance"
       
-      // If coming from "Continue maintenance", use email from URL and pre-fill
-      if (isDraft && emailFromUrl) {
-        emailToUse = decodeURIComponent(emailFromUrl);
-        setEngEmail(emailToUse); // Pre-fill the email field
-      }
+      const emailToUse = decodeURIComponent(emailFromUrl);
       
       if (!unit?.record_id || !emailToUse || !emailToUse.includes('@')) return;
       
@@ -269,6 +265,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           if (data.draft.locationDisplay) setLocationDisplay(data.draft.locationDisplay);
           if (data.draft.locationCountry) setLocationCountry(data.draft.locationCountry);
           if (data.draft.engName) setEngName(data.draft.engName);
+          if (data.draft.engEmail) setEngEmail(data.draft.engEmail); // Use engEmail from draft, not URL
           if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
           
           console.log('✓ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
@@ -279,7 +276,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     };
     
     loadDraft();
-  }, [unit?.record_id]); // Only run on mount
+  }, [unit?.record_id, template]); // Run when unit or template loads
 
   // Get geolocation
   useEffect(() => {
