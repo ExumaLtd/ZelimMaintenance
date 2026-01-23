@@ -28,6 +28,7 @@ export default function ImageUploader({
   const [isMobile, setIsMobile] = useState(false);
   const fileInputRef = useRef(null);
   const isInitialMount = useRef(true);
+  const hasLoadedInitialImages = useRef(false);
 
   const storageKey = `images_${maintenanceType}_${serialNumber}_${questionKey}`;
 
@@ -43,31 +44,35 @@ export default function ImageUploader({
 
   // Load images on mount - prioritize initialImages from draft, fallback to localStorage
   useEffect(() => {
-    // If initialImages provided (from draft), use those
-    if (initialImages && initialImages.length > 0) {
+    // If initialImages provided (from draft) and we haven't loaded them yet, use those
+    if (initialImages && initialImages.length > 0 && !hasLoadedInitialImages.current) {
       console.log('Loading images from draft:', initialImages);
       setImages(initialImages);
       if (onImagesChange) {
         onImagesChange(initialImages);
       }
+      hasLoadedInitialImages.current = true;
       return;
     }
     
-    // Otherwise load from localStorage
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
-      try {
-        const parsedImages = JSON.parse(saved);
-        setImages(parsedImages);
-        if (parsedImages.length > 0 && onImagesChange) {
-          onImagesChange(parsedImages);
+    // Otherwise load from localStorage (only if no initial images)
+    if (!hasLoadedInitialImages.current) {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        try {
+          const parsedImages = JSON.parse(saved);
+          setImages(parsedImages);
+          if (parsedImages.length > 0 && onImagesChange) {
+            onImagesChange(parsedImages);
+          }
+        } catch (e) {
+          console.error('Failed to load saved images', e);
         }
-      } catch (e) {
-        console.error('Failed to load saved images', e);
       }
+      hasLoadedInitialImages.current = true;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run on mount
+  }, [initialImages]); // Watch initialImages but only load once using ref
 
   // Save images to localStorage whenever they change (but not on initial mount)
   useEffect(() => {
