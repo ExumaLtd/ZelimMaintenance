@@ -5,6 +5,7 @@ import Image from "next/image";
 import { getCompanyLogoUrl } from '../../../utils/get-company-logo';
 import ImageUploader from '../../../components/image-uploader';
 import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
+import { useAutoSave } from '../../../hooks/use-auto-save';
 
 const autoGrow = (e) => {
   const el = e.target || e;
@@ -77,6 +78,24 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
 
   const storageKey = useMemo(() => `draft_monthly_${unit?.serial_number}`, [unit?.serial_number]);
+
+  // Auto-save draft to Airtable
+  useAutoSave({
+    unitId: unit?.record_id,
+    maintenanceType: 'Monthly',
+    engineerEmail: engEmail,
+    draftData: {
+      checklistData,
+      furtherComments,
+      commentImages,
+      selectedCompany,
+      locationDisplay,
+      locationCountry,
+      engName,
+      engEmail,
+      engPhone,
+    }
+  }, engEmail !== '' && engEmail.includes('@'));
 
   // Initialize checklist data from template (grouped structure)
   useEffect(() => {
@@ -210,6 +229,41 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       console.error("Draft load error:", e);
     }
   }, [storageKey]);
+
+  // Load draft from Airtable
+  useEffect(() => {
+    const loadDraft = async () => {
+      if (!unit?.record_id || !engEmail || !engEmail.includes('@')) return;
+      
+      try {
+        const res = await fetch(
+          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Monthly&engineerEmail=${encodeURIComponent(engEmail)}`
+        );
+        const data = await res.json();
+        
+        if (data.draft) {
+          // Restore form state from draft
+          if (data.draft.checklistData) setChecklistData(data.draft.checklistData);
+          if (data.draft.furtherComments) setFurtherComments(data.draft.furtherComments);
+          if (data.draft.commentImages) setCommentImages(data.draft.commentImages);
+          if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
+          if (data.draft.locationDisplay) setLocationDisplay(data.draft.locationDisplay);
+          if (data.draft.locationCountry) setLocationCountry(data.draft.locationCountry);
+          if (data.draft.engName) setEngName(data.draft.engName);
+          if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
+          
+          console.log('✓ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
+        }
+      } catch (error) {
+        console.error('Failed to load draft:', error);
+      }
+    };
+    
+    // Only load draft after engineer email is entered
+    if (engEmail && engEmail.includes('@')) {
+      loadDraft();
+    }
+  }, [engEmail, unit?.record_id]);
 
   // Get geolocation
   useEffect(() => {
@@ -440,6 +494,17 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       });
 
       if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
+
+      // Mark draft as complete
+      await fetch('/api/mark-draft-complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          unitId: unit?.record_id,
+          maintenanceType: 'Monthly',
+          engineerEmail: engEmail,
+        }),
+      });
 
       const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
 
