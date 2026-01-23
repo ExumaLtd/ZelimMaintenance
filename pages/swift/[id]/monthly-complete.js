@@ -5,11 +5,11 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { ThumbsUp } from "lucide-react";
 
-export default function AnnualComplete() {
+export default function MonthlyComplete() {
   const router = useRouter();
   const { id } = router.query;
   const [unitSN, setUnitSN] = useState("");
-  const [maintenanceType, setMaintenanceType] = useState("Annual");
+  const [maintenanceType, setMaintenanceType] = useState("Monthly");
 
   useEffect(() => {
     const savedSN = localStorage.getItem("last_submitted_sn");
@@ -48,7 +48,7 @@ export default function AnnualComplete() {
               Your {maintenanceType.toLowerCase()} maintenance has successfully been recorded. You will receive email confirmation shortly.
             </p>
 
-            <Link href="/portal/swift" className="return-dashboard-btn">
+            <Link href={`/portal/swift/${id}`} className="return-dashboard-btn">
               Return to dashboard
             </Link>
           </div>
