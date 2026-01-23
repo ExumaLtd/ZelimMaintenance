@@ -17,11 +17,16 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing required parameters' });
     }
 
-    // Find active draft
+    // Find active draft using SEARCH on linked field
     const drafts = await base('maintenance_drafts')
       .select({
         maxRecords: 1,
-        filterByFormula: `AND({unit_id} = '${unitId}', {maintenance_type} = '${maintenanceType}', {engineer_email} = '${engineerEmail}', {completed} = FALSE())`,
+        filterByFormula: `AND(
+          SEARCH("${unitId}", ARRAYJOIN({unit_id})),
+          {maintenance_type} = '${maintenanceType}',
+          {engineer_email} = '${engineerEmail}',
+          {completed} = FALSE()
+        )`,
         sort: [{ field: 'last_updated', direction: 'desc' }],
       })
       .firstPage();
