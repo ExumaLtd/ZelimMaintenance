@@ -430,9 +430,16 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
         );
         const data = await res.json();
         
-        if (data.draft) {
+if (data.draft) {
           if (data.draft.checklistData) setChecklistData(data.draft.checklistData);
-          if (data.draft.currentStep) setCurrentStep(data.draft.currentStep);
+          if (data.draft.currentStep) {
+            setCurrentStep(data.draft.currentStep);
+            // If loading step 2, add step 1 to history so back button works
+            if (data.draft.currentStep === 2) {
+              window.history.pushState({ step: 1 }, '', window.location.href);
+              window.history.pushState({ step: 2 }, '', window.location.href);
+            }
+          }
           if (data.draft.answers) setAnswers(data.draft.answers);
           if (data.draft.questionImages) setQuestionImages(data.draft.questionImages);
           if (data.draft.checklistImages) setChecklistImages(data.draft.checklistImages);
