@@ -97,12 +97,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     }
   }, engEmail !== '' && engEmail.includes('@'));
 
-  console.log('Auto-save config:', {
-  unitId: unit?.record_id,
-  email: engEmail,
-  enabled: engEmail !== '' && engEmail.includes('@')
-});
-
   // Initialize checklist data from template (grouped structure)
   useEffect(() => {
     if (template?.maintenanceChecklist && template.maintenanceChecklist.length > 0) {
