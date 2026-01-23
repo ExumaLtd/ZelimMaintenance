@@ -67,7 +67,7 @@ export default function ImageUploader({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialImages]);
+  }, []); // Only run on mount
 
   // Save images to localStorage whenever they change (but not on initial mount)
   useEffect(() => {
