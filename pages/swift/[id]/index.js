@@ -5,7 +5,6 @@ import Airtable from "airtable";
 import fs from "fs";
 import path from "path";
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
 
 // File size utility
 const getFileSize = (filePath) => {
@@ -57,6 +56,10 @@ const getClientLogo = (companyName, serialNumber) => {
 // Fetch unit data from Airtable
 export async function getServerSideProps(context) {
   const publicToken = context.params.id;
+  
+  console.log('=== DASHBOARD DEBUG ===');
+  console.log('publicToken:', publicToken);
+  console.log('params:', context.params);
 
   const maintenanceManualPath = "/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf";
   const installationGuidePath = "/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf";
