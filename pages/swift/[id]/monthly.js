@@ -99,6 +99,11 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
   // Initialize checklist data from template (grouped structure)
   useEffect(() => {
+    // Don't initialize if coming from "Continue maintenance" - draft will load instead
+    const urlParams = new URLSearchParams(window.location.search);
+    const isDraft = urlParams.get('draft') === 'true';
+    if (isDraft) return; // Skip template initialization when loading a draft
+    
     if (template?.maintenanceChecklist && template.maintenanceChecklist.length > 0) {
       setChecklistData(
         template.maintenanceChecklist.map(group => ({
