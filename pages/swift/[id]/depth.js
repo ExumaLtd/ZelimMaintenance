@@ -940,12 +940,13 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                           {(item.condition === 'poor' || closingItems.has(item.id)) && (
                             <div className={`checklist-upload-section ${closingItems.has(item.id) ? 'closing' : ''}`}>
                               <ImageUploader
-                                questionKey={`checklist_item_${item.id}`}
-                                questionText={`${item.name} - Poor condition photos`}
-                                serialNumber={unit?.serial_number}
-                                maintenanceType="depth"
-                                onImagesChange={(images) => handleChecklistImagesChange(item.id, images)}
-                              />
+  questionKey={`checklist_item_${item.id}`}
+  questionText={`${item.name} - Poor condition photos`}
+  serialNumber={unit?.serial_number}
+  maintenanceType="depth"
+  initialImages={checklistImages[`item_${item.id}`] || []}
+  onImagesChange={(images) => handleChecklistImagesChange(item.id, images)}
+/>
                             </div>
                           )}
                         </div>
@@ -999,12 +1000,13 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                           
                           {q.allow_uploads && (
                             <ImageUploader
-                              questionKey={`q${i + 1}`}
-                              questionText={q.title}
-                              serialNumber={unit?.serial_number}
-                              maintenanceType="depth"
-                              onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
-                            />
+  questionKey={`q${i + 1}`}
+  questionText={q.title}
+  serialNumber={unit?.serial_number}
+  maintenanceType="depth"
+  initialImages={questionImages[`q${i + 1}`] || []}
+  onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
+/>
                           )}
                         </div>
                       </div>

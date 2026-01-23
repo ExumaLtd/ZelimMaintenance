@@ -834,12 +834,13 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                       />
                     </div>
                     <ImageUploader
-                      questionKey="further_comments"
-                      questionText="Further comments"
-                      serialNumber={unit?.serial_number}
-                      maintenanceType="monthly"
-                      onImagesChange={handleCommentImagesChange}
-                    />
+  questionKey="further_comments"
+  questionText="Further comments"
+  serialNumber={unit?.serial_number}
+  maintenanceType="monthly"
+  initialImages={commentImages || []}
+  onImagesChange={handleCommentImagesChange}
+/>
                   </div>
                 </div>
 

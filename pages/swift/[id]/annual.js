@@ -741,14 +741,15 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       </div>
                       
                       {q.allow_uploads && (
-                        <ImageUploader
-                          questionKey={`q${i + 1}`}
-                          questionText={q.title}
-                          serialNumber={unit?.serial_number}
-                          maintenanceType="annual"
-                          onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
-                        />
-                      )}
+  <ImageUploader
+    questionKey={`q${i + 1}`}
+    questionText={q.title}
+    serialNumber={unit?.serial_number}
+    maintenanceType="annual"
+    initialImages={questionImages[`q${i + 1}`] || []}
+    onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
+  />
+)}
                     </div>
                   </div>
                 ))}
