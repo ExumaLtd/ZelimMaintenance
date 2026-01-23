@@ -1,5 +1,5 @@
 // hooks/use-auto-save.js
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 
 /**
  * Auto-save hook with smart idle detection
@@ -13,8 +13,16 @@ export function useAutoSave(draftData, isEnabled = true) {
   const saveIntervalRef = useRef(null);
   const idleTimeoutRef = useRef(null);
   const lastSaveRef = useRef(0);
+  const draftDataRef = useRef(draftData);
 
-  const saveDraft = async () => {
+  // Keep draftDataRef up to date
+  useEffect(() => {
+    draftDataRef.current = draftData;
+  }, [draftData]);
+
+  const saveDraft = useCallback(async () => {
+    const currentData = draftDataRef.current;
+    
     console.log('saveDraft called, isEnabled:', isEnabled);
     
     if (!isEnabled) {
@@ -23,12 +31,12 @@ export function useAutoSave(draftData, isEnabled = true) {
     }
     
     console.log('draftData:', {
-      unitId: draftData.unitId,
-      maintenanceType: draftData.maintenanceType,
-      engineerEmail: draftData.engineerEmail,
+      unitId: currentData.unitId,
+      maintenanceType: currentData.maintenanceType,
+      engineerEmail: currentData.engineerEmail,
     });
     
-    if (!draftData.unitId || !draftData.maintenanceType || !draftData.engineerEmail) {
+    if (!currentData.unitId || !currentData.maintenanceType || !currentData.engineerEmail) {
       console.log('❌ Missing required fields');
       return;
     }
@@ -47,7 +55,7 @@ export function useAutoSave(draftData, isEnabled = true) {
       const response = await fetch('/api/save-draft', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(draftData),
+        body: JSON.stringify(currentData),
       });
 
       console.log('Response status:', response.status);
@@ -62,17 +70,17 @@ export function useAutoSave(draftData, isEnabled = true) {
     } catch (error) {
       console.error('❌ Draft save error:', error);
     }
-  };
+  }, [isEnabled]);
 
-  const stopAutoSave = () => {
+  const stopAutoSave = useCallback(() => {
     if (saveIntervalRef.current) {
       clearInterval(saveIntervalRef.current);
       saveIntervalRef.current = null;
       console.log('🛑 Auto-save stopped (idle)');
     }
-  };
+  }, []);
 
-  const startAutoSave = () => {
+  const startAutoSave = useCallback(() => {
     if (!saveIntervalRef.current && isEnabled) {
       // Save immediately first
       saveDraft();
@@ -81,9 +89,9 @@ export function useAutoSave(draftData, isEnabled = true) {
       saveIntervalRef.current = setInterval(saveDraft, 30 * 1000); // Every 30 seconds
       console.log('🚀 Auto-save started');
     }
-  };
+  }, [isEnabled, saveDraft]);
 
-  const handleActivity = () => {
+  const handleActivity = useCallback(() => {
     lastActivityRef.current = Date.now();
     
     // Start auto-saving if not already running
@@ -98,7 +106,7 @@ export function useAutoSave(draftData, isEnabled = true) {
     idleTimeoutRef.current = setTimeout(() => {
       stopAutoSave();
     }, 90 * 1000);
-  };
+  }, [isEnabled, startAutoSave, stopAutoSave]);
 
   useEffect(() => {
     if (!isEnabled) {
@@ -122,9 +130,10 @@ export function useAutoSave(draftData, isEnabled = true) {
 
     // Save on page close as backup
     const handleBeforeUnload = () => {
+      const currentData = draftDataRef.current;
       // Use navigator.sendBeacon for more reliable save on page close
-      if (draftData.unitId && draftData.maintenanceType && draftData.engineerEmail) {
-        const blob = new Blob([JSON.stringify(draftData)], { type: 'application/json' });
+      if (currentData.unitId && currentData.maintenanceType && currentData.engineerEmail) {
+        const blob = new Blob([JSON.stringify(currentData)], { type: 'application/json' });
         navigator.sendBeacon('/api/save-draft', blob);
       }
     };
@@ -139,7 +148,7 @@ export function useAutoSave(draftData, isEnabled = true) {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       console.log('🧹 Auto-save cleanup');
     };
-  }, [isEnabled, draftData.unitId, draftData.maintenanceType, draftData.engineerEmail]);
+  }, [isEnabled, handleActivity, startAutoSave, stopAutoSave]);
 
   // Return manual save function in case needed
   return { saveDraft };
