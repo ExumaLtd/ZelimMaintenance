@@ -92,6 +92,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       locationDisplay,
       locationCountry,
       engName,
+      engEmail,
       engPhone,
     }
   }, engEmail !== '' && engEmail.includes('@'));
