@@ -88,6 +88,8 @@ export async function getServerSideProps(context) {
 
     const record = records[0];
     const unitRecordId = record.id;
+    
+    console.log('unitRecordId:', unitRecordId);
 
     const unitDetails = {
       record_id: unitRecordId,
@@ -104,9 +106,12 @@ export async function getServerSideProps(context) {
     // Check for active drafts
     let activeDrafts = [];
     try {
+      const formula = `AND({unit_id} = "${unitRecordId}", NOT({completed}))`;
+      console.log('Filter formula:', formula);
+      
       const drafts = await base('maintenance_drafts')
         .select({
-          filterByFormula: `AND({unit_id} = "${unitRecordId}", NOT({completed}))`,
+          filterByFormula: formula,
           fields: ['maintenance_type', 'last_updated', 'engineer_email'],
         })
         .firstPage();
