@@ -5,6 +5,7 @@ import Airtable from "airtable";
 import fs from "fs";
 import path from "path";
 import { useRouter } from "next/router";
+import { useState, useEffect } from "react";
 
 // File size utility
 const getFileSize = (filePath) => {
@@ -83,8 +84,10 @@ export async function getServerSideProps(context) {
     }
 
     const record = records[0];
+    const unitRecordId = record.id;
 
     const unitDetails = {
+      id: unitRecordId,
       serial_number: record.get("serial_number") || "N/A",
       company: record.get("company") || "Client Unit",
       annualDue: record.get("annual_maintenance_due")
@@ -95,10 +98,31 @@ export async function getServerSideProps(context) {
         : "N/A",
     };
 
+    // Check for active drafts
+    let activeDrafts = [];
+    try {
+      const drafts = await base('maintenance_drafts')
+        .select({
+          filterByFormula: `AND(SEARCH('${unitRecordId}', ARRAYJOIN({unit_id})), {completed} = FALSE())`,
+          fields: ['maintenance_type', 'last_updated', 'engineer_email'],
+        })
+        .firstPage();
+
+      activeDrafts = drafts.map(d => ({
+        type: d.get('maintenance_type'),
+        lastUpdated: d.get('last_updated'),
+        engineerEmail: d.get('engineer_email'),
+      }));
+    } catch (draftError) {
+      console.error('Error fetching drafts:', draftError);
+      // Continue without drafts if table doesn't exist yet
+    }
+
     return {
       props: {
         unit: unitDetails,
         publicToken,
+        activeDrafts,
         ...fileSizes,
       },
     };
@@ -112,6 +136,7 @@ export async function getServerSideProps(context) {
 export default function SwiftUnitPage({
   unit,
   publicToken,
+  activeDrafts = [],
   maintenanceManualSize,
   installationGuideSize,
 }) {
@@ -127,29 +152,43 @@ export default function SwiftUnitPage({
       title: "Monthly\nmaintenance",
       description: "To be completed in accordance with the SWIFT Survivor Recovery System Maintenance Manual.",
       href: `/portal/swift/monthly`,
+      type: "Monthly",
     },
     {
       title: "Annual\nmaintenance",
       description: "To be completed in accordance with Section 7.1.2 – Annual Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.",
       href: `/portal/swift/annual`,
+      type: "Annual",
     },
     {
       title: "30-month depth\nmaintenance",
       description: "To be completed in accordance with Section 7.2.2 – 30-Month Depth Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.",
       href: `/portal/swift/depth`,
+      type: "30-month depth",
     },
     {
       title: "Unscheduled\nmaintenance",
       description: "To be completed in accordance with the SWIFT Survivor Recovery System Maintenance Manual.",
       href: `/portal/swift/unscheduled`,
+      type: "Unscheduled",
     },
   ];
 
+  // Add draft information to maintenance types
+  const maintenanceTypesWithDrafts = allMaintenanceTypes.map(maintenance => {
+    const draft = activeDrafts.find(d => d.type === maintenance.type);
+    return {
+      ...maintenance,
+      hasDraft: !!draft,
+      draftInfo: draft,
+    };
+  });
+
   const maintenanceTypes = accessType === "crew"
-    ? allMaintenanceTypes.filter(type => 
+    ? maintenanceTypesWithDrafts.filter(type => 
         type.title.includes("Monthly") || type.title.includes("Unscheduled")
       )
-    : allMaintenanceTypes;
+    : maintenanceTypesWithDrafts;
 
   const downloads = [
     {
@@ -223,7 +262,7 @@ export default function SwiftUnitPage({
                     ))}</h3>
                     <p className="description">{maintenance.description}</p>
                     <Link href={maintenance.href} className="start-btn">
-                      Start maintenance
+                      {maintenance.hasDraft ? 'Continue maintenance' : 'Start maintenance'}
                     </Link>
                   </div>
                 ))}
