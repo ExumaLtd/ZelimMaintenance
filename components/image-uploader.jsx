@@ -12,13 +12,15 @@ import { Camera, Loader2, AlertCircle, X } from 'lucide-react';
  * @param {string} serialNumber - e.g., "SWI005"
  * @param {string} maintenanceType - e.g., "annual", "monthly"
  * @param {function} onImagesChange - Callback when images are uploaded/removed
+ * @param {array} initialImages - Images to load from draft (optional)
  */
 export default function ImageUploader({ 
   questionKey, 
   questionText, 
   serialNumber, 
   maintenanceType,
-  onImagesChange 
+  onImagesChange,
+  initialImages = []
 }) {
   const [images, setImages] = useState([]);
   const [uploading, setUploading] = useState(false);
@@ -39,14 +41,24 @@ export default function ImageUploader({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Load saved images from localStorage on mount ONLY
+  // Load images on mount - prioritize initialImages from draft, fallback to localStorage
   useEffect(() => {
+    // If initialImages provided (from draft), use those
+    if (initialImages && initialImages.length > 0) {
+      console.log('Loading images from draft:', initialImages);
+      setImages(initialImages);
+      if (onImagesChange) {
+        onImagesChange(initialImages);
+      }
+      return;
+    }
+    
+    // Otherwise load from localStorage
     const saved = localStorage.getItem(storageKey);
     if (saved) {
       try {
         const parsedImages = JSON.parse(saved);
         setImages(parsedImages);
-        // Only call onImagesChange if we actually loaded images
         if (parsedImages.length > 0 && onImagesChange) {
           onImagesChange(parsedImages);
         }
@@ -55,7 +67,7 @@ export default function ImageUploader({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run on mount
+  }, [initialImages]);
 
   // Save images to localStorage whenever they change (but not on initial mount)
   useEffect(() => {

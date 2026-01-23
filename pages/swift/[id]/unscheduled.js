@@ -733,14 +733,15 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                       </div>
                       
                       {q.allow_uploads && (
-                        <ImageUploader
-                          questionKey={`q${i + 1}`}
-                          questionText={q.title}
-                          serialNumber={unit?.serial_number}
-                          maintenanceType="unscheduled"
-                          onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
-                        />
-                      )}
+  <ImageUploader
+    questionKey={`q${i + 1}`}
+    questionText={q.title}
+    serialNumber={unit?.serial_number}
+    maintenanceType="unscheduled"
+    initialImages={questionImages[`q${i + 1}`] || []}
+    onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
+  />
+)}
                     </div>
                   </div>
                 ))}
