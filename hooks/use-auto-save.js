@@ -1,4 +1,4 @@
-// hooks/useAutoSave.js
+// hooks/use-auto-save.js
 import { useEffect, useRef } from 'react';
 
 /**
@@ -25,9 +25,12 @@ export function useAutoSave(draftData, isEnabled = true) {
 
       if (response.ok) {
         console.log('✓ Draft saved');
+      } else {
+        const errorData = await response.json();
+        console.error('Draft save failed:', errorData);
       }
     } catch (error) {
-      console.error('Draft save failed:', error);
+      console.error('Draft save error:', error);
     }
   };
 
