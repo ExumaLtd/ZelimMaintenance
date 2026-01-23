@@ -13,11 +13,18 @@ export default async function handler(req, res) {
   try {
     const { unitId, maintenanceType, engineerEmail, draftData } = req.body;
 
+    console.log('=== SAVE DRAFT DEBUG ===');
+    console.log('unitId:', unitId);
+    console.log('maintenanceType:', maintenanceType);
+    console.log('engineerEmail:', engineerEmail);
+
     if (!unitId || !maintenanceType || !engineerEmail || !draftData) {
+      console.log('❌ Missing required fields');
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
     // Check if draft already exists
+    console.log('Checking for existing drafts...');
     const existingDrafts = await base('maintenance_drafts')
       .select({
         maxRecords: 1,
@@ -25,20 +32,28 @@ export default async function handler(req, res) {
       })
       .firstPage();
 
+    console.log('Existing drafts found:', existingDrafts.length);
+
     const draftDataString = JSON.stringify(draftData);
 
     if (existingDrafts.length > 0) {
       // Update existing draft
       const draftId = existingDrafts[0].id;
-      await base('maintenance_drafts').update(draftId, {
+      console.log('Updating draft:', draftId);
+      
+      const result = await base('maintenance_drafts').update(draftId, {
         draft_data: draftDataString,
         last_updated: new Date().toISOString(),
       });
 
-      return res.status(200).json({ success: true, action: 'updated' });
+      console.log('✅ Draft updated successfully');
+      return res.status(200).json({ success: true, action: 'updated', recordId: result.id });
     } else {
       // Create new draft
-      await base('maintenance_drafts').create({
+      console.log('Creating new draft...');
+      console.log('unit_id value:', [unitId]);
+      
+      const result = await base('maintenance_drafts').create({
         unit_id: [unitId],
         maintenance_type: maintenanceType,
         engineer_email: engineerEmail,
@@ -47,10 +62,16 @@ export default async function handler(req, res) {
         completed: false,
       });
 
-      return res.status(200).json({ success: true, action: 'created' });
+      console.log('✅ Draft created successfully:', result.id);
+      return res.status(200).json({ success: true, action: 'created', recordId: result.id });
     }
   } catch (error) {
-    console.error('Save draft error:', error);
-    return res.status(500).json({ error: 'Failed to save draft' });
+    console.error('❌ Save draft error:', error);
+    console.error('Error details:', error.message);
+    console.error('Error stack:', error.stack);
+    return res.status(500).json({ 
+      error: 'Failed to save draft',
+      details: error.message 
+    });
   }
 }
