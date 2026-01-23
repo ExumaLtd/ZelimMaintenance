@@ -23,19 +23,22 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Check if draft already exists using SEARCH on linked field
+    // Check if draft already exists - fetch and filter in JavaScript for Link field reliability
     console.log('Checking for existing drafts...');
-    const existingDrafts = await base('maintenance_drafts')
+    const allDrafts = await base('maintenance_drafts')
       .select({
-        maxRecords: 1,
-        filterByFormula: `AND(
-          SEARCH("${unitId}", ARRAYJOIN({unit_id})),
-          {maintenance_type} = '${maintenanceType}',
-          {engineer_email} = '${engineerEmail}',
-          {completed} = FALSE()
-        )`,
+        filterByFormula: `AND({maintenance_type} = '${maintenanceType}', {engineer_email} = '${engineerEmail}', NOT({completed}))`,
+        fields: ['unit_id'],
       })
-      .firstPage();
+      .all();
+
+    console.log(`Total drafts for ${maintenanceType} / ${engineerEmail}: ${allDrafts.length}`);
+
+    // Filter in JavaScript to match unit_id (Link field returns array)
+    const existingDrafts = allDrafts.filter(d => {
+      const linkedRecords = d.get('unit_id');
+      return linkedRecords && linkedRecords.includes(unitId);
+    });
 
     console.log('Existing drafts found:', existingDrafts.length);
 

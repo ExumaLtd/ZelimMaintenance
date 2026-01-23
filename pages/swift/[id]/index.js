@@ -282,7 +282,14 @@ export default function SwiftUnitPage({
                       <span key={i}>{line}{i === 0 && <br />}</span>
                     ))}</h3>
                     <p className="description">{maintenance.description}</p>
-                    <Link href={maintenance.href} className="start-btn">
+                    <Link 
+                      href={
+                        maintenance.hasDraft 
+                          ? `${maintenance.href}?draft=true&email=${encodeURIComponent(maintenance.draftInfo.engineerEmail)}`
+                          : maintenance.href
+                      } 
+                      className="start-btn"
+                    >
                       {maintenance.hasDraft ? 'Continue maintenance' : 'Start maintenance'}
                     </Link>
                   </div>

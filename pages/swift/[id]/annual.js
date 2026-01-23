@@ -5,6 +5,7 @@ import Image from "next/image";
 import { getCompanyLogoUrl } from '../../../utils/get-company-logo';
 import ImageUploader from '../../../components/image-uploader';
 import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
+import { useAutoSave } from '../../../hooks/use-auto-save';
 
 const autoGrow = (e) => {
   const el = e.target || e;
@@ -73,6 +74,23 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const storageKey = `draft_annual_${unit?.serial_number}`;
 
+  // Auto-save draft to Airtable
+  useAutoSave({
+    unitId: unit?.record_id,
+    maintenanceType: 'Annual',
+    engineerEmail: engEmail,
+    draftData: {
+      answers,
+      questionImages,
+      selectedCompany,
+      locationDisplay,
+      locationCountry,
+      engName,
+      engEmail,
+      engPhone,
+    }
+  }, engEmail !== '' && engEmail.includes('@'));
+
   const filteredEngineers = useMemo(() => {
     if (!selectedCompany) return [];
     let list = allEngineers.filter(e => e.companyName === selectedCompany && e.name !== engName);
@@ -125,6 +143,40 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       console.error("Draft load error:", e);
     }
   }, [storageKey]);
+
+  // Load draft from Airtable
+  useEffect(() => {
+    const loadDraft = async () => {
+      if (!unit?.record_id || !engEmail || !engEmail.includes('@')) return;
+      
+      try {
+        const res = await fetch(
+          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Annual&engineerEmail=${encodeURIComponent(engEmail)}`
+        );
+        const data = await res.json();
+        
+        if (data.draft) {
+          // Restore form state from draft
+          if (data.draft.answers) setAnswers(data.draft.answers);
+          if (data.draft.questionImages) setQuestionImages(data.draft.questionImages);
+          if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
+          if (data.draft.locationDisplay) setLocationDisplay(data.draft.locationDisplay);
+          if (data.draft.locationCountry) setLocationCountry(data.draft.locationCountry);
+          if (data.draft.engName) setEngName(data.draft.engName);
+          if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
+          
+          console.log('✓ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
+        }
+      } catch (error) {
+        console.error('Failed to load draft:', error);
+      }
+    };
+    
+    // Only load draft after engineer email is entered
+    if (engEmail && engEmail.includes('@')) {
+      loadDraft();
+    }
+  }, [engEmail, unit?.record_id]);
 
   // Get geolocation - IMPROVED VERSION
   useEffect(() => {
@@ -423,6 +475,17 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       });
 
       if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
+
+      // Mark draft as complete
+      await fetch('/api/mark-draft-complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          unitId: unit?.record_id,
+          maintenanceType: 'Annual',
+          engineerEmail: engEmail,
+        }),
+      });
 
       // Get company logo URL for email
       const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
