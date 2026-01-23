@@ -46,11 +46,6 @@ export default function Home() {
     } catch {}
   }, []);
 
-  const navigateToToken = (token, accessType, fromScanner = false) => {
-    const url = `/swift/${token}?access=${accessType}`;
-    fromScanner ? window.location.href = url : router.push(url);
-  };
-
   const resolveAndNavigate = async (code) => {
     try {
       const res = await fetch(`/api/swift-resolve-pin?pin=${encodeURIComponent(code)}`);
@@ -58,7 +53,24 @@ export default function Home() {
       if (!res.ok) return null;
       
       const data = await res.json();
-      return data?.publicToken && data?.accessType ? data : null;
+      
+      if (data?.publicToken && data?.accessType) {
+        // Create session
+        const sessionRes = await fetch('/api/create-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            publicToken: data.publicToken,
+            accessType: data.accessType
+          })
+        });
+        
+        if (sessionRes.ok) {
+          return { success: true };
+        }
+      }
+      
+      return null;
     } catch (err) {
       console.error('PIN resolution error:', err);
       return null;
@@ -83,8 +95,8 @@ export default function Home() {
 
     const data = await resolveAndNavigate(code);
     
-    if (data) {
-      navigateToToken(data.publicToken, data.accessType, !isManualSubmit);
+    if (data?.success) {
+      window.location.href = '/portal/swift';
     } else if (isManualSubmit) {
       setError('Invalid access code.');
       setIsSubmitting(false);
@@ -118,8 +130,8 @@ export default function Home() {
     const code = decodedText.includes('/') ? decodedText.split('/').pop() : decodedText;
     const data = await resolveAndNavigate(code);
     
-    if (data) {
-      navigateToToken(data.publicToken, data.accessType, true);
+    if (data?.success) {
+      window.location.href = '/portal/swift';
     }
   };
 

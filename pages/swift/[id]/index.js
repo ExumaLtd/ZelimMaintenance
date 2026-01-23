@@ -126,22 +126,22 @@ export default function SwiftUnitPage({
     {
       title: "Monthly\nmaintenance",
       description: "To be completed in accordance with the SWIFT Survivor Recovery System Maintenance Manual.",
-      href: `/swift/${publicToken}/monthly`,
+      href: `/portal/swift/monthly`,
     },
     {
       title: "Annual\nmaintenance",
       description: "To be completed in accordance with Section 7.1.2 – Annual Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.",
-      href: `/swift/${publicToken}/annual`,
+      href: `/portal/swift/annual`,
     },
     {
       title: "30-month depth\nmaintenance",
       description: "To be completed in accordance with Section 7.2.2 – 30-Month Depth Maintenance Process of the SWIFT Survivor Recovery System Maintenance Manual.",
-      href: `/swift/${publicToken}/depth`,
+      href: `/portal/swift/depth`,
     },
     {
       title: "Unscheduled\nmaintenance",
       description: "To be completed in accordance with the SWIFT Survivor Recovery System Maintenance Manual.",
-      href: `/swift/${publicToken}/unscheduled`,
+      href: `/portal/swift/unscheduled`,
     },
   ];
 
