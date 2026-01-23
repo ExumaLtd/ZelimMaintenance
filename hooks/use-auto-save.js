@@ -13,8 +13,25 @@ export function useAutoSave(draftData, isEnabled = true) {
   const idleTimeoutRef = useRef(null);
 
   const saveDraft = async () => {
-    if (!isEnabled) return;
-    if (!draftData.unitId || !draftData.maintenanceType || !draftData.engineerEmail) return;
+    console.log('saveDraft called, isEnabled:', isEnabled);
+    
+    if (!isEnabled) {
+      console.log('❌ Auto-save disabled');
+      return;
+    }
+    
+    console.log('draftData:', {
+      unitId: draftData.unitId,
+      maintenanceType: draftData.maintenanceType,
+      engineerEmail: draftData.engineerEmail,
+    });
+    
+    if (!draftData.unitId || !draftData.maintenanceType || !draftData.engineerEmail) {
+      console.log('❌ Missing required fields');
+      return;
+    }
+    
+    console.log('Calling /api/save-draft...');
     
     try {
       const response = await fetch('/api/save-draft', {
@@ -23,6 +40,8 @@ export function useAutoSave(draftData, isEnabled = true) {
         body: JSON.stringify(draftData),
       });
 
+      console.log('Response status:', response.status);
+      
       if (response.ok) {
         console.log('✓ Draft saved');
       } else {
