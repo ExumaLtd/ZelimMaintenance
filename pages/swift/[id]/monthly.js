@@ -558,7 +558,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       localStorage.setItem("last_submitted_sn", unit?.serial_number);
       localStorage.setItem("last_maintenance_type", "Monthly");
       localStorage.removeItem(storageKey);
-      router.push(`/swift/${unit.public_token}/monthly-complete`);
+      router.push(`/portal/swift/monthly-complete`);
     } catch (err) {
       setErrorMsg(err.message);
       setSubmitting(false);
