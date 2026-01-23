@@ -3,7 +3,8 @@ import { useEffect, useRef } from 'react';
 
 /**
  * Auto-save hook with smart idle detection
- * - Saves every 30 seconds when user is active
+ * - Saves immediately when enabled
+ * - Then saves every 30 seconds when user is active
  * - Stops saving after 90 seconds of inactivity
  * - Saves on page unload as backup
  */
@@ -11,6 +12,7 @@ export function useAutoSave(draftData, isEnabled = true) {
   const lastActivityRef = useRef(Date.now());
   const saveIntervalRef = useRef(null);
   const idleTimeoutRef = useRef(null);
+  const lastSaveRef = useRef(0);
 
   const saveDraft = async () => {
     console.log('saveDraft called, isEnabled:', isEnabled);
@@ -31,7 +33,15 @@ export function useAutoSave(draftData, isEnabled = true) {
       return;
     }
     
-    console.log('Calling /api/save-draft...');
+    // Prevent duplicate saves within 5 seconds
+    const now = Date.now();
+    if (now - lastSaveRef.current < 5000) {
+      console.log('⏭️ Skipping save (too soon)');
+      return;
+    }
+    
+    lastSaveRef.current = now;
+    console.log('📤 Calling /api/save-draft...');
     
     try {
       const response = await fetch('/api/save-draft', {
@@ -43,13 +53,14 @@ export function useAutoSave(draftData, isEnabled = true) {
       console.log('Response status:', response.status);
       
       if (response.ok) {
-        console.log('✓ Draft saved');
+        const result = await response.json();
+        console.log('✓ Draft saved:', result.action);
       } else {
         const errorData = await response.json();
-        console.error('Draft save failed:', errorData);
+        console.error('❌ Draft save failed:', errorData);
       }
     } catch (error) {
-      console.error('Draft save error:', error);
+      console.error('❌ Draft save error:', error);
     }
   };
 
@@ -57,14 +68,18 @@ export function useAutoSave(draftData, isEnabled = true) {
     if (saveIntervalRef.current) {
       clearInterval(saveIntervalRef.current);
       saveIntervalRef.current = null;
-      console.log('Auto-save stopped (idle)');
+      console.log('🛑 Auto-save stopped (idle)');
     }
   };
 
   const startAutoSave = () => {
     if (!saveIntervalRef.current && isEnabled) {
+      // Save immediately first
+      saveDraft();
+      
+      // Then set up interval for subsequent saves
       saveIntervalRef.current = setInterval(saveDraft, 30 * 1000); // Every 30 seconds
-      console.log('Auto-save started');
+      console.log('🚀 Auto-save started');
     }
   };
 
@@ -72,7 +87,9 @@ export function useAutoSave(draftData, isEnabled = true) {
     lastActivityRef.current = Date.now();
     
     // Start auto-saving if not already running
-    startAutoSave();
+    if (!saveIntervalRef.current && isEnabled) {
+      startAutoSave();
+    }
     
     // Reset idle timeout
     if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
@@ -84,33 +101,45 @@ export function useAutoSave(draftData, isEnabled = true) {
   };
 
   useEffect(() => {
-    if (!isEnabled) return;
+    if (!isEnabled) {
+      console.log('❌ Auto-save not enabled');
+      return;
+    }
+
+    console.log('✅ Auto-save enabled, setting up listeners');
 
     // Listen for activity
-    window.addEventListener('mousemove', handleActivity);
-    window.addEventListener('keydown', handleActivity);
-    window.addEventListener('click', handleActivity);
-    window.addEventListener('scroll', handleActivity);
-    window.addEventListener('touchstart', handleActivity);
+    const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart', 'input', 'change'];
+    events.forEach(event => {
+      window.addEventListener(event, handleActivity, { passive: true });
+    });
 
-    // Start auto-save initially
+    // Start auto-save immediately
     startAutoSave();
+    
+    // Set initial idle timeout
     idleTimeoutRef.current = setTimeout(stopAutoSave, 90 * 1000);
 
     // Save on page close as backup
-    window.addEventListener('beforeunload', saveDraft);
+    const handleBeforeUnload = () => {
+      // Use navigator.sendBeacon for more reliable save on page close
+      if (draftData.unitId && draftData.maintenanceType && draftData.engineerEmail) {
+        const blob = new Blob([JSON.stringify(draftData)], { type: 'application/json' });
+        navigator.sendBeacon('/api/save-draft', blob);
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
       clearInterval(saveIntervalRef.current);
       clearTimeout(idleTimeoutRef.current);
-      window.removeEventListener('mousemove', handleActivity);
-      window.removeEventListener('keydown', handleActivity);
-      window.removeEventListener('click', handleActivity);
-      window.removeEventListener('scroll', handleActivity);
-      window.removeEventListener('touchstart', handleActivity);
-      window.removeEventListener('beforeunload', saveDraft);
+      events.forEach(event => {
+        window.removeEventListener(event, handleActivity);
+      });
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      console.log('🧹 Auto-save cleanup');
     };
-  }, [isEnabled, JSON.stringify(draftData)]);
+  }, [isEnabled, draftData.unitId, draftData.maintenanceType, draftData.engineerEmail]);
 
   // Return manual save function in case needed
   return { saveDraft };

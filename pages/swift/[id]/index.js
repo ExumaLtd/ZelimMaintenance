@@ -106,7 +106,7 @@ export async function getServerSideProps(context) {
     try {
       const drafts = await base('maintenance_drafts')
         .select({
-          filterByFormula: `AND(SEARCH("${unitRecordId}", ARRAYJOIN({unit_id})), {completed} = FALSE())`,
+          filterByFormula: `AND(RECORD_ID({unit_id}) = "${unitRecordId}", {completed} = FALSE())`,
           fields: ['maintenance_type', 'last_updated', 'engineer_email'],
         })
         .firstPage();
