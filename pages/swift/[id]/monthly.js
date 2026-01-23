@@ -206,6 +206,12 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   // Load draft from localStorage
   useEffect(() => {
     setToday(new Date().toISOString().split("T")[0]);
+    
+    // Don't load localStorage if coming from "Continue maintenance"
+    const urlParams = new URLSearchParams(window.location.search);
+    const isDraft = urlParams.get('draft') === 'true';
+    if (isDraft) return; // Skip localStorage when loading from Airtable
+    
     const savedDraft = localStorage.getItem(storageKey);
     if (!savedDraft) return;
 
