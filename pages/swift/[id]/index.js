@@ -106,17 +106,28 @@ export async function getServerSideProps(context) {
     // Check for active drafts
     let activeDrafts = [];
     try {
-      const formula = `AND({unit_id} = "${unitRecordId}", NOT({completed}))`;
-      console.log('Filter formula:', formula);
+      console.log('Fetching all uncompleted drafts...');
       
       const drafts = await base('maintenance_drafts')
         .select({
-          filterByFormula: formula,
-          fields: ['maintenance_type', 'last_updated', 'engineer_email'],
+          filterByFormula: `NOT({completed})`,
+          fields: ['unit_id', 'maintenance_type', 'last_updated', 'engineer_email'],
         })
-        .firstPage();
+        .all();
+      
+      console.log(`Total uncompleted drafts: ${drafts.length}`);
+      
+      // Filter in JavaScript to match unit_id
+      const matchingDrafts = drafts.filter(d => {
+        const linkedRecords = d.get('unit_id');
+        console.log('Draft unit_id:', linkedRecords);
+        // Link fields return an array of record IDs
+        return linkedRecords && linkedRecords.includes(unitRecordId);
+      });
+      
+      console.log(`Matching drafts for ${unitRecordId}: ${matchingDrafts.length}`);
 
-      activeDrafts = drafts.map(d => ({
+      activeDrafts = matchingDrafts.map(d => ({
         type: d.get('maintenance_type'),
         lastUpdated: d.get('last_updated'),
         engineerEmail: d.get('engineer_email'),
