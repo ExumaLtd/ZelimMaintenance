@@ -28,7 +28,10 @@ export default function ImageUploader({
   const [isMobile, setIsMobile] = useState(false);
   const fileInputRef = useRef(null);
   const isInitialMount = useRef(true);
-  const hasLoadedInitialImages = useRef(false);
+  // Track if user has made changes (upload/delete) - if so, don't reload from initialImages
+  const userHasModifiedImages = useRef(false);
+  // Track the last initialImages we loaded to detect actual changes
+  const lastLoadedInitialImages = useRef(null);
 
   const storageKey = `images_${maintenanceType}_${serialNumber}_${questionKey}`;
 
@@ -44,19 +47,30 @@ export default function ImageUploader({
 
   // Load images on mount - prioritize initialImages from draft, fallback to localStorage
   useEffect(() => {
-    // If initialImages provided (from draft) and we haven't loaded them yet, use those
-    if (initialImages && initialImages.length > 0 && !hasLoadedInitialImages.current) {
-      console.log('Loading images from draft:', initialImages);
-      setImages(initialImages);
-      if (onImagesChange) {
-        onImagesChange(initialImages);
+    // If user has modified images, don't reload from initialImages
+    if (userHasModifiedImages.current) {
+      return;
+    }
+
+    // If initialImages provided and different from last loaded, use those
+    if (initialImages && initialImages.length > 0) {
+      const lastLoadedJson = JSON.stringify(lastLoadedInitialImages.current);
+      const newImagesJson = JSON.stringify(initialImages);
+      
+      // Only load if these are actually different images
+      if (lastLoadedJson !== newImagesJson) {
+        console.log('Loading images from draft:', initialImages);
+        setImages(initialImages);
+        if (onImagesChange) {
+          onImagesChange(initialImages);
+        }
+        lastLoadedInitialImages.current = initialImages;
       }
-      hasLoadedInitialImages.current = true;
       return;
     }
     
-    // Otherwise load from localStorage (only if no initial images)
-    if (!hasLoadedInitialImages.current) {
+    // Otherwise load from localStorage (only once on initial mount)
+    if (isInitialMount.current && lastLoadedInitialImages.current === null) {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         try {
@@ -65,14 +79,16 @@ export default function ImageUploader({
           if (parsedImages.length > 0 && onImagesChange) {
             onImagesChange(parsedImages);
           }
+          lastLoadedInitialImages.current = parsedImages;
         } catch (e) {
           console.error('Failed to load saved images', e);
         }
+      } else {
+        lastLoadedInitialImages.current = [];
       }
-      hasLoadedInitialImages.current = true;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialImages]); // Watch initialImages but only load once using ref
+  }, [initialImages]);
 
   // Save images to localStorage whenever they change (but not on initial mount)
   useEffect(() => {
@@ -172,6 +188,9 @@ export default function ImageUploader({
       const uploadPromises = Array.from(files).map(file => uploadToCloudinary(file));
       const uploadedImages = await Promise.all(uploadPromises);
       
+      // Mark that user has modified images
+      userHasModifiedImages.current = true;
+      
       const newImages = [...images, ...uploadedImages];
       setImages(newImages);
       if (onImagesChange) {
@@ -197,6 +216,9 @@ export default function ImageUploader({
   };
 
   const removeImage = useCallback((index) => {
+    // Mark that user has modified images
+    userHasModifiedImages.current = true;
+    
     const newImages = images.filter((_, i) => i !== index);
     setImages(newImages);
     if (onImagesChange) {
