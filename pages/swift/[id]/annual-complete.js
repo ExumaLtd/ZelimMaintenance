@@ -48,7 +48,7 @@ export default function AnnualComplete() {
               Your {maintenanceType.toLowerCase()} maintenance has successfully been recorded. You will receive email confirmation shortly.
             </p>
 
-            <Link href={`/swift/${id}`} className="return-dashboard-btn">
+            <Link href="/portal/swift" className="return-dashboard-btn">
               Return to dashboard
             </Link>
           </div>
