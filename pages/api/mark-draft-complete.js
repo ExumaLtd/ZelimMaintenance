@@ -19,10 +19,14 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Find the draft without the completed filter first
+    // Find all drafts for this unit/type/email
     const allDrafts = await base('maintenance_drafts')
       .select({
-        filterByFormula: `AND({unit_id} = '${unitId}', {maintenance_type} = '${maintenanceType}', {engineer_email} = '${engineerEmail}')`,
+        filterByFormula: `AND(
+          SEARCH('${unitId}', ARRAYJOIN({unit_id})),
+          {maintenance_type} = '${maintenanceType}',
+          {engineer_email} = '${engineerEmail}'
+        )`,
       })
       .firstPage();
 
