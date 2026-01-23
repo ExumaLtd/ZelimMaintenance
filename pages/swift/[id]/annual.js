@@ -119,13 +119,18 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   // Load draft from localStorage
   useEffect(() => {
     setToday(new Date().toISOString().split("T")[0]);
+    
+    // Don't load localStorage if coming from "Continue maintenance"
+    const urlParams = new URLSearchParams(window.location.search);
+    const isDraft = urlParams.get('draft') === 'true';
+    if (isDraft) return; // Skip localStorage when loading from Airtable
+    
     const savedDraft = localStorage.getItem(storageKey);
     if (!savedDraft) return;
 
     try {
       const data = JSON.parse(savedDraft);
       if (data.maintained_by) setSelectedCompany(data.maintained_by);
-      // Only load location if it has a non-empty value
       if (data.location_display && data.location_display.trim()) {
         setLocationDisplay(data.location_display);
       }
@@ -144,14 +149,23 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     }
   }, [storageKey]);
 
-  // Load draft from Airtable
+  // Load draft from Airtable - check query params first
   useEffect(() => {
     const loadDraft = async () => {
-      if (!unit?.record_id || !engEmail || !engEmail.includes('@')) return;
+      // Check if we have draft query params from dashboard
+      const urlParams = new URLSearchParams(window.location.search);
+      const isDraft = urlParams.get('draft') === 'true';
+      const emailFromUrl = urlParams.get('email');
+      
+      if (!isDraft || !emailFromUrl) return; // Only run when coming from "Continue maintenance"
+      
+      const emailToUse = decodeURIComponent(emailFromUrl);
+      
+      if (!unit?.record_id || !emailToUse || !emailToUse.includes('@')) return;
       
       try {
         const res = await fetch(
-          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Annual&engineerEmail=${encodeURIComponent(engEmail)}`
+          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Annual&engineerEmail=${encodeURIComponent(emailToUse)}`
         );
         const data = await res.json();
         
@@ -163,6 +177,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           if (data.draft.locationDisplay) setLocationDisplay(data.draft.locationDisplay);
           if (data.draft.locationCountry) setLocationCountry(data.draft.locationCountry);
           if (data.draft.engName) setEngName(data.draft.engName);
+          if (data.draft.engEmail) setEngEmail(data.draft.engEmail);
           if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
           
           console.log('✓ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
@@ -172,23 +187,23 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       }
     };
     
-    // Only load draft after engineer email is entered
-    if (engEmail && engEmail.includes('@')) {
-      loadDraft();
-    }
-  }, [engEmail, unit?.record_id]);
+    loadDraft();
+  }, [unit?.record_id]);
 
-  // Get geolocation - IMPROVED VERSION
+  // Get geolocation
   useEffect(() => {
     if (typeof window === "undefined" || !navigator.geolocation) return;
-
-    // Only run geolocation if location field is empty
     if (locationDisplay && locationDisplay.trim() !== "") return;
+
+    // IMPORTANT: Don't run if coming from "Continue maintenance"
+    const urlParams = new URLSearchParams(window.location.search);
+    const isDraft = urlParams.get('draft') === 'true';
+    if (isDraft) return; // Skip geolocation if loading a draft
 
     const options = {
       enableHighAccuracy: true,
-      timeout: 15000, // Increased to 15 seconds for slower connections
-      maximumAge: 0 // Don't use cached position
+      timeout: 15000,
+      maximumAge: 0
     };
 
     navigator.geolocation.getCurrentPosition(
@@ -198,7 +213,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14&accept-language=en-GB`,
             {
               headers: {
-                'User-Agent': 'SWIFT Maintenance App' // Nominatim requires User-Agent
+                'User-Agent': 'SWIFT Maintenance App'
               }
             }
           );
@@ -217,17 +232,14 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             const shortCountry = displayCountry === "GB" ? "UK" : displayCountry;
             const combinedDisplay = loc ? `${loc}, ${shortCountry}` : shortCountry;
 
-            // Only set if field is still empty (user hasn't typed anything)
             setLocationDisplay((prev) => (!prev || prev.trim() === "") ? combinedDisplay : prev);
             setLocationCountry(formalCountry);
           }
         } catch (err) {
           console.error("Geocoding error:", err);
-          // Silently fail - user can enter location manually
         }
       },
       (error) => {
-        // Handle different error codes
         switch(error.code) {
           case error.PERMISSION_DENIED:
             console.log("User denied location permission");
@@ -241,11 +253,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           default:
             console.log("Unknown location error:", error.message);
         }
-        // Don't show error to user - they can enter location manually
       },
       options
     );
-  }, []); // Only run once on mount
+  }, []);
 
   // Save draft to localStorage
   useEffect(() => {
@@ -267,7 +278,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     setEngEmail("");
     setEngPhone("");
     setShowCompanyDropdown(false);
-    // Remove error state when valid selection made
     setFieldErrors(prev => ({ ...prev, company: false }));
   };
 
@@ -276,22 +286,18 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     setEngEmail(engineer.email || "");
     setEngPhone(engineer.phone || "");
     setShowEngineerDropdown(false);
-    // Remove error states when valid selection made
     setFieldErrors(prev => ({
       ...prev,
       engineerName: false,
       engineerEmail: engineer.email ? false : prev.engineerEmail,
       engineerPhone: engineer.phone ? false : prev.engineerPhone,
     }));
-    // Remove error class from engineer name input
     const engineerInput = document.querySelector('[name="engineer_name"]');
     if (engineerInput) engineerInput.classList.remove('has-error');
-    // Also remove error from email if it gets filled
     if (engineer.email) {
       const emailInput = document.querySelector('[name="engineer_email"]');
       if (emailInput) emailInput.classList.remove('has-error');
     }
-    // Also remove error from phone if it gets filled
     if (engineer.phone) {
       const phoneInput = document.querySelector('[name="engineer_phone"]');
       if (phoneInput) phoneInput.classList.remove('has-error');
@@ -321,7 +327,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     setErrorMsg("");
     if (submitting) return;
 
-    // Collect all errors
     const errors = [];
     let firstErrorField = null;
     const newFieldErrors = {
@@ -332,17 +337,15 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       engineerPhone: false,
     };
 
-    // Remove all error classes from textareas/questions
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
 
-    // Validation - Maintenance company
+    // Validation
     if (!selectedCompany || selectedCompany === "Please select") {
       errors.push({ field: 'company', message: 'Please select a maintenance company.' });
       newFieldErrors.company = true;
       if (!firstErrorField) firstErrorField = companyFieldRef;
     }
 
-    // Validation - Location
     if (!locationDisplay || !locationDisplay.trim()) {
       errors.push({ field: 'location', message: 'Please provide a location.' });
       newFieldErrors.location = true;
@@ -351,7 +354,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       if (locationInput) locationInput.classList.add('has-error');
     }
 
-    // Validation - Engineer name
     if (!engName || engName === "Please select" || !engName.trim()) {
       errors.push({ field: 'engineer', message: 'Please select or enter an engineer name.' });
       newFieldErrors.engineerName = true;
@@ -360,7 +362,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       if (engineerInput) engineerInput.classList.add('has-error');
     }
 
-    // Validation - Engineer email
     if (!engEmail || !engEmail.trim()) {
       errors.push({ field: 'engineer_email', message: 'Please provide an engineer email.' });
       newFieldErrors.engineerEmail = true;
@@ -372,7 +373,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       if (emailInput) emailInput.classList.add('has-error');
     }
 
-    // Validation - Engineer phone
     if (!engPhone || !engPhone.trim()) {
       errors.push({ field: 'engineer_phone', message: 'Please provide an engineer phone number.' });
       newFieldErrors.engineerPhone = true;
@@ -401,10 +401,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       }
     }
 
-    // Update field errors state
     setFieldErrors(newFieldErrors);
 
-    // If there are errors, show message and scroll to first error
     if (errors.length > 0) {
       if (errors.length === 1) {
         setErrorMsg(errors[0].message);
@@ -412,7 +410,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
         setErrorMsg("Please check for multiple errors.");
       }
       
-      // Scroll to first error
       if (firstErrorField) {
         if (firstErrorField.current) {
           firstErrorField.current.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -420,7 +417,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             if (firstErrorField.current.focus) {
               firstErrorField.current.focus();
             } else if (firstErrorField.current.querySelector) {
-              // For dropdown containers, try to focus the input inside
               const input = firstErrorField.current.querySelector('.checklist-input');
               if (input) input.focus();
             }
@@ -487,7 +483,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
         }),
       });
 
-      // Get company logo URL for email
       const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
 
       await fetch("/api/send-report", {
@@ -518,8 +513,9 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       });
 
       localStorage.setItem("last_submitted_sn", unit?.serial_number);
+      localStorage.setItem("last_maintenance_type", "Annual");
       localStorage.removeItem(storageKey);
-      router.push(`/swift/${unit.public_token}/annual-complete`);
+      router.push(`/portal/swift/annual-complete`);
     } catch (err) {
       setErrorMsg(err.message);
       setSubmitting(false);
@@ -597,7 +593,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       value={locationDisplay}
                       onChange={(e) => {
                         setLocationDisplay(e.target.value);
-                        // Remove error class when user types
                         if (e.target.value.trim()) {
                           e.target.classList.remove('has-error');
                         }
@@ -643,7 +638,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                           onChange={(e) => {
                             setEngName(e.target.value);
                             if (selectedCompany) setShowEngineerDropdown(true);
-                            // Remove error when user types
                             if (e.target.value.trim() && e.target.value !== "Please select") {
                               setFieldErrors(prev => ({ ...prev, engineerName: false }));
                             }
@@ -685,7 +679,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       value={engEmail}
                       onChange={(e) => {
                         setEngEmail(e.target.value);
-                        // Remove error class when user types valid email
                         if (e.target.value.trim()) {
                           e.target.classList.remove('has-error');
                         }
@@ -703,7 +696,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       value={engPhone}
                       onChange={(e) => {
                         setEngPhone(e.target.value);
-                        // Remove error class when user types
                         if (e.target.value.trim()) {
                           e.target.classList.remove('has-error');
                         }
@@ -722,7 +714,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
               </p>
 
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-                {/* QUESTIONS WITH IMAGE UPLOADERS */}
                 {(template?.questionsData || []).map((q, i) => (
                   <div key={i} style={{ marginTop: i === 0 ? "0" : "24px" }}>
                     <label className="checklist-label">
@@ -732,7 +723,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                       <p className="question-instruction">{q.instruction}</p>
                     )}
                     
-                    {/* Wrapper for side-by-side layout on desktop */}
                     <div className="question-with-upload">
                       <div className="textarea-wrapper">
                         <textarea
@@ -742,7 +732,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                           value={answers[`q${i + 1}`] || ""}
                           onChange={(e) => {
                             setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-                            // Remove error class when user types
                             if (e.target.value.trim()) {
                               e.target.classList.remove('has-error');
                             }
@@ -751,7 +740,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                         />
                       </div>
                       
-                      {/* IMAGE UPLOADER */}
                       {q.allow_uploads && (
                         <ImageUploader
                           questionKey={`q${i + 1}`}
