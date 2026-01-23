@@ -230,14 +230,27 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     }
   }, [storageKey]);
 
-  // Load draft from Airtable
+  // Load draft from Airtable - check query params first
   useEffect(() => {
     const loadDraft = async () => {
-      if (!unit?.record_id || !engEmail || !engEmail.includes('@')) return;
+      // Check if we have draft query params from dashboard
+      const urlParams = new URLSearchParams(window.location.search);
+      const isDraft = urlParams.get('draft') === 'true';
+      const emailFromUrl = urlParams.get('email');
+      
+      let emailToUse = engEmail;
+      
+      // If coming from "Continue maintenance", use email from URL and pre-fill
+      if (isDraft && emailFromUrl) {
+        emailToUse = decodeURIComponent(emailFromUrl);
+        setEngEmail(emailToUse); // Pre-fill the email field
+      }
+      
+      if (!unit?.record_id || !emailToUse || !emailToUse.includes('@')) return;
       
       try {
         const res = await fetch(
-          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Monthly&engineerEmail=${encodeURIComponent(engEmail)}`
+          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Monthly&engineerEmail=${encodeURIComponent(emailToUse)}`
         );
         const data = await res.json();
         
@@ -259,11 +272,8 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       }
     };
     
-    // Only load draft after engineer email is entered
-    if (engEmail && engEmail.includes('@')) {
-      loadDraft();
-    }
-  }, [engEmail, unit?.record_id]);
+    loadDraft();
+  }, [unit?.record_id]); // Only run on mount
 
   // Get geolocation
   useEffect(() => {
