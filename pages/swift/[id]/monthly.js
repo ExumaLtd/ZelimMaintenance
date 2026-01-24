@@ -812,7 +812,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                   </div>
                 ))}
 
-{/* FURTHER COMMENTS SECTION */}
+                {/* FURTHER COMMENTS SECTION */}
                 <div style={{ marginTop: "32px" }}>
                   <label className="checklist-label" style={{ marginTop: 0 }}>Further comments</label>
                   <p className="question-instruction">Record any additional observations, defects, or actions.</p>
@@ -833,20 +833,15 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                         onInput={autoGrow}
                         placeholder=""
                       />
-                      <VoiceInput
-                        onTranscript={(text) => {
-                          setFurtherComments((prev) => (prev || '') + text + ' ');
-                        }}
-                      />
                     </div>
                     <ImageUploader
-                      questionKey="further_comments"
-                      questionText="Further comments"
-                      serialNumber={unit?.serial_number}
-                      maintenanceType="monthly"
-                      initialImages={commentImages || []}
-                      onImagesChange={handleCommentImagesChange}
-                    />
+  questionKey="further_comments"
+  questionText="Further comments"
+  serialNumber={unit?.serial_number}
+  maintenanceType="monthly"
+  initialImages={commentImages || []}
+  onImagesChange={handleCommentImagesChange}
+/>
                   </div>
                 </div>
 
