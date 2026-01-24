@@ -1,22 +1,24 @@
 /* Mic Icon - Ready State */
 .voice-mic-icon {
   position: absolute;
-  bottom: 12px;
-  right: 12px;
+  bottom: 16px;
+  right: 16px;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.7);
+  color: white;
   cursor: pointer;
-  padding: 8px;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
   z-index: 10;
+  width: 18px;
+  height: 18px;
 }
 
 .voice-mic-icon:hover {
-  color: rgba(255, 255, 255, 1);
+  opacity: 0.7;
   transform: scale(1.1);
 }
 
@@ -50,11 +52,11 @@
 /* Recording State - Horizontal Layout */
 .voice-recording-state {
   position: absolute;
-  bottom: 12px;
-  right: 12px;
+  bottom: 16px;
+  right: 16px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
   z-index: 10;
 }
 
@@ -62,17 +64,19 @@
 .voice-icon-btn {
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.7);
+  color: white;
   cursor: pointer;
-  padding: 8px;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  width: 18px;
+  height: 18px;
 }
 
 .voice-icon-btn:hover {
-  color: rgba(255, 255, 255, 1);
+  opacity: 0.7;
   transform: scale(1.1);
 }
 
@@ -80,35 +84,49 @@
   transform: scale(0.95);
 }
 
-/* Waveform */
+/* Waveform - Cleaner Animation */
 .voice-waveform-bars {
   display: flex;
   align-items: center;
-  gap: 3px;
-  height: 24px;
+  gap: 2px;
+  height: 18px;
 }
 
 .wave-bar {
-  width: 3px;
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 2px;
-  transition: height 0.1s ease;
+  width: 2px;
+  background: white;
+  border-radius: 1px;
+  transition: height 0.08s ease-out;
   display: block;
+  min-height: 4px;
 }
 
-/* Textarea Wrapper */
+/* Textarea Wrapper - Prevent Text Overlap */
 .textarea-wrapper {
   position: relative;
+}
+
+.textarea-wrapper textarea {
+  padding-right: 48px !important;
 }
 
 /* Mobile Adjustments */
 @media (max-width: 768px) {
   .voice-mic-icon,
   .voice-icon-btn {
-    padding: 10px;
+    width: 20px;
+    height: 20px;
+  }
+  
+  .voice-waveform-bars {
+    height: 20px;
   }
   
   .voice-recording-state {
-    gap: 16px;
+    gap: 8px;
+  }
+  
+  .textarea-wrapper textarea {
+    padding-right: 56px !important;
   }
 }
