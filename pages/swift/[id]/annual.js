@@ -4,8 +4,10 @@ import Head from "next/head";
 import Image from "next/image";
 import { getCompanyLogoUrl } from '../../../utils/get-company-logo';
 import ImageUploader from '../../../components/image-uploader';
+import VoiceInput from '../../../components/voice-input'; 
 import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
 import { useAutoSave } from '../../../hooks/use-auto-save';
+import '../../../styles/voice-input.css';
 
 const autoGrow = (e) => {
   const el = e.target || e;
