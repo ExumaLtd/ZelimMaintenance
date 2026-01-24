@@ -3,6 +3,7 @@ import "/styles/landing.css";
 import "/styles/dashboard.css";
 import "/styles/form.css";
 import "/styles/form-complete.css";
+import "/styles/voice-input.css";
 
 import Head from "next/head";
 import { useEffect } from "react";
