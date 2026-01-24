@@ -33,6 +33,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
           }
           if (finalTranscript) {
             transcriptRef.current += finalTranscript;
+            console.log('Browser captured:', finalTranscript);
           }
         };
 
@@ -66,11 +67,9 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
     };
   }, [isListening, useElevenLabs]);
 
-  // More dramatic waveform animation
   useEffect(() => {
     if (isListening) {
       const animate = () => {
-        // Create more variation in wave heights
         setAudioLevel(50 + Math.random() * 50);
         animationFrameRef.current = requestAnimationFrame(animate);
       };
@@ -84,6 +83,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
   }, [isListening]);
 
   const startRecording = async () => {
+    console.log('🎤 Starting recording...');
     transcriptRef.current = '';
     audioChunksRef.current = [];
     
@@ -94,6 +94,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
         mediaRecorderRef.current = mediaRecorder;
 
         mediaRecorder.ondataavailable = (event) => {
+          console.log('📦 Audio chunk received:', event.data.size);
           if (event.data.size > 0) {
             audioChunksRef.current.push(event.data);
           }
@@ -124,61 +125,64 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
   };
 
   const stopAndAccept = async () => {
+    console.log('✅ Stop and accept clicked');
+    console.log('useElevenLabs:', useElevenLabs);
+    console.log('mediaRecorder state:', mediaRecorderRef.current?.state);
+    
     setIsListening(false);
 
     if (useElevenLabs && mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      console.log('⏹️ Stopping ElevenLabs recording...');
       mediaRecorderRef.current.stop();
       
       mediaRecorderRef.current.onstop = async () => {
+        console.log('📊 Recording stopped, processing audio...');
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        console.log('Audio blob size:', audioBlob.size);
+        console.log('Audio blob size:', audioBlob.size, 'bytes');
+        
+        if (audioBlob.size === 0) {
+          console.error('❌ Audio blob is empty!');
+          alert('No audio recorded. Please try again.');
+          return;
+        }
         
         try {
+          console.log('🌐 Sending to ElevenLabs API...');
           const response = await fetch('/api/transcribe-elevenlabs', {
             method: 'POST',
             body: audioBlob,
           });
 
+          console.log('📡 API response status:', response.status);
           const data = await response.json();
-          console.log('ElevenLabs response:', data);
+          console.log('📝 ElevenLabs response:', data);
 
           if (data.fallback || !data.text) {
-            console.log('ElevenLabs failed or empty, switching to browser');
+            console.log('⚠️ ElevenLabs failed, switching to browser');
             setUseElevenLabs(false);
-            
-            // Use browser fallback immediately with stored transcript
-            if (transcriptRef.current && onTranscript) {
-              onTranscript(transcriptRef.current.trim());
-              transcriptRef.current = '';
-            }
           } else if (data.text && onTranscript) {
-            console.log('ElevenLabs transcription:', data.text);
+            console.log('✨ Transcription successful:', data.text);
             onTranscript(data.text);
           }
         } catch (error) {
-          console.error('ElevenLabs error, switching to browser:', error);
+          console.error('❌ ElevenLabs error:', error);
           setUseElevenLabs(false);
-          
-          // Use browser fallback
-          if (transcriptRef.current && onTranscript) {
-            onTranscript(transcriptRef.current.trim());
-            transcriptRef.current = '';
-          }
         }
 
         // Stop all tracks
         const tracks = mediaRecorderRef.current.stream.getTracks();
         tracks.forEach(track => track.stop());
+        console.log('🛑 All media tracks stopped');
       };
     } else {
-      // Browser recognition
+      console.log('🗣️ Using browser recognition');
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
       
       setTimeout(() => {
+        console.log('Browser transcript:', transcriptRef.current);
         if (transcriptRef.current && onTranscript) {
-          console.log('Browser transcription:', transcriptRef.current);
           onTranscript(transcriptRef.current.trim());
         }
         transcriptRef.current = '';
@@ -187,6 +191,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
   };
 
   const stopAndCancel = () => {
+    console.log('❌ Cancelled');
     setIsListening(false);
     transcriptRef.current = '';
     audioChunksRef.current = [];
