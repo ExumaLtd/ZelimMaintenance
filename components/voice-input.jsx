@@ -5,7 +5,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
-  const [useElevenLabs, setUseElevenLabs] = useState(true);
+const [useElevenLabs, setUseElevenLabs] = useState(false);
   
   const recognitionRef = useRef(null);
   const mediaRecorderRef = useRef(null);
