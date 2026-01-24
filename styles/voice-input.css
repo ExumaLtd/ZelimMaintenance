@@ -27,15 +27,16 @@
   cursor: not-allowed;
 }
 
-/* Tooltip - ChatGPT Style */
+/* Tooltip - ChatGPT Style with Card Background */
 .voice-tooltip-popup {
   position: absolute;
-  bottom: calc(100% + 8px);
+  bottom: calc(100% + 4px);
   left: 50%;
   transform: translateX(-50%);
-  background: #000000;
+  background: linear-gradient(39deg, rgba(74, 98, 104, 0.2) 12.44%, rgba(74, 98, 104, 0) 87.56%);
+  backdrop-filter: blur(10px);
   color: white;
-  padding: 6px 12px;
+  padding: 6px 10px;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
@@ -43,6 +44,7 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .voice-mic-icon:hover .voice-tooltip-popup {
