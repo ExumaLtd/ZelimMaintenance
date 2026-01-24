@@ -12,6 +12,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
   const audioChunksRef = useRef([]);
   const animationFrameRef = useRef(null);
   const transcriptRef = useRef('');
+  const streamRef = useRef(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -39,33 +40,27 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
 
         recognitionRef.current.onerror = (event) => {
           console.error('Speech recognition error:', event.error);
-          setIsListening(false);
-        };
-
-        recognitionRef.current.onend = () => {
-          if (isListening && !useElevenLabs) {
-            try {
-              recognitionRef.current.start();
-            } catch (e) {
-              console.error('Failed to restart recognition:', e);
-            }
-          }
         };
       }
     }
 
     return () => {
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {}
       }
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
         mediaRecorderRef.current.stop();
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
       }
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [isListening, useElevenLabs]);
+  }, []);
 
   useEffect(() => {
     if (isListening) {
@@ -87,9 +82,21 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
     transcriptRef.current = '';
     audioChunksRef.current = [];
     
-    if (useElevenLabs) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      
+      // Start browser recognition as backup
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.start();
+          console.log('✅ Browser recognition started as backup');
+        } catch (e) {
+          console.log('Browser recognition already running or failed:', e);
+        }
+      }
+      
+      if (useElevenLabs) {
         const mediaRecorder = new MediaRecorder(stream);
         mediaRecorderRef.current = mediaRecorder;
 
@@ -100,40 +107,32 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
           }
         };
 
-        mediaRecorder.start();
+        mediaRecorder.start(100); // Collect data every 100ms
         setIsListening(true);
         console.log('Started ElevenLabs recording');
-      } catch (error) {
-        console.error('Failed to start ElevenLabs recording, falling back:', error);
-        setUseElevenLabs(false);
-        startBrowserRecognition();
+      } else {
+        setIsListening(true);
+        console.log('Started browser-only recording');
       }
-    } else {
-      startBrowserRecognition();
-    }
-  };
-
-  const startBrowserRecognition = () => {
-    if (!recognitionRef.current) return;
-    try {
-      recognitionRef.current.start();
-      setIsListening(true);
-      console.log('Started browser recognition');
     } catch (error) {
-      console.error('Failed to start browser recognition:', error);
+      console.error('Failed to access microphone:', error);
+      alert('Could not access microphone. Please allow microphone permissions.');
     }
   };
 
   const stopAndAccept = async () => {
     console.log('✅ Stop and accept clicked');
-    console.log('useElevenLabs:', useElevenLabs);
-    console.log('mediaRecorder state:', mediaRecorderRef.current?.state);
-    
     setIsListening(false);
 
-    if (useElevenLabs && mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+    // Stop browser recognition
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {}
+    }
+
+    if (useElevenLabs && mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       console.log('⏹️ Stopping ElevenLabs recording...');
-      mediaRecorderRef.current.stop();
       
       mediaRecorderRef.current.onstop = async () => {
         console.log('📊 Recording stopped, processing audio...');
@@ -141,8 +140,11 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
         console.log('Audio blob size:', audioBlob.size, 'bytes');
         
         if (audioBlob.size === 0) {
-          console.error('❌ Audio blob is empty!');
-          alert('No audio recorded. Please try again.');
+          console.error('❌ Audio blob is empty, using browser transcript');
+          if (transcriptRef.current && onTranscript) {
+            onTranscript(transcriptRef.current.trim());
+          }
+          cleanupStreams();
           return;
         }
         
@@ -158,35 +160,37 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
           console.log('📝 ElevenLabs response:', data);
 
           if (data.fallback || !data.text) {
-            console.log('⚠️ ElevenLabs failed, switching to browser');
+            console.log('⚠️ ElevenLabs failed, using browser transcript');
             setUseElevenLabs(false);
+            if (transcriptRef.current && onTranscript) {
+              onTranscript(transcriptRef.current.trim());
+            }
           } else if (data.text && onTranscript) {
             console.log('✨ Transcription successful:', data.text);
             onTranscript(data.text);
           }
         } catch (error) {
-          console.error('❌ ElevenLabs error:', error);
+          console.error('❌ ElevenLabs error, using browser transcript:', error);
           setUseElevenLabs(false);
+          if (transcriptRef.current && onTranscript) {
+            onTranscript(transcriptRef.current.trim());
+          }
         }
 
-        // Stop all tracks
-        const tracks = mediaRecorderRef.current.stream.getTracks();
-        tracks.forEach(track => track.stop());
-        console.log('🛑 All media tracks stopped');
+        cleanupStreams();
       };
-    } else {
-      console.log('🗣️ Using browser recognition');
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
       
+      mediaRecorderRef.current.stop();
+    } else {
+      console.log('🗣️ Using browser transcript');
       setTimeout(() => {
         console.log('Browser transcript:', transcriptRef.current);
         if (transcriptRef.current && onTranscript) {
           onTranscript(transcriptRef.current.trim());
         }
         transcriptRef.current = '';
-      }, 500);
+        cleanupStreams();
+      }, 300);
     }
   };
 
@@ -196,14 +200,23 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
     transcriptRef.current = '';
     audioChunksRef.current = [];
 
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
-      const tracks = mediaRecorderRef.current.stream.getTracks();
-      tracks.forEach(track => track.stop());
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {}
     }
 
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+    }
+
+    cleanupStreams();
+  };
+
+  const cleanupStreams = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
     }
   };
 
