@@ -1,153 +1,99 @@
-/* Voice Input Container */
-.voice-input-container {
+/* Mic Icon - Ready State */
+.voice-mic-icon {
   position: absolute;
   bottom: 12px;
   right: 12px;
-  z-index: 20;
-}
-
-/* Microphone Button - Ready State */
-.voice-mic-button {
-  position: relative;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  background: none;
   border: none;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  color: white;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  z-index: 10;
 }
 
-.voice-mic-button:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.voice-mic-icon:hover {
+  color: rgba(255, 255, 255, 1);
+  transform: scale(1.1);
 }
 
-.voice-mic-button:active {
-  transform: scale(0.98);
-}
-
-.voice-mic-button:disabled {
-  opacity: 0.5;
+.voice-mic-icon:disabled {
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
-/* Tooltip */
-.voice-tooltip {
+/* Tooltip - ChatGPT Style */
+.voice-tooltip-popup {
   position: absolute;
   bottom: calc(100% + 8px);
   left: 50%;
-  transform: translateX(-50%) translateY(4px);
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(8px);
+  transform: translateX(-50%);
+  background: #000000;
   color: white;
   padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 12px;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: opacity 0.2s ease;
 }
 
-.voice-tooltip::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 4px solid transparent;
-  border-top-color: rgba(15, 23, 42, 0.95);
-}
-
-.voice-mic-button:hover .voice-tooltip {
+.voice-mic-icon:hover .voice-tooltip-popup {
   opacity: 1;
-  transform: translateX(-50%) translateY(0);
 }
 
-/* Recording Controls */
-.voice-recording-controls {
+/* Recording State - Horizontal Layout */
+.voice-recording-state {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 24px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 12px;
+  z-index: 10;
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Control Buttons */
-.voice-control-button {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+/* Icon Buttons (X and ✓) */
+.voice-icon-btn {
+  background: none;
   border: none;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
 }
 
-.voice-control-button:hover {
-  background: rgba(255, 255, 255, 0.2);
+.voice-icon-btn:hover {
+  color: rgba(255, 255, 255, 1);
   transform: scale(1.1);
 }
 
-.voice-control-button:active {
+.voice-icon-btn:active {
   transform: scale(0.95);
 }
 
-.voice-cancel:hover {
-  background: rgba(239, 68, 68, 0.2);
-  color: #EF4444;
-}
-
-.voice-accept:hover {
-  background: rgba(16, 185, 129, 0.2);
-  color: #10B981;
-}
-
-/* Waveform Animation */
-.voice-waveform {
+/* Waveform */
+.voice-waveform-bars {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 3px;
   height: 24px;
-  padding: 0 4px;
 }
 
 .wave-bar {
   width: 3px;
-  background: white;
+  background: rgba(255, 255, 255, 0.7);
   border-radius: 2px;
-  transition: height 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  opacity: 0.8;
+  transition: height 0.1s ease;
+  display: block;
 }
 
 /* Textarea Wrapper */
@@ -155,19 +101,14 @@
   position: relative;
 }
 
-/* Responsive */
+/* Mobile Adjustments */
 @media (max-width: 768px) {
-  .voice-mic-button {
-    width: 40px;
-    height: 40px;
+  .voice-mic-icon,
+  .voice-icon-btn {
+    padding: 10px;
   }
   
-  .voice-recording-controls {
-    padding: 10px 14px;
-  }
-  
-  .voice-control-button {
-    width: 36px;
-    height: 36px;
+  .voice-recording-state {
+    gap: 16px;
   }
 }
