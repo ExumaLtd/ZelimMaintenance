@@ -651,26 +651,29 @@ if (data.draft) {
 
       const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
 
-      await fetch("/api/send-report", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          engineerEmail: engEmail,
-          engineerName: engName,
-          serialNumber: unit?.serial_number,
-          answers: emailFriendlyAnswers,
-          maintenanceChecklist: checklistData,
-          reportType: template?.type || "Depth",
-          companyLogoUrl: companyLogoUrl,
-          technicalData: {
-            unit_record_id: unit?.record_id,
-            checklist_template_id: template?.id,
-            maintenance_company: selectedCompany,
-            engineer_name: engName,
-            location_display: locationDisplay,
-          },
-        }),
-      });
+await fetch("/api/send-report", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    engineerEmail: engEmail,
+    engineerName: engName,
+    serialNumber: unit?.serial_number,
+    answers: emailFriendlyAnswers,
+    equipmentChecklist: checklistData.map(item => ({
+      ...item,
+      images: checklistImages[`item_${item.id}`]?.map(img => img.url) || []
+    })),
+    reportType: template?.type || "Depth",
+    companyLogoUrl: companyLogoUrl,
+    technicalData: {
+      unit_record_id: unit?.record_id,
+      checklist_template_id: template?.id,
+      maintenance_company: selectedCompany,
+      engineer_name: engName,
+      location_display: locationDisplay,
+    },
+  }),
+});
 
       (template?.questionsData || []).forEach((_, i) => {
         const questionKey = `q${i + 1}`;
