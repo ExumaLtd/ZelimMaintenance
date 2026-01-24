@@ -1,37 +1,32 @@
 import { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff } from 'lucide-react';
+import { Mic, X, Check } from 'lucide-react';
 
 export default function VoiceInput({ onTranscript, disabled = false }) {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
+  const [audioLevel, setAudioLevel] = useState(0);
   const recognitionRef = useRef(null);
+  const animationFrameRef = useRef(null);
 
   useEffect(() => {
-    // Check browser support
     if (typeof window !== 'undefined') {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
         setIsSupported(true);
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = true;
-        recognitionRef.current.interimResults = true;
+        recognitionRef.current.interimResults = false;
         recognitionRef.current.lang = 'en-GB';
 
         recognitionRef.current.onresult = (event) => {
-          let interimTranscript = '';
           let finalTranscript = '';
-
           for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript;
             if (event.results[i].isFinal) {
-              finalTranscript += transcript + ' ';
-            } else {
-              interimTranscript += transcript;
+              finalTranscript += event.results[i][0].transcript + ' ';
             }
           }
-
-          if (finalTranscript) {
-            onTranscript(finalTranscript);
+          if (finalTranscript && onTranscript) {
+            onTranscript(finalTranscript.trim());
           }
         };
 
@@ -50,42 +45,98 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
     };
   }, [onTranscript]);
 
-  const toggleListening = () => {
-    if (!recognitionRef.current) return;
-
+  // Simulate audio level animation
+  useEffect(() => {
     if (isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
+      const animate = () => {
+        setAudioLevel(Math.random() * 100);
+        animationFrameRef.current = requestAnimationFrame(animate);
+      };
+      animate();
     } else {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      setAudioLevel(0);
+    }
+  }, [isListening]);
+
+  const startRecording = () => {
+    if (!recognitionRef.current) return;
+    try {
       recognitionRef.current.start();
       setIsListening(true);
+    } catch (error) {
+      console.error('Failed to start recording:', error);
     }
   };
 
+  const stopAndAccept = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsListening(false);
+  };
+
+  const stopAndCancel = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.abort();
+    }
+    setIsListening(false);
+  };
+
   if (!isSupported) {
-    return null; // Hide button if not supported
+    return null;
   }
 
   return (
-    <button
-      type="button"
-      onClick={toggleListening}
-      disabled={disabled}
-      className={`voice-input-button ${isListening ? 'listening' : ''}`}
-      title={isListening ? 'Click to stop recording' : 'Click to start voice input'}
-    >
-      {isListening ? (
-        <>
-          <div className="pulse-ring" />
-          <div className="pulse-ring pulse-ring-delay" />
-          <MicOff size={20} strokeWidth={2} />
-        </>
+    <div className="voice-input-container">
+      {!isListening ? (
+        <button
+          type="button"
+          onClick={startRecording}
+          disabled={disabled}
+          className="voice-mic-button"
+          aria-label="Start voice dictation"
+        >
+          <Mic size={18} strokeWidth={2} />
+          <span className="voice-tooltip">Dictate</span>
+        </button>
       ) : (
-        <Mic size={20} strokeWidth={2} />
+        <div className="voice-recording-controls">
+          <button
+            type="button"
+            onClick={stopAndCancel}
+            className="voice-control-button voice-cancel"
+            aria-label="Cancel recording"
+          >
+            <X size={18} strokeWidth={2} />
+          </button>
+          
+          <div className="voice-waveform">
+            <div className="wave-bar" style={{ height: `${20 + audioLevel * 0.3}%` }} />
+            <div className="wave-bar" style={{ height: `${30 + audioLevel * 0.4}%` }} />
+            <div className="wave-bar" style={{ height: `${25 + audioLevel * 0.35}%` }} />
+            <div className="wave-bar" style={{ height: `${35 + audioLevel * 0.5}%` }} />
+            <div className="wave-bar" style={{ height: `${20 + audioLevel * 0.3}%` }} />
+          </div>
+          
+          <button
+            type="button"
+            onClick={stopAndAccept}
+            className="voice-control-button voice-accept"
+            aria-label="Accept recording"
+          >
+            <Check size={18} strokeWidth={2} />
+          </button>
+        </div>
       )}
-    </button>
+    </div>
   );
 }
