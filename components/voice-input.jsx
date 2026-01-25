@@ -8,6 +8,12 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
   const [audioLevel, setAudioLevel] = useState(0);
   const [useElevenLabs] = useState(true); // keep enabled; browser is backup-only mode (not run alongside)
 
+  // ✅ Added: history for waveform bars (shows last N volume samples)
+  const BAR_COUNT = 10;
+  const [levelHistory, setLevelHistory] = useState(Array(BAR_COUNT).fill(0));
+  const levelHistoryRef = useRef(Array(BAR_COUNT).fill(0));
+  const lastLevelUpdateRef = useRef(0);
+
   const recognitionRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -17,7 +23,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
   const audioContextRef = useRef(null);
   const analyserRef = useRef(null);
 
-  // ✅ Added: guards to prevent double start/stop
+  // Guards to prevent double start/stop
   const isStartingRef = useRef(false);
   const isStoppingRef = useRef(false);
 
@@ -89,7 +95,6 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
         audioContextRef.current = audioContext;
         analyserRef.current = analyser;
 
-        // ✅ CHANGED: use time-domain data for better speech responsiveness
         const dataArray = new Uint8Array(analyser.fftSize);
 
         const detectLevel = () => {
@@ -103,7 +108,17 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
           const rms = Math.sqrt(sumSquares / dataArray.length);
 
           // Scale RMS to a useful UI range (tweak multiplier to taste)
-          setAudioLevel(rms * 160);
+          const level = Math.min(100, rms * 220);
+          setAudioLevel(level);
+
+          // ✅ Update history at ~25fps (prevents excessive re-renders)
+          const now = performance.now();
+          if (now - lastLevelUpdateRef.current > 40) {
+            lastLevelUpdateRef.current = now;
+            const nextHistory = [...levelHistoryRef.current.slice(1), level];
+            levelHistoryRef.current = nextHistory;
+            setLevelHistory(nextHistory);
+          }
 
           animationFrameRef.current = requestAnimationFrame(detectLevel);
         };
@@ -113,7 +128,17 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
         console.error('Audio analysis failed:', error);
         // Fallback to random animation
         const animate = () => {
-          setAudioLevel(50 + Math.random() * 50);
+          const level = 50 + Math.random() * 50;
+          setAudioLevel(level);
+
+          const now = performance.now();
+          if (now - lastLevelUpdateRef.current > 40) {
+            lastLevelUpdateRef.current = now;
+            const nextHistory = [...levelHistoryRef.current.slice(1), level];
+            levelHistoryRef.current = nextHistory;
+            setLevelHistory(nextHistory);
+          }
+
           animationFrameRef.current = requestAnimationFrame(animate);
         };
         animate();
@@ -123,6 +148,10 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
         cancelAnimationFrame(animationFrameRef.current);
       }
       setAudioLevel(0);
+      // ✅ Reset history when not listening (so it doesn't look "stuck")
+      const reset = Array(BAR_COUNT).fill(0);
+      levelHistoryRef.current = reset;
+      setLevelHistory(reset);
     }
   }, [isListening]);
 
@@ -140,13 +169,18 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
   };
 
   const startRecording = async () => {
-    // ✅ Prevent double-start (double click / event fire)
+    // Prevent double-start
     if (disabled || isListening || isStartingRef.current) return;
     isStartingRef.current = true;
 
     console.log('🎤 Starting recording...');
     transcriptRef.current = '';
     audioChunksRef.current = [];
+
+    // Reset waveform history at the start
+    const reset = Array(BAR_COUNT).fill(0);
+    levelHistoryRef.current = reset;
+    setLevelHistory(reset);
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -163,7 +197,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
       }
 
       if (useElevenLabs) {
-        // ✅ Choose a supported mimeType to avoid “corrupted webm” issues
+        // Choose a supported mimeType to avoid “corrupted webm” issues
         const preferredTypes = [
           'audio/webm;codecs=opus',
           'audio/webm',
@@ -214,7 +248,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
     if (useElevenLabs && recorder && recorder.state === 'recording') {
       console.log('⏹️ Stopping ElevenLabs recording...');
 
-      // ✅ Safety timeout so UI never gets stuck
+      // Safety timeout so UI never gets stuck
       const stopSafety = setTimeout(() => {
         console.warn('⚠️ Recorder stop timeout — forcing cleanup');
         cleanupStreams();
@@ -256,20 +290,16 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
           const data = await response.json();
           console.log('📝 ElevenLabs response:', data);
 
-          // Fallback applies to this attempt only
           if (data.fallback || !data.text) {
-            console.log('⚠️ ElevenLabs failed, using browser transcript (this attempt only)');
-            const formatted = formatTranscript(transcriptRef.current);
-            if (formatted && onTranscript) onTranscript(formatted + ' ');
+            console.log('⚠️ ElevenLabs failed (backup-only mode: no browser transcript for this attempt)');
+            // If you ever want: show UI toast here. For now, do nothing extra.
           } else if (data.text && onTranscript) {
             console.log('✨ Transcription successful:', data.text);
             const formatted = formatTranscript(data.text);
             onTranscript(formatted + ' ');
           }
         } catch (error) {
-          console.error('❌ ElevenLabs error, using browser transcript (this attempt only):', error);
-          const formatted = formatTranscript(transcriptRef.current);
-          if (formatted && onTranscript) onTranscript(formatted + ' ');
+          console.error('❌ ElevenLabs error (backup-only mode):', error);
         }
 
         // Reset + cleanup
@@ -280,7 +310,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
         isStoppingRef.current = false;
       };
 
-      // ✅ Flush buffered audio before stopping (helps avoid corruption / missing tail)
+      // Flush buffered audio before stopping
       try { recorder.requestData(); } catch (e) {}
       recorder.stop();
     } else {
@@ -337,8 +367,6 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
 
   if (!isSupported) return null;
 
-  const normalizedLevel = Math.min(100, audioLevel);
-
   return (
     <>
       {!isListening ? (
@@ -365,16 +393,13 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
           </button>
 
           <div className="voice-waveform-bars">
-            <span className="wave-bar" style={{ height: `${Math.max(8, normalizedLevel * 0.3)}%` }} />
-            <span className="wave-bar" style={{ height: `${Math.max(10, normalizedLevel * 0.4)}%` }} />
-            <span className="wave-bar" style={{ height: `${Math.max(12, normalizedLevel * 0.5)}%` }} />
-            <span className="wave-bar" style={{ height: `${Math.max(14, normalizedLevel * 0.6)}%` }} />
-            <span className="wave-bar" style={{ height: `${Math.max(12, normalizedLevel * 0.5)}%` }} />
-            <span className="wave-bar" style={{ height: `${Math.max(16, normalizedLevel * 0.7)}%` }} />
-            <span className="wave-bar" style={{ height: `${Math.max(14, normalizedLevel * 0.6)}%` }} />
-            <span className="wave-bar" style={{ height: `${Math.max(12, normalizedLevel * 0.5)}%` }} />
-            <span className="wave-bar" style={{ height: `${Math.max(10, normalizedLevel * 0.4)}%` }} />
-            <span className="wave-bar" style={{ height: `${Math.max(8, normalizedLevel * 0.3)}%` }} />
+            {levelHistory.map((lvl, idx) => (
+              <span
+                key={idx}
+                className="wave-bar"
+                style={{ height: `${Math.max(8, Math.min(100, lvl))}%` }}
+              />
+            ))}
           </div>
 
           <button

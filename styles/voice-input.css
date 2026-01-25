@@ -46,8 +46,12 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.tooltip-white {
-  color: white !important;
+/* ✅ White tooltip bubble for Submit/Cancel */
+.voice-tooltip-popup.tooltip-white {
+  background: #ffffff !important;
+  color: #000000 !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  opacity: 0;
 }
 
 .voice-mic-icon:hover .voice-tooltip-popup,
@@ -82,9 +86,14 @@
   height: 18px;
 }
 
+/* ✅ IMPORTANT: don’t lower opacity on the whole button (it makes the tooltip look grey) */
 .voice-icon-btn:hover {
-  opacity: 0.7;
   transform: scale(1.1);
+}
+
+/* Apply “faded” hover effect to icon only */
+.voice-icon-btn:hover svg {
+  opacity: 0.7;
 }
 
 .voice-icon-btn:active {
@@ -106,29 +115,6 @@
   border-radius: 1px;
   transition: height 0.08s ease-out;
   display: block;
-  transform-origin: bottom;
-  will-change: transform, height;
-}
-
-/* ✅ Added: subtle animation so waveform never looks "dead" */
-.voice-recording-state .wave-bar {
-  animation: voiceWavePulse 0.9s ease-in-out infinite;
-}
-
-.voice-recording-state .wave-bar:nth-child(1) { animation-delay: 0s; }
-.voice-recording-state .wave-bar:nth-child(2) { animation-delay: 0.08s; }
-.voice-recording-state .wave-bar:nth-child(3) { animation-delay: 0.16s; }
-.voice-recording-state .wave-bar:nth-child(4) { animation-delay: 0.24s; }
-.voice-recording-state .wave-bar:nth-child(5) { animation-delay: 0.32s; }
-.voice-recording-state .wave-bar:nth-child(6) { animation-delay: 0.40s; }
-.voice-recording-state .wave-bar:nth-child(7) { animation-delay: 0.48s; }
-.voice-recording-state .wave-bar:nth-child(8) { animation-delay: 0.56s; }
-.voice-recording-state .wave-bar:nth-child(9) { animation-delay: 0.64s; }
-.voice-recording-state .wave-bar:nth-child(10){ animation-delay: 0.72s; }
-
-@keyframes voiceWavePulse {
-  0%, 100% { transform: scaleY(0.55); opacity: 0.85; }
-  50%      { transform: scaleY(1.15); opacity: 1; }
 }
 
 /* Textarea Wrapper */
