@@ -277,8 +277,7 @@
 
 /* Add padding so text never sits under the VoiceInput UI */
 .form-scope .question-with-upload .textarea-wrapper .checklist-textarea {
-  padding-right: 56px !important;   /* avoids text under right-side icons */
-  padding-bottom: 56px !important;  /* avoids last lines under bottom overlay */
+  padding-bottom: 40px !important;
 }
 
 /* Keeps textarea growth behaving properly when content grows */
