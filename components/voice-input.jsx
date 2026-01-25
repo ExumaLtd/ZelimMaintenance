@@ -8,11 +8,21 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
   const [audioLevel, setAudioLevel] = useState(0);
   const [useElevenLabs] = useState(true); // keep enabled; browser is backup-only mode (not run alongside)
 
-  // ✅ Added: history for waveform bars (shows last N volume samples)
+  // ChatGPT-style waveform settings
   const BAR_COUNT = 10;
+  const CENTER_WEIGHTS = [0.35, 0.5, 0.7, 0.9, 1, 1, 0.9, 0.7, 0.5, 0.35];
+
   const [levelHistory, setLevelHistory] = useState(Array(BAR_COUNT).fill(0));
   const levelHistoryRef = useRef(Array(BAR_COUNT).fill(0));
   const lastLevelUpdateRef = useRef(0);
+
+  // Speaking detection (controls idle animation)
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const speakingRef = useRef(false);
+  const silenceSinceRef = useRef(0);
+
+  // Smoothing for “ChatGPT feel”
+  const smoothedRef = useRef(0);
 
   const recognitionRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -80,7 +90,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
     };
   }, []);
 
-  // Real audio level detection for waveform
+  // Real audio level detection for waveform (ChatGPT-style)
   useEffect(() => {
     if (isListening && streamRef.current) {
       try {
@@ -100,6 +110,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
         const detectLevel = () => {
           analyser.getByteTimeDomainData(dataArray);
 
+          // RMS amplitude 0..~0.3 for speech typically
           let sumSquares = 0;
           for (let i = 0; i < dataArray.length; i++) {
             const v = (dataArray[i] - 128) / 128; // -1..1
@@ -107,15 +118,49 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
           }
           const rms = Math.sqrt(sumSquares / dataArray.length);
 
-          // Scale RMS to a useful UI range (tweak multiplier to taste)
-          const level = Math.min(100, rms * 220);
-          setAudioLevel(level);
+          // Smooth it for a “ChatGPT” feel (less jitter, more bounce)
+          const SMOOTHING = 0.82;
+          smoothedRef.current = smoothedRef.current * SMOOTHING + rms * (1 - SMOOTHING);
 
-          // ✅ Update history at ~25fps (prevents excessive re-renders)
+          // Noise floor clamp (prevents tiny mic noise constantly moving bars)
+          const NOISE_FLOOR = 0.012;
+          const cleaned = Math.max(0, smoothedRef.current - NOISE_FLOOR);
+
+          // Map to 0..1 with a bit of curve (speech pops nicer)
+          const boosted = Math.min(1, Math.pow(cleaned * 6.5, 0.85));
+
+          // For any other UI/telemetry you might want
+          setAudioLevel(boosted * 100);
+
+          // Speaking vs idle (adds idle animation when quiet)
           const now = performance.now();
-          if (now - lastLevelUpdateRef.current > 40) {
+          const speakingNow = boosted > 0.06;
+
+          if (speakingNow) {
+            silenceSinceRef.current = 0;
+            if (!speakingRef.current) {
+              speakingRef.current = true;
+              setIsSpeaking(true);
+            }
+          } else {
+            if (!silenceSinceRef.current) silenceSinceRef.current = now;
+            // wait a beat before dropping into idle (feels nicer)
+            if (speakingRef.current && now - silenceSinceRef.current > 250) {
+              speakingRef.current = false;
+              setIsSpeaking(false);
+            }
+          }
+
+          // Update history at ~30fps (nice “trail”)
+          if (now - lastLevelUpdateRef.current > 33) {
             lastLevelUpdateRef.current = now;
-            const nextHistory = [...levelHistoryRef.current.slice(1), level];
+
+            const prev = levelHistoryRef.current;
+            // Slight decay so bars fall naturally
+            const DECAY = 0.92;
+            const decayed = prev.map(v => v * DECAY);
+
+            const nextHistory = [...decayed.slice(1), boosted];
             levelHistoryRef.current = nextHistory;
             setLevelHistory(nextHistory);
           }
@@ -126,21 +171,32 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
         detectLevel();
       } catch (error) {
         console.error('Audio analysis failed:', error);
-        // Fallback to random animation
-        const animate = () => {
-          const level = 50 + Math.random() * 50;
-          setAudioLevel(level);
 
+        // Fallback animation (still shows trail)
+        const animate = () => {
           const now = performance.now();
-          if (now - lastLevelUpdateRef.current > 40) {
+          const fake = Math.random() * 0.6;
+
+          setAudioLevel(fake * 100);
+
+          if (now - lastLevelUpdateRef.current > 33) {
             lastLevelUpdateRef.current = now;
-            const nextHistory = [...levelHistoryRef.current.slice(1), level];
+            const prev = levelHistoryRef.current;
+            const DECAY = 0.92;
+            const decayed = prev.map(v => v * DECAY);
+            const nextHistory = [...decayed.slice(1), fake];
             levelHistoryRef.current = nextHistory;
             setLevelHistory(nextHistory);
           }
 
+          if (!speakingRef.current) {
+            speakingRef.current = true;
+            setIsSpeaking(true);
+          }
+
           animationFrameRef.current = requestAnimationFrame(animate);
         };
+
         animate();
       }
     } else {
@@ -148,10 +204,16 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
         cancelAnimationFrame(animationFrameRef.current);
       }
       setAudioLevel(0);
-      // ✅ Reset history when not listening (so it doesn't look "stuck")
+
+      // Reset waveform
       const reset = Array(BAR_COUNT).fill(0);
       levelHistoryRef.current = reset;
       setLevelHistory(reset);
+
+      speakingRef.current = false;
+      setIsSpeaking(false);
+      silenceSinceRef.current = 0;
+      smoothedRef.current = 0;
     }
   }, [isListening]);
 
@@ -169,7 +231,6 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
   };
 
   const startRecording = async () => {
-    // Prevent double-start
     if (disabled || isListening || isStartingRef.current) return;
     isStartingRef.current = true;
 
@@ -177,13 +238,26 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
     transcriptRef.current = '';
     audioChunksRef.current = [];
 
-    // Reset waveform history at the start
+    // Reset waveform
     const reset = Array(BAR_COUNT).fill(0);
     levelHistoryRef.current = reset;
     setLevelHistory(reset);
+    speakingRef.current = false;
+    setIsSpeaking(false);
+    silenceSinceRef.current = 0;
+    smoothedRef.current = 0;
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // ✅ UPDATED: enable WebRTC audio processing for noisy environments (ships)
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          channelCount: 1,
+        },
+      });
+
       streamRef.current = stream;
 
       // Start browser recognition ONLY when not using ElevenLabs (backup-only mode)
@@ -197,11 +271,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
       }
 
       if (useElevenLabs) {
-        // Choose a supported mimeType to avoid “corrupted webm” issues
-        const preferredTypes = [
-          'audio/webm;codecs=opus',
-          'audio/webm',
-        ];
+        const preferredTypes = ['audio/webm;codecs=opus', 'audio/webm'];
         const chosenType = preferredTypes.find((t) => window.MediaRecorder?.isTypeSupported?.(t));
 
         const mediaRecorder = chosenType
@@ -238,7 +308,6 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
     console.log('✅ Stop and accept clicked');
     setIsListening(false);
 
-    // Stop browser recognition ONLY when not using ElevenLabs (backup-only mode)
     if (!useElevenLabs && recognitionRef.current) {
       try { recognitionRef.current.stop(); } catch (e) {}
     }
@@ -248,7 +317,6 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
     if (useElevenLabs && recorder && recorder.state === 'recording') {
       console.log('⏹️ Stopping ElevenLabs recording...');
 
-      // Safety timeout so UI never gets stuck
       const stopSafety = setTimeout(() => {
         console.warn('⚠️ Recorder stop timeout — forcing cleanup');
         cleanupStreams();
@@ -267,9 +335,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
         console.log('Audio blob size:', audioBlob.size, 'bytes');
 
         if (audioBlob.size === 0) {
-          console.error('❌ Audio blob is empty, using browser transcript');
-          const formatted = formatTranscript(transcriptRef.current);
-          if (formatted && onTranscript) onTranscript(formatted + ' ');
+          console.error('❌ Audio blob is empty');
           audioChunksRef.current = [];
           transcriptRef.current = '';
           cleanupStreams();
@@ -290,19 +356,15 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
           const data = await response.json();
           console.log('📝 ElevenLabs response:', data);
 
-          if (data.fallback || !data.text) {
-            console.log('⚠️ ElevenLabs failed (backup-only mode: no browser transcript for this attempt)');
-            // If you ever want: show UI toast here. For now, do nothing extra.
-          } else if (data.text && onTranscript) {
+          if (!data.fallback && data.text && onTranscript) {
             console.log('✨ Transcription successful:', data.text);
             const formatted = formatTranscript(data.text);
             onTranscript(formatted + ' ');
           }
         } catch (error) {
-          console.error('❌ ElevenLabs error (backup-only mode):', error);
+          console.error('❌ ElevenLabs error:', error);
         }
 
-        // Reset + cleanup
         audioChunksRef.current = [];
         transcriptRef.current = '';
         cleanupStreams();
@@ -310,13 +372,11 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
         isStoppingRef.current = false;
       };
 
-      // Flush buffered audio before stopping
       try { recorder.requestData(); } catch (e) {}
       recorder.stop();
     } else {
       console.log('🗣️ Using browser transcript');
       setTimeout(() => {
-        console.log('Browser transcript:', transcriptRef.current);
         const formatted = formatTranscript(transcriptRef.current);
         if (formatted && onTranscript) onTranscript(formatted + ' ');
         transcriptRef.current = '';
@@ -367,6 +427,16 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
 
   if (!isSupported) return null;
 
+  // ChatGPT-ish: bars are history + centre-weighted shaping
+  const MIN_PX = 3;
+  const MAX_PX = 18;
+
+  const getBarHeightPx = (lvl, idx) => {
+    const w = CENTER_WEIGHTS[idx] || 1;
+    const h = MIN_PX + (MAX_PX - MIN_PX) * Math.min(1, lvl * 1.25) * w;
+    return Math.max(MIN_PX, Math.min(MAX_PX, h));
+  };
+
   return (
     <>
       {!isListening ? (
@@ -392,12 +462,12 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
             {!isMobile && <span className="voice-tooltip-popup tooltip-white">Cancel</span>}
           </button>
 
-          <div className="voice-waveform-bars">
+          <div className={`voice-waveform-bars ${isSpeaking ? 'speaking' : 'idle'}`}>
             {levelHistory.map((lvl, idx) => (
               <span
                 key={idx}
                 className="wave-bar"
-                style={{ height: `${Math.max(8, Math.min(100, lvl))}%` }}
+                style={{ height: `${getBarHeightPx(lvl, idx)}px` }}
               />
             ))}
           </div>

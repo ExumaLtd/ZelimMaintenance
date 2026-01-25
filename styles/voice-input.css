@@ -46,12 +46,12 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* ✅ White tooltip bubble for Submit/Cancel */
+/* 100% white tooltips for Submit/Cancel */
 .voice-tooltip-popup.tooltip-white {
   background: #ffffff !important;
   color: #000000 !important;
+  opacity: 0; /* stays hidden until hover */
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
-  opacity: 0;
 }
 
 .voice-mic-icon:hover .voice-tooltip-popup,
@@ -86,12 +86,12 @@
   height: 18px;
 }
 
-/* ✅ IMPORTANT: don’t lower opacity on the whole button (it makes the tooltip look grey) */
+/* Don’t fade the whole button (that fades the tooltip too) */
 .voice-icon-btn:hover {
   transform: scale(1.1);
 }
 
-/* Apply “faded” hover effect to icon only */
+/* Fade icon only */
 .voice-icon-btn:hover svg {
   opacity: 0.7;
 }
@@ -103,18 +103,48 @@
 /* ChatGPT-style Waveform Bars */
 .voice-waveform-bars {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 2px;
   height: 18px;
   padding: 0 4px;
 }
 
 .wave-bar {
-  width: 2px;
+  width: 1.5px; /* ✅ was 2px */
   background: white;
   border-radius: 1px;
-  transition: height 0.08s ease-out;
+  transition: height 0.06s ease-out;
   display: block;
+  transform-origin: bottom;
+  will-change: height, transform;
+}
+
+/* ChatGPT-ish idle motion: subtle, not constant “equaliser” */
+.voice-waveform-bars.idle .wave-bar {
+  animation: voiceIdle 1.1s ease-in-out infinite;
+  opacity: 0.9;
+}
+
+.voice-waveform-bars.idle .wave-bar:nth-child(1) { animation-delay: 0s; }
+.voice-waveform-bars.idle .wave-bar:nth-child(2) { animation-delay: 0.06s; }
+.voice-waveform-bars.idle .wave-bar:nth-child(3) { animation-delay: 0.12s; }
+.voice-waveform-bars.idle .wave-bar:nth-child(4) { animation-delay: 0.18s; }
+.voice-waveform-bars.idle .wave-bar:nth-child(5) { animation-delay: 0.24s; }
+.voice-waveform-bars.idle .wave-bar:nth-child(6) { animation-delay: 0.30s; }
+.voice-waveform-bars.idle .wave-bar:nth-child(7) { animation-delay: 0.36s; }
+.voice-waveform-bars.idle .wave-bar:nth-child(8) { animation-delay: 0.42s; }
+.voice-waveform-bars.idle .wave-bar:nth-child(9) { animation-delay: 0.48s; }
+.voice-waveform-bars.idle .wave-bar:nth-child(10) { animation-delay: 0.54s; }
+
+/* When speaking: no fake animation, just real mic-driven heights */
+.voice-waveform-bars.speaking .wave-bar {
+  animation: none;
+  opacity: 1;
+}
+
+@keyframes voiceIdle {
+  0%, 100% { transform: scaleY(0.75); }
+  50%      { transform: scaleY(1.05); }
 }
 
 /* Textarea Wrapper */
@@ -133,20 +163,20 @@
     width: 20px;
     height: 20px;
   }
-  
+
   .voice-recording-state {
     gap: 7px;
   }
-  
+
   .voice-waveform-bars {
     height: 20px;
     gap: 2px;
   }
-  
+
   .wave-bar {
-    width: 2px;
+    width: 1.5px; /* ✅ keep consistent on mobile */
   }
-  
+
   .textarea-wrapper textarea {
     padding-right: 56px !important;
   }
