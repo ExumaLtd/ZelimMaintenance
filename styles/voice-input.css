@@ -27,7 +27,7 @@
   cursor: not-allowed;
 }
 
-/* Tooltip - Updated Colors */
+/* Tooltip */
 .voice-tooltip-popup {
   position: absolute;
   bottom: calc(100% + 6px);
@@ -46,11 +46,12 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.voice-mic-icon:hover .voice-tooltip-popup {
+.voice-mic-icon:hover .voice-tooltip-popup,
+.voice-icon-btn:hover .voice-tooltip-popup {
   opacity: 1;
 }
 
-/* Recording State - Horizontal Layout */
+/* Recording State */
 .voice-recording-state {
   position: absolute;
   bottom: 16px;
@@ -61,8 +62,9 @@
   z-index: 10;
 }
 
-/* Icon Buttons (X and ✓) */
+/* Icon Buttons */
 .voice-icon-btn {
+  position: relative;
   background: none;
   border: none;
   color: white;
@@ -85,24 +87,24 @@
   transform: scale(0.95);
 }
 
-/* Waveform - Cleaner Animation */
-.voice-waveform-bars {
+/* ChatGPT-style Waveform Dots */
+.voice-waveform-dots {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
   height: 18px;
+  padding: 0 4px;
 }
 
-.wave-bar {
-  width: 2px;
+.wave-dot {
+  width: 4px;
+  height: 4px;
   background: white;
-  border-radius: 1px;
-  transition: height 0.08s ease-out;
-  display: block;
-  min-height: 4px;
+  border-radius: 50%;
+  transition: opacity 0.1s ease;
 }
 
-/* Textarea Wrapper - Prevent Text Overlap */
+/* Textarea Wrapper */
 .textarea-wrapper {
   position: relative;
 }
@@ -119,12 +121,18 @@
     height: 20px;
   }
   
-  .voice-waveform-bars {
-    height: 20px;
+  .voice-recording-state {
+    gap: 7px;
   }
   
-  .voice-recording-state {
-    gap: 8px;
+  .voice-waveform-dots {
+    height: 20px;
+    gap: 4px;
+  }
+  
+  .wave-dot {
+    width: 5px;
+    height: 5px;
   }
   
   .textarea-wrapper textarea {

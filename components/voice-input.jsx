@@ -4,8 +4,9 @@ import { Mic, X, Check } from 'lucide-react';
 export default function VoiceInput({ onTranscript, disabled = false }) {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
-const [useElevenLabs, setUseElevenLabs] = useState(false);
+  const [useElevenLabs, setUseElevenLabs] = useState(true);
   
   const recognitionRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -13,8 +14,13 @@ const [useElevenLabs, setUseElevenLabs] = useState(false);
   const animationFrameRef = useRef(null);
   const transcriptRef = useRef('');
   const streamRef = useRef(null);
+  const audioContextRef = useRef(null);
+  const analyserRef = useRef(null);
 
   useEffect(() => {
+    // Detect mobile
+    setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+
     if (typeof window !== 'undefined') {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
@@ -56,19 +62,49 @@ const [useElevenLabs, setUseElevenLabs] = useState(false);
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
   }, []);
 
+  // Real audio level detection for waveform
   useEffect(() => {
-    if (isListening) {
-      const animate = () => {
-        setAudioLevel(50 + Math.random() * 50);
-        animationFrameRef.current = requestAnimationFrame(animate);
-      };
-      animate();
+    if (isListening && streamRef.current) {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioContext = new AudioContext();
+        const analyser = audioContext.createAnalyser();
+        const microphone = audioContext.createMediaStreamSource(streamRef.current);
+        
+        analyser.fftSize = 256;
+        microphone.connect(analyser);
+        
+        audioContextRef.current = audioContext;
+        analyserRef.current = analyser;
+        
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        
+        const detectLevel = () => {
+          analyser.getByteFrequencyData(dataArray);
+          const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+          setAudioLevel(average);
+          animationFrameRef.current = requestAnimationFrame(detectLevel);
+        };
+        
+        detectLevel();
+      } catch (error) {
+        console.error('Audio analysis failed:', error);
+        // Fallback to random animation
+        const animate = () => {
+          setAudioLevel(50 + Math.random() * 50);
+          animationFrameRef.current = requestAnimationFrame(animate);
+        };
+        animate();
+      }
     } else {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
@@ -76,6 +112,21 @@ const [useElevenLabs, setUseElevenLabs] = useState(false);
       setAudioLevel(0);
     }
   }, [isListening]);
+
+  const capitalizeFirst = (text) => {
+    if (!text) return text;
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  };
+
+  const formatTranscript = (text) => {
+    // Capitalize first letter
+    let formatted = capitalizeFirst(text.trim());
+    // Add full stop if doesn't end with punctuation
+    if (formatted && !/[.!?]$/.test(formatted)) {
+      formatted += '.';
+    }
+    return formatted;
+  };
 
   const startRecording = async () => {
     console.log('🎤 Starting recording...');
@@ -101,13 +152,12 @@ const [useElevenLabs, setUseElevenLabs] = useState(false);
         mediaRecorderRef.current = mediaRecorder;
 
         mediaRecorder.ondataavailable = (event) => {
-          console.log('📦 Audio chunk received:', event.data.size);
           if (event.data.size > 0) {
             audioChunksRef.current.push(event.data);
           }
         };
 
-        mediaRecorder.start(100); // Collect data every 100ms
+        mediaRecorder.start(100);
         setIsListening(true);
         console.log('Started ElevenLabs recording');
       } else {
@@ -141,8 +191,9 @@ const [useElevenLabs, setUseElevenLabs] = useState(false);
         
         if (audioBlob.size === 0) {
           console.error('❌ Audio blob is empty, using browser transcript');
-          if (transcriptRef.current && onTranscript) {
-            onTranscript(transcriptRef.current.trim());
+          const formatted = formatTranscript(transcriptRef.current);
+          if (formatted && onTranscript) {
+            onTranscript(formatted + ' ');
           }
           cleanupStreams();
           return;
@@ -162,18 +213,21 @@ const [useElevenLabs, setUseElevenLabs] = useState(false);
           if (data.fallback || !data.text) {
             console.log('⚠️ ElevenLabs failed, using browser transcript');
             setUseElevenLabs(false);
-            if (transcriptRef.current && onTranscript) {
-              onTranscript(transcriptRef.current.trim());
+            const formatted = formatTranscript(transcriptRef.current);
+            if (formatted && onTranscript) {
+              onTranscript(formatted + ' ');
             }
           } else if (data.text && onTranscript) {
             console.log('✨ Transcription successful:', data.text);
-            onTranscript(data.text);
+            const formatted = formatTranscript(data.text);
+            onTranscript(formatted + ' ');
           }
         } catch (error) {
           console.error('❌ ElevenLabs error, using browser transcript:', error);
           setUseElevenLabs(false);
-          if (transcriptRef.current && onTranscript) {
-            onTranscript(transcriptRef.current.trim());
+          const formatted = formatTranscript(transcriptRef.current);
+          if (formatted && onTranscript) {
+            onTranscript(formatted + ' ');
           }
         }
 
@@ -185,8 +239,9 @@ const [useElevenLabs, setUseElevenLabs] = useState(false);
       console.log('🗣️ Using browser transcript');
       setTimeout(() => {
         console.log('Browser transcript:', transcriptRef.current);
-        if (transcriptRef.current && onTranscript) {
-          onTranscript(transcriptRef.current.trim());
+        const formatted = formatTranscript(transcriptRef.current);
+        if (formatted && onTranscript) {
+          onTranscript(formatted + ' ');
         }
         transcriptRef.current = '';
         cleanupStreams();
@@ -218,11 +273,18 @@ const [useElevenLabs, setUseElevenLabs] = useState(false);
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
   };
 
   if (!isSupported) {
     return null;
   }
+
+  // Normalize audio level to 0-100
+  const normalizedLevel = Math.min(100, (audioLevel / 128) * 100);
 
   return (
     <>
@@ -235,7 +297,7 @@ const [useElevenLabs, setUseElevenLabs] = useState(false);
           aria-label="Start voice dictation"
         >
           <Mic size={18} strokeWidth={2} />
-          <span className="voice-tooltip-popup">Dictate</span>
+          {!isMobile && <span className="voice-tooltip-popup">Dictate</span>}
         </button>
       ) : (
         <div className="voice-recording-state">
@@ -246,14 +308,14 @@ const [useElevenLabs, setUseElevenLabs] = useState(false);
             aria-label="Cancel recording"
           >
             <X size={18} strokeWidth={2} />
+            {!isMobile && <span className="voice-tooltip-popup">Cancel</span>}
           </button>
           
-          <div className="voice-waveform-bars">
-            <span className="wave-bar" style={{ height: `${10 + audioLevel * 0.4}%` }} />
-            <span className="wave-bar" style={{ height: `${15 + audioLevel * 0.6}%` }} />
-            <span className="wave-bar" style={{ height: `${12 + audioLevel * 0.5}%` }} />
-            <span className="wave-bar" style={{ height: `${18 + audioLevel * 0.7}%` }} />
-            <span className="wave-bar" style={{ height: `${10 + audioLevel * 0.4}%` }} />
+          <div className="voice-waveform-dots">
+            <span className="wave-dot" style={{ opacity: normalizedLevel > 10 ? 1 : 0.3 }} />
+            <span className="wave-dot" style={{ opacity: normalizedLevel > 30 ? 1 : 0.3 }} />
+            <span className="wave-dot" style={{ opacity: normalizedLevel > 50 ? 1 : 0.3 }} />
+            <span className="wave-dot" style={{ opacity: normalizedLevel > 70 ? 1 : 0.3 }} />
           </div>
           
           <button
@@ -263,6 +325,7 @@ const [useElevenLabs, setUseElevenLabs] = useState(false);
             aria-label="Accept recording"
           >
             <Check size={18} strokeWidth={2} />
+            {!isMobile && <span className="voice-tooltip-popup">Submit</span>}
           </button>
         </div>
       )}
