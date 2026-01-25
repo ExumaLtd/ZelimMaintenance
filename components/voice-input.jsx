@@ -133,11 +133,11 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
-      // Start browser recognition as backup
-      if (recognitionRef.current) {
+      // Start browser recognition ONLY when not using ElevenLabs (backup-only mode)
+      if (!useElevenLabs && recognitionRef.current) {
         try {
           recognitionRef.current.start();
-          console.log('✅ Browser recognition started as backup');
+          console.log('✅ Browser recognition started');
         } catch (e) {
           console.log('Browser recognition already running or failed:', e);
         }
@@ -170,8 +170,8 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
     console.log('✅ Stop and accept clicked');
     setIsListening(false);
 
-    // Stop browser recognition
-    if (recognitionRef.current) {
+    // Stop browser recognition ONLY when not using ElevenLabs (backup-only mode)
+    if (!useElevenLabs && recognitionRef.current) {
       try { recognitionRef.current.stop(); } catch (e) {}
     }
 
@@ -180,7 +180,8 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
 
       mediaRecorderRef.current.onstop = async () => {
         console.log('📊 Recording stopped, processing audio...');
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const mime = mediaRecorderRef.current?.mimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunksRef.current, { type: mime });
         console.log('Audio blob size:', audioBlob.size, 'bytes');
 
         if (audioBlob.size === 0) {
