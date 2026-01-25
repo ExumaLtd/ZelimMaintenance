@@ -286,49 +286,54 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
   // Normalize audio level to 0-100
   const normalizedLevel = Math.min(100, (audioLevel / 128) * 100);
 
-  return (
-    <>
-      {!isListening ? (
+return (
+  <>
+    {!isListening ? (
+      <button
+        type="button"
+        onClick={startRecording}
+        disabled={disabled}
+        className="voice-mic-icon"
+        aria-label="Start voice dictation"
+      >
+        <Mic size={18} strokeWidth={1.5} />
+        {!isMobile && <span className="voice-tooltip-popup">Dictate</span>}
+      </button>
+    ) : (
+      <div className="voice-recording-state">
         <button
           type="button"
-          onClick={startRecording}
-          disabled={disabled}
-          className="voice-mic-icon"
-          aria-label="Start voice dictation"
+          onClick={stopAndCancel}
+          className="voice-icon-btn"
+          aria-label="Cancel recording"
         >
-          <Mic size={18} strokeWidth={2} />
-          {!isMobile && <span className="voice-tooltip-popup">Dictate</span>}
+          <X size={18} strokeWidth={1.5} />
+          {!isMobile && <span className="voice-tooltip-popup tooltip-white">Cancel</span>}
         </button>
-      ) : (
-        <div className="voice-recording-state">
-          <button
-            type="button"
-            onClick={stopAndCancel}
-            className="voice-icon-btn"
-            aria-label="Cancel recording"
-          >
-            <X size={18} strokeWidth={2} />
-            {!isMobile && <span className="voice-tooltip-popup">Cancel</span>}
-          </button>
-          
-          <div className="voice-waveform-dots">
-            <span className="wave-dot" style={{ opacity: normalizedLevel > 10 ? 1 : 0.3 }} />
-            <span className="wave-dot" style={{ opacity: normalizedLevel > 30 ? 1 : 0.3 }} />
-            <span className="wave-dot" style={{ opacity: normalizedLevel > 50 ? 1 : 0.3 }} />
-            <span className="wave-dot" style={{ opacity: normalizedLevel > 70 ? 1 : 0.3 }} />
-          </div>
-          
-          <button
-            type="button"
-            onClick={stopAndAccept}
-            className="voice-icon-btn"
-            aria-label="Accept recording"
-          >
-            <Check size={18} strokeWidth={2} />
-            {!isMobile && <span className="voice-tooltip-popup">Submit</span>}
-          </button>
+        
+        <div className="voice-waveform-bars">
+          <span className="wave-bar" style={{ height: `${Math.max(20, normalizedLevel * 0.3)}%` }} />
+          <span className="wave-bar" style={{ height: `${Math.max(25, normalizedLevel * 0.4)}%` }} />
+          <span className="wave-bar" style={{ height: `${Math.max(30, normalizedLevel * 0.5)}%` }} />
+          <span className="wave-bar" style={{ height: `${Math.max(35, normalizedLevel * 0.6)}%` }} />
+          <span className="wave-bar" style={{ height: `${Math.max(30, normalizedLevel * 0.5)}%` }} />
+          <span className="wave-bar" style={{ height: `${Math.max(40, normalizedLevel * 0.7)}%` }} />
+          <span className="wave-bar" style={{ height: `${Math.max(35, normalizedLevel * 0.6)}%` }} />
+          <span className="wave-bar" style={{ height: `${Math.max(30, normalizedLevel * 0.5)}%` }} />
+          <span className="wave-bar" style={{ height: `${Math.max(25, normalizedLevel * 0.4)}%` }} />
+          <span className="wave-bar" style={{ height: `${Math.max(20, normalizedLevel * 0.3)}%` }} />
         </div>
-      )}
-    </>
-  );
-}
+        
+        <button
+          type="button"
+          onClick={stopAndAccept}
+          className="voice-icon-btn"
+          aria-label="Accept recording"
+        >
+          <Check size={18} strokeWidth={1.5} />
+          {!isMobile && <span className="voice-tooltip-popup tooltip-white">Submit</span>}
+        </button>
+      </div>
+    )}
+  </>
+);

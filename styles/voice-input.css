@@ -46,6 +46,10 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
+.tooltip-white {
+  color: white !important;
+}
+
 .voice-mic-icon:hover .voice-tooltip-popup,
 .voice-icon-btn:hover .voice-tooltip-popup {
   opacity: 1;
@@ -87,21 +91,21 @@
   transform: scale(0.95);
 }
 
-/* ChatGPT-style Waveform Dots */
-.voice-waveform-dots {
+/* ChatGPT-style Waveform Bars */
+.voice-waveform-bars {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   height: 18px;
   padding: 0 4px;
 }
 
-.wave-dot {
-  width: 4px;
-  height: 4px;
+.wave-bar {
+  width: 2px;
   background: white;
-  border-radius: 50%;
-  transition: opacity 0.1s ease;
+  border-radius: 1px;
+  transition: height 0.08s ease-out;
+  display: block;
 }
 
 /* Textarea Wrapper */
@@ -125,14 +129,13 @@
     gap: 7px;
   }
   
-  .voice-waveform-dots {
+  .voice-waveform-bars {
     height: 20px;
-    gap: 4px;
+    gap: 2px;
   }
   
-  .wave-dot {
-    width: 5px;
-    height: 5px;
+  .wave-bar {
+    width: 2px;
   }
   
   .textarea-wrapper textarea {
