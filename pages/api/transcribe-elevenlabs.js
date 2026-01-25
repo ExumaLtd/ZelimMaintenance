@@ -10,7 +10,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // ✅ ADDED: Helpful env check (common cause of 500)
     if (!process.env.ELEVENLABS_API_KEY) {
       console.error('❌ Missing ELEVENLABS_API_KEY environment variable');
       return res.status(500).json({ error: 'Missing ELEVENLABS_API_KEY', fallback: true });
@@ -28,20 +27,31 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Empty audio buffer', fallback: true });
     }
 
+    // Build multipart form-data for ElevenLabs STT
+    // model_id is REQUIRED (your 422 proved it)
+    const form = new FormData();
+
+    // If you later want to pass actual mime type from client, we can add a header and read it here.
+    const mimeType = 'audio/webm';
+
+    form.append('file', new Blob([buffer], { type: mimeType }), 'audio.webm');
+    form.append('model_id', 'scribe_v2');
+
     const response = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {
       method: 'POST',
       headers: {
         'xi-api-key': process.env.ELEVENLABS_API_KEY,
+        // DO NOT set Content-Type manually when using FormData
       },
-      body: buffer,
+      body: form,
     });
 
-    // ✅ CHANGED: Always read text so we can return meaningful error details
     const rawText = await response.text();
 
     if (!response.ok) {
       console.error('❌ ElevenLabs API error:', response.status, rawText);
-      return res.status(500).json({
+      // Forward upstream status (422/401/etc) instead of always 500
+      return res.status(response.status).json({
         error: 'Transcription failed',
         status: response.status,
         details: rawText,
@@ -54,7 +64,7 @@ export default async function handler(req, res) {
       data = JSON.parse(rawText);
     } catch (e) {
       console.error('❌ ElevenLabs returned non-JSON:', rawText);
-      return res.status(500).json({
+      return res.status(502).json({
         error: 'Invalid JSON from ElevenLabs',
         details: rawText,
         fallback: true,
@@ -63,7 +73,6 @@ export default async function handler(req, res) {
 
     console.log('✅ ElevenLabs response:', data);
 
-    // ✅ Slightly more robust in case the field is not "text"
     const text = data.text || data.transcript || data.result || '';
 
     return res.status(200).json({ text, source: 'elevenlabs' });

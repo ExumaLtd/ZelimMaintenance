@@ -6,8 +6,8 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
   const [isSupported, setIsSupported] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
-  const [useElevenLabs, setUseElevenLabs] = useState(true);
-  
+  const [useElevenLabs] = useState(true); // keep enabled; fallback is per-attempt only
+
   const recognitionRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -25,7 +25,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (SpeechRecognition) {
         setIsSupported(true);
-        
+
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = true;
         recognitionRef.current.interimResults = true;
@@ -52,9 +52,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
 
     return () => {
       if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch (e) {}
+        try { recognitionRef.current.stop(); } catch (e) {}
       }
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
         mediaRecorderRef.current.stop();
@@ -79,22 +77,22 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
         const audioContext = new AudioContext();
         const analyser = audioContext.createAnalyser();
         const microphone = audioContext.createMediaStreamSource(streamRef.current);
-        
+
         analyser.fftSize = 256;
         microphone.connect(analyser);
-        
+
         audioContextRef.current = audioContext;
         analyserRef.current = analyser;
-        
+
         const dataArray = new Uint8Array(analyser.frequencyBinCount);
-        
+
         const detectLevel = () => {
           analyser.getByteFrequencyData(dataArray);
           const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
           setAudioLevel(average);
           animationFrameRef.current = requestAnimationFrame(detectLevel);
         };
-        
+
         detectLevel();
       } catch (error) {
         console.error('Audio analysis failed:', error);
@@ -119,9 +117,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
   };
 
   const formatTranscript = (text) => {
-    // Capitalize first letter
     let formatted = capitalizeFirst(text.trim());
-    // Add full stop if doesn't end with punctuation
     if (formatted && !/[.!?]$/.test(formatted)) {
       formatted += '.';
     }
@@ -132,11 +128,11 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
     console.log('🎤 Starting recording...');
     transcriptRef.current = '';
     audioChunksRef.current = [];
-    
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
-      
+
       // Start browser recognition as backup
       if (recognitionRef.current) {
         try {
@@ -146,7 +142,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
           console.log('Browser recognition already running or failed:', e);
         }
       }
-      
+
       if (useElevenLabs) {
         const mediaRecorder = new MediaRecorder(stream);
         mediaRecorderRef.current = mediaRecorder;
@@ -176,29 +172,25 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
 
     // Stop browser recognition
     if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch (e) {}
+      try { recognitionRef.current.stop(); } catch (e) {}
     }
 
     if (useElevenLabs && mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       console.log('⏹️ Stopping ElevenLabs recording...');
-      
+
       mediaRecorderRef.current.onstop = async () => {
         console.log('📊 Recording stopped, processing audio...');
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         console.log('Audio blob size:', audioBlob.size, 'bytes');
-        
+
         if (audioBlob.size === 0) {
           console.error('❌ Audio blob is empty, using browser transcript');
           const formatted = formatTranscript(transcriptRef.current);
-          if (formatted && onTranscript) {
-            onTranscript(formatted + ' ');
-          }
+          if (formatted && onTranscript) onTranscript(formatted + ' ');
           cleanupStreams();
           return;
         }
-        
+
         try {
           console.log('🌐 Sending to ElevenLabs API...');
           const response = await fetch('/api/transcribe-elevenlabs', {
@@ -210,40 +202,32 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
           const data = await response.json();
           console.log('📝 ElevenLabs response:', data);
 
-          // ✅ CHANGED: Do not permanently disable ElevenLabs on failure.
-          // Fallback applies to this attempt only.
+          // Fallback applies to this attempt only
           if (data.fallback || !data.text) {
             console.log('⚠️ ElevenLabs failed, using browser transcript (this attempt only)');
             const formatted = formatTranscript(transcriptRef.current);
-            if (formatted && onTranscript) {
-              onTranscript(formatted + ' ');
-            }
+            if (formatted && onTranscript) onTranscript(formatted + ' ');
           } else if (data.text && onTranscript) {
             console.log('✨ Transcription successful:', data.text);
             const formatted = formatTranscript(data.text);
             onTranscript(formatted + ' ');
           }
         } catch (error) {
-          // ✅ CHANGED: Do not permanently disable ElevenLabs on error.
           console.error('❌ ElevenLabs error, using browser transcript (this attempt only):', error);
           const formatted = formatTranscript(transcriptRef.current);
-          if (formatted && onTranscript) {
-            onTranscript(formatted + ' ');
-          }
+          if (formatted && onTranscript) onTranscript(formatted + ' ');
         }
 
         cleanupStreams();
       };
-      
+
       mediaRecorderRef.current.stop();
     } else {
       console.log('🗣️ Using browser transcript');
       setTimeout(() => {
         console.log('Browser transcript:', transcriptRef.current);
         const formatted = formatTranscript(transcriptRef.current);
-        if (formatted && onTranscript) {
-          onTranscript(formatted + ' ');
-        }
+        if (formatted && onTranscript) onTranscript(formatted + ' ');
         transcriptRef.current = '';
         cleanupStreams();
       }, 300);
@@ -257,9 +241,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
     audioChunksRef.current = [];
 
     if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch (e) {}
+      try { recognitionRef.current.stop(); } catch (e) {}
     }
 
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
@@ -280,11 +262,8 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
     }
   };
 
-  if (!isSupported) {
-    return null;
-  }
+  if (!isSupported) return null;
 
-  // Normalize audio level to 0-100
   const normalizedLevel = Math.min(100, (audioLevel / 128) * 100);
 
   return (
@@ -311,7 +290,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
             <X size={18} strokeWidth={1.5} />
             {!isMobile && <span className="voice-tooltip-popup tooltip-white">Cancel</span>}
           </button>
-          
+
           <div className="voice-waveform-bars">
             <span className="wave-bar" style={{ height: `${Math.max(20, normalizedLevel * 0.3)}%` }} />
             <span className="wave-bar" style={{ height: `${Math.max(25, normalizedLevel * 0.4)}%` }} />
@@ -324,7 +303,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
             <span className="wave-bar" style={{ height: `${Math.max(25, normalizedLevel * 0.4)}%` }} />
             <span className="wave-bar" style={{ height: `${Math.max(20, normalizedLevel * 0.3)}%` }} />
           </div>
-          
+
           <button
             type="button"
             onClick={stopAndAccept}
