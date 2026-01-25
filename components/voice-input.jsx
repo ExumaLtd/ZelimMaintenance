@@ -210,9 +210,10 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
           const data = await response.json();
           console.log('📝 ElevenLabs response:', data);
 
+          // ✅ CHANGED: Do not permanently disable ElevenLabs on failure.
+          // Fallback applies to this attempt only.
           if (data.fallback || !data.text) {
-            console.log('⚠️ ElevenLabs failed, using browser transcript');
-            setUseElevenLabs(false);
+            console.log('⚠️ ElevenLabs failed, using browser transcript (this attempt only)');
             const formatted = formatTranscript(transcriptRef.current);
             if (formatted && onTranscript) {
               onTranscript(formatted + ' ');
@@ -223,8 +224,8 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
             onTranscript(formatted + ' ');
           }
         } catch (error) {
-          console.error('❌ ElevenLabs error, using browser transcript:', error);
-          setUseElevenLabs(false);
+          // ✅ CHANGED: Do not permanently disable ElevenLabs on error.
+          console.error('❌ ElevenLabs error, using browser transcript (this attempt only):', error);
           const formatted = formatTranscript(transcriptRef.current);
           if (formatted && onTranscript) {
             onTranscript(formatted + ' ');
@@ -286,54 +287,55 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
   // Normalize audio level to 0-100
   const normalizedLevel = Math.min(100, (audioLevel / 128) * 100);
 
-return (
-  <>
-    {!isListening ? (
-      <button
-        type="button"
-        onClick={startRecording}
-        disabled={disabled}
-        className="voice-mic-icon"
-        aria-label="Start voice dictation"
-      >
-        <Mic size={18} strokeWidth={1.5} />
-        {!isMobile && <span className="voice-tooltip-popup">Dictate</span>}
-      </button>
-    ) : (
-      <div className="voice-recording-state">
+  return (
+    <>
+      {!isListening ? (
         <button
           type="button"
-          onClick={stopAndCancel}
-          className="voice-icon-btn"
-          aria-label="Cancel recording"
+          onClick={startRecording}
+          disabled={disabled}
+          className="voice-mic-icon"
+          aria-label="Start voice dictation"
         >
-          <X size={18} strokeWidth={1.5} />
-          {!isMobile && <span className="voice-tooltip-popup tooltip-white">Cancel</span>}
+          <Mic size={18} strokeWidth={1.5} />
+          {!isMobile && <span className="voice-tooltip-popup">Dictate</span>}
         </button>
-        
-        <div className="voice-waveform-bars">
-          <span className="wave-bar" style={{ height: `${Math.max(20, normalizedLevel * 0.3)}%` }} />
-          <span className="wave-bar" style={{ height: `${Math.max(25, normalizedLevel * 0.4)}%` }} />
-          <span className="wave-bar" style={{ height: `${Math.max(30, normalizedLevel * 0.5)}%` }} />
-          <span className="wave-bar" style={{ height: `${Math.max(35, normalizedLevel * 0.6)}%` }} />
-          <span className="wave-bar" style={{ height: `${Math.max(30, normalizedLevel * 0.5)}%` }} />
-          <span className="wave-bar" style={{ height: `${Math.max(40, normalizedLevel * 0.7)}%` }} />
-          <span className="wave-bar" style={{ height: `${Math.max(35, normalizedLevel * 0.6)}%` }} />
-          <span className="wave-bar" style={{ height: `${Math.max(30, normalizedLevel * 0.5)}%` }} />
-          <span className="wave-bar" style={{ height: `${Math.max(25, normalizedLevel * 0.4)}%` }} />
-          <span className="wave-bar" style={{ height: `${Math.max(20, normalizedLevel * 0.3)}%` }} />
+      ) : (
+        <div className="voice-recording-state">
+          <button
+            type="button"
+            onClick={stopAndCancel}
+            className="voice-icon-btn"
+            aria-label="Cancel recording"
+          >
+            <X size={18} strokeWidth={1.5} />
+            {!isMobile && <span className="voice-tooltip-popup tooltip-white">Cancel</span>}
+          </button>
+          
+          <div className="voice-waveform-bars">
+            <span className="wave-bar" style={{ height: `${Math.max(20, normalizedLevel * 0.3)}%` }} />
+            <span className="wave-bar" style={{ height: `${Math.max(25, normalizedLevel * 0.4)}%` }} />
+            <span className="wave-bar" style={{ height: `${Math.max(30, normalizedLevel * 0.5)}%` }} />
+            <span className="wave-bar" style={{ height: `${Math.max(35, normalizedLevel * 0.6)}%` }} />
+            <span className="wave-bar" style={{ height: `${Math.max(30, normalizedLevel * 0.5)}%` }} />
+            <span className="wave-bar" style={{ height: `${Math.max(40, normalizedLevel * 0.7)}%` }} />
+            <span className="wave-bar" style={{ height: `${Math.max(35, normalizedLevel * 0.6)}%` }} />
+            <span className="wave-bar" style={{ height: `${Math.max(30, normalizedLevel * 0.5)}%` }} />
+            <span className="wave-bar" style={{ height: `${Math.max(25, normalizedLevel * 0.4)}%` }} />
+            <span className="wave-bar" style={{ height: `${Math.max(20, normalizedLevel * 0.3)}%` }} />
+          </div>
+          
+          <button
+            type="button"
+            onClick={stopAndAccept}
+            className="voice-icon-btn"
+            aria-label="Accept recording"
+          >
+            <Check size={18} strokeWidth={1.5} />
+            {!isMobile && <span className="voice-tooltip-popup tooltip-white">Submit</span>}
+          </button>
         </div>
-        
-        <button
-          type="button"
-          onClick={stopAndAccept}
-          className="voice-icon-btn"
-          aria-label="Accept recording"
-        >
-          <Check size={18} strokeWidth={1.5} />
-          {!isMobile && <span className="voice-tooltip-popup tooltip-white">Submit</span>}
-        </button>
-      </div>
-    )}
-  </>
-)}
+      )}
+    </>
+  );
+}
