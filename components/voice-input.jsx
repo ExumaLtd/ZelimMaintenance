@@ -6,7 +6,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
   const [isSupported, setIsSupported] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
-  const [useElevenLabs] = useState(true); // keep enabled; fallback is per-attempt only
+  const [useElevenLabs] = useState(true); // keep enabled; browser is backup-only mode (not run alongside)
 
   const recognitionRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -16,6 +16,10 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
   const streamRef = useRef(null);
   const audioContextRef = useRef(null);
   const analyserRef = useRef(null);
+
+  // ✅ Added: guards to prevent double start/stop
+  const isStartingRef = useRef(false);
+  const isStoppingRef = useRef(false);
 
   useEffect(() => {
     // Detect mobile
@@ -55,7 +59,8 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
         try { recognitionRef.current.stop(); } catch (e) {}
       }
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-        mediaRecorderRef.current.stop();
+        try { mediaRecorderRef.current.requestData(); } catch (e) {}
+        try { mediaRecorderRef.current.stop(); } catch (e) {}
       }
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
@@ -84,12 +89,22 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
         audioContextRef.current = audioContext;
         analyserRef.current = analyser;
 
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        // ✅ CHANGED: use time-domain data for better speech responsiveness
+        const dataArray = new Uint8Array(analyser.fftSize);
 
         const detectLevel = () => {
-          analyser.getByteFrequencyData(dataArray);
-          const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-          setAudioLevel(average);
+          analyser.getByteTimeDomainData(dataArray);
+
+          let sumSquares = 0;
+          for (let i = 0; i < dataArray.length; i++) {
+            const v = (dataArray[i] - 128) / 128; // -1..1
+            sumSquares += v * v;
+          }
+          const rms = Math.sqrt(sumSquares / dataArray.length);
+
+          // Scale RMS to a useful UI range (tweak multiplier to taste)
+          setAudioLevel(rms * 160);
+
           animationFrameRef.current = requestAnimationFrame(detectLevel);
         };
 
@@ -125,6 +140,10 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
   };
 
   const startRecording = async () => {
+    // ✅ Prevent double-start (double click / event fire)
+    if (disabled || isListening || isStartingRef.current) return;
+    isStartingRef.current = true;
+
     console.log('🎤 Starting recording...');
     transcriptRef.current = '';
     audioChunksRef.current = [];
@@ -144,11 +163,21 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
       }
 
       if (useElevenLabs) {
-        const mediaRecorder = new MediaRecorder(stream);
+        // ✅ Choose a supported mimeType to avoid “corrupted webm” issues
+        const preferredTypes = [
+          'audio/webm;codecs=opus',
+          'audio/webm',
+        ];
+        const chosenType = preferredTypes.find((t) => window.MediaRecorder?.isTypeSupported?.(t));
+
+        const mediaRecorder = chosenType
+          ? new MediaRecorder(stream, { mimeType: chosenType })
+          : new MediaRecorder(stream);
+
         mediaRecorderRef.current = mediaRecorder;
 
         mediaRecorder.ondataavailable = (event) => {
-          if (event.data.size > 0) {
+          if (event.data && event.data.size > 0) {
             audioChunksRef.current.push(event.data);
           }
         };
@@ -163,10 +192,15 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
     } catch (error) {
       console.error('Failed to access microphone:', error);
       alert('Could not access microphone. Please allow microphone permissions.');
+    } finally {
+      isStartingRef.current = false;
     }
   };
 
   const stopAndAccept = async () => {
+    if (isStoppingRef.current) return;
+    isStoppingRef.current = true;
+
     console.log('✅ Stop and accept clicked');
     setIsListening(false);
 
@@ -175,12 +209,26 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
       try { recognitionRef.current.stop(); } catch (e) {}
     }
 
-    if (useElevenLabs && mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+    const recorder = mediaRecorderRef.current;
+
+    if (useElevenLabs && recorder && recorder.state === 'recording') {
       console.log('⏹️ Stopping ElevenLabs recording...');
 
-      mediaRecorderRef.current.onstop = async () => {
+      // ✅ Safety timeout so UI never gets stuck
+      const stopSafety = setTimeout(() => {
+        console.warn('⚠️ Recorder stop timeout — forcing cleanup');
+        cleanupStreams();
+        mediaRecorderRef.current = null;
+        audioChunksRef.current = [];
+        transcriptRef.current = '';
+        isStoppingRef.current = false;
+      }, 2000);
+
+      recorder.onstop = async () => {
+        clearTimeout(stopSafety);
+
         console.log('📊 Recording stopped, processing audio...');
-        const mime = mediaRecorderRef.current?.mimeType || 'audio/webm';
+        const mime = recorder?.mimeType || 'audio/webm';
         const audioBlob = new Blob(audioChunksRef.current, { type: mime });
         console.log('Audio blob size:', audioBlob.size, 'bytes');
 
@@ -188,7 +236,11 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
           console.error('❌ Audio blob is empty, using browser transcript');
           const formatted = formatTranscript(transcriptRef.current);
           if (formatted && onTranscript) onTranscript(formatted + ' ');
+          audioChunksRef.current = [];
+          transcriptRef.current = '';
           cleanupStreams();
+          mediaRecorderRef.current = null;
+          isStoppingRef.current = false;
           return;
         }
 
@@ -196,6 +248,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
           console.log('🌐 Sending to ElevenLabs API...');
           const response = await fetch('/api/transcribe-elevenlabs', {
             method: 'POST',
+            headers: { 'x-audio-mime': audioBlob.type },
             body: audioBlob,
           });
 
@@ -219,10 +272,17 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
           if (formatted && onTranscript) onTranscript(formatted + ' ');
         }
 
+        // Reset + cleanup
+        audioChunksRef.current = [];
+        transcriptRef.current = '';
         cleanupStreams();
+        mediaRecorderRef.current = null;
+        isStoppingRef.current = false;
       };
 
-      mediaRecorderRef.current.stop();
+      // ✅ Flush buffered audio before stopping (helps avoid corruption / missing tail)
+      try { recorder.requestData(); } catch (e) {}
+      recorder.stop();
     } else {
       console.log('🗣️ Using browser transcript');
       setTimeout(() => {
@@ -231,11 +291,15 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
         if (formatted && onTranscript) onTranscript(formatted + ' ');
         transcriptRef.current = '';
         cleanupStreams();
+        isStoppingRef.current = false;
       }, 300);
     }
   };
 
   const stopAndCancel = () => {
+    if (isStoppingRef.current) return;
+    isStoppingRef.current = true;
+
     console.log('❌ Cancelled');
     setIsListening(false);
     transcriptRef.current = '';
@@ -245,11 +309,15 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
       try { recognitionRef.current.stop(); } catch (e) {}
     }
 
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-      mediaRecorderRef.current.stop();
+    const recorder = mediaRecorderRef.current;
+    if (recorder && recorder.state === 'recording') {
+      try { recorder.requestData(); } catch (e) {}
+      try { recorder.stop(); } catch (e) {}
     }
 
     cleanupStreams();
+    mediaRecorderRef.current = null;
+    isStoppingRef.current = false;
   };
 
   const cleanupStreams = () => {
@@ -261,11 +329,15 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
       audioContextRef.current.close();
       audioContextRef.current = null;
     }
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
   };
 
   if (!isSupported) return null;
 
-  const normalizedLevel = Math.min(100, (audioLevel / 128) * 100);
+  const normalizedLevel = Math.min(100, audioLevel);
 
   return (
     <>
@@ -293,16 +365,16 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
           </button>
 
           <div className="voice-waveform-bars">
-            <span className="wave-bar" style={{ height: `${Math.max(20, normalizedLevel * 0.3)}%` }} />
-            <span className="wave-bar" style={{ height: `${Math.max(25, normalizedLevel * 0.4)}%` }} />
-            <span className="wave-bar" style={{ height: `${Math.max(30, normalizedLevel * 0.5)}%` }} />
-            <span className="wave-bar" style={{ height: `${Math.max(35, normalizedLevel * 0.6)}%` }} />
-            <span className="wave-bar" style={{ height: `${Math.max(30, normalizedLevel * 0.5)}%` }} />
-            <span className="wave-bar" style={{ height: `${Math.max(40, normalizedLevel * 0.7)}%` }} />
-            <span className="wave-bar" style={{ height: `${Math.max(35, normalizedLevel * 0.6)}%` }} />
-            <span className="wave-bar" style={{ height: `${Math.max(30, normalizedLevel * 0.5)}%` }} />
-            <span className="wave-bar" style={{ height: `${Math.max(25, normalizedLevel * 0.4)}%` }} />
-            <span className="wave-bar" style={{ height: `${Math.max(20, normalizedLevel * 0.3)}%` }} />
+            <span className="wave-bar" style={{ height: `${Math.max(8, normalizedLevel * 0.3)}%` }} />
+            <span className="wave-bar" style={{ height: `${Math.max(10, normalizedLevel * 0.4)}%` }} />
+            <span className="wave-bar" style={{ height: `${Math.max(12, normalizedLevel * 0.5)}%` }} />
+            <span className="wave-bar" style={{ height: `${Math.max(14, normalizedLevel * 0.6)}%` }} />
+            <span className="wave-bar" style={{ height: `${Math.max(12, normalizedLevel * 0.5)}%` }} />
+            <span className="wave-bar" style={{ height: `${Math.max(16, normalizedLevel * 0.7)}%` }} />
+            <span className="wave-bar" style={{ height: `${Math.max(14, normalizedLevel * 0.6)}%` }} />
+            <span className="wave-bar" style={{ height: `${Math.max(12, normalizedLevel * 0.5)}%` }} />
+            <span className="wave-bar" style={{ height: `${Math.max(10, normalizedLevel * 0.4)}%` }} />
+            <span className="wave-bar" style={{ height: `${Math.max(8, normalizedLevel * 0.3)}%` }} />
           </div>
 
           <button
