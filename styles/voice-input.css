@@ -86,7 +86,7 @@
   height: 18px;
 }
 
-/* Don’t fade the whole button (that fades the tooltip too) */
+/* Dont fade the whole button (that fades the tooltip too) */
 .voice-icon-btn:hover {
   transform: scale(1.1);
 }
@@ -110,7 +110,7 @@
 }
 
 .wave-bar {
-  width: 1.5px; /* ✅ was 2px */
+  width: 1.0px;
   background: white;
   border-radius: 1px;
   transition: height 0.06s ease-out;
@@ -119,7 +119,7 @@
   will-change: height, transform;
 }
 
-/* ChatGPT-ish idle motion: subtle, not constant “equaliser” */
+/* ChatGPT-ish idle motion: subtle, not constant equaliser */
 .voice-waveform-bars.idle .wave-bar {
   animation: voiceIdle 1.1s ease-in-out infinite;
   opacity: 0.9;

@@ -50,6 +50,32 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
 
+  // ✅ NEW: store refs to each question textarea so we can auto-grow after VoiceInput appends text
+  // (VoiceInput updates state programmatically, which does NOT trigger textarea onInput)
+  const questionTextareaRefs = useRef({});
+
+  // ✅ NEW: schedule autoGrow after React has re-rendered (double rAF = safer)
+  const scheduleAutoGrowFor = (questionKey) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const el = questionTextareaRefs.current?.[questionKey];
+        if (el) autoGrow(el);
+      });
+    });
+  };
+
+  // ✅ NEW: helper for draft loads (when multiple answers get set at once)
+  const scheduleAutoGrowAll = () => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const refs = questionTextareaRefs.current || {};
+        Object.values(refs).forEach((el) => {
+          if (el) autoGrow(el);
+        });
+      });
+    });
+  };
+
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [today, setToday] = useState("");
@@ -145,6 +171,9 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
         if (key.startsWith("q")) draftAnswers[key] = data[key];
       });
       setAnswers(draftAnswers);
+
+      // ✅ NEW: after draft answers load, grow any populated textareas so content doesn't sit under the VoiceInput overlay
+      scheduleAutoGrowAll();
     } catch (e) {
       console.error("Draft load error:", e);
     }
@@ -180,6 +209,9 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
           if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
           
           console.log('✓ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
+
+          // ✅ NEW: ensure textareas reflect the loaded content height (prevents overlap with VoiceInput)
+          scheduleAutoGrowAll();
         }
       } catch (error) {
         console.error('Failed to load draft:', error);
@@ -717,41 +749,53 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                     )}
                     
                     <div className="question-with-upload">
-  <div className="textarea-wrapper">
-    <textarea
-      name={`q${i + 1}`}
-      className="checklist-textarea"
-      onInput={autoGrow}
-      value={answers[`q${i + 1}`] || ""}
-      onChange={(e) => {
-        setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-        if (e.target.value.trim()) {
-          e.target.classList.remove('has-error');
-        }
-      }}
-      required={q.required}
-    />
-    <VoiceInput
-      onTranscript={(text) => {
-        const questionKey = `q${i + 1}`;
-        setAnswers((prev) => ({
-          ...prev,
-          [questionKey]: (prev[questionKey] || '') + text
-        }));
-      }}
-    />
-  </div>
+                      <div className="textarea-wrapper">
+                        <textarea
+                          // ✅ NEW: ref per question so we can grow it after voice transcript appends text
+                          ref={(el) => {
+                            const key = `q${i + 1}`;
+                            if (el) questionTextareaRefs.current[key] = el;
+                          }}
+                          name={`q${i + 1}`}
+                          className="checklist-textarea"
+                          onInput={autoGrow}
+                          value={answers[`q${i + 1}`] || ""}
+                          onChange={(e) => {
+                            setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+                            if (e.target.value.trim()) {
+                              e.target.classList.remove('has-error');
+                            }
+                          }}
+                          required={q.required}
+                        />
+
+                        <VoiceInput
+                          onTranscript={(text) => {
+                            const questionKey = `q${i + 1}`;
+
+                            // ✅ VoiceInput updates state programmatically, so textarea onInput does NOT fire.
+                            // We append text, then explicitly auto-grow that textarea so it expands instead of
+                            // letting text run underneath the VoiceInput overlay.
+                            setAnswers((prev) => ({
+                              ...prev,
+                              [questionKey]: (prev[questionKey] || '') + text
+                            }));
+
+                            scheduleAutoGrowFor(questionKey);
+                          }}
+                        />
+                      </div>
                       
                       {q.allow_uploads && (
-  <ImageUploader
-    questionKey={`q${i + 1}`}
-    questionText={q.title}
-    serialNumber={unit?.serial_number}
-    maintenanceType="unscheduled"
-    initialImages={questionImages[`q${i + 1}`] || []}
-    onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
-  />
-)}
+                        <ImageUploader
+                          questionKey={`q${i + 1}`}
+                          questionText={q.title}
+                          serialNumber={unit?.serial_number}
+                          maintenanceType="unscheduled"
+                          initialImages={questionImages[`q${i + 1}`] || []}
+                          onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
+                        />
+                      )}
                     </div>
                   </div>
                 ))}

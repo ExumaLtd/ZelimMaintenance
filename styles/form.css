@@ -264,6 +264,29 @@
   line-height: 20px !important;
 }
 
+/* Reserve space for VoiceInput overlay (mic/wave/cancel/submit) - ONLY on question textareas */
+.form-scope .question-with-upload .textarea-wrapper {
+  position: relative; /* ensures overlay is anchored correctly */
+}
+
+/* Ensure the VoiceInput overlay sits above the textarea and doesn't steal space visually */
+.form-scope .question-with-upload .textarea-wrapper .voice-recording-state,
+.form-scope .question-with-upload .textarea-wrapper .voice-mic-icon {
+  z-index: 20;
+}
+
+/* Add padding so text never sits under the VoiceInput UI */
+.form-scope .question-with-upload .textarea-wrapper .checklist-textarea {
+  padding-right: 56px !important;   /* avoids text under right-side icons */
+  padding-bottom: 56px !important;  /* avoids last lines under bottom overlay */
+}
+
+/* Keeps textarea growth behaving properly when content grows */
+.form-scope .question-with-upload .textarea-wrapper .checklist-textarea {
+  overflow: hidden;
+  resize: none;
+}
+
 .form-scope .checklist-input:-webkit-autofill,
 .form-scope .checklist-input:-webkit-autofill:hover,
 .form-scope .checklist-input:-webkit-autofill:focus {
@@ -283,6 +306,7 @@
 .form-scope .checklist-textarea:focus {
   border-color: #00FFF6 !important;
 }
+
 
 .form-scope .input-icon-wrapper select.checklist-input {
   padding-right: 40px;
