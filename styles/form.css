@@ -1583,12 +1583,15 @@
   transition: all 0.15s ease !important;
   padding: 0 !important;
   position: relative !important;
+  -webkit-tap-highlight-color: transparent !important;
+  outline: none !important;
 }
 
 .form-scope .rdp-button_previous:disabled,
 .form-scope .rdp-button_next:disabled {
   opacity: 0.3 !important;
   cursor: not-allowed !important;
+  pointer-events: none !important;
 }
 
 /* Add Lucide chevrons via pseudo-elements */
@@ -1621,21 +1624,12 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2300FFF6' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E");
 }
 
-/* Disabled next button - stays white, no hover */
-.form-scope .rdp-button_next:disabled::before {
-  opacity: 0.3 !important;
-}
-
-.form-scope .rdp-button_next:disabled:hover::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23F7F7F7' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E") !important;
-}
-
 /* Table */
 .form-scope .rdp-month_grid {
   margin: 0 !important;
 }
 
-/* Weekday headers */
+/* Weekday headers - letter-spacing ONLY here */
 .form-scope .rdp-weekday {
   color: #FFFFFF !important;
   font-weight: 600 !important;
@@ -1662,7 +1656,7 @@
   display: none !important;
 }
 
-/* Day buttons */
+/* Day buttons - NO letter-spacing */
 .form-scope .rdp-day_button {
   width: 36px !important;
   height: 36px !important;
@@ -1678,7 +1672,9 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  letter-spacing: 1px !important;
+  -webkit-tap-highlight-color: transparent !important;
+  outline: none !important;
+  letter-spacing: 0 !important;
 }
 
 .form-scope .rdp-day_button:hover:not(:disabled) {
@@ -1748,53 +1744,6 @@
   }
   
   .form-scope .rdp-weekday {
-    font-size: 12px !important;
+    font-size: 14px !important;
   }
-}
-
-/* Disabled buttons - no pointer cursor */
-.form-scope .rdp-button_previous:disabled,
-.form-scope .rdp-button_next:disabled {
-  opacity: 0.3 !important;
-  cursor: not-allowed !important;
-  pointer-events: none !important;
-}
-
-/* Remove mobile tap highlight and focus effects */
-.form-scope .rdp-button_previous,
-.form-scope .rdp-button_next {
-  width: 28px !important;
-  height: 28px !important;
-  background: transparent !important;
-  border: none !important;
-  cursor: pointer !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  transition: all 0.15s ease !important;
-  padding: 0 !important;
-  position: relative !important;
-  -webkit-tap-highlight-color: transparent !important;
-  outline: none !important;
-}
-
-/* Remove mobile tap highlight from day buttons */
-.form-scope .rdp-day_button {
-  width: 36px !important;
-  height: 36px !important;
-  border-radius: 100% !important;
-  color: #FFFFFF !important;
-  background: transparent !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  cursor: pointer !important;
-  font-family: "Montserrat", sans-serif !important;
-  border: none !important;
-  transition: all 0.15s ease !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  letter-spacing: 1px !important;
-  -webkit-tap-highlight-color: transparent !important;
-  outline: none !important;
 }
