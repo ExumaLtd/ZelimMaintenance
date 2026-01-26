@@ -15,6 +15,7 @@ export default function Home() {
   const router = useRouter();
   const scannerRef = useRef(null);
   const hasNavigatedRef = useRef(false);
+  const abortControllerRef = useRef(null);
 
   const isIOS = () => typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
   const isAndroid = () => typeof navigator !== "undefined" && /Android/.test(navigator.userAgent);
@@ -47,8 +48,12 @@ export default function Home() {
   }, []);
 
   const resolveAndNavigate = async (code) => {
+    abortControllerRef.current = new AbortController();
+    
     try {
-      const res = await fetch(`/api/swift-resolve-pin?pin=${encodeURIComponent(code)}`);
+      const res = await fetch(`/api/swift-resolve-pin?pin=${encodeURIComponent(code)}`, {
+        signal: abortControllerRef.current.signal
+      });
       
       if (!res.ok) return null;
       
@@ -62,7 +67,8 @@ export default function Home() {
           body: JSON.stringify({
             publicToken: data.publicToken,
             accessType: data.accessType
-          })
+          }),
+          signal: abortControllerRef.current.signal
         });
         
         if (sessionRes.ok) {
@@ -72,6 +78,7 @@ export default function Home() {
       
       return null;
     } catch (err) {
+      if (err.name === 'AbortError') return null;
       console.error('PIN resolution error:', err);
       return null;
     }
@@ -127,7 +134,9 @@ export default function Home() {
     }
 
     // Extract code from path-like strings
-    const code = decodedText.includes('/') ? decodedText.split('/').pop() : decodedText;
+    const code = decodedText.includes('/') 
+      ? decodedText.split('/').filter(Boolean).pop() 
+      : decodedText;
     const data = await resolveAndNavigate(code);
     
     if (data?.success) {
@@ -171,6 +180,11 @@ export default function Home() {
   };
 
   const stopScanner = async () => {
+    // Abort any pending requests
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
     if (scannerRef.current) {
       try {
         await scannerRef.current.stop();
@@ -201,7 +215,7 @@ export default function Home() {
   return (
     <div className="landing-scope">
       <Head>
-        <title>SWIFT Maintenance Portal</title>
+        <title>Zelim Maintenance Portal</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <style>{`
           #reader__status_span,
@@ -231,11 +245,11 @@ export default function Home() {
           <div className="landing-main">
             <div className="landing-header">
               <h1 className="landing-title">
-                <span>SWIFT</span>
+                <span>Zelim</span>
                 <span>maintenance portal</span>
               </h1>
               <p className="landing-subtitle">
-                For authorised engineers carrying out official inspections and scheduled servicing.
+                For authorised persons carrying out official inspections and scheduled servicing.
               </p>
             </div>
 
