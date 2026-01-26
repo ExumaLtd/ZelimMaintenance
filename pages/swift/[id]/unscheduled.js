@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Image from "next/image";
 import { getCompanyLogoUrl } from '../../../utils/get-company-logo';
 import ImageUploader from '../../../components/image-uploader';
-import VoiceInput from '../../../components/voice-input'; 
+import VoiceInput from '../../../components/voice-input';
+import DatePicker from '../../../components/date-picker';
 import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
 import { useAutoSave } from '../../../hooks/use-auto-save';
 
@@ -49,36 +50,11 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
   const engineerFieldRef = useRef(null);
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
-  const userEnteredLocation = useRef(false);
-
-  // Store refs to each question textarea so we can auto-grow after VoiceInput appends text
-  const questionTextareaRefs = useRef({});
-
-  // Schedule autoGrow after React has re-rendered (double rAF = safer)
-  const scheduleAutoGrowFor = (questionKey) => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const el = questionTextareaRefs.current?.[questionKey];
-        if (el) autoGrow(el);
-      });
-    });
-  };
-
-  // Helper for draft loads (when multiple answers get set at once)
-  const scheduleAutoGrowAll = () => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const refs = questionTextareaRefs.current || {};
-        Object.values(refs).forEach((el) => {
-          if (el) autoGrow(el);
-        });
-      });
-    });
-  };
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [today, setToday] = useState("");
+  const [maintenanceDate, setMaintenanceDate] = useState(new Date().toISOString().split("T")[0]);
   const [fieldErrors, setFieldErrors] = useState({
     company: false,
     location: false,
@@ -87,50 +63,51 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
     engineerPhone: false,
   });
 
+  const [answers, setAnswers] = useState({});
+  const [questionImages, setQuestionImages] = useState({});
+
   const [locationDisplay, setLocationDisplay] = useState("");
   const [locationCountry, setLocationCountry] = useState("");
   const [selectedCompany, setSelectedCompany] = useState("");
   const [engName, setEngName] = useState("");
   const [engEmail, setEngEmail] = useState("");
   const [engPhone, setEngPhone] = useState("");
-  const [answers, setAnswers] = useState({});
-  const [questionImages, setQuestionImages] = useState({});
 
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
 
-  const storageKey = `draft_unscheduled_${unit?.serial_number}`;
+  const storageKey = useMemo(() => `draft_unscheduled_${unit?.serial_number}`, [unit?.serial_number]);
 
-// Auto-save draft to Airtable
-useAutoSave({
-  unitId: unit?.record_id,
-  maintenanceType: 'Unscheduled',
-  engineerEmail: engEmail,
-  draftData: {
-    answers,
-    questionImages,
-    selectedCompany,
-    locationDisplay,
-    locationCountry,
-    engName,
-    engEmail,
-    engPhone,
-  }
-}, 
-  // ✅ Save if there's ANY content, not just when email is valid
-  Object.keys(answers).some(key => answers[key]?.trim()) || // Has any answers
-  Object.keys(questionImages).length > 0 || // Has any images
-  selectedCompany || // Has company selected
-  locationDisplay?.trim() || // Has location
-  engName?.trim() || // Has engineer name
-  engEmail?.trim() || // Has email (even if invalid)
-  engPhone?.trim() // Has phone
-);
+  // Auto-save draft to Airtable - ✅ Updated condition
+  useAutoSave({
+    unitId: unit?.record_id,
+    maintenanceType: 'Unscheduled',
+    engineerEmail: engEmail,
+    draftData: {
+      answers,
+      questionImages,
+      selectedCompany,
+      locationDisplay,
+      locationCountry,
+      engName,
+      engEmail,
+      engPhone,
+    }
+  }, 
+    // ✅ Save if there's ANY content, not just when email is valid
+    Object.keys(answers).some(key => answers[key]?.trim()) || // Has any answers
+    Object.keys(questionImages).length > 0 || // Has images
+    selectedCompany || // Has company selected
+    locationDisplay?.trim() || // Has location
+    engName?.trim() || // Has engineer name
+    engEmail?.trim() || // Has email (even if invalid)
+    engPhone?.trim() // Has phone
+  );
 
   const filteredEngineers = useMemo(() => {
     if (!selectedCompany) return [];
     let list = allEngineers.filter(e => e.companyName === selectedCompany && e.name !== engName);
-    
+
     if (engName && engName !== "Please select" && engName.trim()) {
       const search = engName.toLowerCase();
       return list.filter(e => e.name.toLowerCase().includes(search));
@@ -138,7 +115,52 @@ useAutoSave({
     return list;
   }, [selectedCompany, engName, allEngineers]);
 
-  // Close dropdowns on outside click
+  const selectCompany = useCallback((company) => {
+    setSelectedCompany(company);
+    setEngName("Please select");
+    setEngEmail("");
+    setEngPhone("");
+    setShowCompanyDropdown(false);
+    setFieldErrors(prev => ({ ...prev, company: false }));
+  }, []);
+
+  const selectEngineer = useCallback((engineer) => {
+    setEngName(engineer.name);
+    setEngEmail(engineer.email || "");
+    setEngPhone(engineer.phone || "");
+    setShowEngineerDropdown(false);
+    setFieldErrors(prev => ({
+      ...prev,
+      engineerName: false,
+      engineerEmail: engineer.email ? false : prev.engineerEmail,
+      engineerPhone: engineer.phone ? false : prev.engineerPhone,
+    }));
+    const engineerInput = document.querySelector('[name="engineer_name"]');
+    if (engineerInput) engineerInput.classList.remove('has-error');
+    if (engineer.email) {
+      const emailInput = document.querySelector('[name="engineer_email"]');
+      if (emailInput) emailInput.classList.remove('has-error');
+    }
+    if (engineer.phone) {
+      const phoneInput = document.querySelector('[name="engineer_phone"]');
+      if (phoneInput) phoneInput.classList.remove('has-error');
+    }
+  }, []);
+
+  const clearEngineer = useCallback(() => {
+    setEngName("");
+    setEngEmail("");
+    setEngPhone("");
+    setShowEngineerDropdown(false);
+  }, []);
+
+  const handleImagesChange = (questionKey, images) => {
+    setQuestionImages(prev => ({
+      ...prev,
+      [questionKey]: images
+    }));
+  };
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (companyDropdownRef.current && !companyDropdownRef.current.contains(event.target)) {
@@ -159,7 +181,7 @@ useAutoSave({
     // Don't load localStorage if coming from "Continue maintenance"
     const urlParams = new URLSearchParams(window.location.search);
     const isDraft = urlParams.get('draft') === 'true';
-    if (isDraft) return; // Skip localStorage when loading from Airtable
+    if (isDraft) return;
     
     const savedDraft = localStorage.getItem(storageKey);
     if (!savedDraft) return;
@@ -169,7 +191,6 @@ useAutoSave({
       if (data.maintained_by) setSelectedCompany(data.maintained_by);
       if (data.location_display && data.location_display.trim()) {
         setLocationDisplay(data.location_display);
-        userEnteredLocation.current = true; // Mark as user-entered from draft
       }
       if (data.location_country) setLocationCountry(data.location_country);
       if (data.engineer_name) setEngName(data.engineer_name);
@@ -181,9 +202,6 @@ useAutoSave({
         if (key.startsWith("q")) draftAnswers[key] = data[key];
       });
       setAnswers(draftAnswers);
-
-      // After draft answers load, grow any populated textareas
-      scheduleAutoGrowAll();
     } catch (e) {
       console.error("Draft load error:", e);
     }
@@ -212,21 +230,13 @@ useAutoSave({
           if (data.draft.answers) setAnswers(data.draft.answers);
           if (data.draft.questionImages) setQuestionImages(data.draft.questionImages);
           if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
-          if (data.draft.locationDisplay) {
-            setLocationDisplay(data.draft.locationDisplay);
-            userEnteredLocation.current = true; // Mark as user-entered from draft
-          }
+          if (data.draft.locationDisplay) setLocationDisplay(data.draft.locationDisplay);
           if (data.draft.locationCountry) setLocationCountry(data.draft.locationCountry);
           if (data.draft.engName) setEngName(data.draft.engName);
           if (data.draft.engEmail) setEngEmail(data.draft.engEmail);
           if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
           
-          if (process.env.NODE_ENV === 'development') {
-            console.log('✓ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
-          }
-
-          // Ensure textareas reflect the loaded content height
-          scheduleAutoGrowAll();
+          console.log('✓ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
         }
       } catch (error) {
         console.error('Failed to load draft:', error);
@@ -234,7 +244,7 @@ useAutoSave({
     };
     
     loadDraft();
-  }, [unit?.record_id]);
+  }, [unit?.record_id, template]);
 
   // Get geolocation
   useEffect(() => {
@@ -278,11 +288,7 @@ useAutoSave({
             const shortCountry = displayCountry === "GB" ? "UK" : displayCountry;
             const combinedDisplay = loc ? `${loc}, ${shortCountry}` : shortCountry;
 
-            setLocationDisplay((prev) => {
-              // Don't override if user manually entered location
-              if (userEnteredLocation.current) return prev;
-              return (!prev || prev.trim() === "") ? combinedDisplay : prev;
-            });
+            setLocationDisplay((prev) => (!prev || prev.trim() === "") ? combinedDisplay : prev);
             setLocationCountry(formalCountry);
           }
         } catch (err) {
@@ -306,28 +312,25 @@ useAutoSave({
       },
       options
     );
-  }, [locationDisplay]);
+  }, []);
 
-// Pre-request microphone permission on page load
-useEffect(() => {
-  if (typeof window === "undefined" || !navigator.mediaDevices) return;
-  
-  // Request microphone permission early (silent request)
-  navigator.mediaDevices.getUserMedia({ audio: true })
-    .then(stream => {
-      // Permission granted - immediately close the stream
-      stream.getTracks().forEach(track => track.stop());
-      if (process.env.NODE_ENV === 'development') {
-        console.log('✓ Microphone permission pre-granted');
-      }
-    })
-    .catch(err => {
-      // User denied or error - that's okay, VoiceInput will handle it later
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Microphone permission denied or unavailable:', err.message);
-      }
-    });
-}, []);
+  // Pre-request microphone permission on page load
+  useEffect(() => {
+    if (typeof window === "undefined" || !navigator.mediaDevices) return;
+    
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        stream.getTracks().forEach(track => track.stop());
+        if (process.env.NODE_ENV === 'development') {
+          console.log('✓ Microphone permission pre-granted');
+        }
+      })
+      .catch(err => {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Microphone permission denied or unavailable:', err.message);
+        }
+      });
+  }, []);
 
   // Save draft to localStorage
   useEffect(() => {
@@ -342,53 +345,6 @@ useEffect(() => {
     };
     localStorage.setItem(storageKey, JSON.stringify(draftData));
   }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, answers, storageKey]);
-
-  const selectCompany = (company) => {
-    setSelectedCompany(company);
-    setEngName("Please select");
-    setEngEmail("");
-    setEngPhone("");
-    setShowCompanyDropdown(false);
-    setFieldErrors(prev => ({ ...prev, company: false }));
-  };
-
-  const selectEngineer = (engineer) => {
-    setEngName(engineer.name);
-    setEngEmail(engineer.email || "");
-    setEngPhone(engineer.phone || "");
-    setShowEngineerDropdown(false);
-    setFieldErrors(prev => ({
-      ...prev,
-      engineerName: false,
-      engineerEmail: engineer.email ? false : prev.engineerEmail,
-      engineerPhone: engineer.phone ? false : prev.engineerPhone,
-    }));
-    const engineerInput = document.querySelector('[name="engineer_name"]');
-    if (engineerInput) engineerInput.classList.remove('has-error');
-    if (engineer.email) {
-      const emailInput = document.querySelector('[name="engineer_email"]');
-      if (emailInput) emailInput.classList.remove('has-error');
-    }
-    if (engineer.phone) {
-      const phoneInput = document.querySelector('[name="engineer_phone"]');
-      if (phoneInput) phoneInput.classList.remove('has-error');
-    }
-  };
-
-  const clearEngineer = () => {
-    setEngName("");
-    setEngEmail("");
-    setEngPhone("");
-    setShowEngineerDropdown(false);
-  };
-
-  const handleImagesChange = (questionKey, images) => {
-    setQuestionImages(prev => ({
-      ...prev,
-      [questionKey]: images
-    }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
@@ -406,6 +362,7 @@ useEffect(() => {
 
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
 
+    // Validate top fields
     if (!selectedCompany || selectedCompany === "Please select") {
       errors.push({ field: 'company', message: 'Please select a maintenance company.' });
       newFieldErrors.company = true;
@@ -416,45 +373,22 @@ useEffect(() => {
       errors.push({ field: 'location', message: 'Please provide a location.' });
       newFieldErrors.location = true;
       if (!firstErrorField) firstErrorField = locationFieldRef;
-      const locationInput = document.querySelector('[name="location_display"]');
-      if (locationInput) locationInput.classList.add('has-error');
-    }
-
-    const dateInput = document.querySelector('[name="date_of_maintenance"]');
-    if (!dateInput || !dateInput.value) {
-      errors.push({ field: 'date', message: 'Please provide a maintenance date.' });
-      if (dateInput) dateInput.classList.add('has-error');
-      if (!firstErrorField) firstErrorField = { current: dateInput };
     }
 
     if (!engName || engName === "Please select" || !engName.trim()) {
       errors.push({ field: 'engineer', message: 'Please select or enter an engineer name.' });
       newFieldErrors.engineerName = true;
       if (!firstErrorField) firstErrorField = engineerFieldRef;
-      const engineerInput = document.querySelector('[name="engineer_name"]');
-      if (engineerInput) engineerInput.classList.add('has-error');
     }
 
     if (!engEmail || !engEmail.trim()) {
-      errors.push({ field: 'engineer_email', message: 'Please provide an engineer email.' });
+      errors.push({ field: 'email', message: 'Please provide an engineer email.' });
       newFieldErrors.engineerEmail = true;
-      if (!firstErrorField) {
-        const emailInput = document.querySelector('[name="engineer_email"]');
-        if (emailInput) firstErrorField = { current: emailInput };
-      }
-      const emailInput = document.querySelector('[name="engineer_email"]');
-      if (emailInput) emailInput.classList.add('has-error');
     }
 
     if (!engPhone || !engPhone.trim()) {
-      errors.push({ field: 'engineer_phone', message: 'Please provide an engineer phone number.' });
+      errors.push({ field: 'phone', message: 'Please provide an engineer phone number.' });
       newFieldErrors.engineerPhone = true;
-      if (!firstErrorField) {
-        const phoneInput = document.querySelector('[name="engineer_phone"]');
-        if (phoneInput) firstErrorField = { current: phoneInput };
-      }
-      const phoneInput = document.querySelector('[name="engineer_phone"]');
-      if (phoneInput) phoneInput.classList.add('has-error');
     }
 
     const requiredQuestions = (template?.questionsData || []).filter(q => q.required);
@@ -488,9 +422,6 @@ useEffect(() => {
           setTimeout(() => {
             if (firstErrorField.current.focus) {
               firstErrorField.current.focus();
-            } else if (firstErrorField.current.querySelector) {
-              const input = firstErrorField.current.querySelector('.checklist-input');
-              if (input) input.focus();
             }
           }, 300);
         }
@@ -572,14 +503,22 @@ useEffect(() => {
             maintenance_company: selectedCompany,
             engineer_name: engName,
             location_display: locationDisplay,
+            date_of_maintenance: new Date().toISOString().split('T')[0],
+            time_of_maintenance: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
           },
         }),
+      });
+
+      (template?.questionsData || []).forEach((_, i) => {
+        const questionKey = `q${i + 1}`;
+        const imageStorageKey = `images_unscheduled_${unit?.serial_number}_${questionKey}`;
+        localStorage.removeItem(imageStorageKey);
       });
 
       localStorage.setItem("last_submitted_sn", unit?.serial_number);
       localStorage.setItem("last_maintenance_type", "Unscheduled");
       localStorage.removeItem(storageKey);
-      router.push('/portal/swift/unscheduled-complete');
+      router.push(`/portal/swift/unscheduled-complete`);
     } catch (err) {
       setErrorMsg(err.message);
       setSubmitting(false);
@@ -587,8 +526,9 @@ useEffect(() => {
   };
 
   const logo = getClientLogo(unit?.company, unit?.serial_number);
-  const shouldShowEngDropdown = showEngineerDropdown && 
-    (filteredEngineers.length > 0 || (engName && engName !== "Please select"));
+  const hasEngineerResults = filteredEngineers.length > 0;
+  const hasClearEng = engName && engName !== "Please select" && engName !== "";
+  const shouldShowEngDropdown = showEngineerDropdown && (hasEngineerResults || hasClearEng);
 
   return (
     <div className="form-scope">
@@ -610,199 +550,186 @@ useEffect(() => {
               <span className="break-point">unscheduled maintenance</span>
             </h1>
 
-            <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-              <div className="checklist-form-card">
-                <div className="checklist-inline-group">
-                  <div className="checklist-field" ref={companyFieldRef}>
-                    <label className="checklist-label">Maintenance company</label>
-                    <div className="custom-dropdown-container" ref={companyDropdownRef}>
-                      <div className="field-icon-wrapper">
-                        <input
-                          readOnly
-                          className={`checklist-input ${selectedCompany ? "is-active" : "is-placeholder"} ${
-                            showCompanyDropdown ? "is-focused" : ""
-                          } ${fieldErrors.company ? "has-error" : ""}`}
-                          value={selectedCompany || "Please select"}
-                          onClick={() => {
-                            setShowCompanyDropdown(!showCompanyDropdown);
-                            setFieldErrors(prev => ({ ...prev, company: false }));
-                          }}
-                          style={{ cursor: "pointer", paddingRight: "40px" }}
-                        />
-                        <div className="field-icon-inside">
-                          {showCompanyDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
-                        </div>
-                      </div>
-                      {showCompanyDropdown && (
-                        <ul className={`custom-dropdown-list ${fieldErrors.company ? "has-error" : ""}`}>
-                          {allCompanies.sort().map((c, i) => (
-                            <li
-                              key={i}
-                              className={`custom-dropdown-item ${selectedCompany === c ? "active" : ""}`}
-                              onClick={() => selectCompany(c)}
-                            >
-                              {c}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="checklist-field" ref={locationFieldRef}>
-                    <label className="checklist-label">Location</label>
-                    <input
-                      className="checklist-input"
-                      name="location_display"
-                      required
-                      value={locationDisplay}
-                      onChange={(e) => {
-                        setLocationDisplay(e.target.value);
-                        userEnteredLocation.current = true;
-                        if (e.target.value.trim()) {
-                          e.target.classList.remove('has-error');
-                        }
-                      }}
-                    />
-                  </div>
-
-                  <div className="checklist-field">
-                    <label className="checklist-label">Date</label>
+            {/* CARD 1: ADMIN FIELDS */}
+            <div className="checklist-form-card">
+              <div className="checklist-inline-group">
+                <div className="checklist-field" ref={companyFieldRef}>
+                  <label className="checklist-label">Maintenance company</label>
+                  <div className="custom-dropdown-container" ref={companyDropdownRef}>
                     <div className="field-icon-wrapper">
                       <input
-                        type="date"
-                        className="checklist-input"
-                        name="date_of_maintenance"
-                        defaultValue={today}
-                        max={today}
-                        required
-                        style={{ paddingRight: "40px" }}
+                        readOnly
+                        className={`checklist-input ${selectedCompany ? "is-active" : "is-placeholder"} ${
+                          showCompanyDropdown ? "is-focused" : ""
+                        } ${fieldErrors.company ? "has-error" : ""}`}
+                        value={selectedCompany || "Please select"}
+                        onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
+                        style={{ cursor: "pointer", paddingRight: "40px" }}
                       />
                       <div className="field-icon-inside">
-                        <Calendar size={20} strokeWidth={1.5} />
+                        {showCompanyDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
                       </div>
                     </div>
+                    {showCompanyDropdown && (
+                      <ul className={`custom-dropdown-list ${fieldErrors.company ? "has-error" : ""}`}>
+                        {allCompanies.sort().map((c, i) => (
+                          <li
+                            key={i}
+                            className={`custom-dropdown-item ${selectedCompany === c ? "active" : ""}`}
+                            onClick={() => selectCompany(c)}
+                          >
+                            {c}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
 
-                <div className="checklist-inline-group" style={{ marginTop: "24px" }}>
-                  <div className="checklist-field" ref={engineerFieldRef}>
-                    <label className="checklist-label">Engineer name</label>
-                    <div className="custom-dropdown-container" ref={engineerDropdownRef}>
-                      <div className="field-icon-wrapper">
-                        <input
-                          className={`checklist-input ${
-                            engName === "Please select" || !engName ? "is-placeholder" : "is-active"
-                          } ${shouldShowEngDropdown ? "is-focused" : ""} ${fieldErrors.engineerName ? "has-error" : ""}`}
-                          name="engineer_name"
-                          required
-                          value={engName}
-                          autoComplete="off"
-                          onFocus={() => {
-                            if (selectedCompany) setShowEngineerDropdown(true);
-                          }}
-                          onChange={(e) => {
-                            setEngName(e.target.value);
-                            if (selectedCompany) setShowEngineerDropdown(true);
-                            if (e.target.value.trim() && e.target.value !== "Please select") {
-                              setFieldErrors(prev => ({ ...prev, engineerName: false }));
-                            }
-                          }}
-                          style={{
-                            paddingRight: selectedCompany && shouldShowEngDropdown ? "40px" : "16px",
-                          }}
-                        />
-                        {selectedCompany && shouldShowEngDropdown && (
-                          <div className="field-icon-inside">
-                            {showEngineerDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
-                          </div>
-                        )}
-                      </div>
-                      {shouldShowEngDropdown && (
-                        <ul className={`custom-dropdown-list ${fieldErrors.engineerName ? "has-error" : ""}`}>
-                          {engName && engName !== "Please select" && (
-                            <li className="custom-dropdown-item" onClick={clearEngineer}>
-                              Clear details
-                            </li>
-                          )}
-                          {filteredEngineers.map((eng, i) => (
-                            <li key={i} className="custom-dropdown-item" onClick={() => selectEngineer(eng)}>
-                              {eng.name}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </div>
+                <div className="checklist-field" ref={locationFieldRef}>
+                  <label className="checklist-label">Location</label>
+                  <input
+                    className={`checklist-input ${fieldErrors.location ? "has-error" : ""}`}
+                    name="location_display"
+                    required
+                    value={locationDisplay}
+                    onChange={(e) => {
+                      setLocationDisplay(e.target.value);
+                      if (e.target.value.trim()) {
+                        setFieldErrors(prev => ({ ...prev, location: false }));
+                      }
+                    }}
+                  />
+                </div>
 
-                  <div className="checklist-field">
-                    <label className="checklist-label">Engineer email</label>
-                    <input
-                      type="email"
-                      className="checklist-input"
-                      name="engineer_email"
-                      required
-                      value={engEmail}
-                      onChange={(e) => {
-                        setEngEmail(e.target.value);
-                        if (e.target.value.trim()) {
-                          e.target.classList.remove('has-error');
-                        }
-                      }}
-                    />
-                  </div>
-
-                  <div className="checklist-field">
-                    <label className="checklist-label">Engineer phone</label>
-                    <input
-                      type="tel"
-                      className="checklist-input"
-                      name="engineer_phone"
-                      required
-                      value={engPhone}
-                      onChange={(e) => {
-                        setEngPhone(e.target.value);
-                        if (e.target.value.trim()) {
-                          e.target.classList.remove('has-error');
-                        }
-                      }}
-                    />
-                  </div>
+                <div className="checklist-field">
+                  <label className="checklist-label">Date</label>
+                  <DatePicker
+                    value={maintenanceDate}
+                    onChange={(date) => setMaintenanceDate(date)}
+                    max={today}
+                  />
                 </div>
               </div>
 
-              <div className="checklist-form-card" style={{ marginTop: "20px" }}>
-                <h2 className="checklist-section-title">Unscheduled maintenance</h2>
-                <p className="checklist-section-subtitle">
-                  {template?.questionsData?.[0]?.instruction || "Describe the work carried out, reason for maintenance, actions taken, and components affected."}
-                </p>
+              <div className="checklist-inline-group" style={{ marginTop: "24px" }}>
+                <div className="checklist-field" ref={engineerFieldRef}>
+                  <label className="checklist-label">Engineer name</label>
+                  <div className="custom-dropdown-container" ref={engineerDropdownRef}>
+                    <div className="field-icon-wrapper">
+                      <input
+                        className={`checklist-input ${
+                          engName === "Please select" || !engName ? "is-placeholder" : "is-active"
+                        } ${shouldShowEngDropdown ? "is-focused" : ""} ${fieldErrors.engineerName ? "has-error" : ""}`}
+                        name="engineer_name"
+                        required
+                        value={engName}
+                        autoComplete="off"
+                        onFocus={() => {
+                          if (selectedCompany) setShowEngineerDropdown(true);
+                        }}
+                        onChange={(e) => {
+                          setEngName(e.target.value);
+                          if (selectedCompany) setShowEngineerDropdown(true);
+                          if (e.target.value.trim() && e.target.value !== "Please select") {
+                            setFieldErrors(prev => ({ ...prev, engineerName: false }));
+                          }
+                        }}
+                        style={{
+                          paddingRight: selectedCompany && (hasEngineerResults || hasClearEng) ? "40px" : "16px",
+                        }}
+                      />
+                      {selectedCompany && (hasEngineerResults || hasClearEng) && (
+                        <div className="field-icon-inside">
+                          {showEngineerDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
+                        </div>
+                      )}
+                    </div>
+                    {shouldShowEngDropdown && (
+                      <ul className={`custom-dropdown-list ${fieldErrors.engineerName ? "has-error" : ""}`}>
+                        {hasClearEng && (
+                          <li className="custom-dropdown-item" onClick={clearEngineer}>
+                            Clear details
+                          </li>
+                        )}
+                        {filteredEngineers.map((eng, i) => (
+                          <li key={i} className="custom-dropdown-item" onClick={() => selectEngineer(eng)}>
+                            {eng.name}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
 
+                <div className="checklist-field">
+                  <label className="checklist-label">Engineer email</label>
+                  <input
+                    type="email"
+                    className={`checklist-input ${fieldErrors.engineerEmail ? "has-error" : ""}`}
+                    name="engineer_email"
+                    required
+                    value={engEmail}
+                    onChange={(e) => {
+                      setEngEmail(e.target.value);
+                      if (e.target.value.trim()) {
+                        setFieldErrors(prev => ({ ...prev, engineerEmail: false }));
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="checklist-field">
+                  <label className="checklist-label">Engineer phone</label>
+                  <input
+                    type="tel"
+                    className={`checklist-input ${fieldErrors.engineerPhone ? "has-error" : ""}`}
+                    name="engineer_phone"
+                    required
+                    value={engPhone}
+                    onChange={(e) => {
+                      setEngPhone(e.target.value);
+                      if (e.target.value.trim()) {
+                        setFieldErrors(prev => ({ ...prev, engineerPhone: false }));
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* CARD 2: QUESTIONS */}
+            <div className="checklist-form-card" style={{ marginTop: "20px" }}>
+              <form onSubmit={handleSubmit} autoComplete="off" noValidate>
+                <h3 className="checklist-section-title">Unscheduled maintenance</h3>
+                <p className="checklist-section-subtitle">
+                  All unscheduled maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual.
+                </p>
+                
                 {(template?.questionsData || []).map((q, i) => (
-                  <div key={i} style={{ marginTop: "0" }}>
-                    <label className="checklist-label" style={{ display: "none" }}>
+                  <div key={i} style={{ marginTop: i === 0 ? "0" : "24px" }}>
+                    <label className="checklist-label">
                       {q.title}
                     </label>
                     {q.instruction && (
-                      <p className="question-instruction" style={{ display: "none" }}>{q.instruction}</p>
+                      <p className="question-instruction">{q.instruction}</p>
                     )}
                     
                     <div className="question-with-upload">
                       <div className="textarea-wrapper">
                         <textarea
-                          ref={(el) => {
-                            const key = `q${i + 1}`;
-                            if (el) questionTextareaRefs.current[key] = el;
-                          }}
                           name={`q${i + 1}`}
                           className="checklist-textarea"
-                          onInput={autoGrow}
                           value={answers[`q${i + 1}`] || ""}
                           onChange={(e) => {
                             setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+                            autoGrow(e);
                             if (e.target.value.trim()) {
                               e.target.classList.remove('has-error');
                             }
                           }}
+                          onInput={autoGrow}
+                          placeholder=""
                           required={q.required}
                         />
 
@@ -813,7 +740,12 @@ useEffect(() => {
                               ...prev,
                               [questionKey]: (prev[questionKey] || '') + text
                             }));
-                            scheduleAutoGrowFor(questionKey);
+                            requestAnimationFrame(() => {
+                              requestAnimationFrame(() => {
+                                const textarea = document.querySelector(`[name="${questionKey}"]`);
+                                if (textarea) autoGrow(textarea);
+                              });
+                            });
                           }}
                           onError={(errorMsg) => setErrorMsg(errorMsg)}
                         />
@@ -834,11 +766,11 @@ useEffect(() => {
                 ))}
 
                 {errorMsg && <p className="error-message">{errorMsg}</p>}
-                <button className="checklist-submit" disabled={submitting}>
+                <button type="submit" className="checklist-submit" disabled={submitting}>
                   {submitting ? "Submitting..." : "Submit maintenance"}
                 </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
 
@@ -863,7 +795,7 @@ export async function getServerSideProps({ params }) {
 
     const headers = { Authorization: `Bearer ${apiKey}` };
     const unitFormula = encodeURIComponent(`{public_token}='${token}'`);
-    const templateFormula = encodeURIComponent(`{type}='Unscheduled'`);
+    const templateFormula = encodeURIComponent(`{template_name}='Unscheduled maintenance'`);
 
     const urls = [
       `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${unitFormula}`,
@@ -886,6 +818,15 @@ export async function getServerSideProps({ params }) {
       });
     }
 
+    let parsedJson = {};
+    try {
+      if (templateData.records?.[0]?.fields.questions_json) {
+        parsedJson = JSON.parse(templateData.records[0].fields.questions_json);
+      }
+    } catch (e) {
+      console.error("Failed to parse questions_json:", e);
+    }
+
     return {
       props: {
         unit: {
@@ -896,12 +837,8 @@ export async function getServerSideProps({ params }) {
         },
         template: {
           id: templateData.records?.[0]?.id || "",
-          questionsData: templateData.records?.[0]?.fields.questions_json
-            ? JSON.parse(templateData.records[0].fields.questions_json)
-            : [],
-          questions: templateData.records?.[0]?.fields.questions_json
-            ? JSON.parse(templateData.records[0].fields.questions_json).map(q => q.title)
-            : [],
+          questionsData: parsedJson.questions || [],
+          questions: parsedJson.questions?.map(q => q.title) || [],
         },
         allCompanies: Object.values(companyLookup).filter(Boolean),
         allEngineers:
@@ -917,6 +854,7 @@ export async function getServerSideProps({ params }) {
       },
     };
   } catch (err) {
+    console.error("getServerSideProps error:", err);
     return { notFound: true };
   }
 }
