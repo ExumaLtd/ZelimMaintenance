@@ -1526,7 +1526,7 @@
   font-family: "Montserrat", sans-serif !important;
 }
 
-/* Months container - make it relative for nav positioning */
+/* Months container */
 .form-scope .rdp-months {
   gap: 0 !important;
   position: relative !important;
@@ -1536,18 +1536,32 @@
   margin: 0 !important;
 }
 
-/* Navigation - position absolutely in months container */
+/* Month caption - contains nav and label */
+.form-scope .rdp-month_caption {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding-bottom: 16px !important;
+  margin-bottom: 0 !important;
+  position: relative !important;
+}
+
+.form-scope .rdp-caption_label {
+  color: #F7F7F7 !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  text-align: left !important;
+}
+
+/* Navigation - REMOVE absolute positioning, let it flow naturally */
 .form-scope .rdp-nav {
-  position: absolute !important;
-  top: 0 !important;
-  right: 0 !important;
+  position: static !important;
   display: flex !important;
   gap: 4px !important;
   align-items: center !important;
-  z-index: 10 !important;
 }
 
-/* Navigation buttons - make them properly clickable */
+/* Navigation buttons */
 .form-scope .rdp-button_previous,
 .form-scope .rdp-button_next {
   width: 28px !important;
@@ -1560,7 +1574,6 @@
   justify-content: center !important;
   transition: all 0.15s ease !important;
   padding: 0 !important;
-  pointer-events: auto !important;
 }
 
 .form-scope .rdp-button_previous:disabled,
@@ -1577,30 +1590,12 @@
   color: #F7F7F7 !important;
   stroke: #F7F7F7 !important;
   transition: stroke 0.15s ease, color 0.15s ease !important;
-  pointer-events: none !important;
 }
 
 .form-scope .rdp-button_previous:hover:not(:disabled) svg,
 .form-scope .rdp-button_next:hover:not(:disabled) svg {
   color: #00FFF6 !important;
   stroke: #00FFF6 !important;
-}
-
-/* Month caption */
-.form-scope .rdp-month_caption {
-  display: flex !important;
-  justify-content: flex-start !important;
-  align-items: center !important;
-  padding-bottom: 16px !important;
-  margin-bottom: 0 !important;
-  position: relative !important;
-}
-
-.form-scope .rdp-caption_label {
-  color: #F7F7F7 !important;
-  font-weight: 600 !important;
-  font-size: 14px !important;
-  text-align: left !important;
 }
 
 /* Table */
