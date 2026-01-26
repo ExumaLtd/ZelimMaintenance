@@ -18,42 +18,18 @@ const log = (...args) => {
 };
 
 // Smart formatting for voice transcripts
-const smartFormatTranscript = (newText, existingText = '') => {
-  // Trim the new text
+const smartFormatTranscript = (newText) => {
   const trimmedNew = newText.trim();
   if (!trimmedNew) return '';
   
-  // If there's no existing text, just capitalize and add period
-  if (!existingText || !existingText.trim()) {
-    const capitalized = trimmedNew.charAt(0).toUpperCase() + trimmedNew.slice(1);
-    return !/[.!?]$/.test(capitalized) ? capitalized + '.' : capitalized;
-  }
-  
-  // Get the last character of existing text (trimmed)
-  const trimmedExisting = existingText.trim();
-  const lastChar = trimmedExisting[trimmedExisting.length - 1];
-  
-  // Check if last character is sentence-ending punctuation
-  const hasPunctuation = ['.', '!', '?', ':', ';'].includes(lastChar);
-  
-  // Build the formatted text with proper spacing
-  let formatted = '';
-  
-  if (!hasPunctuation) {
-    // Add period + space if missing punctuation
-    formatted = '. ';
-  } else {
-    // Just add space if already has punctuation
-    formatted = ' ';
-  }
-  
-  // Capitalize first letter of new text
+  // Capitalize first letter
   const capitalized = trimmedNew.charAt(0).toUpperCase() + trimmedNew.slice(1);
   
   // Add period at end if missing
-  formatted += !/[.!?]$/.test(capitalized) ? capitalized + '.' : capitalized;
+  const withPeriod = !/[.!?]$/.test(capitalized) ? capitalized + '.' : capitalized;
   
-  return formatted;
+  // Always add space before
+  return ' ' + withPeriod;
 };
 
 export default function VoiceInput({ onTranscript, onError, disabled = false }) {
@@ -461,13 +437,7 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }) 
 
           if (!data.fallback && data.text && onTranscript) {
             log('✨ Transcription successful:', data.text);
-            
-            // Get existing text from the active textarea
-            const activeTextarea = document.activeElement;
-            const existingText = activeTextarea?.tagName === 'TEXTAREA' ? activeTextarea.value : '';
-            
-            // Apply smart formatting
-            const formatted = smartFormatTranscript(data.text, existingText);
+            const formatted = smartFormatTranscript(data.text);
             onTranscript(formatted);
           }
         } catch (error) {
@@ -477,12 +447,7 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }) 
           const browserTranscript = transcriptRef.current.trim();
           if (browserTranscript && onTranscript) {
             log('📝 Using browser fallback transcript');
-            
-            // Get existing text for smart formatting
-            const activeTextarea = document.activeElement;
-            const existingText = activeTextarea?.tagName === 'TEXTAREA' ? activeTextarea.value : '';
-            
-            const formatted = smartFormatTranscript(browserTranscript, existingText);
+            const formatted = smartFormatTranscript(browserTranscript);
             onTranscript(formatted);
           }
         }
@@ -501,11 +466,7 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }) 
       setTimeout(() => {
         const browserTranscript = transcriptRef.current.trim();
         if (browserTranscript && onTranscript) {
-          // Get existing text for smart formatting
-          const activeTextarea = document.activeElement;
-          const existingText = activeTextarea?.tagName === 'TEXTAREA' ? activeTextarea.value : '';
-          
-          const formatted = smartFormatTranscript(browserTranscript, existingText);
+          const formatted = smartFormatTranscript(browserTranscript);
           onTranscript(formatted);
         }
         transcriptRef.current = '';
