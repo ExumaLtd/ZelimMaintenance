@@ -22,14 +22,36 @@ const smartFormatTranscript = (newText) => {
   const trimmedNew = newText.trim();
   if (!trimmedNew) return '';
   
-  // Capitalize first letter
+  // Try to get existing text from focused textarea
+  let existingText = '';
+  const activeElement = document.activeElement;
+  if (activeElement && activeElement.tagName === 'TEXTAREA') {
+    existingText = activeElement.value || '';
+  }
+  
+  // Capitalize first letter of new text
   const capitalized = trimmedNew.charAt(0).toUpperCase() + trimmedNew.slice(1);
   
-  // Add period at end if missing
+  // Add period at end of new text if missing
   const withPeriod = !/[.!?]$/.test(capitalized) ? capitalized + '.' : capitalized;
   
-  // Always add space before
-  return ' ' + withPeriod;
+  // If there's existing text, check if we need to add punctuation before the space
+  if (existingText && existingText.trim()) {
+    const trimmedExisting = existingText.trim();
+    const lastChar = trimmedExisting[trimmedExisting.length - 1];
+    const hasPunctuation = ['.', '!', '?', ':', ';'].includes(lastChar);
+    
+    if (!hasPunctuation) {
+      // Need to add period before space
+      return '. ' + withPeriod;
+    } else {
+      // Just add space
+      return ' ' + withPeriod;
+    }
+  }
+  
+  // No existing text, just return formatted new text
+  return withPeriod;
 };
 
 export default function VoiceInput({ onTranscript, onError, disabled = false }) {
