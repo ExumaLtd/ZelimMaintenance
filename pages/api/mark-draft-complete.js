@@ -13,57 +13,57 @@ export default async function handler(req, res) {
   try {
     const { unitId, maintenanceType, engineerEmail } = req.body;
 
+    console.log('=== MARK DRAFT COMPLETE ===');
     console.log('Mark draft complete called with:', { unitId, maintenanceType, engineerEmail });
 
-    if (!unitId || !maintenanceType || !engineerEmail) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    if (!unitId || !maintenanceType) {
+      return res.status(400).json({ error: 'Missing required fields (unitId or maintenanceType)' });
     }
 
-    // Get ALL drafts first (no filter)
-    const allRecords = await base('maintenance_drafts')
-      .select()
-      .firstPage();
+    // Find ANY active draft for this unit + maintenance type (ignore email - Option B)
+    console.log('Finding drafts for unit + type (ignoring email)...');
+    
+    const allDrafts = await base('maintenance_drafts')
+      .select({
+        filterByFormula: `AND({maintenance_type} = '${maintenanceType}', NOT({completed}))`,
+        fields: ['unit_id', 'maintenance_type', 'engineer_email', 'completed'],
+      })
+      .all();
 
-    console.log('Total records in table:', allRecords.length);
+    console.log(`Total active drafts for ${maintenanceType}:`, allDrafts.length);
 
-    // Log each record to see what we're working with
-    allRecords.forEach(record => {
-      console.log('Record:', {
-        id: record.id,
-        unit_id: record.fields.unit_id,
-        maintenance_type: record.fields.maintenance_type,
-        engineer_email: record.fields.engineer_email,
-        completed: record.fields.completed
-      });
+    // Filter in JavaScript to match unit_id (Link field returns array)
+    const matchingDrafts = allDrafts.filter(record => {
+      const linkedRecords = record.get('unit_id');
+      const unitMatch = linkedRecords && linkedRecords.includes(unitId);
+      
+      if (unitMatch) {
+        console.log(`✓ Found matching draft:`, {
+          id: record.id,
+          unit_id: linkedRecords,
+          maintenance_type: record.get('maintenance_type'),
+          engineer_email: record.get('engineer_email')
+        });
+      }
+      
+      return unitMatch;
     });
 
-    // Filter in JavaScript
-    const matchingDrafts = allRecords.filter(record => {
-      const unitMatch = Array.isArray(record.fields.unit_id) && record.fields.unit_id.includes(unitId);
-      const typeMatch = record.fields.maintenance_type === maintenanceType;
-      const emailMatch = record.fields.engineer_email === engineerEmail;
-      const notCompleted = !record.fields.completed;
-      
-      console.log(`Record ${record.id}: unit=${unitMatch}, type=${typeMatch}, email=${emailMatch}, notCompleted=${notCompleted}`);
-      
-      return unitMatch && typeMatch && emailMatch && notCompleted;
-    });
-
-    console.log('Matching drafts:', matchingDrafts.length);
+    console.log('Matching drafts found:', matchingDrafts.length);
     
     if (matchingDrafts.length > 0) {
       const draft = matchingDrafts[0];
-      console.log('✓ Updating draft record:', draft.id);
+      console.log('✓ Marking draft as completed:', draft.id);
       
       await base('maintenance_drafts').update(draft.id, {
         completed: true,
       });
       
-      console.log('✓ Draft marked as completed');
-      return res.status(200).json({ success: true, marked: true });
+      console.log('✓ Draft marked as completed successfully');
+      return res.status(200).json({ success: true, marked: true, draftId: draft.id });
     }
 
-    console.log('⚠️ No matching draft found');
+    console.log('⚠️ No matching draft found for unit:', unitId, 'type:', maintenanceType);
     return res.status(200).json({ success: true, marked: false, message: 'No draft found' });
   } catch (error) {
     console.error('❌ Mark draft complete error:', error);
