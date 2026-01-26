@@ -1759,3 +1759,42 @@
   cursor: not-allowed !important;
   pointer-events: none !important;
 }
+
+/* Remove mobile tap highlight and focus effects */
+.form-scope .rdp-button_previous,
+.form-scope .rdp-button_next {
+  width: 28px !important;
+  height: 28px !important;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.15s ease !important;
+  padding: 0 !important;
+  position: relative !important;
+  -webkit-tap-highlight-color: transparent !important;
+  outline: none !important;
+}
+
+/* Remove mobile tap highlight from day buttons */
+.form-scope .rdp-day_button {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 100% !important;
+  color: #FFFFFF !important;
+  background: transparent !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  font-family: "Montserrat", sans-serif !important;
+  border: none !important;
+  transition: all 0.15s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  letter-spacing: 1px !important;
+  -webkit-tap-highlight-color: transparent !important;
+  outline: none !important;
+}
