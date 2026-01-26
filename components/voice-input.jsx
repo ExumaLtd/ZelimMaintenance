@@ -61,8 +61,8 @@ const smartFormatTranscript = (newText) => {
     }
   }
   
-  // No existing text, just return formatted new text with leading space (for concatenation)
-  return ' ' + withPeriod;
+  // No existing text - return formatted text WITHOUT leading space
+  return withPeriod;
 };
 
 export default function VoiceInput({ onTranscript, onError, disabled = false }) {
