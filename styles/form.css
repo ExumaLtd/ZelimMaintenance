@@ -1512,15 +1512,35 @@
   min-width: 300px;
 }
 
+/* Override rdp-root CSS variables */
+.form-scope .rdp-root {
+  --rdp-accent-color: #00FFF6 !important;
+  --rdp-accent-background-color: #00FFF6 !important;
+  --rdp-day-height: 38px !important;
+  --rdp-day-width: 38px !important;
+  --rdp-day_button-border-radius: 6px !important;
+  --rdp-day_button-border: 1.5px solid #00FFF6 !important;
+  --rdp-day_button-height: 36px !important;
+  --rdp-day_button-width: 36px !important;
+  --rdp-selected-border: 1.5px solid #00FFF6 !important;
+  --rdp-disabled-opacity: 0.3 !important;
+  --rdp-outside-opacity: 0.6 !important;
+  --rdp-today-color: #00FFF6 !important;
+  --rdp-weekday-opacity: 1 !important;
+  --rdp-weekday-padding: 0 0 6px 0 !important;
+}
+
 /* DayPicker root */
 .form-scope .rdp {
-  --rdp-cell-size: 36px;
-  --rdp-accent-color: #00FFF6;
   margin: 0 !important;
   font-family: "Montserrat", sans-serif !important;
 }
 
 /* Month caption (January 2026) */
+.form-scope .rdp-caption {
+  margin-bottom: 12px !important;
+}
+
 .form-scope .rdp-caption_label {
   color: #F7F7F7 !important;
   font-weight: 600 !important;
@@ -1528,79 +1548,83 @@
 }
 
 /* Navigation buttons */
-.form-scope .rdp-nav_button {
+.form-scope .rdp-button_previous,
+.form-scope .rdp-button_next {
   width: 32px !important;
   height: 32px !important;
   border-radius: 6px !important;
   background: #152a31 !important;
   border: 1px solid transparent !important;
   cursor: pointer !important;
-  display: flex !important;
+  display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
+  transition: all 0.15s !important;
 }
 
-.form-scope .rdp-nav_button:hover:not(:disabled) {
+.form-scope .rdp-button_previous:hover:not(:disabled),
+.form-scope .rdp-button_next:hover:not(:disabled) {
   background: #476166 !important;
   border-color: #00FFF6 !important;
 }
 
-.form-scope .rdp-nav_button svg {
-  width: 16px !important;
-  height: 16px !important;
+.form-scope .rdp-button_previous:disabled,
+.form-scope .rdp-button_next:disabled {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+}
+
+.form-scope .rdp-button_previous svg,
+.form-scope .rdp-button_next svg {
   color: #00FFF6 !important;
   stroke: #00FFF6 !important;
 }
 
-/* Weekday headers (M T W T F S S) */
-.form-scope .rdp-head_cell {
+/* Weekday headers (Mon, Tue, Wed...) */
+.form-scope .rdp-weekday {
   color: #F7F7F7 !important;
   font-weight: 600 !important;
   font-size: 11px !important;
   text-transform: uppercase !important;
   padding: 0 0 6px 0 !important;
+  opacity: 1 !important;
 }
 
 /* Day cells */
-.form-scope .rdp-cell {
-  padding: 1px !important;
-}
-
-/* Day buttons */
 .form-scope .rdp-day {
   width: 36px !important;
   height: 36px !important;
   border-radius: 6px !important;
-  border: none !important;
   color: #F7F7F7 !important;
   background: transparent !important;
   font-size: 14px !important;
   font-weight: 500 !important;
   cursor: pointer !important;
   font-family: "Montserrat", sans-serif !important;
+  border: 1.5px solid transparent !important;
+  transition: all 0.15s !important;
 }
 
 .form-scope .rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled) {
   background: #152a31 !important;
+  border-color: transparent !important;
 }
 
-/* Selected day */
-.form-scope .rdp-day_selected {
-  background: #00FFF6 !important;
-  color: #0d3037 !important;
-  font-weight: 600 !important;
-}
-
+/* Selected day - FILLED background */
+.form-scope .rdp-day_selected,
 .form-scope .rdp-day_selected:hover {
   background: #00FFF6 !important;
   color: #0d3037 !important;
+  font-weight: 600 !important;
+  border: 1.5px solid #00FFF6 !important;
 }
 
-/* Today */
+/* Today (not selected) */
 .form-scope .rdp-day_today:not(.rdp-day_selected) {
   background: rgba(0, 255, 246, 0.08) !important;
-  border: 1px solid rgba(0, 255, 246, 0.3) !important;
+  border: 1.5px solid rgba(0, 255, 246, 0.3) !important;
   font-weight: 600 !important;
+  color: #00FFF6 !important;
 }
 
 /* Outside month days */
@@ -1609,7 +1633,7 @@
   opacity: 0.6 !important;
 }
 
-/* Disabled days */
+/* Disabled days (future dates) */
 .form-scope .rdp-day_disabled {
   color: #7d8f93 !important;
   cursor: not-allowed !important;
@@ -1618,6 +1642,25 @@
 
 .form-scope .rdp-day_disabled:hover {
   background: transparent !important;
+  border-color: transparent !important;
+}
+
+/* Remove default focus styles */
+.form-scope .rdp-day:focus-visible {
+  outline: none !important;
+}
+
+/* Tighter spacing */
+.form-scope .rdp-months {
+  gap: 0 !important;
+}
+
+.form-scope .rdp-month {
+  margin: 0 !important;
+}
+
+.form-scope .rdp-table {
+  margin: 0 !important;
 }
 
 /* Mobile adjustments */
@@ -1629,13 +1672,24 @@
     padding: 14px;
   }
   
-  .form-scope .rdp {
-    --rdp-cell-size: 34px;
+  .form-scope .rdp-root {
+    --rdp-day-height: 36px !important;
+    --rdp-day-width: 36px !important;
+    --rdp-day_button-height: 34px !important;
+    --rdp-day_button-width: 34px !important;
   }
   
   .form-scope .rdp-day {
     width: 34px !important;
     height: 34px !important;
     font-size: 13px !important;
+  }
+  
+  .form-scope .rdp-caption_label {
+    font-size: 13px !important;
+  }
+  
+  .form-scope .rdp-weekday {
+    font-size: 10px !important;
   }
 }
