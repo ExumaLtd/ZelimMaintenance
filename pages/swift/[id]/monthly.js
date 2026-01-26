@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Image from "next/image";
@@ -96,7 +96,19 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       engEmail,
       engPhone,
     }
-  }, engEmail !== '' && engEmail.includes('@'));
+  }, 
+    // ✅ Save if there's ANY content, not just when email is valid
+    (checklistData && checklistData.length > 0 && checklistData.some(group => 
+      group.questions.some(q => q.answer !== null)
+    )) || // Has any checklist answers
+    furtherComments?.trim() || // Has comments
+    (commentImages && commentImages.length > 0) || // Has images
+    selectedCompany || // Has company selected
+    locationDisplay?.trim() || // Has location
+    engName?.trim() || // Has engineer name
+    engEmail?.trim() || // Has email (even if invalid)
+    engPhone?.trim() // Has phone
+  );
 
   // Initialize checklist data from template (grouped structure)
   useEffect(() => {
@@ -354,6 +366,27 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       },
       options
     );
+  }, []);
+
+  // Pre-request microphone permission on page load
+  useEffect(() => {
+    if (typeof window === "undefined" || !navigator.mediaDevices) return;
+    
+    // Request microphone permission early (silent request)
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        // Permission granted - immediately close the stream
+        stream.getTracks().forEach(track => track.stop());
+        if (process.env.NODE_ENV === 'development') {
+          console.log('✓ Microphone permission pre-granted');
+        }
+      })
+      .catch(err => {
+        // User denied or error - that's okay, VoiceInput will handle it later
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Microphone permission denied or unavailable:', err.message);
+        }
+      });
   }, []);
 
   // Save draft to localStorage
@@ -739,7 +772,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                       }
                     }}
                   />
-                </div>
+                  </div>
 
                 <div className="checklist-field">
                   <label className="checklist-label">Engineer phone</label>
@@ -833,15 +866,30 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                         onInput={autoGrow}
                         placeholder=""
                       />
+
+                      <VoiceInput
+                        onTranscript={(text) => {
+                          setFurtherComments((prev) => (prev || '') + text);
+                          // Auto-grow the textarea after voice input
+                          requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                              const textarea = document.querySelector('.checklist-textarea');
+                              if (textarea) autoGrow(textarea);
+                            });
+                          });
+                        }}
+                        onError={(errorMsg) => setErrorMsg(errorMsg)}
+                      />
                     </div>
+                    
                     <ImageUploader
-  questionKey="further_comments"
-  questionText="Further comments"
-  serialNumber={unit?.serial_number}
-  maintenanceType="monthly"
-  initialImages={commentImages || []}
-  onImagesChange={handleCommentImagesChange}
-/>
+                      questionKey="further_comments"
+                      questionText="Further comments"
+                      serialNumber={unit?.serial_number}
+                      maintenanceType="monthly"
+                      initialImages={commentImages || []}
+                      onImagesChange={handleCommentImagesChange}
+                    />
                   </div>
                 </div>
 
