@@ -31,7 +31,9 @@ export default async function handler(req, res) {
     }
     const buffer = Buffer.concat(chunks);
 
-    log('✅ Received audio buffer:', buffer.length, 'bytes');
+    // ✅ ALWAYS LOG (not wrapped):
+    console.log('✅ Received audio buffer:', buffer.length, 'bytes');
+    console.log('🔍 Buffer first 20 bytes:', buffer.slice(0, 20));
 
     if (!buffer.length) {
       return res.status(400).json({ 
@@ -42,7 +44,7 @@ export default async function handler(req, res) {
 
     // Get MIME type from client header (sent by VoiceInput component)
     const mimeType = req.headers['x-audio-mime'] || 'audio/webm';
-    log('📝 Audio MIME type:', mimeType);
+    console.log('📝 Audio MIME type:', mimeType); // ✅ Always log
 
     // Build multipart form-data for ElevenLabs STT
     const form = new FormData();
@@ -52,7 +54,7 @@ export default async function handler(req, res) {
     });
     form.append('model_id', 'scribe_v2');
 
-    log('🌐 Sending to ElevenLabs API...');
+    console.log('🌐 Sending to ElevenLabs API...'); // ✅ Always log
 
     const response = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {
       method: 'POST',
@@ -66,11 +68,16 @@ export default async function handler(req, res) {
     const rawText = await response.text();
 
     if (!response.ok) {
-      console.error('❌ ElevenLabs API error:', response.status, rawText);
+      // ✅ ALWAYS LOG ERRORS:
+      console.error('❌ ElevenLabs API error:', response.status);
+      console.error('❌ ElevenLabs response:', rawText);
+      console.error('❌ Buffer size was:', buffer.length);
+      console.error('❌ MIME type was:', mimeType);
+      
       return res.status(response.status).json({
         error: 'Transcription failed',
         status: response.status,
-        details: DEBUG ? rawText : undefined, // Only expose details in dev
+        details: DEBUG ? rawText : undefined,
         fallback: true,
       });
     }
@@ -88,7 +95,7 @@ export default async function handler(req, res) {
       });
     }
 
-    log('✅ ElevenLabs response:', data);
+    console.log('✅ ElevenLabs response:', data); // ✅ Always log
 
     // Extract text from response (try multiple possible fields)
     const text = data.text || data.transcript || data.result || '';

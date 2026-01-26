@@ -370,62 +370,67 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }) 
         stopSafetyRef.current = null;
       }, RECORDING_STOP_TIMEOUT);
 
-      recorder.onstop = async () => {
-        if (stopSafetyRef.current) {
-          clearTimeout(stopSafetyRef.current);
-          stopSafetyRef.current = null;
-        }
+recorder.onstop = async () => {
+  if (stopSafetyRef.current) {
+    clearTimeout(stopSafetyRef.current);
+    stopSafetyRef.current = null;
+  }
 
-        log('📊 Recording stopped, processing audio...');
-        const mime = recorder?.mimeType || 'audio/webm';
-        const audioBlob = new Blob(audioChunksRef.current, { type: mime });
-        log('Audio blob size:', audioBlob.size, 'bytes');
+  console.log('📊 Recording stopped, processing audio...'); // ← Always log
+  const mime = recorder?.mimeType || 'audio/webm';
+  const audioBlob = new Blob(audioChunksRef.current, { type: mime });
+  
+  // ✅ CRITICAL LOGS (always log, not wrapped):
+  console.log('🔍 Audio blob size:', audioBlob.size, 'bytes');
+  console.log('🔍 Audio blob type:', audioBlob.type);
+  console.log('🔍 Audio chunks count:', audioChunksRef.current.length);
+  console.log('🔍 Recorder MIME type:', recorder?.mimeType);
 
-        if (audioBlob.size === 0) {
-          console.error('❌ Audio blob is empty');
-          audioChunksRef.current = [];
-          transcriptRef.current = '';
-          cleanupStreams();
-          mediaRecorderRef.current = null;
-          isStoppingRef.current = false;
-          return;
-        }
+  if (audioBlob.size === 0) {
+    console.error('❌ Audio blob is empty');
+    audioChunksRef.current = [];
+    transcriptRef.current = '';
+    cleanupStreams();
+    mediaRecorderRef.current = null;
+    isStoppingRef.current = false;
+    return;
+  }
 
-        try {
-          log('🌐 Sending to ElevenLabs API...');
-          const response = await fetch('/api/transcribe-elevenlabs', {
-            method: 'POST',
-            headers: { 'x-audio-mime': audioBlob.type },
-            body: audioBlob,
-          });
+  try {
+    console.log('🌐 Sending to ElevenLabs API...'); // ← Always log
+    const response = await fetch('/api/transcribe-elevenlabs', {
+      method: 'POST',
+      headers: { 'x-audio-mime': audioBlob.type },
+      body: audioBlob,
+    });
 
-          log('📡 API response status:', response.status);
-          const data = await response.json();
-          log('📝 ElevenLabs response:', data);
+    console.log('📡 API response status:', response.status); // ← Always log
+    const data = await response.json();
+    console.log('📝 ElevenLabs response:', data); // ← Always log
 
-          if (!data.fallback && data.text && onTranscript) {
-            log('✨ Transcription successful:', data.text);
-            const formatted = formatTranscript(data.text);
-            onTranscript(formatted + ' ');
-          }
-        } catch (error) {
-          console.error('❌ ElevenLabs error:', error);
-          
-          // Fallback to browser transcript if available
-          const browserTranscript = transcriptRef.current.trim();
-          if (browserTranscript && onTranscript) {
-            log('📝 Using browser fallback transcript');
-            const formatted = formatTranscript(browserTranscript);
-            onTranscript(formatted + ' ');
-          }
-        }
+    if (!data.fallback && data.text && onTranscript) {
+      log('✨ Transcription successful:', data.text);
+      const formatted = formatTranscript(data.text);
+      onTranscript(formatted + ' ');
+    }
+  } catch (error) {
+    console.error('❌ ElevenLabs error:', error);
+    
+    // Fallback to browser transcript if available
+    const browserTranscript = transcriptRef.current.trim();
+    if (browserTranscript && onTranscript) {
+      log('📝 Using browser fallback transcript');
+      const formatted = formatTranscript(browserTranscript);
+      onTranscript(formatted + ' ');
+    }
+  }
 
-        audioChunksRef.current = [];
-        transcriptRef.current = '';
-        cleanupStreams();
-        mediaRecorderRef.current = null;
-        isStoppingRef.current = false;
-      };
+  audioChunksRef.current = [];
+  transcriptRef.current = '';
+  cleanupStreams();
+  mediaRecorderRef.current = null;
+  isStoppingRef.current = false;
+};
 
       try { recorder.requestData(); } catch (e) {}
       recorder.stop();
