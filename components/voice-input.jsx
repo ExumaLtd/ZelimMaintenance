@@ -22,11 +22,22 @@ const smartFormatTranscript = (newText) => {
   const trimmedNew = newText.trim();
   if (!trimmedNew) return '';
   
-  // Try to get existing text from focused textarea
+  // Try to find the textarea - check active element first, then find any textarea in view
   let existingText = '';
-  const activeElement = document.activeElement;
-  if (activeElement && activeElement.tagName === 'TEXTAREA') {
-    existingText = activeElement.value || '';
+  let textarea = document.activeElement;
+  
+  // If active element isn't a textarea, find the closest one
+  if (!textarea || textarea.tagName !== 'TEXTAREA') {
+    const allTextareas = document.querySelectorAll('textarea');
+    // Find the one that's visible and likely to be the target
+    textarea = Array.from(allTextareas).find(ta => {
+      const rect = ta.getBoundingClientRect();
+      return rect.height > 0 && rect.width > 0;
+    });
+  }
+  
+  if (textarea && textarea.tagName === 'TEXTAREA') {
+    existingText = textarea.value || '';
   }
   
   // Capitalize first letter of new text
@@ -50,8 +61,8 @@ const smartFormatTranscript = (newText) => {
     }
   }
   
-  // No existing text, just return formatted new text
-  return withPeriod;
+  // No existing text, just return formatted new text with leading space (for concatenation)
+  return ' ' + withPeriod;
 };
 
 export default function VoiceInput({ onTranscript, onError, disabled = false }) {
