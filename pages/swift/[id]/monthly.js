@@ -585,7 +585,15 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           engineerEmail: engEmail,
           engineerName: engName,
           serialNumber: unit?.serial_number,
-          maintenance_checklist: checklistData,
+          maintenance_checklist: checklistData.map(group => ({
+            id: group.id,
+            title: group.title,
+            questions: group.questions.map(q => ({
+              id: q.id,
+              text: q.text,
+              answer: q.answer === true ? 'Yes' : q.answer === false ? 'No' : 'Not answered'
+            }))
+          })),
           answers: answersForEmail,
           reportType: "Monthly",
           companyLogoUrl: companyLogoUrl,
