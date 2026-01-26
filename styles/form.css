@@ -1506,7 +1506,7 @@
   z-index: 1000;
   background: #27454b !important;
   border: 1px solid #00FFF6 !important;
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 16px;
   box-shadow: 0 10px 25px rgba(21, 42, 49, 0.6);
   min-width: 300px;
