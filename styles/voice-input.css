@@ -15,6 +15,9 @@
   z-index: 10;
   width: 18px;
   height: 18px;
+  -webkit-tap-highlight-color: transparent !important;
+  outline: none !important;
+  tap-highlight-color: transparent !important;
 }
 
 .voice-mic-icon:hover {
@@ -50,7 +53,7 @@
 .voice-tooltip-popup.tooltip-white {
   background: #ffffff !important;
   color: #000000 !important;
-  opacity: 0; /* stays hidden until hover */
+  opacity: 0;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
 }
 
@@ -84,6 +87,9 @@
   transition: all 0.2s ease;
   width: 18px;
   height: 18px;
+  -webkit-tap-highlight-color: transparent !important;
+  outline: none !important;
+  tap-highlight-color: transparent !important;
 }
 
 /* Dont fade the whole button (that fades the tooltip too) */
@@ -174,7 +180,7 @@
   }
 
   .wave-bar {
-    width: 1.5px; /* ✅ keep consistent on mobile */
+    width: 1.5px;
   }
 
   .textarea-wrapper textarea {
