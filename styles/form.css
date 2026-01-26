@@ -1499,163 +1499,125 @@
   width: 100%;
 }
 
-.form-scope .date-picker-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 999;
-}
-
 .form-scope .date-picker-dropdown {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
   z-index: 1000;
-  background: #27454b;
-  border: 1px solid #00FFF6;
+  background: #27454b !important;
+  border: 1px solid #00FFF6 !important;
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 10px 25px rgba(21, 42, 49, 0.6);
   min-width: 300px;
 }
 
-/* react-day-picker custom theme */
+/* DayPicker root */
 .form-scope .rdp {
   --rdp-cell-size: 36px;
   --rdp-accent-color: #00FFF6;
-  --rdp-background-color: rgba(0, 255, 246, 0.1);
-  margin: 0;
-  font-family: "Montserrat", sans-serif;
+  margin: 0 !important;
+  font-family: "Montserrat", sans-serif !important;
 }
 
-.form-scope .rdp-months {
-  color: #F7F7F7;
-}
-
-/* Month/Year caption */
-.form-scope .rdp-caption {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 0 0 12px 0;
-  position: relative;
-}
-
+/* Month caption (January 2026) */
 .form-scope .rdp-caption_label {
-  color: #F7F7F7;
-  font-weight: 600;
-  font-size: 14px;
+  color: #F7F7F7 !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
 }
 
 /* Navigation buttons */
-.form-scope .rdp-nav {
-  position: absolute;
-  top: 0;
-  right: 0;
-  display: flex;
-  gap: 6px;
-}
-
 .form-scope .rdp-nav_button {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  background: #152a31;
-  border: 1px solid transparent;
-  color: #00FFF6;
-  cursor: pointer;
-  transition: all 0.15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 6px !important;
+  background: #152a31 !important;
+  border: 1px solid transparent !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .form-scope .rdp-nav_button:hover:not(:disabled) {
-  background: #476166;
-  border-color: #00FFF6;
-}
-
-.form-scope .rdp-nav_button:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
+  background: #476166 !important;
+  border-color: #00FFF6 !important;
 }
 
 .form-scope .rdp-nav_button svg {
-  width: 16px;
-  height: 16px;
-  stroke: #00FFF6;
+  width: 16px !important;
+  height: 16px !important;
+  color: #00FFF6 !important;
+  stroke: #00FFF6 !important;
 }
 
-/* Weekday headers (Mon, Tue, Wed...) */
+/* Weekday headers (M T W T F S S) */
 .form-scope .rdp-head_cell {
-  color: #F7F7F7;
-  font-weight: 600;
-  font-size: 11px;
-  text-transform: uppercase;
-  padding: 0 0 6px 0;
-  letter-spacing: 0.5px;
+  color: #F7F7F7 !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  padding: 0 0 6px 0 !important;
 }
 
 /* Day cells */
 .form-scope .rdp-cell {
-  padding: 1px;
+  padding: 1px !important;
 }
 
-.form-scope .rdp-button {
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
-  border: none;
-  color: #F7F7F7;
-  background: transparent;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s;
-  font-family: "Montserrat", sans-serif;
+/* Day buttons */
+.form-scope .rdp-day {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 6px !important;
+  border: none !important;
+  color: #F7F7F7 !important;
+  background: transparent !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  font-family: "Montserrat", sans-serif !important;
 }
 
-.form-scope .rdp-button:hover:not([disabled]):not(.rdp-day_selected) {
-  background: #152a31;
-  color: #F7F7F7;
+.form-scope .rdp-day:hover:not(.rdp-day_selected):not(.rdp-day_disabled) {
+  background: #152a31 !important;
 }
 
 /* Selected day */
 .form-scope .rdp-day_selected {
   background: #00FFF6 !important;
   color: #0d3037 !important;
-  font-weight: 600;
-  border: 1px solid #00FFF6 !important;
+  font-weight: 600 !important;
 }
 
 .form-scope .rdp-day_selected:hover {
-  background: #01e6dd !important;
+  background: #00FFF6 !important;
+  color: #0d3037 !important;
 }
 
 /* Today */
 .form-scope .rdp-day_today:not(.rdp-day_selected) {
-  background: rgba(0, 255, 246, 0.08);
-  border: 1px solid rgba(0, 255, 246, 0.3);
-  font-weight: 600;
+  background: rgba(0, 255, 246, 0.08) !important;
+  border: 1px solid rgba(0, 255, 246, 0.3) !important;
+  font-weight: 600 !important;
 }
 
 /* Outside month days */
 .form-scope .rdp-day_outside {
-  color: #7d8f93;
-  opacity: 0.6;
+  color: #7d8f93 !important;
+  opacity: 0.6 !important;
 }
 
-/* Disabled days (future dates) */
+/* Disabled days */
 .form-scope .rdp-day_disabled {
-  color: #7d8f93;
-  cursor: not-allowed;
-  opacity: 0.3;
+  color: #7d8f93 !important;
+  cursor: not-allowed !important;
+  opacity: 0.3 !important;
 }
 
 .form-scope .rdp-day_disabled:hover {
-  background: transparent;
+  background: transparent !important;
 }
 
 /* Mobile adjustments */
@@ -1671,17 +1633,9 @@
     --rdp-cell-size: 34px;
   }
   
-  .form-scope .rdp-button {
-    width: 34px;
-    height: 34px;
-    font-size: 13px;
-  }
-  
-  .form-scope .rdp-caption_label {
-    font-size: 13px;
-  }
-  
-  .form-scope .rdp-head_cell {
-    font-size: 10px;
+  .form-scope .rdp-day {
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 13px !important;
   }
 }
