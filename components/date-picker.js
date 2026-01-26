@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { DayPicker } from 'react-day-picker';
 import { format } from 'date-fns';
-import { Calendar } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import 'react-day-picker/dist/style.css';
 
 export default function DatePicker({ value, onChange, max, disabled = false }) {
@@ -61,6 +61,12 @@ export default function DatePicker({ value, onChange, max, disabled = false }) {
             defaultMonth={selectedDate || maxDate}
             showOutsideDays
             fixedWeeks
+            components={{
+              Chevron: ({ orientation }) => 
+                orientation === 'left' ? 
+                  <ChevronLeft size={20} strokeWidth={1.5} /> : 
+                  <ChevronRight size={20} strokeWidth={1.5} />
+            }}
           />
         </div>
       )}

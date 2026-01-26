@@ -1512,23 +1512,24 @@
   min-width: 300px;
 }
 
-/* Month caption - centered with space below */
+/* Month caption - LEFT aligned with space below */
 .form-scope .rdp-month_caption {
   display: flex !important;
-  justify-content: center !important;
+  justify-content: space-between !important;
   align-items: center !important;
   padding-bottom: 16px !important;
   margin-bottom: 0 !important;
+  position: relative !important;
 }
 
 .form-scope .rdp-caption_label {
   color: #F7F7F7 !important;
   font-weight: 600 !important;
   font-size: 14px !important;
-  text-align: center !important;
+  text-align: left !important;
 }
 
-/* Navigation buttons */
+/* Navigation buttons - positioned in caption */
 .form-scope .rdp-nav {
   position: absolute !important;
   top: 0 !important;
@@ -1557,7 +1558,7 @@
   cursor: not-allowed !important;
 }
 
-/* Style the default polygon chevrons */
+/* Style the default polygon chevrons - white, cyan on hover */
 .form-scope .rdp-chevron {
   width: 16px !important;
   height: 16px !important;
@@ -1571,7 +1572,7 @@
   fill: #00FFF6 !important;
 }
 
-/* Weekday headers */
+/* Weekday headers - CENTERED */
 .form-scope .rdp-weekday {
   color: #F7F7F7 !important;
   font-weight: 600 !important;
@@ -1605,7 +1606,7 @@
 }
 
 .form-scope .rdp-day_button:hover:not(:disabled) {
-  background: #152a31 !important;
+  background: #476166 !important;
 }
 
 /* Selected day */
