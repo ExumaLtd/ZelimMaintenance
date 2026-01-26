@@ -31,7 +31,6 @@ export default async function handler(req, res) {
     }
     const buffer = Buffer.concat(chunks);
 
-    // ✅ ALWAYS LOG (not wrapped):
     console.log('✅ Received audio buffer:', buffer.length, 'bytes');
     console.log('🔍 Buffer first 20 bytes:', buffer.slice(0, 20));
 
@@ -42,9 +41,9 @@ export default async function handler(req, res) {
       });
     }
 
-    // Get MIME type from client header (sent by VoiceInput component)
+    // Get MIME type from client header
     const mimeType = req.headers['x-audio-mime'] || 'audio/webm';
-    console.log('📝 Audio MIME type:', mimeType); // ✅ Always log
+    console.log('📝 Audio MIME type:', mimeType);
 
     // Build multipart form-data for ElevenLabs STT
     const form = new FormData();
@@ -54,8 +53,11 @@ export default async function handler(req, res) {
     });
     form.append('model_id', 'scribe_v2');
 
-    console.log('🌐 Sending to ElevenLabs API...'); // ✅ Always log
+    console.log('🌐 Sending to ElevenLabs API...');
 
+    // ✅ FIX: Import node-fetch dynamically and use it instead of native fetch
+    const fetch = (await import('node-fetch')).default;
+    
     const response = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {
       method: 'POST',
       headers: {
@@ -68,7 +70,6 @@ export default async function handler(req, res) {
     const rawText = await response.text();
 
     if (!response.ok) {
-      // ✅ ALWAYS LOG ERRORS:
       console.error('❌ ElevenLabs API error:', response.status);
       console.error('❌ ElevenLabs response:', rawText);
       console.error('❌ Buffer size was:', buffer.length);
@@ -95,9 +96,9 @@ export default async function handler(req, res) {
       });
     }
 
-    console.log('✅ ElevenLabs response:', data); // ✅ Always log
+    console.log('✅ ElevenLabs response:', data);
 
-    // Extract text from response (try multiple possible fields)
+    // Extract text from response
     const text = data.text || data.transcript || data.result || '';
 
     if (!text) {
