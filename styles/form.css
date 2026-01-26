@@ -1512,7 +1512,7 @@
   min-width: 300px;
 }
 
-/* Month caption - LEFT aligned with space below */
+/* Month caption wrapper */
 .form-scope .rdp-month_caption {
   display: flex !important;
   justify-content: space-between !important;
@@ -1529,15 +1529,14 @@
   text-align: left !important;
 }
 
-/* Navigation buttons - positioned in caption */
+/* Navigation container - aligned with caption */
 .form-scope .rdp-nav {
-  position: absolute !important;
-  top: 0 !important;
-  right: 0 !important;
   display: flex !important;
   gap: 4px !important;
+  align-items: center !important;
 }
 
+/* Navigation buttons */
 .form-scope .rdp-button_previous,
 .form-scope .rdp-button_next {
   width: 28px !important;
@@ -1558,21 +1557,25 @@
   cursor: not-allowed !important;
 }
 
-/* Style the default polygon chevrons - white, cyan on hover */
-.form-scope .rdp-chevron {
-  width: 16px !important;
-  height: 16px !important;
-  fill: #F7F7F7 !important;
-  transition: fill 0.15s !important;
-  display: inline-block !important;
+/* Lucide chevron icons */
+.form-scope .rdp-button_previous svg,
+.form-scope .rdp-button_next svg {
+  width: 20px !important;
+  height: 20px !important;
+  color: #F7F7F7 !important;
+  stroke: #F7F7F7 !important;
+  stroke-width: 1.5px !important;
+  fill: none !important;
+  transition: all 0.15s !important;
 }
 
-.form-scope .rdp-button_previous:hover:not(:disabled) .rdp-chevron,
-.form-scope .rdp-button_next:hover:not(:disabled) .rdp-chevron {
-  fill: #00FFF6 !important;
+.form-scope .rdp-button_previous:hover:not(:disabled) svg,
+.form-scope .rdp-button_next:hover:not(:disabled) svg {
+  color: #00FFF6 !important;
+  stroke: #00FFF6 !important;
 }
 
-/* Weekday headers - CENTERED */
+/* Weekday headers */
 .form-scope .rdp-weekday {
   color: #F7F7F7 !important;
   font-weight: 600 !important;
@@ -1580,6 +1583,7 @@
   text-transform: uppercase !important;
   padding: 0 0 8px 0 !important;
   text-align: center !important;
+  letter-spacing: 1px !important;
 }
 
 /* Day cells (the td) */
@@ -1587,7 +1591,7 @@
   padding: 2px !important;
 }
 
-/* Day buttons */
+/* Day buttons - ALL WHITE with letter spacing */
 .form-scope .rdp-day_button {
   width: 36px !important;
   height: 36px !important;
@@ -1603,10 +1607,12 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  letter-spacing: 1px !important;
 }
 
 .form-scope .rdp-day_button:hover:not(:disabled) {
   background: #476166 !important;
+  color: #F7F7F7 !important;
 }
 
 /* Selected day */
@@ -1624,19 +1630,19 @@
 /* Today (not selected) */
 .form-scope .rdp-day.rdp-today:not(.rdp-selected) .rdp-day_button {
   background: rgba(0, 255, 246, 0.08) !important;
-  color: #00FFF6 !important;
+  color: #F7F7F7 !important;
   font-weight: 600 !important;
 }
 
-/* Outside month days */
+/* Outside month days - white but dimmed */
 .form-scope .rdp-day.rdp-outside .rdp-day_button {
-  color: #7d8f93 !important;
-  opacity: 0.6 !important;
+  color: #F7F7F7 !important;
+  opacity: 0.4 !important;
 }
 
-/* Disabled days */
+/* Disabled days - white but very dimmed */
 .form-scope .rdp-day.rdp-disabled .rdp-day_button {
-  color: #7d8f93 !important;
+  color: #F7F7F7 !important;
   cursor: not-allowed !important;
   opacity: 0.3 !important;
 }
