@@ -1730,10 +1730,11 @@
 /* Mobile adjustments */
 @media (max-width: 600px) {
   .form-scope .date-picker-dropdown {
-    left: 50%;
-    transform: translateX(-50%);
-    min-width: 280px;
-    padding: 14px;
+    left: 0 !important;
+    right: 0 !important;
+    transform: none !important;
+    min-width: 100% !important;
+    width: 100% !important;
   }
   
   .form-scope .rdp-day_button {
