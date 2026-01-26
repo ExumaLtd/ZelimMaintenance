@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Image from "next/image";
 import { getCompanyLogoUrl } from '../../../utils/get-company-logo';
 import ImageUploader from '../../../components/image-uploader';
-import VoiceInput from '../../../components/voice-input'; 
+import VoiceInput from '../../../components/voice-input';
+import DatePicker from '../../../components/date-picker';
 import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
 import { useAutoSave } from '../../../hooks/use-auto-save';
 
@@ -53,6 +54,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [today, setToday] = useState("");
+  const [maintenanceDate, setMaintenanceDate] = useState(new Date().toISOString().split("T")[0]);
   const [fieldErrors, setFieldErrors] = useState({
     company: false,
     location: false,
@@ -73,9 +75,9 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
 
-  const storageKey = `draft_annual_${unit?.serial_number}`;
+  const storageKey = useMemo(() => `draft_annual_${unit?.serial_number}`, [unit?.serial_number]);
 
-  // Auto-save draft to Airtable
+  // Auto-save draft to Airtable - ✅ Updated condition
   useAutoSave({
     unitId: unit?.record_id,
     maintenanceType: 'Annual',
@@ -90,7 +92,16 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       engEmail,
       engPhone,
     }
-  }, engEmail !== '' && engEmail.includes('@'));
+  }, 
+    // ✅ Save if there's ANY content, not just when email is valid
+    Object.keys(answers).some(key => answers[key]?.trim()) || // Has any answers
+    Object.keys(questionImages).length > 0 || // Has images
+    selectedCompany || // Has company selected
+    locationDisplay?.trim() || // Has location
+    engName?.trim() || // Has engineer name
+    engEmail?.trim() || // Has email (even if invalid)
+    engPhone?.trim() // Has phone
+  );
 
   const filteredEngineers = useMemo(() => {
     if (!selectedCompany) return [];
@@ -102,6 +113,52 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     }
     return list;
   }, [selectedCompany, engName, allEngineers]);
+
+  const selectCompany = useCallback((company) => {
+    setSelectedCompany(company);
+    setEngName("Please select");
+    setEngEmail("");
+    setEngPhone("");
+    setShowCompanyDropdown(false);
+    setFieldErrors(prev => ({ ...prev, company: false }));
+  }, []);
+
+  const selectEngineer = useCallback((engineer) => {
+    setEngName(engineer.name);
+    setEngEmail(engineer.email || "");
+    setEngPhone(engineer.phone || "");
+    setShowEngineerDropdown(false);
+    setFieldErrors(prev => ({
+      ...prev,
+      engineerName: false,
+      engineerEmail: engineer.email ? false : prev.engineerEmail,
+      engineerPhone: engineer.phone ? false : prev.engineerPhone,
+    }));
+    const engineerInput = document.querySelector('[name="engineer_name"]');
+    if (engineerInput) engineerInput.classList.remove('has-error');
+    if (engineer.email) {
+      const emailInput = document.querySelector('[name="engineer_email"]');
+      if (emailInput) emailInput.classList.remove('has-error');
+    }
+    if (engineer.phone) {
+      const phoneInput = document.querySelector('[name="engineer_phone"]');
+      if (phoneInput) phoneInput.classList.remove('has-error');
+    }
+  }, []);
+
+  const clearEngineer = useCallback(() => {
+    setEngName("");
+    setEngEmail("");
+    setEngPhone("");
+    setShowEngineerDropdown(false);
+  }, []);
+
+  const handleImagesChange = (questionKey, images) => {
+    setQuestionImages(prev => ({
+      ...prev,
+      [questionKey]: images
+    }));
+  };
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -124,7 +181,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     // Don't load localStorage if coming from "Continue maintenance"
     const urlParams = new URLSearchParams(window.location.search);
     const isDraft = urlParams.get('draft') === 'true';
-    if (isDraft) return; // Skip localStorage when loading from Airtable
+    if (isDraft) return;
     
     const savedDraft = localStorage.getItem(storageKey);
     if (!savedDraft) return;
@@ -150,15 +207,14 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     }
   }, [storageKey]);
 
-  // Load draft from Airtable - check query params first
+  // Load draft from Airtable
   useEffect(() => {
     const loadDraft = async () => {
-      // Check if we have draft query params from dashboard
       const urlParams = new URLSearchParams(window.location.search);
       const isDraft = urlParams.get('draft') === 'true';
       const emailFromUrl = urlParams.get('email');
       
-      if (!isDraft || !emailFromUrl) return; // Only run when coming from "Continue maintenance"
+      if (!isDraft || !emailFromUrl) return;
       
       const emailToUse = decodeURIComponent(emailFromUrl);
       
@@ -171,7 +227,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
         const data = await res.json();
         
         if (data.draft) {
-          // Restore form state from draft
           if (data.draft.answers) setAnswers(data.draft.answers);
           if (data.draft.questionImages) setQuestionImages(data.draft.questionImages);
           if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
@@ -196,10 +251,10 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     if (typeof window === "undefined" || !navigator.geolocation) return;
     if (locationDisplay && locationDisplay.trim() !== "") return;
 
-    // IMPORTANT: Don't run if coming from "Continue maintenance"
+    // Skip geolocation if loading a draft
     const urlParams = new URLSearchParams(window.location.search);
     const isDraft = urlParams.get('draft') === 'true';
-    if (isDraft) return; // Skip geolocation if loading a draft
+    if (isDraft) return;
 
     const options = {
       enableHighAccuracy: true,
@@ -259,6 +314,24 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     );
   }, []);
 
+  // Pre-request microphone permission on page load
+  useEffect(() => {
+    if (typeof window === "undefined" || !navigator.mediaDevices) return;
+    
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        stream.getTracks().forEach(track => track.stop());
+        if (process.env.NODE_ENV === 'development') {
+          console.log('✓ Microphone permission pre-granted');
+        }
+      })
+      .catch(err => {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Microphone permission denied or unavailable:', err.message);
+        }
+      });
+  }, []);
+
   // Save draft to localStorage
   useEffect(() => {
     const draftData = {
@@ -272,56 +345,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     };
     localStorage.setItem(storageKey, JSON.stringify(draftData));
   }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, answers, storageKey]);
-
-  const selectCompany = (company) => {
-    setSelectedCompany(company);
-    setEngName("Please select");
-    setEngEmail("");
-    setEngPhone("");
-    setShowCompanyDropdown(false);
-    setFieldErrors(prev => ({ ...prev, company: false }));
-  };
-
-  const selectEngineer = (engineer) => {
-    setEngName(engineer.name);
-    setEngEmail(engineer.email || "");
-    setEngPhone(engineer.phone || "");
-    setShowEngineerDropdown(false);
-    setFieldErrors(prev => ({
-      ...prev,
-      engineerName: false,
-      engineerEmail: engineer.email ? false : prev.engineerEmail,
-      engineerPhone: engineer.phone ? false : prev.engineerPhone,
-    }));
-    const engineerInput = document.querySelector('[name="engineer_name"]');
-    if (engineerInput) engineerInput.classList.remove('has-error');
-    if (engineer.email) {
-      const emailInput = document.querySelector('[name="engineer_email"]');
-      if (emailInput) emailInput.classList.remove('has-error');
-    }
-    if (engineer.phone) {
-      const phoneInput = document.querySelector('[name="engineer_phone"]');
-      if (phoneInput) phoneInput.classList.remove('has-error');
-    }
-  };
-
-  const clearEngineer = () => {
-    setEngName("");
-    setEngEmail("");
-    setEngPhone("");
-    setShowEngineerDropdown(false);
-  };
-
-  const scrollToField = (ref) => {
-    ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-  };
-
-  const handleImagesChange = (questionKey, images) => {
-    setQuestionImages(prev => ({
-      ...prev,
-      [questionKey]: images
-    }));
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -417,9 +440,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
           setTimeout(() => {
             if (firstErrorField.current.focus) {
               firstErrorField.current.focus();
-            } else if (firstErrorField.current.querySelector) {
-              const input = firstErrorField.current.querySelector('.checklist-input');
-              if (input) input.focus();
             }
           }, 300);
         }
@@ -429,7 +449,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
     setSubmitting(true);
 
-    // Prepare email-friendly answers WITH images
     const emailFriendlyAnswers = {};
     (template?.questionsData || []).forEach((q, i) => {
       const questionKey = `q${i + 1}`;
@@ -502,11 +521,12 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
             maintenance_company: selectedCompany,
             engineer_name: engName,
             location_display: locationDisplay,
+            date_of_maintenance: new Date().toISOString().split('T')[0],
+            time_of_maintenance: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
           },
         }),
       });
 
-      // Clear image localStorage after successful submission
       (template?.questionsData || []).forEach((_, i) => {
         const questionKey = `q${i + 1}`;
         const imageStorageKey = `images_annual_${unit?.serial_number}_${questionKey}`;
@@ -527,7 +547,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const hasEngineerResults = filteredEngineers.length > 0;
   const hasClearEng = engName && engName !== "Please select" && engName !== "";
   const shouldShowEngDropdown = showEngineerDropdown && (hasEngineerResults || hasClearEng);
-
   return (
     <div className="form-scope">
       <Head>
@@ -548,173 +567,165 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
               <span className="break-point">annual maintenance</span>
             </h1>
 
-            {/* SECTION 1: Engineer Details */}
+            {/* CARD 1: ADMIN FIELDS */}
             <div className="checklist-form-card">
-              <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-                <div className="checklist-inline-group">
-                  <div className="checklist-field" ref={companyFieldRef}>
-                    <label className="checklist-label">Maintenance company</label>
-                    <div className="custom-dropdown-container" ref={companyDropdownRef}>
-                      <div className="field-icon-wrapper">
-                        <input
-                          readOnly
-                          className={`checklist-input ${selectedCompany ? "is-active" : "is-placeholder"} ${
-                            showCompanyDropdown ? "is-focused" : ""
-                          } ${fieldErrors.company ? "has-error" : ""}`}
-                          value={selectedCompany || "Please select"}
-                          onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
-                          style={{ cursor: "pointer", paddingRight: "40px" }}
-                        />
-                        <div className="field-icon-inside">
-                          {showCompanyDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
-                        </div>
-                      </div>
-                      {showCompanyDropdown && (
-                        <ul className={`custom-dropdown-list ${fieldErrors.company ? "has-error" : ""}`}>
-                          {allCompanies.sort().map((c, i) => (
-                            <li
-                              key={i}
-                              className={`custom-dropdown-item ${selectedCompany === c ? "active" : ""}`}
-                              onClick={() => selectCompany(c)}
-                            >
-                              {c}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="checklist-field" ref={locationFieldRef}>
-                    <label className="checklist-label">Location</label>
-                    <input
-                      className="checklist-input"
-                      name="location_display"
-                      required
-                      value={locationDisplay}
-                      onChange={(e) => {
-                        setLocationDisplay(e.target.value);
-                        if (e.target.value.trim()) {
-                          e.target.classList.remove('has-error');
-                        }
-                      }}
-                    />
-                  </div>
-
-                  <div className="checklist-field">
-                    <label className="checklist-label">Date</label>
+              <div className="checklist-inline-group">
+                <div className="checklist-field" ref={companyFieldRef}>
+                  <label className="checklist-label">Maintenance company</label>
+                  <div className="custom-dropdown-container" ref={companyDropdownRef}>
                     <div className="field-icon-wrapper">
                       <input
-                        type="date"
-                        className="checklist-input"
-                        name="date_of_maintenance"
-                        defaultValue={today}
-                        max={today}
-                        required
-                        style={{ paddingRight: "40px" }}
+                        readOnly
+                        className={`checklist-input ${selectedCompany ? "is-active" : "is-placeholder"} ${
+                          showCompanyDropdown ? "is-focused" : ""
+                        } ${fieldErrors.company ? "has-error" : ""}`}
+                        value={selectedCompany || "Please select"}
+                        onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
+                        style={{ cursor: "pointer", paddingRight: "40px" }}
                       />
                       <div className="field-icon-inside">
-                        <Calendar size={20} strokeWidth={1.5} />
+                        {showCompanyDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
                       </div>
                     </div>
+                    {showCompanyDropdown && (
+                      <ul className={`custom-dropdown-list ${fieldErrors.company ? "has-error" : ""}`}>
+                        {allCompanies.sort().map((c, i) => (
+                          <li
+                            key={i}
+                            className={`custom-dropdown-item ${selectedCompany === c ? "active" : ""}`}
+                            onClick={() => selectCompany(c)}
+                          >
+                            {c}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
 
-                <div className="checklist-inline-group" style={{ marginTop: "24px" }}>
-                  <div className="checklist-field" ref={engineerFieldRef}>
-                    <label className="checklist-label">Engineer name</label>
-                    <div className="custom-dropdown-container" ref={engineerDropdownRef}>
-                      <div className="field-icon-wrapper">
-                        <input
-                          className={`checklist-input ${
-                            engName === "Please select" || !engName ? "is-placeholder" : "is-active"
-                          } ${shouldShowEngDropdown ? "is-focused" : ""} ${fieldErrors.engineerName ? "has-error" : ""}`}
-                          name="engineer_name"
-                          required
-                          value={engName}
-                          autoComplete="off"
-                          onFocus={() => {
-                            if (selectedCompany) setShowEngineerDropdown(true);
-                          }}
-                          onChange={(e) => {
-                            setEngName(e.target.value);
-                            if (selectedCompany) setShowEngineerDropdown(true);
-                            if (e.target.value.trim() && e.target.value !== "Please select") {
-                              setFieldErrors(prev => ({ ...prev, engineerName: false }));
-                            }
-                          }}
-                          style={{
-                            paddingRight: selectedCompany && (hasEngineerResults || hasClearEng) ? "40px" : "16px",
-                          }}
-                        />
-                        {selectedCompany && (hasEngineerResults || hasClearEng) && (
-                          <div className="field-icon-inside">
-                            {showEngineerDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
-                          </div>
-                        )}
-                      </div>
-                      {shouldShowEngDropdown && (
-                        <ul className={`custom-dropdown-list ${fieldErrors.engineerName ? "has-error" : ""}`}>
-                          {hasClearEng && (
-                            <li className="custom-dropdown-item" onClick={clearEngineer}>
-                              Clear details
-                            </li>
-                          )}
-                          {filteredEngineers.map((eng, i) => (
-                            <li key={i} className="custom-dropdown-item" onClick={() => selectEngineer(eng)}>
-                              {eng.name}
-                            </li>
-                          ))}
-                        </ul>
+                <div className="checklist-field" ref={locationFieldRef}>
+                  <label className="checklist-label">Location</label>
+                  <input
+                    className={`checklist-input ${fieldErrors.location ? "has-error" : ""}`}
+                    name="location_display"
+                    required
+                    value={locationDisplay}
+                    onChange={(e) => {
+                      setLocationDisplay(e.target.value);
+                      if (e.target.value.trim()) {
+                        e.target.classList.remove('has-error');
+                        setFieldErrors(prev => ({ ...prev, location: false }));
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="checklist-field">
+                  <label className="checklist-label">Date</label>
+                  <DatePicker
+                    value={maintenanceDate}
+                    onChange={(date) => setMaintenanceDate(date)}
+                    max={today}
+                  />
+                </div>
+              </div>
+
+              <div className="checklist-inline-group" style={{ marginTop: "24px" }}>
+                <div className="checklist-field" ref={engineerFieldRef}>
+                  <label className="checklist-label">Engineer name</label>
+                  <div className="custom-dropdown-container" ref={engineerDropdownRef}>
+                    <div className="field-icon-wrapper">
+                      <input
+                        className={`checklist-input ${
+                          engName === "Please select" || !engName ? "is-placeholder" : "is-active"
+                        } ${shouldShowEngDropdown ? "is-focused" : ""} ${fieldErrors.engineerName ? "has-error" : ""}`}
+                        name="engineer_name"
+                        required
+                        value={engName}
+                        autoComplete="off"
+                        onFocus={() => {
+                          if (selectedCompany) setShowEngineerDropdown(true);
+                        }}
+                        onChange={(e) => {
+                          setEngName(e.target.value);
+                          if (selectedCompany) setShowEngineerDropdown(true);
+                          if (e.target.value.trim() && e.target.value !== "Please select") {
+                            setFieldErrors(prev => ({ ...prev, engineerName: false }));
+                          }
+                        }}
+                        style={{
+                          paddingRight: selectedCompany && (hasEngineerResults || hasClearEng) ? "40px" : "16px",
+                        }}
+                      />
+                      {selectedCompany && (hasEngineerResults || hasClearEng) && (
+                        <div className="field-icon-inside">
+                          {showEngineerDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
+                        </div>
                       )}
                     </div>
-                  </div>
-
-                  <div className="checklist-field">
-                    <label className="checklist-label">Engineer email</label>
-                    <input
-                      type="email"
-                      className="checklist-input"
-                      name="engineer_email"
-                      required
-                      value={engEmail}
-                      onChange={(e) => {
-                        setEngEmail(e.target.value);
-                        if (e.target.value.trim()) {
-                          e.target.classList.remove('has-error');
-                        }
-                      }}
-                    />
-                  </div>
-
-                  <div className="checklist-field">
-                    <label className="checklist-label">Engineer phone</label>
-                    <input
-                      type="tel"
-                      className="checklist-input"
-                      name="engineer_phone"
-                      required
-                      value={engPhone}
-                      onChange={(e) => {
-                        setEngPhone(e.target.value);
-                        if (e.target.value.trim()) {
-                          e.target.classList.remove('has-error');
-                        }
-                      }}
-                    />
+                    {shouldShowEngDropdown && (
+                      <ul className={`custom-dropdown-list ${fieldErrors.engineerName ? "has-error" : ""}`}>
+                        {hasClearEng && (
+                          <li className="custom-dropdown-item" onClick={clearEngineer}>
+                            Clear details
+                          </li>
+                        )}
+                        {filteredEngineers.map((eng, i) => (
+                          <li key={i} className="custom-dropdown-item" onClick={() => selectEngineer(eng)}>
+                            {eng.name}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
-              </form>
+
+                <div className="checklist-field">
+                  <label className="checklist-label">Engineer email</label>
+                  <input
+                    type="email"
+                    className={`checklist-input ${fieldErrors.engineerEmail ? "has-error" : ""}`}
+                    name="engineer_email"
+                    required
+                    value={engEmail}
+                    onChange={(e) => {
+                      setEngEmail(e.target.value);
+                      if (e.target.value.trim()) {
+                        e.target.classList.remove('has-error');
+                        setFieldErrors(prev => ({ ...prev, engineerEmail: false }));
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="checklist-field">
+                  <label className="checklist-label">Engineer phone</label>
+                  <input
+                    type="tel"
+                    className={`checklist-input ${fieldErrors.engineerPhone ? "has-error" : ""}`}
+                    name="engineer_phone"
+                    required
+                    value={engPhone}
+                    onChange={(e) => {
+                      setEngPhone(e.target.value);
+                      if (e.target.value.trim()) {
+                        e.target.classList.remove('has-error');
+                        setFieldErrors(prev => ({ ...prev, engineerPhone: false }));
+                      }
+                    }}
+                  />
+                </div>
+              </div>
             </div>
 
-            {/* SECTION 2: Annual Maintenance Questions */}
+            {/* CARD 2: QUESTIONS */}
             <div className="checklist-form-card" style={{ marginTop: "20px" }}>
-              <h2 className="checklist-section-title">Annual maintenance</h2>
-              <p className="checklist-section-subtitle">
-                All annual maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual.
-              </p>
-
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
+                <h3 className="checklist-section-title">Annual maintenance</h3>
+                <p className="checklist-section-subtitle">
+                  All annual maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual.
+                </p>
+                
                 {(template?.questionsData || []).map((q, i) => (
                   <div key={i} style={{ marginTop: i === 0 ? "0" : "24px" }}>
                     <label className="checklist-label">
@@ -729,34 +740,53 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                         <textarea
                           name={`q${i + 1}`}
                           className="checklist-textarea"
-                          onInput={autoGrow}
                           value={answers[`q${i + 1}`] || ""}
                           onChange={(e) => {
                             setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+                            autoGrow(e);
                             if (e.target.value.trim()) {
                               e.target.classList.remove('has-error');
                             }
                           }}
+                          onInput={autoGrow}
+                          placeholder=""
                           required={q.required}
+                        />
+
+                        <VoiceInput
+                          onTranscript={(text) => {
+                            const questionKey = `q${i + 1}`;
+                            setAnswers((prev) => ({
+                              ...prev,
+                              [questionKey]: (prev[questionKey] || '') + text
+                            }));
+                            requestAnimationFrame(() => {
+                              requestAnimationFrame(() => {
+                                const textarea = document.querySelector(`[name="${questionKey}"]`);
+                                if (textarea) autoGrow(textarea);
+                              });
+                            });
+                          }}
+                          onError={(errorMsg) => setErrorMsg(errorMsg)}
                         />
                       </div>
                       
                       {q.allow_uploads && (
-  <ImageUploader
-    questionKey={`q${i + 1}`}
-    questionText={q.title}
-    serialNumber={unit?.serial_number}
-    maintenanceType="annual"
-    initialImages={questionImages[`q${i + 1}`] || []}
-    onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
-  />
-)}
+                        <ImageUploader
+                          questionKey={`q${i + 1}`}
+                          questionText={q.title}
+                          serialNumber={unit?.serial_number}
+                          maintenanceType="annual"
+                          initialImages={questionImages[`q${i + 1}`] || []}
+                          onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
+                        />
+                      )}
                     </div>
                   </div>
                 ))}
 
                 {errorMsg && <p className="error-message">{errorMsg}</p>}
-                <button className="checklist-submit" disabled={submitting}>
+                <button type="submit" className="checklist-submit" disabled={submitting}>
                   {submitting ? "Submitting..." : "Submit maintenance"}
                 </button>
               </form>
@@ -808,6 +838,15 @@ export async function getServerSideProps({ params }) {
       });
     }
 
+    let parsedJson = {};
+    try {
+      if (templateData.records?.[0]?.fields.questions_json) {
+        parsedJson = JSON.parse(templateData.records[0].fields.questions_json);
+      }
+    } catch (e) {
+      console.error("Failed to parse questions_json:", e);
+    }
+
     return {
       props: {
         unit: {
@@ -818,12 +857,8 @@ export async function getServerSideProps({ params }) {
         },
         template: {
           id: templateData.records?.[0]?.id || "",
-          questionsData: templateData.records?.[0]?.fields.questions_json
-            ? JSON.parse(templateData.records[0].fields.questions_json)
-            : [],
-          questions: templateData.records?.[0]?.fields.questions_json
-            ? JSON.parse(templateData.records[0].fields.questions_json).map(q => q.title)
-            : [],
+          questionsData: parsedJson.questions || [],
+          questions: parsedJson.questions?.map(q => q.title) || [],
         },
         allCompanies: Object.values(companyLookup).filter(Boolean),
         allEngineers:
@@ -839,6 +874,7 @@ export async function getServerSideProps({ params }) {
       },
     };
   } catch (err) {
+    console.error("getServerSideProps error:", err);
     return { notFound: true };
   }
 }
