@@ -1481,7 +1481,19 @@
     padding: 0px 18px 10px 0px;
   }
 }
-/* Date Picker Styles */
+/* =========================================================================
+   UNSCHEDULED MAINTENANCE - Hide question labels
+========================================================================= */
+
+.form-scope .unscheduled-question-label,
+.form-scope .unscheduled-question-instruction {
+  display: none;
+}
+
+/* =========================================================================
+   DATE PICKER STYLES
+========================================================================= */
+
 .form-scope .date-picker-wrapper {
   position: relative;
   width: 100%;
@@ -1504,14 +1516,14 @@
   background: #27454b;
   border: 1px solid #00FFF6;
   border-radius: 12px;
-  padding: 20px;
+  padding: 16px;
   box-shadow: 0 10px 25px rgba(21, 42, 49, 0.6);
-  min-width: 320px;
+  min-width: 300px;
 }
 
 /* react-day-picker custom theme */
 .form-scope .rdp {
-  --rdp-cell-size: 38px;
+  --rdp-cell-size: 36px;
   --rdp-accent-color: #00FFF6;
   --rdp-background-color: rgba(0, 255, 246, 0.1);
   margin: 0;
@@ -1522,17 +1534,22 @@
   color: #F7F7F7;
 }
 
+/* Month/Year caption */
 .form-scope .rdp-caption {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 0 0 16px 0;
-  color: #F7F7F7;
-  font-weight: 600;
-  font-size: 15px;
+  padding: 0 0 12px 0;
   position: relative;
 }
 
+.form-scope .rdp-caption_label {
+  color: #F7F7F7;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Navigation buttons */
 .form-scope .rdp-nav {
   position: absolute;
   top: 0;
@@ -1547,7 +1564,7 @@
   border-radius: 6px;
   background: #152a31;
   border: 1px solid transparent;
-  color: #F7F7F7;
+  color: #00FFF6;
   cursor: pointer;
   transition: all 0.15s;
   display: flex;
@@ -1568,24 +1585,27 @@
 .form-scope .rdp-nav_button svg {
   width: 16px;
   height: 16px;
+  stroke: #00FFF6;
 }
 
+/* Weekday headers (Mon, Tue, Wed...) */
 .form-scope .rdp-head_cell {
-  color: #7d8f93;
+  color: #F7F7F7;
   font-weight: 600;
   font-size: 11px;
   text-transform: uppercase;
-  padding: 0 0 8px 0;
+  padding: 0 0 6px 0;
   letter-spacing: 0.5px;
 }
 
+/* Day cells */
 .form-scope .rdp-cell {
-  padding: 2px;
+  padding: 1px;
 }
 
 .form-scope .rdp-button {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border-radius: 6px;
   border: none;
   color: #F7F7F7;
@@ -1602,29 +1622,34 @@
   color: #F7F7F7;
 }
 
+/* Selected day */
 .form-scope .rdp-day_selected {
   background: #00FFF6 !important;
   color: #0d3037 !important;
   font-weight: 600;
+  border: 1px solid #00FFF6 !important;
 }
 
 .form-scope .rdp-day_selected:hover {
   background: #01e6dd !important;
 }
 
+/* Today */
 .form-scope .rdp-day_today:not(.rdp-day_selected) {
   background: rgba(0, 255, 246, 0.08);
   border: 1px solid rgba(0, 255, 246, 0.3);
   font-weight: 600;
 }
 
+/* Outside month days */
 .form-scope .rdp-day_outside {
-  color: #425558;
-  opacity: 0.4;
+  color: #7d8f93;
+  opacity: 0.6;
 }
 
+/* Disabled days (future dates) */
 .form-scope .rdp-day_disabled {
-  color: #425558;
+  color: #7d8f93;
   cursor: not-allowed;
   opacity: 0.3;
 }
@@ -1638,34 +1663,25 @@
   .form-scope .date-picker-dropdown {
     left: 50%;
     transform: translateX(-50%);
-    min-width: 300px;
-    padding: 16px;
+    min-width: 280px;
+    padding: 14px;
   }
   
   .form-scope .rdp {
-    --rdp-cell-size: 36px;
+    --rdp-cell-size: 34px;
   }
   
   .form-scope .rdp-button {
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     font-size: 13px;
   }
   
-  .form-scope .rdp-caption {
-    font-size: 14px;
+  .form-scope .rdp-caption_label {
+    font-size: 13px;
   }
   
   .form-scope .rdp-head_cell {
     font-size: 10px;
   }
-}
-
-/* =========================================================================
-   UNSCHEDULED MAINTENANCE - Hide question labels
-========================================================================= */
-
-.form-scope .unscheduled-question-label,
-.form-scope .unscheduled-question-instruction {
-  display: none;
 }
