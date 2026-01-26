@@ -254,6 +254,21 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }) 
     return formatted;
   };
 
+  const cleanupStreams = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+  };
+
   const startRecording = async () => {
     if (disabled || isListening || isStartingRef.current) return;
     isStartingRef.current = true;
@@ -272,15 +287,26 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }) 
     smoothedRef.current = 0;
 
     try {
-      // Enable WebRTC audio processing for noisy environments (ships)
+      // ✅ Request basic audio first (instant permission prompt)
       const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          channelCount: 1,
-        },
+        audio: true
       });
+
+      // Then apply constraints if supported (won't delay permission)
+      const track = stream.getAudioTracks()[0];
+      if (track.applyConstraints) {
+        try {
+          await track.applyConstraints({
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            channelCount: 1,
+          });
+        } catch (e) {
+          log('Could not apply audio constraints:', e);
+          // Continue anyway with basic audio
+        }
+      }
 
       streamRef.current = stream;
 
@@ -370,67 +396,66 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }) 
         stopSafetyRef.current = null;
       }, RECORDING_STOP_TIMEOUT);
 
-recorder.onstop = async () => {
-  if (stopSafetyRef.current) {
-    clearTimeout(stopSafetyRef.current);
-    stopSafetyRef.current = null;
-  }
+      recorder.onstop = async () => {
+        if (stopSafetyRef.current) {
+          clearTimeout(stopSafetyRef.current);
+          stopSafetyRef.current = null;
+        }
 
-  console.log('📊 Recording stopped, processing audio...'); // ← Always log
-  const mime = recorder?.mimeType || 'audio/webm';
-  const audioBlob = new Blob(audioChunksRef.current, { type: mime });
-  
-  // ✅ CRITICAL LOGS (always log, not wrapped):
-  console.log('🔍 Audio blob size:', audioBlob.size, 'bytes');
-  console.log('🔍 Audio blob type:', audioBlob.type);
-  console.log('🔍 Audio chunks count:', audioChunksRef.current.length);
-  console.log('🔍 Recorder MIME type:', recorder?.mimeType);
+        console.log('📊 Recording stopped, processing audio...');
+        const mime = recorder?.mimeType || 'audio/webm';
+        const audioBlob = new Blob(audioChunksRef.current, { type: mime });
+        
+        console.log('🔍 Audio blob size:', audioBlob.size, 'bytes');
+        console.log('🔍 Audio blob type:', audioBlob.type);
+        console.log('🔍 Audio chunks count:', audioChunksRef.current.length);
+        console.log('🔍 Recorder MIME type:', recorder?.mimeType);
 
-  if (audioBlob.size === 0) {
-    console.error('❌ Audio blob is empty');
-    audioChunksRef.current = [];
-    transcriptRef.current = '';
-    cleanupStreams();
-    mediaRecorderRef.current = null;
-    isStoppingRef.current = false;
-    return;
-  }
+        if (audioBlob.size === 0) {
+          console.error('❌ Audio blob is empty');
+          audioChunksRef.current = [];
+          transcriptRef.current = '';
+          cleanupStreams();
+          mediaRecorderRef.current = null;
+          isStoppingRef.current = false;
+          return;
+        }
 
-  try {
-    console.log('🌐 Sending to ElevenLabs API...'); // ← Always log
-    const response = await fetch('/api/transcribe-elevenlabs', {
-      method: 'POST',
-      headers: { 'x-audio-mime': audioBlob.type },
-      body: audioBlob,
-    });
+        try {
+          console.log('🌐 Sending to ElevenLabs API...');
+          const response = await fetch('/api/transcribe-elevenlabs', {
+            method: 'POST',
+            headers: { 'x-audio-mime': audioBlob.type },
+            body: audioBlob,
+          });
 
-    console.log('📡 API response status:', response.status); // ← Always log
-    const data = await response.json();
-    console.log('📝 ElevenLabs response:', data); // ← Always log
+          console.log('📡 API response status:', response.status);
+          const data = await response.json();
+          console.log('📝 ElevenLabs response:', data);
 
-    if (!data.fallback && data.text && onTranscript) {
-      log('✨ Transcription successful:', data.text);
-      const formatted = formatTranscript(data.text);
-      onTranscript(formatted + ' ');
-    }
-  } catch (error) {
-    console.error('❌ ElevenLabs error:', error);
-    
-    // Fallback to browser transcript if available
-    const browserTranscript = transcriptRef.current.trim();
-    if (browserTranscript && onTranscript) {
-      log('📝 Using browser fallback transcript');
-      const formatted = formatTranscript(browserTranscript);
-      onTranscript(formatted + ' ');
-    }
-  }
+          if (!data.fallback && data.text && onTranscript) {
+            log('✨ Transcription successful:', data.text);
+            const formatted = formatTranscript(data.text);
+            onTranscript(formatted + ' ');
+          }
+        } catch (error) {
+          console.error('❌ ElevenLabs error:', error);
+          
+          // Fallback to browser transcript if available
+          const browserTranscript = transcriptRef.current.trim();
+          if (browserTranscript && onTranscript) {
+            log('📝 Using browser fallback transcript');
+            const formatted = formatTranscript(browserTranscript);
+            onTranscript(formatted + ' ');
+          }
+        }
 
-  audioChunksRef.current = [];
-  transcriptRef.current = '';
-  cleanupStreams();
-  mediaRecorderRef.current = null;
-  isStoppingRef.current = false;
-};
+        audioChunksRef.current = [];
+        transcriptRef.current = '';
+        cleanupStreams();
+        mediaRecorderRef.current = null;
+        isStoppingRef.current = false;
+      };
 
       try { recorder.requestData(); } catch (e) {}
       recorder.stop();
@@ -482,21 +507,6 @@ recorder.onstop = async () => {
     isStoppingRef.current = false;
   };
 
-  const cleanupStreams = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    if (audioContextRef.current) {
-      audioContextRef.current.close();
-      audioContextRef.current = null;
-    }
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-  };
-
   if (!isSupported) return null;
 
   const getBarHeightPx = (lvl, idx) => {
@@ -527,7 +537,7 @@ recorder.onstop = async () => {
             aria-label="Cancel recording"
           >
             <X size={18} strokeWidth={1.5} />
-            {!isMobile && <span className="voice-tooltip-popup tooltip-white">Cancel</span>}
+            {!isMobile && <span className="voice-tooltip-popup">Cancel</span>}
           </button>
 
           <div className={`voice-waveform-bars ${isSpeaking ? 'speaking' : 'idle'}`}>
@@ -547,7 +557,7 @@ recorder.onstop = async () => {
             aria-label="Accept recording"
           >
             <Check size={18} strokeWidth={1.5} />
-            {!isMobile && <span className="voice-tooltip-popup tooltip-white">Submit</span>}
+            {!isMobile && <span className="voice-tooltip-popup">Submit</span>}
           </button>
         </div>
       )}

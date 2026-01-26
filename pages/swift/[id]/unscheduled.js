@@ -101,22 +101,31 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
 
   const storageKey = `draft_unscheduled_${unit?.serial_number}`;
 
-  // Auto-save draft to Airtable
-  useAutoSave({
-    unitId: unit?.record_id,
-    maintenanceType: 'Unscheduled',
-    engineerEmail: engEmail,
-    draftData: {
-      answers,
-      questionImages,
-      selectedCompany,
-      locationDisplay,
-      locationCountry,
-      engName,
-      engEmail,
-      engPhone,
-    }
-  }, engEmail !== '' && engEmail.includes('@'));
+// Auto-save draft to Airtable
+useAutoSave({
+  unitId: unit?.record_id,
+  maintenanceType: 'Unscheduled',
+  engineerEmail: engEmail,
+  draftData: {
+    answers,
+    questionImages,
+    selectedCompany,
+    locationDisplay,
+    locationCountry,
+    engName,
+    engEmail,
+    engPhone,
+  }
+}, 
+  // ✅ Save if there's ANY content, not just when email is valid
+  Object.keys(answers).some(key => answers[key]?.trim()) || // Has any answers
+  Object.keys(questionImages).length > 0 || // Has any images
+  selectedCompany || // Has company selected
+  locationDisplay?.trim() || // Has location
+  engName?.trim() || // Has engineer name
+  engEmail?.trim() || // Has email (even if invalid)
+  engPhone?.trim() // Has phone
+);
 
   const filteredEngineers = useMemo(() => {
     if (!selectedCompany) return [];
