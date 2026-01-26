@@ -1512,21 +1512,81 @@
   min-width: 300px;
 }
 
-/* Root container */
+/* Override default CSS variables */
 .form-scope .rdp-root {
+  --rdp-accent-color: #00FFF6 !important;
+  --rdp-accent-background-color: #00FFF6 !important;
+  --rdp-day-height: 40px !important;
+  --rdp-day-width: 40px !important;
+  --rdp-day_button-height: 36px !important;
+  --rdp-day_button-width: 36px !important;
+  --rdp-day_button-border-radius: 100% !important;
+  --rdp-outside-opacity: 0.4 !important;
+  --rdp-disabled-opacity: 0.3 !important;
   font-family: "Montserrat", sans-serif !important;
 }
 
-/* Months container */
+/* Months container - make it relative for nav positioning */
 .form-scope .rdp-months {
   gap: 0 !important;
+  position: relative !important;
 }
 
 .form-scope .rdp-month {
   margin: 0 !important;
 }
 
-/* Month caption - LEFT aligned */
+/* Navigation - position absolutely in months container */
+.form-scope .rdp-nav {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  display: flex !important;
+  gap: 4px !important;
+  align-items: center !important;
+  z-index: 10 !important;
+}
+
+/* Navigation buttons - make them properly clickable */
+.form-scope .rdp-button_previous,
+.form-scope .rdp-button_next {
+  width: 28px !important;
+  height: 28px !important;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.15s ease !important;
+  padding: 0 !important;
+  pointer-events: auto !important;
+}
+
+.form-scope .rdp-button_previous:disabled,
+.form-scope .rdp-button_next:disabled {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+}
+
+/* Lucide chevron SVGs - white, cyan on hover */
+.form-scope .rdp-button_previous svg,
+.form-scope .rdp-button_next svg {
+  width: 20px !important;
+  height: 20px !important;
+  color: #F7F7F7 !important;
+  stroke: #F7F7F7 !important;
+  transition: stroke 0.15s ease, color 0.15s ease !important;
+  pointer-events: none !important;
+}
+
+.form-scope .rdp-button_previous:hover:not(:disabled) svg,
+.form-scope .rdp-button_next:hover:not(:disabled) svg {
+  color: #00FFF6 !important;
+  stroke: #00FFF6 !important;
+}
+
+/* Month caption */
 .form-scope .rdp-month_caption {
   display: flex !important;
   justify-content: flex-start !important;
@@ -1543,66 +1603,21 @@
   text-align: left !important;
 }
 
-/* Navigation - positioned absolute top right */
-.form-scope .rdp-nav {
-  position: absolute !important;
-  top: 0 !important;
-  right: 0 !important;
-  display: flex !important;
-  gap: 4px !important;
-  align-items: center !important;
-}
-
-/* Navigation buttons */
-.form-scope .rdp-button_previous,
-.form-scope .rdp-button_next {
-  width: 28px !important;
-  height: 28px !important;
-  background: transparent !important;
-  border: none !important;
-  cursor: pointer !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  transition: all 0.15s ease !important;
-  padding: 0 !important;
-}
-
-.form-scope .rdp-button_previous:disabled,
-.form-scope .rdp-button_next:disabled {
-  opacity: 0.3 !important;
-  cursor: not-allowed !important;
-}
-
-/* Lucide chevron SVGs - white, cyan on hover */
-.form-scope .rdp-button_previous svg,
-.form-scope .rdp-button_next svg {
-  width: 20px !important;
-  height: 20px !important;
-  color: #F7F7F7 !important;
-  stroke: #F7F7F7 !important;
-  transition: stroke 0.15s ease !important;
-}
-
-.form-scope .rdp-button_previous:hover:not(:disabled) svg,
-.form-scope .rdp-button_next:hover:not(:disabled) svg {
-  stroke: #00FFF6 !important;
-}
-
 /* Table */
 .form-scope .rdp-month_grid {
   margin: 0 !important;
 }
 
-/* Weekday headers - CENTERED, white, letter spacing */
+/* Weekday headers - pure white, centered, letter spacing */
 .form-scope .rdp-weekday {
-  color: #F7F7F7 !important;
+  color: #FFFFFF !important;
   font-weight: 600 !important;
   font-size: 11px !important;
   text-transform: uppercase !important;
   padding: 0 0 8px 0 !important;
   text-align: center !important;
   letter-spacing: 1px !important;
+  opacity: 1 !important;
 }
 
 /* Day cells */
@@ -1615,7 +1630,7 @@
   width: 36px !important;
   height: 36px !important;
   border-radius: 100% !important;
-  color: #F7F7F7 !important;
+  color: #FFFFFF !important;
   background: transparent !important;
   font-size: 14px !important;
   font-weight: 500 !important;
@@ -1631,7 +1646,7 @@
 
 .form-scope .rdp-day_button:hover:not(:disabled) {
   background: #476166 !important;
-  color: #F7F7F7 !important;
+  color: #FFFFFF !important;
 }
 
 /* Selected day */
@@ -1649,19 +1664,19 @@
 /* Today (not selected) */
 .form-scope .rdp-day.rdp-today:not(.rdp-selected) .rdp-day_button {
   background: rgba(0, 255, 246, 0.08) !important;
-  color: #F7F7F7 !important;
+  color: #FFFFFF !important;
   font-weight: 600 !important;
 }
 
 /* Outside month days - white but dimmed */
 .form-scope .rdp-day.rdp-outside .rdp-day_button {
-  color: #F7F7F7 !important;
+  color: #FFFFFF !important;
   opacity: 0.4 !important;
 }
 
 /* Disabled days - white but very dimmed */
 .form-scope .rdp-day.rdp-disabled .rdp-day_button {
-  color: #F7F7F7 !important;
+  color: #FFFFFF !important;
   cursor: not-allowed !important;
   opacity: 0.3 !important;
 }
@@ -1697,30 +1712,4 @@
   .form-scope .rdp-weekday {
     font-size: 10px !important;
   }
-}
-
-/* Weekday headers - CENTERED, white, letter spacing */
-.form-scope .rdp-weekday {
-  color: #FFFFFF !important;
-  font-weight: 600 !important;
-  font-size: 11px !important;
-  text-transform: uppercase !important;
-  padding: 0 0 8px 0 !important;
-  text-align: center !important;
-  letter-spacing: 1px !important;
-  opacity: 1 !important;
-}
-
-/* Override default CSS variables */
-.form-scope .rdp-root {
-  --rdp-accent-color: #00FFF6 !important;
-  --rdp-accent-background-color: #00FFF6 !important;
-  --rdp-day-height: 40px !important;
-  --rdp-day-width: 40px !important;
-  --rdp-day_button-height: 36px !important;
-  --rdp-day_button-width: 36px !important;
-  --rdp-day_button-border-radius: 100% !important;
-  --rdp-outside-opacity: 0.4 !important;
-  --rdp-disabled-opacity: 0.3 !important;
-  font-family: "Montserrat", sans-serif !important;
 }
