@@ -1481,3 +1481,142 @@
     padding: 0px 18px 10px 0px;
   }
 }
+/* Date Picker Styles */
+.form-scope .date-picker-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.form-scope .date-picker-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+}
+
+.form-scope .date-picker-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 1000;
+  background: #27454B;
+  border: 1px solid #00FFF6;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 10px 25px rgba(21, 42, 49, 0.4);
+}
+
+/* react-day-picker custom theme */
+.form-scope .rdp {
+  --rdp-cell-size: 40px;
+  --rdp-accent-color: #00FFF6;
+  --rdp-background-color: rgba(0, 255, 246, 0.1);
+  --rdp-outline: 2px solid #00FFF6;
+  margin: 0;
+}
+
+.form-scope .rdp-months {
+  color: #F7F7F7;
+}
+
+.form-scope .rdp-caption {
+  display: flex;
+  justify-content: center;
+  padding: 0 0 12px 0;
+  color: #F7F7F7;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.form-scope .rdp-nav {
+  position: absolute;
+  top: 0;
+  display: flex;
+  gap: 8px;
+}
+
+.form-scope .rdp-nav_button {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid #425558;
+  color: #F7F7F7;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.form-scope .rdp-nav_button:hover {
+  background: #476166;
+  border-color: #00FFF6;
+}
+
+.form-scope .rdp-nav_button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.form-scope .rdp-head_cell {
+  color: #7d8f93;
+  font-weight: 500;
+  font-size: 12px;
+  text-transform: uppercase;
+  padding: 8px 0;
+}
+
+.form-scope .rdp-cell {
+  padding: 2px;
+}
+
+.form-scope .rdp-button {
+  border-radius: 8px;
+  border: none;
+  color: #F7F7F7;
+  background: transparent;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.form-scope .rdp-button:hover:not([disabled]):not(.rdp-day_selected) {
+  background: #476166;
+}
+
+.form-scope .rdp-day_selected {
+  background: #00FFF6 !important;
+  color: #0d3037 !important;
+  font-weight: 600;
+}
+
+.form-scope .rdp-day_today:not(.rdp-day_selected) {
+  background: rgba(0, 255, 246, 0.1);
+  border: 1px solid #00FFF6;
+}
+
+.form-scope .rdp-day_outside {
+  color: #425558;
+}
+
+.form-scope .rdp-day_disabled {
+  color: #425558;
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-scope .rdp-day_disabled:hover {
+  background: transparent;
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+  .form-scope .date-picker-dropdown {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .form-scope .rdp {
+    --rdp-cell-size: 36px;
+  }
+}
