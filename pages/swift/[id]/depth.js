@@ -1137,14 +1137,14 @@ export async function getServerSideProps({ params }) {
           record_id: unitRecord.id,
           public_token: unitRecord.fields.public_token || token,
         },
-        template: {
-          id: templateData.records?.[0]?.id || "",
-          type: templateData.records?.[0]?.fields?.type || "Depth",
-          name: templateData.records?.[0]?.fields?.name || templateData.records?.[0]?.fields?.type || "Depth",
-          maintenanceChecklist: parsedJson.equipment_checklist || [],
-          questionsData: parsedJson.questions || [],
-          questions: parsedJson.questions?.map(q => q.title) || [],
-        },
+template: {
+  id: templateData.records?.[0]?.id || "",
+  type: templateData.records?.[0]?.fields?.type || "Depth",
+  name: templateData.records?.[0]?.fields?.name || templateData.records?.[0]?.fields?.type || "Depth",
+  maintenanceChecklist: Array.isArray(parsedJson) ? [] : (parsedJson.equipment_checklist || []),
+  questionsData: Array.isArray(parsedJson) ? parsedJson : (parsedJson.questions || []),
+  questions: Array.isArray(parsedJson) ? parsedJson.map(q => q.title) : (parsedJson.questions?.map(q => q.title) || []),
+},
         allCompanies: Object.values(companyLookup).filter(Boolean),
         allEngineers:
           engineerData.records

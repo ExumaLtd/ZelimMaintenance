@@ -839,27 +839,27 @@ export async function getServerSideProps({ params }) {
     }
 
     let parsedJson = {};
-    try {
-      if (templateData.records?.[0]?.fields.questions_json) {
-        parsedJson = JSON.parse(templateData.records[0].fields.questions_json);
-      }
-    } catch (e) {
-      console.error("Failed to parse questions_json:", e);
-    }
+try {
+  if (templateData.records?.[0]?.fields.questions_json) {
+    parsedJson = JSON.parse(templateData.records[0].fields.questions_json);
+  }
+} catch (e) {
+  console.error("Failed to parse questions_json:", e);
+}
 
-    return {
-      props: {
-        unit: {
-          serial_number: unitRecord.fields.unit_name || unitRecord.fields.serial_number || "Unit",
-          company: unitRecord.fields.company || "",
-          record_id: unitRecord.id,
-          public_token: unitRecord.fields.public_token || token,
-        },
-        template: {
-          id: templateData.records?.[0]?.id || "",
-          questionsData: parsedJson.questions || [],
-          questions: parsedJson.questions?.map(q => q.title) || [],
-        },
+return {
+  props: {
+    unit: {
+      serial_number: unitRecord.fields.unit_name || unitRecord.fields.serial_number || "Unit",
+      company: unitRecord.fields.company || "",
+      record_id: unitRecord.id,
+      public_token: unitRecord.fields.public_token || token,
+    },
+    template: {
+      id: templateData.records?.[0]?.id || "",
+      questionsData: Array.isArray(parsedJson) ? parsedJson : (parsedJson.questions || []),
+      questions: Array.isArray(parsedJson) ? parsedJson.map(q => q.title) : (parsedJson.questions?.map(q => q.title) || []),
+    },
         allCompanies: Object.values(companyLookup).filter(Boolean),
         allEngineers:
           engineerData.records
