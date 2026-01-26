@@ -308,6 +308,27 @@ useAutoSave({
     );
   }, [locationDisplay]);
 
+// Pre-request microphone permission on page load
+useEffect(() => {
+  if (typeof window === "undefined" || !navigator.mediaDevices) return;
+  
+  // Request microphone permission early (silent request)
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(stream => {
+      // Permission granted - immediately close the stream
+      stream.getTracks().forEach(track => track.stop());
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✓ Microphone permission pre-granted');
+      }
+    })
+    .catch(err => {
+      // User denied or error - that's okay, VoiceInput will handle it later
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Microphone permission denied or unavailable:', err.message);
+      }
+    });
+}, []);
+
   // Save draft to localStorage
   useEffect(() => {
     const draftData = {

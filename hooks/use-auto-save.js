@@ -36,10 +36,17 @@ export function useAutoSave(payload, isEnabled = true) {
       engineerEmail: currentPayload.engineerEmail,
     });
     
-    if (!currentPayload.unitId || !currentPayload.maintenanceType || !currentPayload.engineerEmail) {
-      console.log('❌ Missing required fields');
+    // Only require unitId and maintenanceType - email can be empty for partial drafts
+    if (!currentPayload.unitId || !currentPayload.maintenanceType) {
+      console.log('❌ Missing required fields (unitId or maintenanceType)');
       return;
     }
+    
+    // For partial drafts without email, use a placeholder
+    const payloadToSave = {
+      ...currentPayload,
+      engineerEmail: currentPayload.engineerEmail || 'draft_in_progress@placeholder.local'
+    };
     
     // Prevent duplicate saves within 5 seconds
     const now = Date.now();
@@ -55,7 +62,7 @@ export function useAutoSave(payload, isEnabled = true) {
       const response = await fetch('/api/save-draft', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(currentPayload),
+        body: JSON.stringify(payloadToSave),
       });
 
       console.log('Response status:', response.status);
@@ -132,8 +139,12 @@ export function useAutoSave(payload, isEnabled = true) {
     const handleBeforeUnload = () => {
       const currentPayload = payloadRef.current;
       // Use navigator.sendBeacon for more reliable save on page close
-      if (currentPayload.unitId && currentPayload.maintenanceType && currentPayload.engineerEmail) {
-        const blob = new Blob([JSON.stringify(currentPayload)], { type: 'application/json' });
+      if (currentPayload.unitId && currentPayload.maintenanceType) {
+        const payloadToSave = {
+          ...currentPayload,
+          engineerEmail: currentPayload.engineerEmail || 'draft_in_progress@placeholder.local'
+        };
+        const blob = new Blob([JSON.stringify(payloadToSave)], { type: 'application/json' });
         navigator.sendBeacon('/api/save-draft', blob);
       }
     };
