@@ -55,20 +55,23 @@ export default function DatePicker({ value, onChange, max, disabled = false }) {
       {isOpen && (
         <div className="date-picker-dropdown">
           <DayPicker
-            mode="single"
-            selected={selectedDate}
-            onSelect={handleSelect}
-            disabled={{ after: maxDate }}
-            defaultMonth={selectedDate || maxDate}
-            toMonth={maxDate}
-            showOutsideDays
-            locale={enGB}
-            weekStartsOn={1}
-            components={{
-              IconLeft: ({ ...props }) => <ChevronLeft size={20} strokeWidth={1.5} />,
-              IconRight: ({ ...props }) => <ChevronRight size={20} strokeWidth={1.5} />,
-            }}
-          />
+  mode="single"
+  selected={selectedDate}
+  onSelect={handleSelect}
+  disabled={{ after: maxDate }}
+  defaultMonth={selectedDate || maxDate}
+  toMonth={maxDate}
+  showOutsideDays
+  locale={enGB}
+  weekStartsOn={1}
+  formatters={{
+    formatWeekdayName: (date) => format(date, 'EEEEE', { locale: enGB })
+  }}
+  components={{
+    IconLeft: ({ ...props }) => <ChevronLeft size={20} strokeWidth={1.5} />,
+    IconRight: ({ ...props }) => <ChevronRight size={20} strokeWidth={1.5} />,
+  }}
+/>
         </div>
       )}
     </div>
