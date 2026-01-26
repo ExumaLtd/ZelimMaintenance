@@ -1740,15 +1740,15 @@
   .form-scope .rdp-day_button {
     width: 34px !important;
     height: 34px !important;
-    font-size: 13px !important;
+    font-size: 14px !important;
   }
   
   .form-scope .rdp-caption_label {
-    font-size: 13px !important;
+    font-size: 14px !important;
   }
   
   .form-scope .rdp-weekday {
-    font-size: 10px !important;
+    font-size: 12px !important;
   }
 }
 
