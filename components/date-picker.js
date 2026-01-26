@@ -62,7 +62,6 @@ export default function DatePicker({ value, onChange, max, disabled = false }) {
             defaultMonth={selectedDate || maxDate}
             toMonth={maxDate}
             showOutsideDays
-            fixedWeeks
             locale={enGB}
             weekStartsOn={1}
             components={{
