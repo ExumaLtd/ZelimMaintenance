@@ -4,7 +4,8 @@ import Head from "next/head";
 import Image from "next/image";
 import { getCompanyLogoUrl } from '../../../utils/get-company-logo';
 import ImageUploader from '../../../components/image-uploader';
-import VoiceInput from '../../../components/voice-input'; 
+import VoiceInput from '../../../components/voice-input';
+import DatePicker from '../../../components/date-picker';
 import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
 import { useAutoSave } from '../../../hooks/use-auto-save';
 
@@ -74,6 +75,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   const [engName, setEngName] = useState("");
   const [engEmail, setEngEmail] = useState("");
   const [engPhone, setEngPhone] = useState("");
+  const [maintenanceDate, setMaintenanceDate] = useState(new Date().toISOString().split("T")[0]);
 
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
@@ -697,22 +699,13 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                 </div>
 
                 <div className="checklist-field">
-                  <label className="checklist-label">Date</label>
-                  <div className="field-icon-wrapper">
-                    <input
-                      type="date"
-                      className="checklist-input"
-                      name="date_of_maintenance"
-                      defaultValue={today}
-                      max={today}
-                      required
-                      style={{ paddingRight: "40px" }}
-                    />
-                    <div className="field-icon-inside">
-                      <Calendar size={20} strokeWidth={1.5} />
-                    </div>
-                  </div>
-                </div>
+  <label className="checklist-label">Date</label>
+  <DatePicker
+    value={maintenanceDate}
+    onChange={(date) => setMaintenanceDate(date)}
+    max={today}
+  />
+</div>
               </div>
 
               <div className="checklist-inline-group" style={{ marginTop: "24px" }}>
