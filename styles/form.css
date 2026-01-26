@@ -1512,10 +1512,24 @@
   min-width: 300px;
 }
 
-/* Month caption wrapper */
+/* Root container */
+.form-scope .rdp-root {
+  font-family: "Montserrat", sans-serif !important;
+}
+
+/* Months container */
+.form-scope .rdp-months {
+  gap: 0 !important;
+}
+
+.form-scope .rdp-month {
+  margin: 0 !important;
+}
+
+/* Month caption - LEFT aligned */
 .form-scope .rdp-month_caption {
   display: flex !important;
-  justify-content: space-between !important;
+  justify-content: flex-start !important;
   align-items: center !important;
   padding-bottom: 16px !important;
   margin-bottom: 0 !important;
@@ -1529,8 +1543,11 @@
   text-align: left !important;
 }
 
-/* Navigation container - aligned with caption */
+/* Navigation - positioned absolute top right */
 .form-scope .rdp-nav {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
   display: flex !important;
   gap: 4px !important;
   align-items: center !important;
@@ -1547,7 +1564,7 @@
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  transition: all 0.15s !important;
+  transition: all 0.15s ease !important;
   padding: 0 !important;
 }
 
@@ -1557,25 +1574,27 @@
   cursor: not-allowed !important;
 }
 
-/* Lucide chevron icons */
+/* Lucide chevron SVGs - white, cyan on hover */
 .form-scope .rdp-button_previous svg,
 .form-scope .rdp-button_next svg {
   width: 20px !important;
   height: 20px !important;
   color: #F7F7F7 !important;
   stroke: #F7F7F7 !important;
-  stroke-width: 1.5px !important;
-  fill: none !important;
-  transition: all 0.15s !important;
+  transition: stroke 0.15s ease !important;
 }
 
 .form-scope .rdp-button_previous:hover:not(:disabled) svg,
 .form-scope .rdp-button_next:hover:not(:disabled) svg {
-  color: #00FFF6 !important;
   stroke: #00FFF6 !important;
 }
 
-/* Weekday headers */
+/* Table */
+.form-scope .rdp-month_grid {
+  margin: 0 !important;
+}
+
+/* Weekday headers - CENTERED, white, letter spacing */
 .form-scope .rdp-weekday {
   color: #F7F7F7 !important;
   font-weight: 600 !important;
@@ -1586,7 +1605,7 @@
   letter-spacing: 1px !important;
 }
 
-/* Day cells (the td) */
+/* Day cells */
 .form-scope .rdp-day {
   padding: 2px !important;
 }
@@ -1603,7 +1622,7 @@
   cursor: pointer !important;
   font-family: "Montserrat", sans-serif !important;
   border: none !important;
-  transition: all 0.15s !important;
+  transition: all 0.15s ease !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -1656,19 +1675,6 @@
   outline: none !important;
 }
 
-/* Tighter spacing */
-.form-scope .rdp-months {
-  gap: 0 !important;
-}
-
-.form-scope .rdp-month {
-  margin: 0 !important;
-}
-
-.form-scope .rdp-month_grid {
-  margin: 0 !important;
-}
-
 /* Mobile adjustments */
 @media (max-width: 600px) {
   .form-scope .date-picker-dropdown {
@@ -1691,4 +1697,16 @@
   .form-scope .rdp-weekday {
     font-size: 10px !important;
   }
+}
+
+/* Weekday headers - CENTERED, white, letter spacing */
+.form-scope .rdp-weekday {
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  padding: 0 0 8px 0 !important;
+  text-align: center !important;
+  letter-spacing: 1px !important;
+  opacity: 1 !important;
 }
