@@ -5,7 +5,7 @@ const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
   process.env.AIRTABLE_BASE_ID
 );
 
-const PLACEHOLDER_EMAIL = 'draft_in_progress@placeholder.local';
+const PLACEHOLDER_EMAIL = 'draft@zelimmaintenance.com';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {

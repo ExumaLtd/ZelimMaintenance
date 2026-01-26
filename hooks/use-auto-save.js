@@ -45,7 +45,7 @@ export function useAutoSave(payload, isEnabled = true) {
     // For partial drafts without email, use a placeholder
     const payloadToSave = {
       ...currentPayload,
-      engineerEmail: currentPayload.engineerEmail || 'draft_in_progress@placeholder.local'
+      engineerEmail: currentPayload.engineerEmail || 'draft@zelimmaintenance.com'
     };
     
     // Prevent duplicate saves within 5 seconds
@@ -142,7 +142,7 @@ export function useAutoSave(payload, isEnabled = true) {
       if (currentPayload.unitId && currentPayload.maintenanceType) {
         const payloadToSave = {
           ...currentPayload,
-          engineerEmail: currentPayload.engineerEmail || 'draft_in_progress@placeholder.local'
+          engineerEmail: currentPayload.engineerEmail || 'draft@zelimmaintenance.com'
         };
         const blob = new Blob([JSON.stringify(payloadToSave)], { type: 'application/json' });
         navigator.sendBeacon('/api/save-draft', blob);
