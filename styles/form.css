@@ -1587,9 +1587,11 @@
   outline: none !important;
 }
 
-/* Disabled buttons - completely block interaction and hover */
+/* Disabled buttons - target aria-disabled */
 .form-scope .rdp-button_previous:disabled,
-.form-scope .rdp-button_next:disabled {
+.form-scope .rdp-button_next:disabled,
+.form-scope .rdp-button_previous[aria-disabled="true"],
+.form-scope .rdp-button_next[aria-disabled="true"] {
   opacity: 0.3 !important;
   cursor: not-allowed !important;
   pointer-events: none !important;
@@ -1597,14 +1599,18 @@
 
 /* Keep disabled chevron white - no cyan hover */
 .form-scope .rdp-button_previous:disabled::before,
-.form-scope .rdp-button_next:disabled::before {
+.form-scope .rdp-button_next:disabled::before,
+.form-scope .rdp-button_previous[aria-disabled="true"]::before,
+.form-scope .rdp-button_next[aria-disabled="true"]::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23F7F7F7' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E") !important;
   opacity: 1 !important;
   pointer-events: none !important;
 }
 
 .form-scope .rdp-button_previous:disabled:hover::before,
-.form-scope .rdp-button_next:disabled:hover::before {
+.form-scope .rdp-button_next:disabled:hover::before,
+.form-scope .rdp-button_previous[aria-disabled="true"]:hover::before,
+.form-scope .rdp-button_next[aria-disabled="true"]:hover::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23F7F7F7' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E") !important;
 }
 
@@ -1630,11 +1636,11 @@
 }
 
 /* Change to cyan on hover (enabled buttons only) */
-.form-scope .rdp-button_previous:hover:not(:disabled)::before {
+.form-scope .rdp-button_previous:hover:not(:disabled):not([aria-disabled="true"])::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2300FFF6' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m15 18-6-6 6-6'/%3E%3C/svg%3E");
 }
 
-.form-scope .rdp-button_next:hover:not(:disabled)::before {
+.form-scope .rdp-button_next:hover:not(:disabled):not([aria-disabled="true"])::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2300FFF6' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E");
 }
 
@@ -1758,6 +1764,6 @@
   }
   
   .form-scope .rdp-weekday {
-    font-size: 14px !important;
+    font-size: 13px !important;
   }
 }
