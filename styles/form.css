@@ -1620,3 +1620,12 @@
     --rdp-cell-size: 36px;
   }
 }
+
+/* =========================================================================
+   UNSCHEDULED MAINTENANCE - Hide question labels
+========================================================================= */
+
+.form-scope .unscheduled-question-label,
+.form-scope .unscheduled-question-instruction {
+  display: none;
+}

@@ -699,40 +699,40 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
               </div>
             </div>
 
-            {/* CARD 2: QUESTIONS */}
-            <div className="checklist-form-card" style={{ marginTop: "20px" }}>
-              <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-                <h3 className="checklist-section-title">Unscheduled maintenance</h3>
-                <p className="checklist-section-subtitle">
-                  All unscheduled maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual.
-                </p>
-                
-                {(template?.questionsData || []).map((q, i) => (
-                  <div key={i} style={{ marginTop: i === 0 ? "0" : "24px" }}>
-                    <label className="checklist-label">
-                      {q.title}
-                    </label>
-                    {q.instruction && (
-                      <p className="question-instruction">{q.instruction}</p>
-                    )}
-                    
-                    <div className="question-with-upload">
-                      <div className="textarea-wrapper">
-                        <textarea
-                          name={`q${i + 1}`}
-                          className="checklist-textarea"
-                          value={answers[`q${i + 1}`] || ""}
-                          onChange={(e) => {
-                            setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-                            autoGrow(e);
-                            if (e.target.value.trim()) {
-                              e.target.classList.remove('has-error');
-                            }
-                          }}
-                          onInput={autoGrow}
-                          placeholder=""
-                          required={q.required}
-                        />
+{/* CARD 2: QUESTIONS */}
+<div className="checklist-form-card" style={{ marginTop: "20px" }}>
+  <form onSubmit={handleSubmit} autoComplete="off" noValidate>
+    <h3 className="checklist-section-title">Unscheduled maintenance</h3>
+    <p className="checklist-section-subtitle">
+      All unscheduled maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual.
+    </p>
+    
+    {(template?.questionsData || []).map((q, i) => (
+      <div key={i} style={{ marginTop: i === 0 ? "0" : "24px" }}>
+        <label className="checklist-label unscheduled-question-label">
+          {q.title}
+        </label>
+        {q.instruction && (
+          <p className="question-instruction unscheduled-question-instruction">{q.instruction}</p>
+        )}
+        
+        <div className="question-with-upload">
+          <div className="textarea-wrapper">
+            <textarea
+              name={`q${i + 1}`}
+              className="checklist-textarea"
+              value={answers[`q${i + 1}`] || ""}
+              onChange={(e) => {
+                setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+                autoGrow(e);
+                if (e.target.value.trim()) {
+                  e.target.classList.remove('has-error');
+                }
+              }}
+              onInput={autoGrow}
+              placeholder=""
+              required={q.required}
+            />
 
                         <VoiceInput
                           onTranscript={(text) => {
