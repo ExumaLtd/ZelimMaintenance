@@ -45,55 +45,65 @@ export default function ImageUploader({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Load images on mount - prioritize initialImages from draft, fallback to localStorage
+  // Load images on mount - DRAFT ALWAYS TRUMPS LOCALSTORAGE
   useEffect(() => {
-    // If user has modified images, don't reload from initialImages
-    if (userHasModifiedImages.current) {
-      return;
-    }
+    // If user has made changes, don't override their work
+    if (userHasModifiedImages.current) return;
 
-    // If initialImages provided and different from last loaded, use those
-    if (initialImages && initialImages.length > 0) {
-      const lastLoadedJson = JSON.stringify(lastLoadedInitialImages.current);
-      const newImagesJson = JSON.stringify(initialImages);
-      
-      // Only load if these are actually different images
-      if (lastLoadedJson !== newImagesJson) {
-        console.log('Loading images from draft:', initialImages);
-        setImages(initialImages);
-        if (onImagesChange) {
-          onImagesChange(initialImages);
+    const loadImages = () => {
+      let imagesToLoad = null;
+      let source = null;
+
+      // PRIORITY 1: Draft from Airtable (initialImages from props)
+      if (initialImages?.length > 0) {
+        const currentJson = JSON.stringify(initialImages);
+        const lastJson = JSON.stringify(lastLoadedInitialImages.current);
+        
+        // Only load if actually different
+        if (currentJson !== lastJson) {
+          imagesToLoad = initialImages;
+          source = 'draft';
         }
-        lastLoadedInitialImages.current = initialImages;
       }
-      return;
-    }
-    
-    // Otherwise load from localStorage (only once on initial mount)
-    if (isInitialMount.current && lastLoadedInitialImages.current === null) {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
+      // PRIORITY 2: localStorage (only on first mount AND no draft)
+      else if (isInitialMount.current && (!initialImages || initialImages.length === 0)) {
         try {
-          const parsedImages = JSON.parse(saved);
-          setImages(parsedImages);
-          if (parsedImages.length > 0 && onImagesChange) {
-            onImagesChange(parsedImages);
+          const saved = localStorage.getItem(storageKey);
+          if (saved) {
+            imagesToLoad = JSON.parse(saved);
+            source = 'localStorage';
           }
-          lastLoadedInitialImages.current = parsedImages;
         } catch (e) {
-          console.error('Failed to load saved images', e);
+          console.error('Failed to load saved images:', e);
         }
-      } else {
+      }
+
+      // Update state if we have images to load
+      if (imagesToLoad && imagesToLoad.length > 0) {
+        setImages(imagesToLoad);
+        if (onImagesChange) {
+          onImagesChange(imagesToLoad);
+        }
+        lastLoadedInitialImages.current = imagesToLoad;
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`✓ Loaded ${imagesToLoad.length} images from ${source}`);
+        }
+      } else if (isInitialMount.current) {
         lastLoadedInitialImages.current = [];
       }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialImages]);
+
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+      }
+    };
+
+    loadImages();
+  }, [initialImages, storageKey, onImagesChange]);
 
   // Save images to localStorage whenever they change (but not on initial mount)
   useEffect(() => {
     if (isInitialMount.current) {
-      isInitialMount.current = false;
       return;
     }
 
@@ -219,12 +229,15 @@ export default function ImageUploader({
     // Mark that user has modified images
     userHasModifiedImages.current = true;
     
-    const newImages = images.filter((_, i) => i !== index);
-    setImages(newImages);
-    if (onImagesChange) {
-      onImagesChange(newImages);
-    }
-  }, [images, onImagesChange]);
+    // Use functional update to avoid images dependency
+    setImages(prev => {
+      const newImages = prev.filter((_, i) => i !== index);
+      if (onImagesChange) {
+        onImagesChange(newImages);
+      }
+      return newImages;
+    });
+  }, [onImagesChange]);
 
   const handleRemoveClick = (e, index) => {
     e.preventDefault();
@@ -308,33 +321,6 @@ export default function ImageUploader({
                 className="thumbnail-remove"
                 onClick={(e) => handleRemoveClick(e, index)}
                 onTouchEnd={(e) => handleRemoveTouch(e, index)}
-                style={{
-                  position: 'absolute',
-                  top: '4px',
-                  right: '4px',
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '50%',
-                  backgroundColor: 'rgb(0, 255, 246)',
-                  color: 'rgb(13, 48, 55)',
-                  border: 'none',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.2s',
-                  zIndex: 10,
-                  WebkitTapHighlightColor: 'transparent',
-                  touchAction: 'manipulation',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#01e6dd';
-                  e.currentTarget.style.transform = 'scale(1.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgb(0, 255, 246)';
-                  e.currentTarget.style.transform = 'scale(1)';
-                }}
               >
                 <X size={14} strokeWidth={3} />
               </button>
@@ -355,6 +341,31 @@ export default function ImageUploader({
           to {
             transform: rotate(360deg);
           }
+        }
+
+        .thumbnail-remove {
+          position: absolute;
+          top: 4px;
+          right: 4px;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background-color: rgb(0, 255, 246);
+          color: rgb(13, 48, 55);
+          border: none;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+          z-index: 10;
+          -webkit-tap-highlight-color: transparent;
+          touch-action: manipulation;
+        }
+
+        .thumbnail-remove:hover {
+          background-color: #01e6dd;
+          transform: scale(1.1);
         }
       `}</style>
     </div>

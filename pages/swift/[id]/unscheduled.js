@@ -49,12 +49,12 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
   const engineerFieldRef = useRef(null);
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
+  const userEnteredLocation = useRef(false);
 
-  // ✅ NEW: store refs to each question textarea so we can auto-grow after VoiceInput appends text
-  // (VoiceInput updates state programmatically, which does NOT trigger textarea onInput)
+  // Store refs to each question textarea so we can auto-grow after VoiceInput appends text
   const questionTextareaRefs = useRef({});
 
-  // ✅ NEW: schedule autoGrow after React has re-rendered (double rAF = safer)
+  // Schedule autoGrow after React has re-rendered (double rAF = safer)
   const scheduleAutoGrowFor = (questionKey) => {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
@@ -64,7 +64,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
     });
   };
 
-  // ✅ NEW: helper for draft loads (when multiple answers get set at once)
+  // Helper for draft loads (when multiple answers get set at once)
   const scheduleAutoGrowAll = () => {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
@@ -160,6 +160,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       if (data.maintained_by) setSelectedCompany(data.maintained_by);
       if (data.location_display && data.location_display.trim()) {
         setLocationDisplay(data.location_display);
+        userEnteredLocation.current = true; // Mark as user-entered from draft
       }
       if (data.location_country) setLocationCountry(data.location_country);
       if (data.engineer_name) setEngName(data.engineer_name);
@@ -172,7 +173,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       });
       setAnswers(draftAnswers);
 
-      // ✅ NEW: after draft answers load, grow any populated textareas so content doesn't sit under the VoiceInput overlay
+      // After draft answers load, grow any populated textareas
       scheduleAutoGrowAll();
     } catch (e) {
       console.error("Draft load error:", e);
@@ -202,15 +203,20 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
           if (data.draft.answers) setAnswers(data.draft.answers);
           if (data.draft.questionImages) setQuestionImages(data.draft.questionImages);
           if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
-          if (data.draft.locationDisplay) setLocationDisplay(data.draft.locationDisplay);
+          if (data.draft.locationDisplay) {
+            setLocationDisplay(data.draft.locationDisplay);
+            userEnteredLocation.current = true; // Mark as user-entered from draft
+          }
           if (data.draft.locationCountry) setLocationCountry(data.draft.locationCountry);
           if (data.draft.engName) setEngName(data.draft.engName);
           if (data.draft.engEmail) setEngEmail(data.draft.engEmail);
           if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
           
-          console.log('✓ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
+          if (process.env.NODE_ENV === 'development') {
+            console.log('✓ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
+          }
 
-          // ✅ NEW: ensure textareas reflect the loaded content height (prevents overlap with VoiceInput)
+          // Ensure textareas reflect the loaded content height
           scheduleAutoGrowAll();
         }
       } catch (error) {
@@ -263,7 +269,11 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
             const shortCountry = displayCountry === "GB" ? "UK" : displayCountry;
             const combinedDisplay = loc ? `${loc}, ${shortCountry}` : shortCountry;
 
-            setLocationDisplay((prev) => (!prev || prev.trim() === "") ? combinedDisplay : prev);
+            setLocationDisplay((prev) => {
+              // Don't override if user manually entered location
+              if (userEnteredLocation.current) return prev;
+              return (!prev || prev.trim() === "") ? combinedDisplay : prev;
+            });
             setLocationCountry(formalCountry);
           }
         } catch (err) {
@@ -287,7 +297,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       },
       options
     );
-  }, []);
+  }, [locationDisplay]);
 
   // Save draft to localStorage
   useEffect(() => {
@@ -342,10 +352,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
     setShowEngineerDropdown(false);
   };
 
-  const scrollToField = (ref) => {
-    ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-  };
-
   const handleImagesChange = (questionKey, images) => {
     setQuestionImages(prev => ({
       ...prev,
@@ -382,6 +388,13 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       if (!firstErrorField) firstErrorField = locationFieldRef;
       const locationInput = document.querySelector('[name="location_display"]');
       if (locationInput) locationInput.classList.add('has-error');
+    }
+
+    const dateInput = document.querySelector('[name="date_of_maintenance"]');
+    if (!dateInput || !dateInput.value) {
+      errors.push({ field: 'date', message: 'Please provide a maintenance date.' });
+      if (dateInput) dateInput.classList.add('has-error');
+      if (!firstErrorField) firstErrorField = { current: dateInput };
     }
 
     if (!engName || engName === "Please select" || !engName.trim()) {
@@ -533,12 +546,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
         }),
       });
 
-      (template?.questionsData || []).forEach((_, i) => {
-        const questionKey = `q${i + 1}`;
-        const imageStorageKey = `images_unscheduled_${unit?.serial_number}_${questionKey}`;
-        localStorage.removeItem(imageStorageKey);
-      });
-
       localStorage.setItem("last_submitted_sn", unit?.serial_number);
       localStorage.setItem("last_maintenance_type", "Unscheduled");
       localStorage.removeItem(storageKey);
@@ -550,9 +557,8 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
   };
 
   const logo = getClientLogo(unit?.company, unit?.serial_number);
-  const hasEngineerResults = filteredEngineers.length > 0;
-  const hasClearEng = engName && engName !== "Please select" && engName !== "";
-  const shouldShowEngDropdown = showEngineerDropdown && (hasEngineerResults || hasClearEng);
+  const shouldShowEngDropdown = showEngineerDropdown && 
+    (filteredEngineers.length > 0 || (engName && engName !== "Please select"));
 
   return (
     <div className="form-scope">
@@ -574,8 +580,8 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
               <span className="break-point">unscheduled maintenance</span>
             </h1>
 
-            <div className="checklist-form-card">
-              <form onSubmit={handleSubmit} autoComplete="off" noValidate>
+            <form onSubmit={handleSubmit} autoComplete="off" noValidate>
+              <div className="checklist-form-card">
                 <div className="checklist-inline-group">
                   <div className="checklist-field" ref={companyFieldRef}>
                     <label className="checklist-label">Maintenance company</label>
@@ -587,7 +593,10 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                             showCompanyDropdown ? "is-focused" : ""
                           } ${fieldErrors.company ? "has-error" : ""}`}
                           value={selectedCompany || "Please select"}
-                          onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
+                          onClick={() => {
+                            setShowCompanyDropdown(!showCompanyDropdown);
+                            setFieldErrors(prev => ({ ...prev, company: false }));
+                          }}
                           style={{ cursor: "pointer", paddingRight: "40px" }}
                         />
                         <div className="field-icon-inside">
@@ -619,6 +628,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                       value={locationDisplay}
                       onChange={(e) => {
                         setLocationDisplay(e.target.value);
+                        userEnteredLocation.current = true;
                         if (e.target.value.trim()) {
                           e.target.classList.remove('has-error');
                         }
@@ -669,10 +679,10 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                             }
                           }}
                           style={{
-                            paddingRight: selectedCompany && (hasEngineerResults || hasClearEng) ? "40px" : "16px",
+                            paddingRight: selectedCompany && shouldShowEngDropdown ? "40px" : "16px",
                           }}
                         />
-                        {selectedCompany && (hasEngineerResults || hasClearEng) && (
+                        {selectedCompany && shouldShowEngDropdown && (
                           <div className="field-icon-inside">
                             {showEngineerDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
                           </div>
@@ -680,7 +690,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                       </div>
                       {shouldShowEngDropdown && (
                         <ul className={`custom-dropdown-list ${fieldErrors.engineerName ? "has-error" : ""}`}>
-                          {hasClearEng && (
+                          {engName && engName !== "Please select" && (
                             <li className="custom-dropdown-item" onClick={clearEngineer}>
                               Clear details
                             </li>
@@ -729,16 +739,14 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                     />
                   </div>
                 </div>
-              </form>
-            </div>
+              </div>
 
-            <div className="checklist-form-card" style={{ marginTop: "20px" }}>
-              <h2 className="checklist-section-title">Unscheduled maintenance</h2>
-              <p className="checklist-section-subtitle">
-                {template?.questionsData?.[0]?.instruction || "Describe the work carried out, reason for maintenance, actions taken, and components affected."}
-              </p>
+              <div className="checklist-form-card" style={{ marginTop: "20px" }}>
+                <h2 className="checklist-section-title">Unscheduled maintenance</h2>
+                <p className="checklist-section-subtitle">
+                  {template?.questionsData?.[0]?.instruction || "Describe the work carried out, reason for maintenance, actions taken, and components affected."}
+                </p>
 
-              <form onSubmit={handleSubmit} autoComplete="off" noValidate>
                 {(template?.questionsData || []).map((q, i) => (
                   <div key={i} style={{ marginTop: "0" }}>
                     <label className="checklist-label" style={{ display: "none" }}>
@@ -751,7 +759,6 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                     <div className="question-with-upload">
                       <div className="textarea-wrapper">
                         <textarea
-                          // ✅ NEW: ref per question so we can grow it after voice transcript appends text
                           ref={(el) => {
                             const key = `q${i + 1}`;
                             if (el) questionTextareaRefs.current[key] = el;
@@ -772,17 +779,13 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                         <VoiceInput
                           onTranscript={(text) => {
                             const questionKey = `q${i + 1}`;
-
-                            // ✅ VoiceInput updates state programmatically, so textarea onInput does NOT fire.
-                            // We append text, then explicitly auto-grow that textarea so it expands instead of
-                            // letting text run underneath the VoiceInput overlay.
                             setAnswers((prev) => ({
                               ...prev,
                               [questionKey]: (prev[questionKey] || '') + text
                             }));
-
                             scheduleAutoGrowFor(questionKey);
                           }}
+                          onError={(errorMsg) => setErrorMsg(errorMsg)}
                         />
                       </div>
                       
@@ -804,8 +807,8 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                 <button className="checklist-submit" disabled={submitting}>
                   {submitting ? "Submitting..." : "Submit maintenance"}
                 </button>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
         </div>
 

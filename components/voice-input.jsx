@@ -1,16 +1,28 @@
 import { useState, useEffect, useRef } from 'react';
 import { Mic, X, Check } from 'lucide-react';
 
-export default function VoiceInput({ onTranscript, disabled = false }) {
+// Configuration constants
+const WAVEFORM_UPDATE_INTERVAL = 33; // ~30fps
+const SILENCE_THRESHOLD = 250; // ms
+const RECORDING_STOP_TIMEOUT = 2000; // ms
+const NOISE_FLOOR = 0.012;
+const SPEAKING_THRESHOLD = 0.06;
+const BAR_COUNT = 10;
+const CENTER_WEIGHTS = [0.35, 0.5, 0.7, 0.9, 1, 1, 0.9, 0.7, 0.5, 0.35];
+const MIN_BAR_HEIGHT_PX = 3;
+const MAX_BAR_HEIGHT_PX = 18;
+
+const DEBUG = process.env.NODE_ENV === 'development';
+const log = (...args) => {
+  if (DEBUG) console.log(...args);
+};
+
+export default function VoiceInput({ onTranscript, onError, disabled = false }) {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
-  const [useElevenLabs] = useState(true); // keep enabled; browser is backup-only mode (not run alongside)
-
-  // ChatGPT-style waveform settings
-  const BAR_COUNT = 10;
-  const CENTER_WEIGHTS = [0.35, 0.5, 0.7, 0.9, 1, 1, 0.9, 0.7, 0.5, 0.35];
+  const [useElevenLabs] = useState(true); // keep enabled; browser is backup-only mode
 
   const [levelHistory, setLevelHistory] = useState(Array(BAR_COUNT).fill(0));
   const levelHistoryRef = useRef(Array(BAR_COUNT).fill(0));
@@ -21,7 +33,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
   const speakingRef = useRef(false);
   const silenceSinceRef = useRef(0);
 
-  // Smoothing for “ChatGPT feel”
+  // Smoothing for "ChatGPT feel"
   const smoothedRef = useRef(0);
 
   const recognitionRef = useRef(null);
@@ -32,6 +44,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
   const streamRef = useRef(null);
   const audioContextRef = useRef(null);
   const analyserRef = useRef(null);
+  const stopSafetyRef = useRef(null);
 
   // Guards to prevent double start/stop
   const isStartingRef = useRef(false);
@@ -60,7 +73,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
           }
           if (finalTranscript) {
             transcriptRef.current += finalTranscript;
-            console.log('Browser captured:', finalTranscript);
+            log('Browser captured:', finalTranscript);
           }
         };
 
@@ -71,8 +84,20 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
     }
 
     return () => {
+      // Clear any pending timeout
+      if (stopSafetyRef.current) {
+        clearTimeout(stopSafetyRef.current);
+      }
+
       if (recognitionRef.current) {
-        try { recognitionRef.current.stop(); } catch (e) {}
+        try {
+          // Check state before stopping to avoid errors
+          if (recognitionRef.current.state !== 'inactive') {
+            recognitionRef.current.stop();
+          }
+        } catch (e) {
+          if (DEBUG) console.log('Recognition cleanup error:', e);
+        }
       }
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
         try { mediaRecorderRef.current.requestData(); } catch (e) {}
@@ -118,12 +143,11 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
           }
           const rms = Math.sqrt(sumSquares / dataArray.length);
 
-          // Smooth it for a “ChatGPT” feel (less jitter, more bounce)
+          // Smooth it for a "ChatGPT" feel (less jitter, more bounce)
           const SMOOTHING = 0.82;
           smoothedRef.current = smoothedRef.current * SMOOTHING + rms * (1 - SMOOTHING);
 
           // Noise floor clamp (prevents tiny mic noise constantly moving bars)
-          const NOISE_FLOOR = 0.012;
           const cleaned = Math.max(0, smoothedRef.current - NOISE_FLOOR);
 
           // Map to 0..1 with a bit of curve (speech pops nicer)
@@ -134,7 +158,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
 
           // Speaking vs idle (adds idle animation when quiet)
           const now = performance.now();
-          const speakingNow = boosted > 0.06;
+          const speakingNow = boosted > SPEAKING_THRESHOLD;
 
           if (speakingNow) {
             silenceSinceRef.current = 0;
@@ -145,14 +169,14 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
           } else {
             if (!silenceSinceRef.current) silenceSinceRef.current = now;
             // wait a beat before dropping into idle (feels nicer)
-            if (speakingRef.current && now - silenceSinceRef.current > 250) {
+            if (speakingRef.current && now - silenceSinceRef.current > SILENCE_THRESHOLD) {
               speakingRef.current = false;
               setIsSpeaking(false);
             }
           }
 
-          // Update history at ~30fps (nice “trail”)
-          if (now - lastLevelUpdateRef.current > 33) {
+          // Update history at ~30fps (nice "trail")
+          if (now - lastLevelUpdateRef.current > WAVEFORM_UPDATE_INTERVAL) {
             lastLevelUpdateRef.current = now;
 
             const prev = levelHistoryRef.current;
@@ -179,7 +203,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
 
           setAudioLevel(fake * 100);
 
-          if (now - lastLevelUpdateRef.current > 33) {
+          if (now - lastLevelUpdateRef.current > WAVEFORM_UPDATE_INTERVAL) {
             lastLevelUpdateRef.current = now;
             const prev = levelHistoryRef.current;
             const DECAY = 0.92;
@@ -234,7 +258,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
     if (disabled || isListening || isStartingRef.current) return;
     isStartingRef.current = true;
 
-    console.log('🎤 Starting recording...');
+    log('🎤 Starting recording...');
     transcriptRef.current = '';
     audioChunksRef.current = [];
 
@@ -248,7 +272,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
     smoothedRef.current = 0;
 
     try {
-      // ✅ UPDATED: enable WebRTC audio processing for noisy environments (ships)
+      // Enable WebRTC audio processing for noisy environments (ships)
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -263,10 +287,12 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
       // Start browser recognition ONLY when not using ElevenLabs (backup-only mode)
       if (!useElevenLabs && recognitionRef.current) {
         try {
-          recognitionRef.current.start();
-          console.log('✅ Browser recognition started');
+          if (recognitionRef.current.state === 'inactive') {
+            recognitionRef.current.start();
+            log('✅ Browser recognition started');
+          }
         } catch (e) {
-          console.log('Browser recognition already running or failed:', e);
+          if (DEBUG) console.log('Browser recognition error:', e);
         }
       }
 
@@ -288,15 +314,26 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
 
         mediaRecorder.start(100);
         setIsListening(true);
-        console.log('Started ElevenLabs recording');
+        log('Started ElevenLabs recording');
       } else {
         setIsListening(true);
-        console.log('Started browser-only recording');
+        log('Started browser-only recording');
       }
     } catch (error) {
       console.error('Failed to access microphone:', error);
-      alert('Could not access microphone. Please allow microphone permissions.');
+      
+      // Reset guards on error
+      isStartingRef.current = false;
+      setIsListening(false);
+      
+      // Use error callback if provided, otherwise fallback to alert
+      if (onError) {
+        onError('Could not access microphone. Please allow microphone permissions.');
+      } else {
+        alert('Could not access microphone. Please allow microphone permissions.');
+      }
     } finally {
+      // Ensure guard is always reset
       isStartingRef.current = false;
     }
   };
@@ -305,34 +342,44 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
     if (isStoppingRef.current) return;
     isStoppingRef.current = true;
 
-    console.log('✅ Stop and accept clicked');
+    log('✅ Stop and accept clicked');
     setIsListening(false);
 
     if (!useElevenLabs && recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch (e) {}
+      try {
+        if (recognitionRef.current.state !== 'inactive') {
+          recognitionRef.current.stop();
+        }
+      } catch (e) {
+        if (DEBUG) console.log('Recognition stop error:', e);
+      }
     }
 
     const recorder = mediaRecorderRef.current;
 
     if (useElevenLabs && recorder && recorder.state === 'recording') {
-      console.log('⏹️ Stopping ElevenLabs recording...');
+      log('⏹️ Stopping ElevenLabs recording...');
 
-      const stopSafety = setTimeout(() => {
+      stopSafetyRef.current = setTimeout(() => {
         console.warn('⚠️ Recorder stop timeout — forcing cleanup');
         cleanupStreams();
         mediaRecorderRef.current = null;
         audioChunksRef.current = [];
         transcriptRef.current = '';
         isStoppingRef.current = false;
-      }, 2000);
+        stopSafetyRef.current = null;
+      }, RECORDING_STOP_TIMEOUT);
 
       recorder.onstop = async () => {
-        clearTimeout(stopSafety);
+        if (stopSafetyRef.current) {
+          clearTimeout(stopSafetyRef.current);
+          stopSafetyRef.current = null;
+        }
 
-        console.log('📊 Recording stopped, processing audio...');
+        log('📊 Recording stopped, processing audio...');
         const mime = recorder?.mimeType || 'audio/webm';
         const audioBlob = new Blob(audioChunksRef.current, { type: mime });
-        console.log('Audio blob size:', audioBlob.size, 'bytes');
+        log('Audio blob size:', audioBlob.size, 'bytes');
 
         if (audioBlob.size === 0) {
           console.error('❌ Audio blob is empty');
@@ -345,24 +392,32 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
         }
 
         try {
-          console.log('🌐 Sending to ElevenLabs API...');
+          log('🌐 Sending to ElevenLabs API...');
           const response = await fetch('/api/transcribe-elevenlabs', {
             method: 'POST',
             headers: { 'x-audio-mime': audioBlob.type },
             body: audioBlob,
           });
 
-          console.log('📡 API response status:', response.status);
+          log('📡 API response status:', response.status);
           const data = await response.json();
-          console.log('📝 ElevenLabs response:', data);
+          log('📝 ElevenLabs response:', data);
 
           if (!data.fallback && data.text && onTranscript) {
-            console.log('✨ Transcription successful:', data.text);
+            log('✨ Transcription successful:', data.text);
             const formatted = formatTranscript(data.text);
             onTranscript(formatted + ' ');
           }
         } catch (error) {
           console.error('❌ ElevenLabs error:', error);
+          
+          // Fallback to browser transcript if available
+          const browserTranscript = transcriptRef.current.trim();
+          if (browserTranscript && onTranscript) {
+            log('📝 Using browser fallback transcript');
+            const formatted = formatTranscript(browserTranscript);
+            onTranscript(formatted + ' ');
+          }
         }
 
         audioChunksRef.current = [];
@@ -375,7 +430,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
       try { recorder.requestData(); } catch (e) {}
       recorder.stop();
     } else {
-      console.log('🗣️ Using browser transcript');
+      log('🗣️ Using browser transcript');
       setTimeout(() => {
         const formatted = formatTranscript(transcriptRef.current);
         if (formatted && onTranscript) onTranscript(formatted + ' ');
@@ -390,13 +445,25 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
     if (isStoppingRef.current) return;
     isStoppingRef.current = true;
 
-    console.log('❌ Cancelled');
+    log('❌ Cancelled');
     setIsListening(false);
     transcriptRef.current = '';
     audioChunksRef.current = [];
 
+    // Clear safety timeout if exists
+    if (stopSafetyRef.current) {
+      clearTimeout(stopSafetyRef.current);
+      stopSafetyRef.current = null;
+    }
+
     if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch (e) {}
+      try {
+        if (recognitionRef.current.state !== 'inactive') {
+          recognitionRef.current.stop();
+        }
+      } catch (e) {
+        if (DEBUG) console.log('Recognition cancel error:', e);
+      }
     }
 
     const recorder = mediaRecorderRef.current;
@@ -427,14 +494,10 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
 
   if (!isSupported) return null;
 
-  // ChatGPT-ish: bars are history + centre-weighted shaping
-  const MIN_PX = 3;
-  const MAX_PX = 18;
-
   const getBarHeightPx = (lvl, idx) => {
     const w = CENTER_WEIGHTS[idx] || 1;
-    const h = MIN_PX + (MAX_PX - MIN_PX) * Math.min(1, lvl * 1.25) * w;
-    return Math.max(MIN_PX, Math.min(MAX_PX, h));
+    const h = MIN_BAR_HEIGHT_PX + (MAX_BAR_HEIGHT_PX - MIN_BAR_HEIGHT_PX) * Math.min(1, lvl * 1.25) * w;
+    return Math.max(MIN_BAR_HEIGHT_PX, Math.min(MAX_BAR_HEIGHT_PX, h));
   };
 
   return (
