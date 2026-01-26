@@ -65,6 +65,9 @@ export default function DatePicker({ value, onChange, max, disabled = false }) {
               IconLeft: () => <ChevronLeft size={20} strokeWidth={1.5} />,
               IconRight: () => <ChevronRight size={20} strokeWidth={1.5} />,
             }}
+            classNames={{
+              root: 'custom-rdp-root',
+            }}
           />
         </div>
       )}

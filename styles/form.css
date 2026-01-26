@@ -1547,6 +1547,11 @@
   font-size: 14px !important;
 }
 
+/* HIDE DEFAULT CHEVRONS */
+.form-scope .rdp-chevron {
+  display: none !important;
+}
+
 /* Navigation buttons - NO BACKGROUND */
 .form-scope .rdp-button_previous,
 .form-scope .rdp-button_next {
@@ -1560,6 +1565,7 @@
   align-items: center !important;
   justify-content: center !important;
   transition: all 0.15s !important;
+  position: relative !important;
 }
 
 .form-scope .rdp-button_previous:disabled,
@@ -1568,14 +1574,15 @@
   cursor: not-allowed !important;
 }
 
-/* Chevron icons - white by default, cyan on hover */
+/* Lucide chevron icons - white by default, cyan on hover */
 .form-scope .rdp-button_previous svg,
 .form-scope .rdp-button_next svg {
   width: 20px !important;
   height: 20px !important;
   color: #F7F7F7 !important;
   stroke: #F7F7F7 !important;
-  stroke-width: 1.5 !important;
+  stroke-width: 1.5px !important;
+  fill: none !important;
   transition: all 0.15s !important;
 }
 
@@ -1614,13 +1621,26 @@
   background: #152a31 !important;
 }
 
-/* Selected day - FILLED CIRCLE background */
-.form-scope .rdp-day_selected,
+/* Selected day - FILLED CIRCLE with cyan background */
+.form-scope .rdp-day_selected {
+  background: #00FFF6 !important;
+  color: #0d3037 !important;
+  font-weight: 600 !important;
+  border: 1px solid #00FFF6 !important;
+}
+
 .form-scope .rdp-day_selected:hover {
   background: #00FFF6 !important;
   color: #0d3037 !important;
   font-weight: 600 !important;
-  border: none !important;
+  border: 1px solid #00FFF6 !important;
+}
+
+/* Force selected text color */
+.form-scope .rdp-day_button.rdp-day_selected {
+  background: #00FFF6 !important;
+  color: #0d3037 !important;
+  font-weight: 600 !important;
 }
 
 /* Today (not selected) */
