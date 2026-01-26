@@ -5,6 +5,8 @@ const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
   process.env.AIRTABLE_BASE_ID
 );
 
+const PLACEHOLDER_EMAIL = 'draft_in_progress@placeholder.local';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -23,16 +25,19 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Check if draft already exists - fetch and filter in JavaScript for Link field reliability
-    console.log('Checking for existing drafts...');
+    const isRealEmail = engineerEmail !== PLACEHOLDER_EMAIL && engineerEmail.includes('@');
+
+    // Find ANY active draft for this unit + maintenance type (regardless of email)
+    console.log('Checking for existing drafts for this unit...');
     const allDrafts = await base('maintenance_drafts')
       .select({
-        filterByFormula: `AND({maintenance_type} = '${maintenanceType}', {engineer_email} = '${engineerEmail}', NOT({completed}))`,
-        fields: ['unit_id'],
+        filterByFormula: `AND({maintenance_type} = '${maintenanceType}', NOT({completed}))`,
+        fields: ['unit_id', 'engineer_email'],
+        sort: [{ field: 'last_updated', direction: 'desc' }],
       })
       .all();
 
-    console.log(`Total drafts for ${maintenanceType} / ${engineerEmail}: ${allDrafts.length}`);
+    console.log(`Total active drafts for ${maintenanceType}: ${allDrafts.length}`);
 
     // Filter in JavaScript to match unit_id (Link field returns array)
     const existingDrafts = allDrafts.filter(d => {
@@ -40,22 +45,36 @@ export default async function handler(req, res) {
       return linkedRecords && linkedRecords.includes(unitId);
     });
 
-    console.log('Existing drafts found:', existingDrafts.length);
+    console.log('Existing drafts for this unit:', existingDrafts.length);
 
     const draftDataString = JSON.stringify(draftData);
 
     if (existingDrafts.length > 0) {
-      // Update existing draft
+      // Update the most recent draft for this unit
       const draftId = existingDrafts[0].id;
-      console.log('Updating draft:', draftId);
+      const currentEmail = existingDrafts[0].get('engineer_email');
+      console.log('Updating existing draft:', draftId);
+      console.log('Current email:', currentEmail);
       
-      const result = await base('maintenance_drafts').update(draftId, {
+      // Update the email if we now have a real one
+      const updateFields = {
         draft_data: draftDataString,
         last_updated: new Date().toISOString(),
-      });
+      };
+
+      if (isRealEmail) {
+        updateFields.engineer_email = engineerEmail;
+        console.log('🔄 Updating draft with real email:', engineerEmail);
+      }
+
+      const result = await base('maintenance_drafts').update(draftId, updateFields);
 
       console.log('✅ Draft updated successfully');
-      return res.status(200).json({ success: true, action: 'updated', recordId: result.id });
+      return res.status(200).json({ 
+        success: true, 
+        action: 'updated', 
+        recordId: result.id 
+      });
     } else {
       // Create new draft
       console.log('Creating new draft...');

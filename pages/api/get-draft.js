@@ -13,25 +13,25 @@ export default async function handler(req, res) {
   try {
     const { unitId, maintenanceType, engineerEmail } = req.query;
 
-    if (!unitId || !maintenanceType || !engineerEmail) {
+    if (!unitId || !maintenanceType) {
       return res.status(400).json({ error: 'Missing required parameters' });
     }
 
     console.log('=== GET DRAFT DEBUG ===');
     console.log('unitId:', unitId);
     console.log('maintenanceType:', maintenanceType);
-    console.log('engineerEmail:', engineerEmail);
+    console.log('engineerEmail (provided):', engineerEmail);
 
-    // Find active draft - fetch and filter in JavaScript for Link field reliability
+    // Find ANY active draft for this unit + maintenance type (ignore email)
     const allDrafts = await base('maintenance_drafts')
       .select({
-        filterByFormula: `AND({maintenance_type} = '${maintenanceType}', {engineer_email} = '${engineerEmail}', NOT({completed}))`,
-        fields: ['unit_id', 'draft_data', 'last_updated'],
+        filterByFormula: `AND({maintenance_type} = '${maintenanceType}', NOT({completed}))`,
+        fields: ['unit_id', 'draft_data', 'last_updated', 'engineer_email'],
         sort: [{ field: 'last_updated', direction: 'desc' }],
       })
       .all();
 
-    console.log(`Total drafts for ${maintenanceType} / ${engineerEmail}: ${allDrafts.length}`);
+    console.log(`Total active drafts for ${maintenanceType}: ${allDrafts.length}`);
 
     // Filter in JavaScript to match unit_id (Link field returns array)
     const matchingDrafts = allDrafts.filter(d => {
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
       return linkedRecords && linkedRecords.includes(unitId);
     });
 
-    console.log('Matching drafts found:', matchingDrafts.length);
+    console.log('Matching drafts for this unit:', matchingDrafts.length);
 
     if (matchingDrafts.length === 0) {
       console.log('No draft found');
@@ -49,6 +49,9 @@ export default async function handler(req, res) {
     const draft = matchingDrafts[0]; // Most recent due to sort
     const draftDataString = draft.get('draft_data');
     const lastUpdated = draft.get('last_updated');
+    const draftEmail = draft.get('engineer_email');
+
+    console.log('Draft email:', draftEmail);
 
     if (!draftDataString) {
       console.log('Draft has no data');
