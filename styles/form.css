@@ -543,7 +543,7 @@
   
   .form-scope .question-with-upload .image-uploader-container {
     width: 100%;
-    margin-top: 8px;
+    margin-top: 10px;
   }
   
   /* Remove margin-top from engineer row on mobile (second checklist-inline-group) */
