@@ -1710,3 +1710,17 @@
   letter-spacing: 1px !important;
   opacity: 1 !important;
 }
+
+/* Override default CSS variables */
+.form-scope .rdp-root {
+  --rdp-accent-color: #00FFF6 !important;
+  --rdp-accent-background-color: #00FFF6 !important;
+  --rdp-day-height: 40px !important;
+  --rdp-day-width: 40px !important;
+  --rdp-day_button-height: 36px !important;
+  --rdp-day_button-width: 36px !important;
+  --rdp-day_button-border-radius: 100% !important;
+  --rdp-outside-opacity: 0.4 !important;
+  --rdp-disabled-opacity: 0.3 !important;
+  font-family: "Montserrat", sans-serif !important;
+}
