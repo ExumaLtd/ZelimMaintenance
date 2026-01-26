@@ -1523,6 +1523,7 @@
   --rdp-day_button-border-radius: 100% !important;
   --rdp-outside-opacity: 0.4 !important;
   --rdp-disabled-opacity: 0.3 !important;
+  --rdp-nav-height: 28px !important;
   font-family: "Montserrat", sans-serif !important;
 }
 
@@ -1536,11 +1537,9 @@
   margin: 0 !important;
 }
 
-/* Month caption - contains nav and label */
+/* Month caption */
 .form-scope .rdp-month_caption {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
+  display: block !important;
   padding-bottom: 16px !important;
   margin-bottom: 0 !important;
   position: relative !important;
@@ -1551,14 +1550,18 @@
   font-weight: 600 !important;
   font-size: 14px !important;
   text-align: left !important;
+  display: block !important;
 }
 
-/* Navigation - REMOVE absolute positioning, let it flow naturally */
+/* Navigation - position at top right, LIMIT HEIGHT */
 .form-scope .rdp-nav {
-  position: static !important;
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
   display: flex !important;
   gap: 4px !important;
   align-items: center !important;
+  height: 28px !important;
 }
 
 /* Navigation buttons */
