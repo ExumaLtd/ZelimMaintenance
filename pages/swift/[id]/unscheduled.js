@@ -332,7 +332,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       });
   }, []);
 
-  // Save draft to localStorage
+// Save draft to localStorage
   useEffect(() => {
     const draftData = {
       maintained_by: selectedCompany,
@@ -345,6 +345,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
     };
     localStorage.setItem(storageKey, JSON.stringify(draftData));
   }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, answers, storageKey]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");

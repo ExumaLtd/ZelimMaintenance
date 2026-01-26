@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Image from "next/image";
@@ -83,7 +83,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
   const storageKey = useMemo(() => `draft_depth_${unit?.serial_number}`, [unit?.serial_number]);
 
-  // Auto-save draft to Airtable
+  // Auto-save draft to Airtable - ✅ Updated condition
   useAutoSave({
     unitId: unit?.record_id,
     maintenanceType: '30-month depth',
@@ -101,7 +101,20 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       engEmail,
       engPhone,
     }
-  }, engEmail !== '' && engEmail.includes('@'));
+  }, 
+    // ✅ Save if there's ANY content, not just when email is valid
+    (checklistData && checklistData.length > 0 && checklistData.some(item => 
+      item.returned !== null || item.condition !== null
+    )) || // Has any checklist answers
+    Object.keys(answers).some(key => answers[key]?.trim()) || // Has any question answers
+    Object.keys(questionImages).length > 0 || // Has question images
+    Object.keys(checklistImages).length > 0 || // Has checklist images
+    selectedCompany || // Has company selected
+    locationDisplay?.trim() || // Has location
+    engName?.trim() || // Has engineer name
+    engEmail?.trim() || // Has email (even if invalid)
+    engPhone?.trim() // Has phone
+  );
 
   // Initialize checklist data from template
   useEffect(() => {
@@ -433,7 +446,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
         );
         const data = await res.json();
         
-if (data.draft) {
+        if (data.draft) {
           if (data.draft.checklistData) setChecklistData(data.draft.checklistData);
           if (data.draft.currentStep) {
             setCurrentStep(data.draft.currentStep);
@@ -531,6 +544,24 @@ if (data.draft) {
     );
   }, []);
 
+  // Pre-request microphone permission on page load
+  useEffect(() => {
+    if (typeof window === "undefined" || !navigator.mediaDevices) return;
+    
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        stream.getTracks().forEach(track => track.stop());
+        if (process.env.NODE_ENV === 'development') {
+          console.log('✓ Microphone permission pre-granted');
+        }
+      })
+      .catch(err => {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Microphone permission denied or unavailable:', err.message);
+        }
+      });
+  }, []);
+
   // Save draft to localStorage
   useEffect(() => {
     const draftData = {
@@ -545,7 +576,6 @@ if (data.draft) {
     };
     localStorage.setItem(storageKey, JSON.stringify(draftData));
   }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, checklistData, answers, storageKey]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
@@ -654,29 +684,31 @@ if (data.draft) {
 
       const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
 
-await fetch("/api/send-report", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    engineerEmail: engEmail,
-    engineerName: engName,
-    serialNumber: unit?.serial_number,
-    answers: emailFriendlyAnswers,
-    equipmentChecklist: checklistData.map(item => ({
-      ...item,
-      images: checklistImages[`item_${item.id}`]?.map(img => img.url) || []
-    })),
-    reportType: template?.type || "Depth",
-    companyLogoUrl: companyLogoUrl,
-    technicalData: {
-      unit_record_id: unit?.record_id,
-      checklist_template_id: template?.id,
-      maintenance_company: selectedCompany,
-      engineer_name: engName,
-      location_display: locationDisplay,
-    },
-  }),
-});
+      await fetch("/api/send-report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          engineerEmail: engEmail,
+          engineerName: engName,
+          serialNumber: unit?.serial_number,
+          answers: emailFriendlyAnswers,
+          equipmentChecklist: checklistData.map(item => ({
+            ...item,
+            images: checklistImages[`item_${item.id}`]?.map(img => img.url) || []
+          })),
+          reportType: template?.type || "Depth",
+          companyLogoUrl: companyLogoUrl,
+          technicalData: {
+            unit_record_id: unit?.record_id,
+            checklist_template_id: template?.id,
+            maintenance_company: selectedCompany,
+            engineer_name: engName,
+            location_display: locationDisplay,
+            date_of_maintenance: new Date().toISOString().split('T')[0],
+            time_of_maintenance: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+          },
+        }),
+      });
 
       (template?.questionsData || []).forEach((_, i) => {
         const questionKey = `q${i + 1}`;
@@ -772,15 +804,15 @@ await fetch("/api/send-report", {
                     />
                   </div>
 
-                <div className="checklist-field">
-                  <label className="checklist-label">Date</label>
-                  <DatePicker
-                    value={maintenanceDate}
-                    onChange={(date) => setMaintenanceDate(date)}
-                    max={today}
-                  />
+                  <div className="checklist-field">
+                    <label className="checklist-label">Date</label>
+                    <DatePicker
+                      value={maintenanceDate}
+                      onChange={(date) => setMaintenanceDate(date)}
+                      max={today}
+                    />
+                  </div>
                 </div>
-              </div>
 
                 <div className="checklist-inline-group" style={{ marginTop: "24px" }}>
                   <div className="checklist-field" ref={engineerFieldRef}>
@@ -944,13 +976,13 @@ await fetch("/api/send-report", {
                           {(item.condition === 'poor' || closingItems.has(item.id)) && (
                             <div className={`checklist-upload-section ${closingItems.has(item.id) ? 'closing' : ''}`}>
                               <ImageUploader
-  questionKey={`checklist_item_${item.id}`}
-  questionText={`${item.name} - Poor condition photos`}
-  serialNumber={unit?.serial_number}
-  maintenanceType="depth"
-  initialImages={checklistImages[`item_${item.id}`] || []}
-  onImagesChange={(images) => handleChecklistImagesChange(item.id, images)}
-/>
+                                questionKey={`checklist_item_${item.id}`}
+                                questionText={`${item.name} - Poor condition photos`}
+                                serialNumber={unit?.serial_number}
+                                maintenanceType="depth"
+                                initialImages={checklistImages[`item_${item.id}`] || []}
+                                onImagesChange={(images) => handleChecklistImagesChange(item.id, images)}
+                              />
                             </div>
                           )}
                         </div>
@@ -1000,17 +1032,34 @@ await fetch("/api/send-report", {
                               }}
                               required={q.required}
                             />
+
+                            <VoiceInput
+                              onTranscript={(text) => {
+                                const questionKey = `q${i + 1}`;
+                                setAnswers((prev) => ({
+                                  ...prev,
+                                  [questionKey]: (prev[questionKey] || '') + text
+                                }));
+                                requestAnimationFrame(() => {
+                                  requestAnimationFrame(() => {
+                                    const textarea = document.querySelector(`[name="${questionKey}"]`);
+                                    if (textarea) autoGrow(textarea);
+                                  });
+                                });
+                              }}
+                              onError={(errorMsg) => setErrorMsg(errorMsg)}
+                            />
                           </div>
                           
                           {q.allow_uploads && (
                             <ImageUploader
-  questionKey={`q${i + 1}`}
-  questionText={q.title}
-  serialNumber={unit?.serial_number}
-  maintenanceType="depth"
-  initialImages={questionImages[`q${i + 1}`] || []}
-  onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
-/>
+                              questionKey={`q${i + 1}`}
+                              questionText={q.title}
+                              serialNumber={unit?.serial_number}
+                              maintenanceType="depth"
+                              initialImages={questionImages[`q${i + 1}`] || []}
+                              onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
+                            />
                           )}
                         </div>
                       </div>
