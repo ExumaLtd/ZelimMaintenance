@@ -141,14 +141,14 @@
 }
 
 .landing-scope .input-wrapper.has-error .input-field {
-  border-color: #d92d20;
+  border-color: #ff4d4d;
 }
 
 .landing-scope .error-text {
   margin: 0;
   font-size: 14px;
   line-height: 20px;
-  color: #d92d20;
+  color: #ff4d4d;
   text-align: left;
 }
 
