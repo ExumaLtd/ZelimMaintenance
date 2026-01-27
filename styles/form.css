@@ -1153,6 +1153,7 @@
   .checklist-label,
   label {
     font-size: 15px !important;
+    line-height: 22px;
   }
   
   .checklist-inline-group:last-of-type {
