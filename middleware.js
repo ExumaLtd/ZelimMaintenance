@@ -4,6 +4,20 @@ import { NextResponse } from 'next/server';
 export function middleware(request) {
   const { pathname } = request.nextUrl;
   
+  // CRITICAL: Skip middleware entirely for Next.js internals and static assets
+  if (
+    pathname.startsWith('/_next') ||           // Next.js internals
+    pathname.startsWith('/api') ||             // API routes
+    pathname.startsWith('/favicon') ||         // Favicons
+    pathname.startsWith('/client_logos') ||    // Client logos
+    pathname.startsWith('/logo') ||            // Logos
+    pathname.startsWith('/downloads') ||       // Downloads
+    pathname.startsWith('/images') ||          // Images
+    pathname.match(/\.(svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|eot)$/) // Static files
+  ) {
+    return NextResponse.next();
+  }
+  
   // Handle portal routes
   if (pathname.startsWith('/portal/swift')) {
     // Get session from cookie
@@ -64,18 +78,9 @@ export function middleware(request) {
   return NextResponse.next();
 }
 
+// Simplified matcher - let the logic above handle exclusions
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * 1. /_next (Next.js internals)
-     * 2. /api (API routes)
-     * 3. /_static (inside /public)
-     * 4. /_vercel (Vercel internals)
-     * 5. Static files (e.g. /favicon.ico, /sitemap.xml, /robots.txt, etc.)
-     */
-    '/((?!_next/static|_next/image|_next/data|api|favicon|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)$).*)',
-    '/portal/swift/:path*',
-    '/swift/:path*'
+    '/(.*)', // Match everything, we'll filter in the function
   ],
 };
