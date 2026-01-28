@@ -296,7 +296,7 @@ export default function SwiftUnitPage({
                       } 
                       className="start-btn"
                     >
-                      {maintenance.hasDraft ? 'Continue maintenance' : maintenance.title.includes("Report a fault") ? 'Report fault' : 'Start maintenance'}
+                      {maintenance.hasDraft ? 'Continue maintenance' : maintenance.title.includes("Report a fault") ? 'Report a fault' : 'Start maintenance'}
                     </Link>
                   </div>
                 ))}
