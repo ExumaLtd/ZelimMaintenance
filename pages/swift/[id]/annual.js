@@ -1,3 +1,6 @@
+// pages/swift/[id]/annual.js
+// ✅ UPDATED to use shared data fetching
+
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
@@ -8,6 +11,7 @@ import VoiceInput from '../../../components/voice-input';
 import DatePicker from '../../../components/date-picker';
 import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
 import { useAutoSave } from '../../../hooks/use-auto-save';
+import { fetchFormData } from '@/lib/data-fetching'; // ✅ NEW IMPORT
 
 const autoGrow = (e) => {
   const el = e.target || e;
@@ -42,7 +46,8 @@ const getClientLogo = (companyName, serialNumber) => {
   return null;
 };
 
-export default function Annual({ unit, template, allCompanies = [], allEngineers = [] }) {
+// ✅ Props now come from fetchFormData
+export default function Annual({ unit, template, companies = [], engineers = [] }) {
   const router = useRouter();
 
   const companyFieldRef = useRef(null);
@@ -77,7 +82,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
   const storageKey = useMemo(() => `draft_annual_${unit?.serial_number}`, [unit?.serial_number]);
 
-  // Auto-save draft to Airtable - ✅ Updated condition
+  // Auto-save draft to Airtable
   useAutoSave({
     unitId: unit?.record_id,
     maintenanceType: 'Annual',
@@ -93,26 +98,26 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
       engPhone,
     }
   }, 
-    // ✅ Save if there's ANY content, not just when email is valid
-    Object.keys(answers).some(key => answers[key]?.trim()) || // Has any answers
-    Object.keys(questionImages).length > 0 || // Has images
-    selectedCompany || // Has company selected
-    locationDisplay?.trim() || // Has location
-    engName?.trim() || // Has engineer name
-    engEmail?.trim() || // Has email (even if invalid)
-    engPhone?.trim() // Has phone
+    Object.keys(answers).some(key => answers[key]?.trim()) ||
+    Object.keys(questionImages).length > 0 ||
+    selectedCompany ||
+    locationDisplay?.trim() ||
+    engName?.trim() ||
+    engEmail?.trim() ||
+    engPhone?.trim()
   );
 
+  // ✅ Changed: allEngineers → engineers
   const filteredEngineers = useMemo(() => {
     if (!selectedCompany) return [];
-    let list = allEngineers.filter(e => e.companyName === selectedCompany && e.name !== engName);
+    let list = engineers.filter(e => e.companyName === selectedCompany && e.name !== engName);
     
     if (engName && engName !== "Please select" && engName.trim()) {
       const search = engName.toLowerCase();
       return list.filter(e => e.name.toLowerCase().includes(search));
     }
     return list;
-  }, [selectedCompany, engName, allEngineers]);
+  }, [selectedCompany, engName, engineers]); // ✅ Changed dependency
 
   const selectCompany = useCallback((company) => {
     setSelectedCompany(company);
@@ -178,7 +183,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   useEffect(() => {
     setToday(new Date().toISOString().split("T")[0]);
     
-    // Don't load localStorage if coming from "Continue maintenance"
     const urlParams = new URLSearchParams(window.location.search);
     const isDraft = urlParams.get('draft') === 'true';
     if (isDraft) return;
@@ -251,7 +255,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     if (typeof window === "undefined" || !navigator.geolocation) return;
     if (locationDisplay && locationDisplay.trim() !== "") return;
 
-    // Skip geolocation if loading a draft
     const urlParams = new URLSearchParams(window.location.search);
     const isDraft = urlParams.get('draft') === 'true';
     if (isDraft) return;
@@ -314,7 +317,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
     );
   }, []);
 
-  // Pre-request microphone permission on page load
+  // Pre-request microphone permission
   useEffect(() => {
     if (typeof window === "undefined" || !navigator.mediaDevices) return;
     
@@ -492,7 +495,6 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
 
       if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
 
-      // Mark draft as complete
       await fetch('/api/mark-draft-complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -547,6 +549,7 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   const hasEngineerResults = filteredEngineers.length > 0;
   const hasClearEng = engName && engName !== "Please select" && engName !== "";
   const shouldShowEngDropdown = showEngineerDropdown && (hasEngineerResults || hasClearEng);
+  
   return (
     <div className="form-scope">
       <Head>
@@ -589,7 +592,8 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
                     </div>
                     {showCompanyDropdown && (
                       <ul className={`custom-dropdown-list ${fieldErrors.company ? "has-error" : ""}`}>
-                        {allCompanies.sort().map((c, i) => (
+                        {/* ✅ Changed: allCompanies → companies */}
+                        {companies.sort().map((c, i) => (
                           <li
                             key={i}
                             className={`custom-dropdown-item ${selectedCompany === c ? "active" : ""}`}
@@ -804,77 +808,34 @@ export default function Annual({ unit, template, allCompanies = [], allEngineers
   );
 }
 
+// ============================================================================
+// ✅ UPDATED getServerSideProps - Now uses shared data fetching
+// ============================================================================
+
 export async function getServerSideProps({ params }) {
-  const token = params.id;
+  const publicToken = params.id;
+  
   try {
-    const apiKey = process.env.AIRTABLE_API_KEY;
-    const baseId = process.env.AIRTABLE_BASE_ID;
-    const tableName = process.env.AIRTABLE_SWIFT_TABLE || "swift_units";
-
-    if (!apiKey || !baseId) throw new Error("Missing Airtable Env");
-
-    const headers = { Authorization: `Bearer ${apiKey}` };
-    const unitFormula = encodeURIComponent(`{public_token}='${token}'`);
-    const templateFormula = encodeURIComponent(`{type}='Annual'`);
-
-    const urls = [
-      `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${unitFormula}`,
-      `https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula=${templateFormula}`,
-      `https://api.airtable.com/v0/${baseId}/maintenance_companies`,
-      `https://api.airtable.com/v0/${baseId}/engineers`,
-    ];
-
-    const responses = await Promise.all(urls.map((url) => fetch(url, { headers })));
-    const results = await Promise.all(responses.map((res) => res.json()));
-    const [unitData, templateData, companyData, engineerData] = results;
-
-    if (!unitData.records || unitData.records.length === 0) return { notFound: true };
-
-    const unitRecord = unitData.records[0];
-    const companyLookup = {};
-    if (companyData.records) {
-      companyData.records.forEach((r) => {
-        if (r.fields.company_name) companyLookup[r.id] = r.fields.company_name;
-      });
+    // ✅ Single function call fetches everything in parallel with caching
+    const data = await fetchFormData(publicToken, 'Annual');
+    
+    // If unit not found, redirect to home
+    if (data.notFound) {
+      return { redirect: { destination: '/', permanent: false } };
     }
-
-    let parsedJson = {};
-try {
-  if (templateData.records?.[0]?.fields.questions_json) {
-    parsedJson = JSON.parse(templateData.records[0].fields.questions_json);
-  }
-} catch (e) {
-  console.error("Failed to parse questions_json:", e);
-}
-
-return {
-  props: {
-    unit: {
-      serial_number: unitRecord.fields.unit_name || unitRecord.fields.serial_number || "Unit",
-      company: unitRecord.fields.company || "",
-      record_id: unitRecord.id,
-      public_token: unitRecord.fields.public_token || token,
-    },
-    template: {
-      id: templateData.records?.[0]?.id || "",
-      questionsData: Array.isArray(parsedJson) ? parsedJson : (parsedJson.questions || []),
-      questions: Array.isArray(parsedJson) ? parsedJson.map(q => q.title) : (parsedJson.questions?.map(q => q.title) || []),
-    },
-        allCompanies: Object.values(companyLookup).filter(Boolean),
-        allEngineers:
-          engineerData.records
-            ?.map((r) => ({
-              name: r.fields.engineer_name,
-              email: r.fields.email || "",
-              phone: r.fields.phone || "",
-              companyName:
-                r.fields["company"] && r.fields["company"][0] ? companyLookup[r.fields["company"][0]] : "",
-            }))
-            .filter((e) => e.name) || [],
-      },
+    
+    // Return all the data
+    // Note: The prop names match what the component expects
+    return { 
+      props: {
+        unit: data.unit,
+        template: data.template,
+        companies: data.companies,    // ✅ Changed from allCompanies
+        engineers: data.engineers,    // ✅ Changed from allEngineers
+      } 
     };
-  } catch (err) {
-    console.error("getServerSideProps error:", err);
-    return { notFound: true };
+  } catch (error) {
+    console.error('Error loading annual form:', error);
+    return { redirect: { destination: '/', permanent: false } };
   }
 }
