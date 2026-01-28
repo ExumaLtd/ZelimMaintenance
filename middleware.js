@@ -66,6 +66,15 @@ export function middleware(request) {
 
 export const config = {
   matcher: [
+    /*
+     * Match all request paths except:
+     * 1. /_next (Next.js internals)
+     * 2. /api (API routes)
+     * 3. /_static (inside /public)
+     * 4. /_vercel (Vercel internals)
+     * 5. Static files (e.g. /favicon.ico, /sitemap.xml, /robots.txt, etc.)
+     */
+    '/((?!_next/static|_next/image|_next/data|api|favicon|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)$).*)',
     '/portal/swift/:path*',
     '/swift/:path*'
   ],

@@ -9,6 +9,20 @@ const nextConfig = {
     },
   },
 
+  // Add images configuration for external domains
+  images: {
+    domains: [
+      'res.cloudinary.com', // For Cloudinary images
+      'api.airtable.com',   // If you're loading images from Airtable
+    ],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+    ],
+  },
+
   async redirects() {
     return [
       {
