@@ -152,6 +152,33 @@ export default async function handler(req, res) {
       throw new Error(`Airtable Sync Error`);
     }
 
+    // CRITICAL: Mark the draft as completed now that submission succeeded
+    console.log('✅ Submission successful, marking draft as complete...');
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://maintenance.exuma.co.uk';
+      const markCompleteRes = await fetch(`${baseUrl}/api/mark-draft-complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          unitId: unit_record_id,
+          maintenanceType: maintenance_type,
+          engineerEmail: engineer_email
+        })
+      });
+      
+      if (markCompleteRes.ok) {
+        const result = await markCompleteRes.json();
+        console.log('✅ Draft marked as completed:', result);
+      } else {
+        const errorText = await markCompleteRes.text();
+        console.warn('⚠️ Failed to mark draft complete:', errorText);
+        // Don't fail the whole request - submission already succeeded
+      }
+    } catch (markError) {
+      console.warn('⚠️ Error marking draft complete:', markError.message);
+      // Don't fail the whole request - submission already succeeded
+    }
+
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error("Final Submission Failure:", error.message);
