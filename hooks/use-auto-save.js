@@ -1,103 +1,125 @@
-// hooks/use-auto-save.js
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 
 /**
- * Auto-save hook with smart debouncing
- * - Waits 3 seconds after last change before saving
- * - Prevents duplicate saves
- * - Saves on page unload
+ * Auto-save hook that saves drafts to Airtable
+ * @param {Object} config - Configuration object
+ * @param {string} config.unitId - Unit record ID
+ * @param {string} config.maintenanceType - Type of maintenance
+ * @param {string} config.engineerEmail - Engineer's email (can be invalid/empty)
+ * @param {Object} config.draftData - Data to save
+ * @param {boolean} shouldSave - Whether to trigger save (content exists)
  */
-export function useAutoSave(payload, isEnabled = true) {
-  const timeoutRef = useRef(null);
+export function useAutoSave(config, shouldSave) {
+  const { unitId, maintenanceType, engineerEmail, draftData } = config;
+  const saveTimeoutRef = useRef(null);
   const lastSavedRef = useRef(null);
-  const payloadRef = useRef(payload);
-  const hasInitializedRef = useRef(false);
+  const isSavingRef = useRef(false);
 
-  // Keep payloadRef up to date
-  useEffect(() => {
-    payloadRef.current = payload;
-  }, [payload]);
+  // Save function
+  const saveDraft = async (force = false) => {
+    // Skip if already saving
+    if (isSavingRef.current && !force) return;
+    
+    // Skip if no unit ID
+    if (!unitId) return;
+    
+    // Skip if no content to save (unless forced)
+    if (!shouldSave && !force) return;
 
-  const saveDraft = useCallback(async () => {
-    const currentPayload = payloadRef.current;
-    
-    // Skip if disabled or missing required fields
-    if (!isEnabled || !currentPayload.unitId || !currentPayload.maintenanceType) {
-      return;
-    }
-    
-    // For partial drafts without email, use placeholder
-    const payloadToSave = {
-      ...currentPayload,
-      engineerEmail: currentPayload.engineerEmail || 'draft@zelimmaintenance.com'
-    };
-    
-    // Don't save if data hasn't changed
-    const currentData = JSON.stringify(payloadToSave);
-    if (currentData === lastSavedRef.current) {
-      return;
-    }
-    
+    // Skip if data hasn't changed (unless forced)
+    const currentData = JSON.stringify(draftData);
+    if (!force && lastSavedRef.current === currentData) return;
+
     try {
+      isSavingRef.current = true;
+      
       const response = await fetch('/api/save-draft', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payloadToSave),
+        body: JSON.stringify({
+          unitId,
+          maintenanceType,
+          engineerEmail: engineerEmail || '',
+          draftData,
+        }),
       });
 
       if (response.ok) {
         lastSavedRef.current = currentData;
+        console.log('✅ Draft saved');
+      } else {
+        console.error('Failed to save draft:', await response.text());
       }
     } catch (error) {
-      // Silent fail - don't interrupt user
+      console.error('Error saving draft:', error);
+    } finally {
+      isSavingRef.current = false;
     }
-  }, [isEnabled]);
+  };
 
+  // Auto-save on change (debounced)
   useEffect(() => {
-    if (!isEnabled) return;
-
-    // Skip initial save on mount - only save after changes
-    if (!hasInitializedRef.current) {
-      hasInitializedRef.current = true;
-      return;
-    }
+    if (!shouldSave) return;
 
     // Clear existing timeout
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
     }
 
-    // Debounce - wait 3 seconds after last change
-    timeoutRef.current = setTimeout(() => {
+    // Set new timeout to save after 2 seconds of inactivity
+    saveTimeoutRef.current = setTimeout(() => {
       saveDraft();
-    }, 3000);
+    }, 2000);
+
+    // Cleanup
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [draftData, shouldSave, unitId, maintenanceType, engineerEmail]);
+
+  // Save on page unload (back button, close tab, refresh)
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (shouldSave && unitId) {
+        // Use sendBeacon for reliable save on unload
+        const blob = new Blob([JSON.stringify({
+          unitId,
+          maintenanceType,
+          engineerEmail: engineerEmail || '',
+          draftData,
+        })], { type: 'application/json' });
+        
+        navigator.sendBeacon('/api/save-draft', blob);
+        
+        // Note: We don't show a confirmation dialog as it's annoying
+        // The draft is saved automatically
+      }
+    };
+
+    // Add both listeners for maximum compatibility
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handleBeforeUnload);
 
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handleBeforeUnload);
     };
-  }, [payload, isEnabled, saveDraft]);
+  }, [shouldSave, unitId, maintenanceType, engineerEmail, draftData]);
 
-  // Save on page unload
+  // Also save when user navigates back (for SPAs)
   useEffect(() => {
-    if (!isEnabled) return;
-
-    const handleBeforeUnload = () => {
-      const currentPayload = payloadRef.current;
-      if (currentPayload.unitId && currentPayload.maintenanceType) {
-        const payloadToSave = {
-          ...currentPayload,
-          engineerEmail: currentPayload.engineerEmail || 'draft@zelimmaintenance.com'
-        };
-        const blob = new Blob([JSON.stringify(payloadToSave)], { type: 'application/json' });
-        navigator.sendBeacon('/api/save-draft', blob);
+    const handlePopState = () => {
+      if (shouldSave && unitId) {
+        saveDraft(true); // Force immediate save
       }
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isEnabled]);
+    window.addEventListener('popstate', handlePopState);
 
-  return { saveDraft };
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [shouldSave, unitId, maintenanceType, engineerEmail, draftData]);
 }
