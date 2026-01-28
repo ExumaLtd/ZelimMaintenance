@@ -427,26 +427,28 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     }
   }, [storageKey]);
 
-  // Load draft from Airtable
+  // Load draft from Airtable - UPDATED TO NOT REQUIRE EMAIL
   useEffect(() => {
     const loadDraft = async () => {
+      // Check if we have draft query param from dashboard
       const urlParams = new URLSearchParams(window.location.search);
       const isDraft = urlParams.get('draft') === 'true';
-      const emailFromUrl = urlParams.get('email');
       
-      if (!isDraft || !emailFromUrl) return;
+      if (!isDraft) return; // Only run when coming from "Continue maintenance"
       
-      const emailToUse = decodeURIComponent(emailFromUrl);
-      
-      if (!unit?.record_id || !emailToUse || !emailToUse.includes('@')) return;
+      if (!unit?.record_id) return;
       
       try {
+        // Call API WITHOUT email - it will find the most recent draft for this unit+type
         const res = await fetch(
-          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=30-month depth&engineerEmail=${encodeURIComponent(emailToUse)}`
+          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=30-month depth`
         );
         const data = await res.json();
         
         if (data.draft) {
+          console.log('📦 Draft data received:', data.draft);
+          
+          // Restore form state from draft
           if (data.draft.checklistData) setChecklistData(data.draft.checklistData);
           if (data.draft.currentStep) {
             setCurrentStep(data.draft.currentStep);
@@ -466,7 +468,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
           if (data.draft.engEmail) setEngEmail(data.draft.engEmail);
           if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
           
-          console.log('✓ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
+          console.log('✅ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
         }
       } catch (error) {
         console.error('Failed to load draft:', error);
@@ -474,7 +476,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     };
     
     loadDraft();
-  }, [unit?.record_id, template]);
+  }, [unit?.record_id]); // Run when unit loads
 
   // Get geolocation
   useEffect(() => {
@@ -576,6 +578,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     };
     localStorage.setItem(storageKey, JSON.stringify(draftData));
   }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, checklistData, answers, storageKey]);
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
@@ -684,7 +687,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
       const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
 
-await fetch("/api/send-report", {
+      await fetch("/api/send-report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1137,14 +1140,14 @@ export async function getServerSideProps({ params }) {
           record_id: unitRecord.id,
           public_token: unitRecord.fields.public_token || token,
         },
-template: {
-  id: templateData.records?.[0]?.id || "",
-  type: templateData.records?.[0]?.fields?.type || "Depth",
-  name: templateData.records?.[0]?.fields?.name || templateData.records?.[0]?.fields?.type || "Depth",
-  maintenanceChecklist: Array.isArray(parsedJson) ? [] : (parsedJson.equipment_checklist || []),
-  questionsData: Array.isArray(parsedJson) ? parsedJson : (parsedJson.questions || []),
-  questions: Array.isArray(parsedJson) ? parsedJson.map(q => q.title) : (parsedJson.questions?.map(q => q.title) || []),
-},
+        template: {
+          id: templateData.records?.[0]?.id || "",
+          type: templateData.records?.[0]?.fields?.type || "Depth",
+          name: templateData.records?.[0]?.fields?.name || templateData.records?.[0]?.fields?.type || "Depth",
+          maintenanceChecklist: Array.isArray(parsedJson) ? [] : (parsedJson.equipment_checklist || []),
+          questionsData: Array.isArray(parsedJson) ? parsedJson : (parsedJson.questions || []),
+          questions: Array.isArray(parsedJson) ? parsedJson.map(q => q.title) : (parsedJson.questions?.map(q => q.title) || []),
+        },
         allCompanies: Object.values(companyLookup).filter(Boolean),
         allEngineers:
           engineerData.records

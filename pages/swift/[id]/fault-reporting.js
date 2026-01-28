@@ -76,7 +76,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
 
-  const storageKey = useMemo(() => `draft_fault-reporting_${unit?.serial_number}`, [unit?.serial_number]);
+  const storageKey = useMemo(() => `draft_fault_reporting_${unit?.serial_number}`, [unit?.serial_number]);
 
   // Auto-save draft to Airtable - ✅ Updated condition
   useAutoSave({
@@ -514,7 +514,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
 
       (template?.questionsData || []).forEach((_, i) => {
         const questionKey = `q${i + 1}`;
-        const imageStorageKey = `images_fault-reporting_${unit?.serial_number}_${questionKey}`;
+        const imageStorageKey = `images_fault_reporting_${unit?.serial_number}_${questionKey}`;
         localStorage.removeItem(imageStorageKey);
       });
 
@@ -536,7 +536,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
   return (
     <div className="form-scope">
       <Head>
-        <title>{unit?.serial_number} | Fault report Maintenance</title>
+        <title>{unit?.serial_number} | Fault Reporting</title>
       </Head>
 
       <div className="swift-main-layout-wrapper">
@@ -550,7 +550,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
 
             <h1 className="checklist-hero-title">
               {unit?.serial_number}
-              <span className="break-point">fault-reporting maintenance</span>
+              <span className="break-point">fault reporting</span>
             </h1>
 
             {/* CARD 1: ADMIN FIELDS */}
@@ -704,18 +704,18 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
             {/* CARD 2: QUESTIONS */}
             <div className="checklist-form-card" style={{ marginTop: "20px" }}>
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-                <h3 className="checklist-section-title">Fault report maintenance</h3>
+                <h3 className="checklist-section-title">Fault report</h3>
                 <p className="checklist-section-subtitle">
-                  All fault-reporting maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual.
+                  Report damage, defects, or wear on the SWIFT. Describe what is affected and when it was noticed, then attach clear photos where possible.
                 </p>
                 
                 {(template?.questionsData || []).map((q, i) => (
                   <div key={i} style={{ marginTop: i === 0 ? "0" : "24px" }}>
-                    <label className="checklist-label fault-reporting-question-label">
+                    <label className="checklist-label unscheduled-question-label">
                       {q.title}
                     </label>
                     {q.instruction && (
-                      <p className="question-instruction fault-reporting-question-instruction">{q.instruction}</p>
+                      <p className="question-instruction unscheduled-question-instruction">{q.instruction}</p>
                     )}
                     
                     <div className="question-with-upload">
@@ -759,7 +759,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
                           questionKey={`q${i + 1}`}
                           questionText={q.title}
                           serialNumber={unit?.serial_number}
-                          maintenanceType="fault-reporting"
+                          maintenanceType="fault_reporting"
                           initialImages={questionImages[`q${i + 1}`] || []}
                           onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
                         />
@@ -798,7 +798,7 @@ export async function getServerSideProps({ params }) {
 
     const headers = { Authorization: `Bearer ${apiKey}` };
     const unitFormula = encodeURIComponent(`{public_token}='${token}'`);
-    const templateFormula = encodeURIComponent(`{template_name}='Fault report maintenance'`);
+    const templateFormula = encodeURIComponent(`{template_name}='Fault report'`);
 
     const urls = [
       `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${unitFormula}`,
