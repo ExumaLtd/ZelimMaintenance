@@ -103,27 +103,22 @@ export async function getServerSideProps(context) {
         : "N/A",
     };
 
-    // Check for active drafts
+    // OPTIMIZED: Check for active drafts with server-side filtering
     let activeDrafts = [];
     try {
-      console.log('Fetching all uncompleted drafts...');
+      console.log('Fetching drafts for this unit only...');
       
-      const drafts = await base('maintenance_drafts')
+      // Filter by unit_id on the server side using FIND()
+      const matchingDrafts = await base('maintenance_drafts')
         .select({
-          filterByFormula: `NOT({completed})`,
+          filterByFormula: `AND(
+            NOT({completed}),
+            FIND('${unitRecordId}', ARRAYJOIN({unit_id}, ','))
+          )`,
           fields: ['unit_id', 'maintenance_type', 'last_updated', 'engineer_email'],
+          maxRecords: 10, // Limit to 10 drafts max (should be plenty)
         })
-        .all();
-      
-      console.log(`Total uncompleted drafts: ${drafts.length}`);
-      
-      // Filter in JavaScript to match unit_id
-      const matchingDrafts = drafts.filter(d => {
-        const linkedRecords = d.get('unit_id');
-        console.log('Draft unit_id:', linkedRecords);
-        // Link fields return an array of record IDs
-        return linkedRecords && linkedRecords.includes(unitRecordId);
-      });
+        .firstPage();
       
       console.log(`Matching drafts for ${unitRecordId}: ${matchingDrafts.length}`);
 
@@ -286,9 +281,14 @@ export default function SwiftUnitPage({
               <div className="maintenance-group-wrapper">
                 {maintenanceTypes.map((maintenance, index) => (
                   <div key={index} className="maintenance-card">
-                    <h3>{maintenance.title.split('\n').map((line, i) => (
-                      <span key={i}>{line}{i === 0 && <br />}</span>
-                    ))}</h3>
+                    <h3>
+                      {maintenance.title.split('\n').map((line, i) => (
+                        <span key={i}>
+                          {line}
+                          {i === 0 && <br />}
+                        </span>
+                      ))}
+                    </h3>
                     <p className="description">{maintenance.description}</p>
                     <Link 
                       href={
@@ -316,7 +316,7 @@ export default function SwiftUnitPage({
 
                 <div className="download-list">
                   {downloads.map((download, index) => (
-                    <a
+ <a                   
                       key={index}
                       href={download.href}
                       target="_blank"
