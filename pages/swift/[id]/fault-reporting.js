@@ -81,7 +81,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
   // Auto-save draft to Airtable
   useAutoSave({
     unitId: unit?.record_id,
-    maintenanceType: 'Fault reporting',
+    maintenanceType: 'Fault report',
     engineerEmail: engEmail,
     draftData: {
       answers,
@@ -222,7 +222,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
       
       try {
         const res = await fetch(
-          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Fault reporting&engineerEmail=${encodeURIComponent(emailToUse)}`
+          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Fault report&engineerEmail=${encodeURIComponent(emailToUse)}`
         );
         const data = await res.json();
         
@@ -448,7 +448,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
       maintained_by: selectedCompany,
       location_display: locationDisplay,
       location_country: locationCountry,
-      maintenance_type: "Fault reporting",
+      maintenance_type: "Fault report",
       date_of_maintenance: new Date().toISOString(),
       engineer_name: engName,
       engineer_email: engEmail,
@@ -481,7 +481,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           unitId: unit?.record_id,
-          maintenanceType: 'Fault reporting',
+          maintenanceType: 'Fault report',
           engineerEmail: engEmail,
         }),
       });
@@ -496,7 +496,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
           engineerName: engName,
           serialNumber: unit?.serial_number,
           answers: emailFriendlyAnswers,
-          reportType: "Fault reporting",
+          reportType: "Fault report",
           companyLogoUrl: companyLogoUrl,
           technicalData: {
             unit_record_id: unit?.record_id,
@@ -517,7 +517,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
       });
 
       localStorage.setItem("last_submitted_sn", unit?.serial_number);
-      localStorage.setItem("last_maintenance_type", "Fault reporting");
+      localStorage.setItem("last_maintenance_type", "Fault report");
       localStorage.removeItem(storageKey);
       router.push(`/portal/swift/fault-reporting-complete`);
     } catch (err) {
@@ -796,7 +796,7 @@ export async function getServerSideProps({ params }) {
 
     const headers = { Authorization: `Bearer ${apiKey}` };
     const unitFormula = encodeURIComponent(`{public_token}='${token}'`);
-    const templateFormula = encodeURIComponent(`{template_name}='Fault reporting'`);
+    const templateFormula = encodeURIComponent(`{template_name}='Fault report'`);
 
     const urls = [
       `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${unitFormula}`,
