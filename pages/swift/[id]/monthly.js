@@ -699,13 +699,13 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                 </div>
 
                 <div className="checklist-field">
-  <label className="checklist-label">Date</label>
-  <DatePicker
-    value={maintenanceDate}
-    onChange={(date) => setMaintenanceDate(date)}
-    max={today}
-  />
-</div>
+                  <label className="checklist-label">Date</label>
+                  <DatePicker
+                    value={maintenanceDate}
+                    onChange={(date) => setMaintenanceDate(date)}
+                    max={today}
+                  />
+                </div>
               </div>
 
               <div className="checklist-inline-group" style={{ marginTop: "24px" }}>
@@ -773,7 +773,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                       }
                     }}
                   />
-                  </div>
+                </div>
 
                 <div className="checklist-field">
                   <label className="checklist-label">Engineer phone</label>
@@ -926,11 +926,12 @@ export async function getServerSideProps({ params }) {
     const unitFormula = encodeURIComponent(`{public_token}='${token}'`);
     const templateFormula = encodeURIComponent(`{template_name}='Monthly maintenance'`);
 
+    // OPTIMIZED: Added maxRecords to all queries
     const urls = [
-      `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${unitFormula}`,
-      `https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula=${templateFormula}`,
-      `https://api.airtable.com/v0/${baseId}/maintenance_companies`,
-      `https://api.airtable.com/v0/${baseId}/engineers`,
+      `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${unitFormula}&maxRecords=1`,
+      `https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula=${templateFormula}&maxRecords=1`,
+      `https://api.airtable.com/v0/${baseId}/maintenance_companies?maxRecords=100`,
+      `https://api.airtable.com/v0/${baseId}/engineers?maxRecords=500`,
     ];
 
     const responses = await Promise.all(urls.map((url) => fetch(url, { headers })));
