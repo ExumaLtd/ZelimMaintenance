@@ -256,30 +256,26 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     }
   }, [storageKey]);
 
-  // Load draft from Airtable - check query params first
+  // Load draft from Airtable - UPDATED TO NOT REQUIRE EMAIL
   useEffect(() => {
     const loadDraft = async () => {
-      // Check if we have draft query params from dashboard
+      // Check if we have draft query param from dashboard
       const urlParams = new URLSearchParams(window.location.search);
       const isDraft = urlParams.get('draft') === 'true';
-      const emailFromUrl = urlParams.get('email');
       
-      if (!isDraft || !emailFromUrl) return; // Only run when coming from "Continue maintenance"
+      if (!isDraft) return; // Only run when coming from "Continue maintenance"
       
-      const emailToUse = decodeURIComponent(emailFromUrl);
-      
-      if (!unit?.record_id || !emailToUse || !emailToUse.includes('@')) return;
+      if (!unit?.record_id) return;
       
       try {
+        // Call API WITHOUT email - it will find the most recent draft for this unit+type
         const res = await fetch(
-          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Monthly&engineerEmail=${encodeURIComponent(emailToUse)}`
+          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Monthly`
         );
         const data = await res.json();
         
         if (data.draft) {
           console.log('📦 Draft data received:', data.draft);
-          console.log('📦 checklistData type:', typeof data.draft.checklistData);
-          console.log('📦 checklistData value:', data.draft.checklistData);
           
           // Restore form state from draft
           if (data.draft.checklistData) setChecklistData(data.draft.checklistData);
@@ -289,10 +285,10 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           if (data.draft.locationDisplay) setLocationDisplay(data.draft.locationDisplay);
           if (data.draft.locationCountry) setLocationCountry(data.draft.locationCountry);
           if (data.draft.engName) setEngName(data.draft.engName);
-          if (data.draft.engEmail) setEngEmail(data.draft.engEmail); // Use engEmail from draft, not URL
+          if (data.draft.engEmail) setEngEmail(data.draft.engEmail);
           if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
           
-          console.log('✓ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
+          console.log('✅ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
         }
       } catch (error) {
         console.error('Failed to load draft:', error);
@@ -300,7 +296,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     };
     
     loadDraft();
-  }, [unit?.record_id, template]); // Run when unit or template loads
+  }, [unit?.record_id]); // Run when unit loads
 
   // Get geolocation
   useEffect(() => {

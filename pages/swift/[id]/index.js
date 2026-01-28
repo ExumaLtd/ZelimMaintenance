@@ -293,7 +293,7 @@ export default function SwiftUnitPage({
                     <Link 
                       href={
                         maintenance.hasDraft 
-                          ? `${maintenance.href}?draft=true&email=${encodeURIComponent(maintenance.draftInfo.engineerEmail)}`
+                          ? `${maintenance.href}?draft=true`
                           : maintenance.href
                       } 
                       className="start-btn"
@@ -316,7 +316,7 @@ export default function SwiftUnitPage({
 
                 <div className="download-list">
                   {downloads.map((download, index) => (
- <a                   
+                    <a                   
                       key={index}
                       href={download.href}
                       target="_blank"

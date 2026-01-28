@@ -1,4 +1,4 @@
-// pages/api/get-draft.js (DEBUG VERSION)
+// pages/api/get-draft.js
 import Airtable from 'airtable';
 
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
@@ -11,17 +11,18 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { unitId, maintenanceType, engineerEmail } = req.query;
+    const { unitId, maintenanceType } = req.query;
+    // engineerEmail is now OPTIONAL - we don't need it
 
     console.log('=== GET DRAFT DEBUG ===');
-    console.log('Query params:', { unitId, maintenanceType, engineerEmail });
+    console.log('Query params:', { unitId, maintenanceType });
 
     if (!unitId || !maintenanceType) {
       console.log('❌ Missing required parameters');
       return res.status(400).json({ error: 'Missing required parameters' });
     }
 
-    // Build the filter formula
+    // Build the filter formula - NO email filter!
     const formula = `AND(
       {maintenance_type} = '${maintenanceType}', 
       NOT({completed}),
@@ -35,7 +36,7 @@ export default async function handler(req, res) {
         filterByFormula: formula,
         fields: ['unit_id', 'draft_data', 'last_updated', 'engineer_email', 'completed'],
         sort: [{ field: 'last_updated', direction: 'desc' }],
-        maxRecords: 1,
+        maxRecords: 1, // Get the most recent draft for this unit+type
       })
       .firstPage();
 
