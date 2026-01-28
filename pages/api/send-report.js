@@ -6,6 +6,11 @@ import { TechnicalAlertEmail } from '../../emails/technical-alert';
 const apiKey = process.env.RESEND_API_KEY?.replace(/['"]+/g, '');
 const resend = new Resend(apiKey);
 
+// Helper function to add spaces to camelCase strings
+const addSpacesToCamelCase = (str) => {
+  return str.replace(/([A-Z])/g, ' $1').trim();
+};
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
@@ -29,7 +34,12 @@ export default async function handler(req, res) {
 
     // 3. Define displayType BEFORE it is used in preview URLs
     let displayType = reportType || 'Maintenance';
-    if (!displayType.toLowerCase().includes('maintenance')) {
+    
+    // Add spaces to camelCase (e.g., "FaultReporting" → "Fault Reporting")
+    displayType = addSpacesToCamelCase(displayType);
+    
+    // Add "Maintenance" suffix if not present (except for "Fault Reporting")
+    if (!displayType.toLowerCase().includes('maintenance') && !displayType.toLowerCase().includes('fault')) {
       displayType = `${displayType} Maintenance`;
     }
 

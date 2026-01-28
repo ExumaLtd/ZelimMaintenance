@@ -193,6 +193,12 @@ export default function SwiftUnitPage({
       href: `/portal/swift/unscheduled`,
       type: "Unscheduled",
     },
+    {
+      title: "Report a fault",
+      description: "Complete this form to report a fault with the SWIFT system. Your report will be sent to the maintenance facility for review and follow-up.",
+      href: `/portal/swift/fault-reporting`,
+      type: "FaultReporting",
+    },
   ];
 
   // Add draft information to maintenance types
@@ -207,7 +213,7 @@ export default function SwiftUnitPage({
 
   const maintenanceTypes = accessType === "crew"
     ? maintenanceTypesWithDrafts.filter(type => 
-        type.title.includes("Monthly") || type.title.includes("Unscheduled")
+        type.title.includes("Monthly") || type.title.includes("Unscheduled") || type.title.includes("Report a fault")
       )
     : maintenanceTypesWithDrafts;
 
@@ -290,7 +296,7 @@ export default function SwiftUnitPage({
                       } 
                       className="start-btn"
                     >
-                      {maintenance.hasDraft ? 'Continue maintenance' : 'Start maintenance'}
+                      {maintenance.hasDraft ? 'Continue maintenance' : maintenance.title.includes("Report a fault") ? 'Report fault' : 'Start maintenance'}
                     </Link>
                   </div>
                 ))}
