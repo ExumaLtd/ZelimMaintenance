@@ -1,4 +1,4 @@
-// pages/api/save-draft.js
+// pages/api/save-draft.js - WORKING VERSION (with JavaScript filtering)
 import Airtable from 'airtable';
 
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
@@ -27,20 +27,21 @@ export default async function handler(req, res) {
 
     const isRealEmail = engineerEmail !== PLACEHOLDER_EMAIL && engineerEmail.includes('@');
 
-    // OPTIMIZED: Filter by unit_id AND maintenance_type in one query
-    console.log('Checking for existing drafts for this unit...');
-    const existingDrafts = await base('maintenance_drafts')
+    // Get all active drafts for this maintenance type
+    console.log('Checking for existing drafts...');
+    const allDrafts = await base('maintenance_drafts')
       .select({
-        filterByFormula: `AND(
-          {maintenance_type} = '${maintenanceType}', 
-          NOT({completed}),
-          FIND('${unitId}', ARRAYJOIN({unit_id}, ','))
-        )`,
+        filterByFormula: `AND({maintenance_type} = '${maintenanceType}', NOT({completed}))`,
         fields: ['unit_id', 'engineer_email', 'last_updated'],
         sort: [{ field: 'last_updated', direction: 'desc' }],
-        maxRecords: 1, // Only need the most recent draft
       })
-      .firstPage();
+      .all();
+
+    // Filter in JavaScript to match unit_id (Link field returns array)
+    const existingDrafts = allDrafts.filter(d => {
+      const linkedRecords = d.get('unit_id');
+      return linkedRecords && linkedRecords.includes(unitId);
+    });
 
     console.log('Existing drafts for this unit:', existingDrafts.length);
 
@@ -79,7 +80,7 @@ export default async function handler(req, res) {
       console.log('unit_id value:', [unitId]);
       
       const result = await base('maintenance_drafts').create({
-        unit_id: [unitId],
+        unit_id: [unitId],  // Array for linked record
         maintenance_type: maintenanceType,
         engineer_email: engineerEmail,
         draft_data: draftDataString,

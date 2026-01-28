@@ -103,22 +103,24 @@ export async function getServerSideProps(context) {
         : "N/A",
     };
 
-    // OPTIMIZED: Check for active drafts with server-side filtering
+    // Check for active drafts - use JavaScript filtering (works with linked records)
     let activeDrafts = [];
     try {
       console.log('Fetching drafts for this unit only...');
       
-      // Filter by unit_id on the server side using FIND()
-      const matchingDrafts = await base('maintenance_drafts')
+      // Get all active drafts
+      const allDrafts = await base('maintenance_drafts')
         .select({
-          filterByFormula: `AND(
-            NOT({completed}),
-            FIND('${unitRecordId}', ARRAYJOIN({unit_id}, ','))
-          )`,
+          filterByFormula: 'NOT({completed})',
           fields: ['unit_id', 'maintenance_type', 'last_updated', 'engineer_email'],
-          maxRecords: 10, // Limit to 10 drafts max (should be plenty)
         })
-        .firstPage();
+        .all();
+      
+      // Filter in JavaScript to match unit_id (Link field returns array)
+      const matchingDrafts = allDrafts.filter(d => {
+        const linkedRecords = d.get('unit_id');
+        return linkedRecords && linkedRecords.includes(unitRecordId);
+      });
       
       console.log(`Matching drafts for ${unitRecordId}: ${matchingDrafts.length}`);
 
