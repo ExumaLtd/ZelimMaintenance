@@ -76,9 +76,9 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
 
-  const storageKey = useMemo(() => `draft_fault_reporting_${unit?.serial_number}`, [unit?.serial_number]);
+  const storageKey = useMemo(() => `draft_fault-reporting_${unit?.serial_number}`, [unit?.serial_number]);
 
-  // Auto-save draft to Airtable
+  // Auto-save draft to Airtable - ✅ Updated condition
   useAutoSave({
     unitId: unit?.record_id,
     maintenanceType: 'Fault report',
@@ -94,7 +94,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
       engPhone,
     }
   }, 
-    // Save if there's ANY content
+    // ✅ Save if there's ANY content, not just when email is valid
     Object.keys(answers).some(key => answers[key]?.trim()) || // Has any answers
     Object.keys(questionImages).length > 0 || // Has images
     selectedCompany || // Has company selected
@@ -207,26 +207,28 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
     }
   }, [storageKey]);
 
-  // Load draft from Airtable
+  // Load draft from Airtable - UPDATED TO NOT REQUIRE EMAIL
   useEffect(() => {
     const loadDraft = async () => {
+      // Check if we have draft query param from dashboard
       const urlParams = new URLSearchParams(window.location.search);
       const isDraft = urlParams.get('draft') === 'true';
-      const emailFromUrl = urlParams.get('email');
       
-      if (!isDraft || !emailFromUrl) return;
+      if (!isDraft) return; // Only run when coming from "Continue maintenance"
       
-      const emailToUse = decodeURIComponent(emailFromUrl);
-      
-      if (!unit?.record_id || !emailToUse || !emailToUse.includes('@')) return;
+      if (!unit?.record_id) return;
       
       try {
+        // Call API WITHOUT email - it will find the most recent draft for this unit+type
         const res = await fetch(
-          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Fault report&engineerEmail=${encodeURIComponent(emailToUse)}`
+          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Fault report`
         );
         const data = await res.json();
         
         if (data.draft) {
+          console.log('📦 Draft data received:', data.draft);
+          
+          // Restore form state from draft
           if (data.draft.answers) setAnswers(data.draft.answers);
           if (data.draft.questionImages) setQuestionImages(data.draft.questionImages);
           if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
@@ -236,7 +238,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
           if (data.draft.engEmail) setEngEmail(data.draft.engEmail);
           if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
           
-          console.log('✓ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
+          console.log('✅ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
         }
       } catch (error) {
         console.error('Failed to load draft:', error);
@@ -244,7 +246,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
     };
     
     loadDraft();
-  }, [unit?.record_id, template]);
+  }, [unit?.record_id]); // Run when unit loads
 
   // Get geolocation
   useEffect(() => {
@@ -512,7 +514,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
 
       (template?.questionsData || []).forEach((_, i) => {
         const questionKey = `q${i + 1}`;
-        const imageStorageKey = `images_fault_reporting_${unit?.serial_number}_${questionKey}`;
+        const imageStorageKey = `images_fault-reporting_${unit?.serial_number}_${questionKey}`;
         localStorage.removeItem(imageStorageKey);
       });
 
@@ -534,7 +536,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
   return (
     <div className="form-scope">
       <Head>
-        <title>{unit?.serial_number} | Fault Reporting</title>
+        <title>{unit?.serial_number} | Fault report Maintenance</title>
       </Head>
 
       <div className="swift-main-layout-wrapper">
@@ -548,7 +550,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
 
             <h1 className="checklist-hero-title">
               {unit?.serial_number}
-              <span className="break-point">fault reporting</span>
+              <span className="break-point">fault-reporting maintenance</span>
             </h1>
 
             {/* CARD 1: ADMIN FIELDS */}
@@ -702,18 +704,18 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
             {/* CARD 2: QUESTIONS */}
             <div className="checklist-form-card" style={{ marginTop: "20px" }}>
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-                <h3 className="checklist-section-title">Fault report</h3>
+                <h3 className="checklist-section-title">Fault report maintenance</h3>
                 <p className="checklist-section-subtitle">
-                  Report damage, defects, or wear on the SWIFT. Describe what is affected and when it was noticed, then attach clear photos where possible.
+                  All fault-reporting maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual.
                 </p>
                 
                 {(template?.questionsData || []).map((q, i) => (
                   <div key={i} style={{ marginTop: i === 0 ? "0" : "24px" }}>
-                    <label className="checklist-label unscheduled-question-label">
+                    <label className="checklist-label fault-reporting-question-label">
                       {q.title}
                     </label>
                     {q.instruction && (
-                      <p className="question-instruction unscheduled-question-instruction">{q.instruction}</p>
+                      <p className="question-instruction fault-reporting-question-instruction">{q.instruction}</p>
                     )}
                     
                     <div className="question-with-upload">
@@ -757,7 +759,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
                           questionKey={`q${i + 1}`}
                           questionText={q.title}
                           serialNumber={unit?.serial_number}
-                          maintenanceType="fault_reporting"
+                          maintenanceType="fault-reporting"
                           initialImages={questionImages[`q${i + 1}`] || []}
                           onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
                         />
@@ -796,7 +798,7 @@ export async function getServerSideProps({ params }) {
 
     const headers = { Authorization: `Bearer ${apiKey}` };
     const unitFormula = encodeURIComponent(`{public_token}='${token}'`);
-    const templateFormula = encodeURIComponent(`{template_name}='Fault report'`);
+    const templateFormula = encodeURIComponent(`{template_name}='Fault report maintenance'`);
 
     const urls = [
       `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${unitFormula}`,

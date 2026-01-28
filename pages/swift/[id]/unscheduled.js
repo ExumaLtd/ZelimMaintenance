@@ -207,26 +207,28 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
     }
   }, [storageKey]);
 
-  // Load draft from Airtable
+  // Load draft from Airtable - UPDATED TO NOT REQUIRE EMAIL
   useEffect(() => {
     const loadDraft = async () => {
+      // Check if we have draft query param from dashboard
       const urlParams = new URLSearchParams(window.location.search);
       const isDraft = urlParams.get('draft') === 'true';
-      const emailFromUrl = urlParams.get('email');
       
-      if (!isDraft || !emailFromUrl) return;
+      if (!isDraft) return; // Only run when coming from "Continue maintenance"
       
-      const emailToUse = decodeURIComponent(emailFromUrl);
-      
-      if (!unit?.record_id || !emailToUse || !emailToUse.includes('@')) return;
+      if (!unit?.record_id) return;
       
       try {
+        // Call API WITHOUT email - it will find the most recent draft for this unit+type
         const res = await fetch(
-          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Unscheduled&engineerEmail=${encodeURIComponent(emailToUse)}`
+          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Unscheduled`
         );
         const data = await res.json();
         
         if (data.draft) {
+          console.log('📦 Draft data received:', data.draft);
+          
+          // Restore form state from draft
           if (data.draft.answers) setAnswers(data.draft.answers);
           if (data.draft.questionImages) setQuestionImages(data.draft.questionImages);
           if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
@@ -236,7 +238,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
           if (data.draft.engEmail) setEngEmail(data.draft.engEmail);
           if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
           
-          console.log('✓ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
+          console.log('✅ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
         }
       } catch (error) {
         console.error('Failed to load draft:', error);
@@ -244,7 +246,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
     };
     
     loadDraft();
-  }, [unit?.record_id, template]);
+  }, [unit?.record_id]); // Run when unit loads
 
   // Get geolocation
   useEffect(() => {
@@ -332,7 +334,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       });
   }, []);
 
-// Save draft to localStorage
+  // Save draft to localStorage
   useEffect(() => {
     const draftData = {
       maintained_by: selectedCompany,
@@ -699,40 +701,40 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
               </div>
             </div>
 
-{/* CARD 2: QUESTIONS */}
-<div className="checklist-form-card" style={{ marginTop: "20px" }}>
-  <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-    <h3 className="checklist-section-title">Unscheduled maintenance</h3>
-    <p className="checklist-section-subtitle">
-      All unscheduled maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual.
-    </p>
-    
-    {(template?.questionsData || []).map((q, i) => (
-      <div key={i} style={{ marginTop: i === 0 ? "0" : "24px" }}>
-        <label className="checklist-label unscheduled-question-label">
-          {q.title}
-        </label>
-        {q.instruction && (
-          <p className="question-instruction unscheduled-question-instruction">{q.instruction}</p>
-        )}
-        
-        <div className="question-with-upload">
-          <div className="textarea-wrapper">
-            <textarea
-              name={`q${i + 1}`}
-              className="checklist-textarea"
-              value={answers[`q${i + 1}`] || ""}
-              onChange={(e) => {
-                setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-                autoGrow(e);
-                if (e.target.value.trim()) {
-                  e.target.classList.remove('has-error');
-                }
-              }}
-              onInput={autoGrow}
-              placeholder=""
-              required={q.required}
-            />
+            {/* CARD 2: QUESTIONS */}
+            <div className="checklist-form-card" style={{ marginTop: "20px" }}>
+              <form onSubmit={handleSubmit} autoComplete="off" noValidate>
+                <h3 className="checklist-section-title">Unscheduled maintenance</h3>
+                <p className="checklist-section-subtitle">
+                  All unscheduled maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual.
+                </p>
+                
+                {(template?.questionsData || []).map((q, i) => (
+                  <div key={i} style={{ marginTop: i === 0 ? "0" : "24px" }}>
+                    <label className="checklist-label unscheduled-question-label">
+                      {q.title}
+                    </label>
+                    {q.instruction && (
+                      <p className="question-instruction unscheduled-question-instruction">{q.instruction}</p>
+                    )}
+                    
+                    <div className="question-with-upload">
+                      <div className="textarea-wrapper">
+                        <textarea
+                          name={`q${i + 1}`}
+                          className="checklist-textarea"
+                          value={answers[`q${i + 1}`] || ""}
+                          onChange={(e) => {
+                            setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+                            autoGrow(e);
+                            if (e.target.value.trim()) {
+                              e.target.classList.remove('has-error');
+                            }
+                          }}
+                          onInput={autoGrow}
+                          placeholder=""
+                          required={q.required}
+                        />
 
                         <VoiceInput
                           onTranscript={(text) => {
@@ -836,11 +838,11 @@ export async function getServerSideProps({ params }) {
           record_id: unitRecord.id,
           public_token: unitRecord.fields.public_token || token,
         },
-template: {
-  id: templateData.records?.[0]?.id || "",
-  questionsData: Array.isArray(parsedJson) ? parsedJson : (parsedJson.questions || []),
-  questions: Array.isArray(parsedJson) ? parsedJson.map(q => q.title) : (parsedJson.questions?.map(q => q.title) || []),
-},
+        template: {
+          id: templateData.records?.[0]?.id || "",
+          questionsData: Array.isArray(parsedJson) ? parsedJson : (parsedJson.questions || []),
+          questions: Array.isArray(parsedJson) ? parsedJson.map(q => q.title) : (parsedJson.questions?.map(q => q.title) || []),
+        },
         allCompanies: Object.values(companyLookup).filter(Boolean),
         allEngineers:
           engineerData.records
