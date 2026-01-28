@@ -12,8 +12,8 @@ const nextConfig = {
   // Add images configuration for external domains
   images: {
     domains: [
-      'res.cloudinary.com', // For Cloudinary images
-      'api.airtable.com',   // If you're loading images from Airtable
+      'res.cloudinary.com',
+      'api.airtable.com',
     ],
     remotePatterns: [
       {
@@ -21,6 +21,57 @@ const nextConfig = {
         hostname: 'res.cloudinary.com',
       },
     ],
+  },
+
+  // Add custom headers for better caching
+  async headers() {
+    return [
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/favicon/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/client_logos/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/logo/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/images/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
   },
 
   async redirects() {
