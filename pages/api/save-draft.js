@@ -1,4 +1,4 @@
-// pages/api/save-draft.js - WORKING VERSION (with JavaScript filtering)
+// pages/api/save-draft.js - FIXED to allow empty email
 import Airtable from 'airtable';
 
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
@@ -20,12 +20,15 @@ export default async function handler(req, res) {
     console.log('maintenanceType:', maintenanceType);
     console.log('engineerEmail:', engineerEmail);
 
-    if (!unitId || !maintenanceType || !engineerEmail || !draftData) {
+    // FIXED: Only require unitId, maintenanceType, and draftData
+    if (!unitId || !maintenanceType || !draftData) {
       console.log('❌ Missing required fields');
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const isRealEmail = engineerEmail !== PLACEHOLDER_EMAIL && engineerEmail.includes('@');
+    // Use placeholder if no email provided
+    const emailToUse = engineerEmail || PLACEHOLDER_EMAIL;
+    const isRealEmail = emailToUse !== PLACEHOLDER_EMAIL && emailToUse.includes('@');
 
     // Get all active drafts for this maintenance type
     console.log('Checking for existing drafts...');
@@ -62,8 +65,8 @@ export default async function handler(req, res) {
       };
 
       if (isRealEmail) {
-        updateFields.engineer_email = engineerEmail;
-        console.log('🔄 Updating draft with real email:', engineerEmail);
+        updateFields.engineer_email = emailToUse;
+        console.log('🔄 Updating draft with real email:', emailToUse);
       }
 
       const result = await base('maintenance_drafts').update(draftId, updateFields);
@@ -82,7 +85,7 @@ export default async function handler(req, res) {
       const result = await base('maintenance_drafts').create({
         unit_id: [unitId],  // Array for linked record
         maintenance_type: maintenanceType,
-        engineer_email: engineerEmail,
+        engineer_email: emailToUse, // Use placeholder if no email
         draft_data: draftDataString,
         last_updated: new Date().toISOString(),
         completed: false,
