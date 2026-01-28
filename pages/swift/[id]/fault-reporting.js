@@ -81,7 +81,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
   // Auto-save draft to Airtable
   useAutoSave({
     unitId: unit?.record_id,
-    maintenanceType: 'FaultReporting',
+    maintenanceType: 'Fault reporting',
     engineerEmail: engEmail,
     draftData: {
       answers,
@@ -222,7 +222,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
       
       try {
         const res = await fetch(
-          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=FaultReporting&engineerEmail=${encodeURIComponent(emailToUse)}`
+          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Fault reporting&engineerEmail=${encodeURIComponent(emailToUse)}`
         );
         const data = await res.json();
         
@@ -448,7 +448,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
       maintained_by: selectedCompany,
       location_display: locationDisplay,
       location_country: locationCountry,
-      maintenance_type: "FaultReporting",
+      maintenance_type: "Fault reporting",
       date_of_maintenance: new Date().toISOString(),
       engineer_name: engName,
       engineer_email: engEmail,
@@ -481,7 +481,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           unitId: unit?.record_id,
-          maintenanceType: 'FaultReporting',
+          maintenanceType: 'Fault reporting',
           engineerEmail: engEmail,
         }),
       });
@@ -496,7 +496,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
           engineerName: engName,
           serialNumber: unit?.serial_number,
           answers: emailFriendlyAnswers,
-          reportType: "FaultReporting",
+          reportType: "Fault reporting",
           companyLogoUrl: companyLogoUrl,
           technicalData: {
             unit_record_id: unit?.record_id,
@@ -517,7 +517,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
       });
 
       localStorage.setItem("last_submitted_sn", unit?.serial_number);
-      localStorage.setItem("last_maintenance_type", "FaultReporting");
+      localStorage.setItem("last_maintenance_type", "Fault reporting");
       localStorage.removeItem(storageKey);
       router.push(`/portal/swift/fault-reporting-complete`);
     } catch (err) {

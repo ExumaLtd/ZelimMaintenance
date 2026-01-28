@@ -197,7 +197,7 @@ export default function SwiftUnitPage({
       title: "Report a fault",
       description: "Complete this form to report a fault with the SWIFT system. Your report will be sent to the maintenance facility for review and follow-up.",
       href: `/portal/swift/fault-reporting`,
-      type: "FaultReporting",
+      type: "Fault reporting",
     },
   ];
 
