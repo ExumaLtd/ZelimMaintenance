@@ -704,7 +704,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
                 <h3 className="checklist-section-title">Fault report</h3>
                 <p className="checklist-section-subtitle">
-                  Report damage, defects, or wear on the SWIFT. Describe what is affected and when it was noticed, then attach clear photos.
+                  Report damage, defects, or wear on the SWIFT. Describe what is affected and when it was noticed, then attach clear photos where possible.
                 </p>
                 
                 {(template?.questionsData || []).map((q, i) => (
