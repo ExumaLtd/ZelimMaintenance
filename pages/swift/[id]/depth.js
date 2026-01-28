@@ -8,6 +8,7 @@ import VoiceInput from '../../../components/voice-input';
 import DatePicker from '../../../components/date-picker';
 import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
 import { useAutoSave } from '../../../hooks/use-auto-save';
+import { fetchFormData } from '@/lib/data-fetching'; // ✅ NEW IMPORT
 
 const autoGrow = (e) => {
   const el = e.target || e;
@@ -83,7 +84,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
   const storageKey = useMemo(() => `draft_depth_${unit?.serial_number}`, [unit?.serial_number]);
 
-  // Auto-save draft to Airtable - ✅ Updated condition
+  // Auto-save draft to Airtable
   useAutoSave({
     unitId: unit?.record_id,
     maintenanceType: '30-month depth',
@@ -102,23 +103,21 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       engPhone,
     }
   }, 
-    // ✅ Save if there's ANY content, not just when email is valid
     (checklistData && checklistData.length > 0 && checklistData.some(item => 
       item.returned !== null || item.condition !== null
-    )) || // Has any checklist answers
-    Object.keys(answers).some(key => answers[key]?.trim()) || // Has any question answers
-    Object.keys(questionImages).length > 0 || // Has question images
-    Object.keys(checklistImages).length > 0 || // Has checklist images
-    selectedCompany || // Has company selected
-    locationDisplay?.trim() || // Has location
-    engName?.trim() || // Has engineer name
-    engEmail?.trim() || // Has email (even if invalid)
-    engPhone?.trim() // Has phone
+    )) ||
+    Object.keys(answers).some(key => answers[key]?.trim()) ||
+    Object.keys(questionImages).length > 0 ||
+    Object.keys(checklistImages).length > 0 ||
+    selectedCompany ||
+    locationDisplay?.trim() ||
+    engName?.trim() ||
+    engEmail?.trim() ||
+    engPhone?.trim()
   );
 
   // Initialize checklist data from template
   useEffect(() => {
-    // Don't initialize if coming from "Continue maintenance"
     const urlParams = new URLSearchParams(window.location.search);
     const isDraft = urlParams.get('draft') === 'true';
     if (isDraft) return;
@@ -394,7 +393,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   useEffect(() => {
     setToday(new Date().toISOString().split("T")[0]);
     
-    // Don't load localStorage if coming from "Continue maintenance"
     const urlParams = new URLSearchParams(window.location.search);
     const isDraft = urlParams.get('draft') === 'true';
     if (isDraft) return;
@@ -427,19 +425,17 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     }
   }, [storageKey]);
 
-  // Load draft from Airtable - UPDATED TO NOT REQUIRE EMAIL
+  // Load draft from Airtable
   useEffect(() => {
     const loadDraft = async () => {
-      // Check if we have draft query param from dashboard
       const urlParams = new URLSearchParams(window.location.search);
       const isDraft = urlParams.get('draft') === 'true';
       
-      if (!isDraft) return; // Only run when coming from "Continue maintenance"
+      if (!isDraft) return;
       
       if (!unit?.record_id) return;
       
       try {
-        // Call API WITHOUT email - it will find the most recent draft for this unit+type
         const res = await fetch(
           `/api/get-draft?unitId=${unit.record_id}&maintenanceType=30-month depth`
         );
@@ -448,11 +444,9 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
         if (data.draft) {
           console.log('📦 Draft data received:', data.draft);
           
-          // Restore form state from draft
           if (data.draft.checklistData) setChecklistData(data.draft.checklistData);
           if (data.draft.currentStep) {
             setCurrentStep(data.draft.currentStep);
-            // If loading step 2, add step 1 to history so back button works
             if (data.draft.currentStep === 2) {
               window.history.pushState({ step: 1 }, '', window.location.href);
               window.history.pushState({ step: 2 }, '', window.location.href);
@@ -476,14 +470,13 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     };
     
     loadDraft();
-  }, [unit?.record_id]); // Run when unit loads
+  }, [unit?.record_id]);
 
   // Get geolocation
   useEffect(() => {
     if (typeof window === "undefined" || !navigator.geolocation) return;
     if (locationDisplay && locationDisplay.trim() !== "") return;
 
-    // Skip geolocation if loading a draft
     const urlParams = new URLSearchParams(window.location.search);
     const isDraft = urlParams.get('draft') === 'true';
     if (isDraft) return;
@@ -546,7 +539,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     );
   }, []);
 
-  // Pre-request microphone permission on page load
+  // Pre-request microphone permission
   useEffect(() => {
     if (typeof window === "undefined" || !navigator.mediaDevices) return;
     
@@ -674,7 +667,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
       if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
 
-      // Mark draft as complete
       await fetch('/api/mark-draft-complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1089,79 +1081,44 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   );
 }
 
+// ============================================================================
+// ✅ UPDATED getServerSideProps - Uses shared data fetching
+// ============================================================================
+
 export async function getServerSideProps({ params }) {
   const token = params.id;
+  
   try {
-    const apiKey = process.env.AIRTABLE_API_KEY;
-    const baseId = process.env.AIRTABLE_BASE_ID;
-    const tableName = process.env.AIRTABLE_SWIFT_TABLE || "swift_units";
-
-    if (!apiKey || !baseId) throw new Error("Missing Airtable Env");
-
-    const headers = { Authorization: `Bearer ${apiKey}` };
-    const unitFormula = encodeURIComponent(`{public_token}='${token}'`);
-    const templateFormula = encodeURIComponent(`FIND('depth', LOWER({type})) > 0`);
-
-    const urls = [
-      `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${unitFormula}`,
-      `https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula=${templateFormula}`,
-      `https://api.airtable.com/v0/${baseId}/maintenance_companies`,
-      `https://api.airtable.com/v0/${baseId}/engineers`,
-    ];
-
-    const responses = await Promise.all(urls.map((url) => fetch(url, { headers })));
-    const results = await Promise.all(responses.map((res) => res.json()));
-    const [unitData, templateData, companyData, engineerData] = results;
-
-    if (!unitData.records || unitData.records.length === 0) return { notFound: true };
-
-    const unitRecord = unitData.records[0];
-    const companyLookup = {};
-    if (companyData.records) {
-      companyData.records.forEach((r) => {
-        if (r.fields.company_name) companyLookup[r.id] = r.fields.company_name;
-      });
+    const data = await fetchFormData(token, '30-month depth');
+    
+    if (data.notFound) {
+      return { redirect: { destination: '/', permanent: false } };
     }
-
-    let parsedJson = {};
+    
+    // Parse the template to extract equipment_checklist
+    let maintenanceChecklist = [];
     try {
-      if (templateData.records?.[0]?.fields.questions_json) {
-        parsedJson = JSON.parse(templateData.records[0].fields.questions_json);
+      const questionsJson = data.template?.questionsData;
+      if (questionsJson && !Array.isArray(questionsJson)) {
+        maintenanceChecklist = questionsJson.equipment_checklist || [];
       }
     } catch (e) {
-      console.error("Failed to parse questions_json:", e);
+      console.error('Error parsing equipment checklist:', e);
     }
-
+    
     return {
       props: {
-        unit: {
-          serial_number: unitRecord.fields.unit_name || unitRecord.fields.serial_number || "Unit",
-          company: unitRecord.fields.company || "",
-          record_id: unitRecord.id,
-          public_token: unitRecord.fields.public_token || token,
-        },
+        unit: data.unit,
         template: {
-          id: templateData.records?.[0]?.id || "",
-          type: templateData.records?.[0]?.fields?.type || "Depth",
-          name: templateData.records?.[0]?.fields?.name || templateData.records?.[0]?.fields?.type || "Depth",
-          maintenanceChecklist: Array.isArray(parsedJson) ? [] : (parsedJson.equipment_checklist || []),
-          questionsData: Array.isArray(parsedJson) ? parsedJson : (parsedJson.questions || []),
-          questions: Array.isArray(parsedJson) ? parsedJson.map(q => q.title) : (parsedJson.questions?.map(q => q.title) || []),
+          ...data.template,
+          maintenanceChecklist,
         },
-        allCompanies: Object.values(companyLookup).filter(Boolean),
-        allEngineers:
-          engineerData.records
-            ?.map((r) => ({
-              name: r.fields.engineer_name,
-              email: r.fields.email || "",
-              phone: r.fields.phone || "",
-              companyName:
-                r.fields["company"] && r.fields["company"][0] ? companyLookup[r.fields["company"][0]] : "",
-            }))
-            .filter((e) => e.name) || [],
+        allCompanies: data.companies,
+        allEngineers: data.engineers,
       },
     };
-  } catch (err) {
-    return { notFound: true };
+  } catch (error) {
+    console.error('Error loading depth form:', error);
+    return { redirect: { destination: '/', permanent: false } };
   }
 }
