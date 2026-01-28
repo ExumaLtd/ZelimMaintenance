@@ -20,39 +20,35 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing required fields (unitId or maintenanceType)' });
     }
 
-    // Find ANY active draft for this unit + maintenance type (ignore email - Option B)
+    // OPTIMIZED: Filter by unit_id AND maintenance_type in one query
     console.log('Finding drafts for unit + type (ignoring email)...');
     
-    const allDrafts = await base('maintenance_drafts')
+    const records = await base('maintenance_drafts')
       .select({
-        filterByFormula: `AND({maintenance_type} = '${maintenanceType}', NOT({completed}))`,
+        filterByFormula: `AND(
+          {maintenance_type} = '${maintenanceType}', 
+          NOT({completed}),
+          FIND('${unitId}', ARRAYJOIN({unit_id}, ','))
+        )`,
         fields: ['unit_id', 'maintenance_type', 'engineer_email', 'completed'],
+        sort: [{ field: 'last_updated', direction: 'desc' }],
+        maxRecords: 1, // Only need one draft to mark complete
       })
-      .all();
+      .firstPage();
 
-    console.log(`Total active drafts for ${maintenanceType}:`, allDrafts.length);
-
-    // Filter in JavaScript to match unit_id (Link field returns array)
-    const matchingDrafts = allDrafts.filter(record => {
-      const linkedRecords = record.get('unit_id');
-      const unitMatch = linkedRecords && linkedRecords.includes(unitId);
-      
-      if (unitMatch) {
-        console.log(`✓ Found matching draft:`, {
-          id: record.id,
-          unit_id: linkedRecords,
-          maintenance_type: record.get('maintenance_type'),
-          engineer_email: record.get('engineer_email')
-        });
-      }
-      
-      return unitMatch;
-    });
-
-    console.log('Matching drafts found:', matchingDrafts.length);
+    console.log('Matching drafts found:', records.length);
     
-    if (matchingDrafts.length > 0) {
-      const draft = matchingDrafts[0];
+    if (records.length > 0) {
+      const draft = records[0];
+      const linkedRecords = draft.get('unit_id');
+      
+      console.log(`✓ Found matching draft:`, {
+        id: draft.id,
+        unit_id: linkedRecords,
+        maintenance_type: draft.get('maintenance_type'),
+        engineer_email: draft.get('engineer_email')
+      });
+      
       console.log('✓ Marking draft as completed:', draft.id);
       
       await base('maintenance_drafts').update(draft.id, {

@@ -22,31 +22,28 @@ export default async function handler(req, res) {
     console.log('maintenanceType:', maintenanceType);
     console.log('engineerEmail (provided):', engineerEmail);
 
-    // Find ANY active draft for this unit + maintenance type (ignore email)
-    const allDrafts = await base('maintenance_drafts')
+    // OPTIMIZED: Filter by unit_id AND maintenance_type in one query
+    const records = await base('maintenance_drafts')
       .select({
-        filterByFormula: `AND({maintenance_type} = '${maintenanceType}', NOT({completed}))`,
+        filterByFormula: `AND(
+          {maintenance_type} = '${maintenanceType}', 
+          NOT({completed}),
+          FIND('${unitId}', ARRAYJOIN({unit_id}, ','))
+        )`,
         fields: ['unit_id', 'draft_data', 'last_updated', 'engineer_email'],
         sort: [{ field: 'last_updated', direction: 'desc' }],
+        maxRecords: 1, // CRITICAL: Only fetch the one we need!
       })
-      .all();
+      .firstPage(); // Use firstPage() instead of all()
 
-    console.log(`Total active drafts for ${maintenanceType}: ${allDrafts.length}`);
+    console.log('Matching drafts found:', records.length);
 
-    // Filter in JavaScript to match unit_id (Link field returns array)
-    const matchingDrafts = allDrafts.filter(d => {
-      const linkedRecords = d.get('unit_id');
-      return linkedRecords && linkedRecords.includes(unitId);
-    });
-
-    console.log('Matching drafts for this unit:', matchingDrafts.length);
-
-    if (matchingDrafts.length === 0) {
+    if (records.length === 0) {
       console.log('No draft found');
       return res.status(200).json({ draft: null });
     }
 
-    const draft = matchingDrafts[0]; // Most recent due to sort
+    const draft = records[0];
     const draftDataString = draft.get('draft_data');
     const lastUpdated = draft.get('last_updated');
     const draftEmail = draft.get('engineer_email');

@@ -27,23 +27,20 @@ export default async function handler(req, res) {
 
     const isRealEmail = engineerEmail !== PLACEHOLDER_EMAIL && engineerEmail.includes('@');
 
-    // Find ANY active draft for this unit + maintenance type (regardless of email)
+    // OPTIMIZED: Filter by unit_id AND maintenance_type in one query
     console.log('Checking for existing drafts for this unit...');
-    const allDrafts = await base('maintenance_drafts')
+    const existingDrafts = await base('maintenance_drafts')
       .select({
-        filterByFormula: `AND({maintenance_type} = '${maintenanceType}', NOT({completed}))`,
-        fields: ['unit_id', 'engineer_email'],
+        filterByFormula: `AND(
+          {maintenance_type} = '${maintenanceType}', 
+          NOT({completed}),
+          FIND('${unitId}', ARRAYJOIN({unit_id}, ','))
+        )`,
+        fields: ['unit_id', 'engineer_email', 'last_updated'],
         sort: [{ field: 'last_updated', direction: 'desc' }],
+        maxRecords: 1, // Only need the most recent draft
       })
-      .all();
-
-    console.log(`Total active drafts for ${maintenanceType}: ${allDrafts.length}`);
-
-    // Filter in JavaScript to match unit_id (Link field returns array)
-    const existingDrafts = allDrafts.filter(d => {
-      const linkedRecords = d.get('unit_id');
-      return linkedRecords && linkedRecords.includes(unitId);
-    });
+      .firstPage();
 
     console.log('Existing drafts for this unit:', existingDrafts.length);
 
@@ -51,8 +48,9 @@ export default async function handler(req, res) {
 
     if (existingDrafts.length > 0) {
       // Update the most recent draft for this unit
-      const draftId = existingDrafts[0].id;
-      const currentEmail = existingDrafts[0].get('engineer_email');
+      const draft = existingDrafts[0];
+      const draftId = draft.id;
+      const currentEmail = draft.get('engineer_email');
       console.log('Updating existing draft:', draftId);
       console.log('Current email:', currentEmail);
       

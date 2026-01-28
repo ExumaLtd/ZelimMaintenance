@@ -12,9 +12,9 @@ export default async function handler(req, res) {
     location_display,
     location_town,
     location_country,
-    answers, // Array: [{ question: "q1", answer: "text", images: ["url1", "url2"] }]
-    maintenance_checklist, // Stringified checklist data
-    serial_number, // For cloudinary_folder
+    answers,
+    maintenance_checklist,
+    serial_number,
     checklist_template_id 
   } = req.body;
 
@@ -22,20 +22,24 @@ export default async function handler(req, res) {
   const baseId = process.env.AIRTABLE_BASE_ID;
 
   try {
-    // 1. Get Company ID
-    const compRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies?filterByFormula={company_name}='${maintained_by}'`, {
-      headers: { Authorization: `Bearer ${apiKey}` }
-    });
-    const compData = await compRes.json();
+    // OPTIMIZATION 1: Run company and engineer lookups IN PARALLEL
+    const [compRes, engRes] = await Promise.all([
+      fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies?filterByFormula={company_name}='${maintained_by}'&maxRecords=1`, {
+        headers: { Authorization: `Bearer ${apiKey}` }
+      }),
+      fetch(`https://api.airtable.com/v0/${baseId}/engineers?filterByFormula=${encodeURIComponent(`{engineer_name}="${engineer_name}"`)}&maxRecords=1`, {
+        headers: { Authorization: `Bearer ${apiKey}` }
+      })
+    ]);
+
+    const [compData, engData] = await Promise.all([
+      compRes.json(),
+      engRes.json()
+    ]);
+
     const companyRecordId = compData.records?.[0]?.id;
 
-    // 2. Handle Engineer
-    const engFormula = `{engineer_name}="${engineer_name}"`;
-    const engRes = await fetch(`https://api.airtable.com/v0/${baseId}/engineers?filterByFormula=${encodeURIComponent(engFormula)}`, {
-      headers: { Authorization: `Bearer ${apiKey}` }
-    });
-    const engData = await engRes.json();
-    
+    // OPTIMIZATION 2: Only create/update engineer if needed
     let engineerRecordId;
     const engineerFields = {
       "engineer_name": engineer_name, 
@@ -46,11 +50,21 @@ export default async function handler(req, res) {
 
     if (engData.records?.length > 0) {
       engineerRecordId = engData.records[0].id;
-      await fetch(`https://api.airtable.com/v0/${baseId}/engineers/${engineerRecordId}`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fields: engineerFields })
-      });
+      const existing = engData.records[0].fields;
+      
+      // Only update if data actually changed
+      const needsUpdate = 
+        existing.email !== engineer_email ||
+        existing.phone !== engineer_phone ||
+        JSON.stringify(existing.company || []) !== JSON.stringify(engineerFields.company);
+      
+      if (needsUpdate) {
+        await fetch(`https://api.airtable.com/v0/${baseId}/engineers/${engineerRecordId}`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fields: engineerFields })
+        });
+      }
     } else {
       const newEng = await fetch(`https://api.airtable.com/v0/${baseId}/engineers`, {
         method: 'POST',
@@ -61,10 +75,9 @@ export default async function handler(req, res) {
       engineerRecordId = newEngData.id;
     }
 
-    // Prepare the trimmed date (YYYY-MM-DD) for standard Date fields
+    // Prepare shared data
     const trimmedDate = date_of_maintenance.split('T')[0];
-
-    // Generate Cloudinary folder path for archival reference
+    
     const today = new Date();
     const dd = String(today.getDate()).padStart(2, '0');
     const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -72,7 +85,6 @@ export default async function handler(req, res) {
     const dateStr = `${dd}-${mm}-${yyyy}`;
     const cloudinaryFolder = `zelimmaintenance/SWIFT/${maintenance_type.toLowerCase()}/${serial_number}/${dateStr}`;
 
-    // Format answers with images into structured JSON
     const formattedAnswers = answers.reduce((acc, item) => {
       acc[item.question] = {
         text: item.answer,
@@ -81,7 +93,7 @@ export default async function handler(req, res) {
       return acc;
     }, {});
 
-    // 3. SUBMIT TO MAINTENANCE_LOGS (Historical Archive)
+    // OPTIMIZATION 3: Submit to BOTH tables in PARALLEL
     const logFields = {
       "unit_link": [unit_record_id],
       "date_of_maintenance": trimmedDate,
@@ -89,22 +101,14 @@ export default async function handler(req, res) {
       "engineer_name": engineer_name,
       "engineer_email": engineer_email,
       "location_display": location_display || "",
-      "checklist_json": JSON.stringify(formattedAnswers), // Structured JSON with images
-      "cloudinary_folder": cloudinaryFolder // Archive folder path
+      "checklist_json": JSON.stringify(formattedAnswers),
+      "cloudinary_folder": cloudinaryFolder
     };
 
-    // Add maintenance_checklist if it exists
     if (maintenance_checklist) {
       logFields["maintenance_checklist"] = maintenance_checklist;
     }
 
-    const logRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_logs`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fields: logFields })
-    });
-
-    // 4. Submit to MAINTENANCE_CHECKS (Current Status)
     const finalTown = location_town || location_display || "";
     const checkFields = {
       "unit": [unit_record_id],
@@ -116,24 +120,33 @@ export default async function handler(req, res) {
       "location_town": finalTown,
       "location_country": location_country || "",
       "checklist_template": [checklist_template_id],
-      "checklist_json": JSON.stringify(formattedAnswers), // Structured JSON with images
-      "cloudinary_folder": cloudinaryFolder // Archive folder path
+      "checklist_json": JSON.stringify(formattedAnswers),
+      "cloudinary_folder": cloudinaryFolder
     };
 
-    // Add maintenance_checklist if it exists
     if (maintenance_checklist) {
       checkFields["maintenance_checklist"] = maintenance_checklist;
     }
 
-    const checkRes = await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_checks`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fields: checkFields })
-    });
+    // Submit to both tables simultaneously
+    const [logRes, checkRes] = await Promise.all([
+      fetch(`https://api.airtable.com/v0/${baseId}/maintenance_logs`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: logFields })
+      }),
+      fetch(`https://api.airtable.com/v0/${baseId}/maintenance_checks`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: checkFields })
+      })
+    ]);
 
     if (!checkRes.ok || !logRes.ok) {
-      const logText = await logRes.text();
-      const checkText = await checkRes.text();
+      const [logText, checkText] = await Promise.all([
+        logRes.text(),
+        checkRes.text()
+      ]);
       console.error("Log Error Details:", logText);
       console.error("Check Error Details:", checkText);
       throw new Error(`Airtable Sync Error`);
