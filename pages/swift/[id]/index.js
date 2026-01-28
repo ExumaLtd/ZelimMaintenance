@@ -215,7 +215,9 @@ export default function SwiftUnitPage({
     ? maintenanceTypesWithDrafts.filter(type => 
         type.title.includes("Monthly") || type.title.includes("Unscheduled") || type.title.includes("Report a fault")
       )
-    : maintenanceTypesWithDrafts;
+    : maintenanceTypesWithDrafts.filter(type => 
+        !type.title.includes("Report a fault")
+      );
 
   const downloads = [
     {
