@@ -19,6 +19,9 @@ export const MaintenanceReportEmail = ({
   engineerName = 'Engineer', 
   serialNumber = 'N/A',
   reportType = 'Maintenance',
+  maintenanceCompany = 'N/A',
+  companyName = 'N/A',
+  location = 'N/A',
   answers = {},
   equipmentChecklist = null, // For depth maintenance (returned/condition format)
   maintenanceChecklist = null, // For monthly maintenance (grouped yes/no questions)
@@ -100,16 +103,34 @@ export const MaintenanceReportEmail = ({
               central system.
             </Text>
 
-            {/* Status Card - Visual Summary */}
+            {/* Status Card - All Info */}
             <Section style={statusCard}>
-              <Row>
-                <Column style={{ paddingRight: '20px' }}>
+              <Row style={{ marginBottom: '20px' }}>
+                <Column style={{ paddingRight: '12px', width: '33.33%' }}>
                   <Text style={label}>Unit Serial</Text>
                   <Text style={value}>{serialNumber}</Text>
                 </Column>
-                <Column style={{ paddingLeft: '20px' }}>
+                <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%' }}>
                   <Text style={label}>Completion Date</Text>
                   <Text style={value}>{today}</Text>
+                </Column>
+                <Column style={{ paddingLeft: '12px', width: '33.33%' }}>
+                  <Text style={label}>Location</Text>
+                  <Text style={value}>{location}</Text>
+                </Column>
+              </Row>
+              <Row>
+                <Column style={{ paddingRight: '12px', width: '33.33%' }}>
+                  <Text style={label}>Company Name</Text>
+                  <Text style={value}>{companyName}</Text>
+                </Column>
+                <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%' }}>
+                  <Text style={label}>Maintenance Company</Text>
+                  <Text style={value}>{maintenanceCompany}</Text>
+                </Column>
+                <Column style={{ paddingLeft: '12px', width: '33.33%' }}>
+                  <Text style={label}>Engineer Name</Text>
+                  <Text style={value}>{engineerName}</Text>
                 </Column>
               </Row>
             </Section>

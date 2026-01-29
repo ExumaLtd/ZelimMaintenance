@@ -104,37 +104,34 @@ export const TechnicalAlertEmail = ({
               <strong>{serialNumber}</strong>.
             </Text>
 
+            {/* Status Card - All Info in One Card */}
             <Section style={statusCard}>
-              <Row>
-                <Column style={{ paddingRight: '20px' }}>
-                  <Text style={label}>Maintenance Company</Text>
-                  <Text style={value}>{technicalData?.maintenance_company || 'N/A'}</Text>
+              <Row style={{ marginBottom: '20px' }}>
+                <Column style={{ paddingRight: '12px', width: '33.33%' }}>
+                  <Text style={label}>Unit Serial</Text>
+                  <Text style={value}>{serialNumber}</Text>
                 </Column>
-                <Column style={{ paddingLeft: '20px' }}>
-                  <Text style={label}>Engineer Name</Text>
-                  <Text style={value}>{technicalData?.engineer_name || 'N/A'}</Text>
-                </Column>
-              </Row>
-            </Section>
-
-            <Section style={statusCard}>
-              <Row>
-                <Column style={{ paddingRight: '20px' }}>
-                  <Text style={label}>Location</Text>
-                  <Text style={value}>{technicalData?.location_display || 'N/A'}</Text>
-                </Column>
-                <Column style={{ paddingLeft: '20px' }}>
+                <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%' }}>
                   <Text style={label}>Date</Text>
                   <Text style={value}>{formattedDate}</Text>
                 </Column>
+                <Column style={{ paddingLeft: '12px', width: '33.33%' }}>
+                  <Text style={label}>Location</Text>
+                  <Text style={value}>{technicalData?.location_display || 'N/A'}</Text>
+                </Column>
               </Row>
-            </Section>
-
-            <Section style={statusCard}>
               <Row>
-                <Column>
+                <Column style={{ paddingRight: '12px', width: '33.33%' }}>
                   <Text style={label}>Time</Text>
                   <Text style={value}>{formattedTime}</Text>
+                </Column>
+                <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%' }}>
+                  <Text style={label}>Maintenance Company</Text>
+                  <Text style={value}>{technicalData?.maintenance_company || 'N/A'}</Text>
+                </Column>
+                <Column style={{ paddingLeft: '12px', width: '33.33%' }}>
+                  <Text style={label}>Engineer Name</Text>
+                  <Text style={value}>{technicalData?.engineer_name || 'N/A'}</Text>
                 </Column>
               </Row>
             </Section>
@@ -351,20 +348,21 @@ const contentPadding = {
 
 const h1 = {
   color: '#152a31',
-  fontSize: '36px',
+  fontSize: '32px',
   fontWeight: '600',
   margin: '0',
-  textAlign: 'left',
-  letterSpacing: '-1px',
+  textAlign: 'center',
+  letterSpacing: '1px',
 };
 
 const subTitle = {
   fontSize: '13px',
+  lineHeight: '24px',
   fontWeight: '600',
   textTransform: 'uppercase',
   textAlign: 'left',
-  letterSpacing: '1.5px',
-  margin: '4px 0 40px 0',
+  letterSpacing: '1px',
+  margin: '4px 0 36px 0',
 };
 
 const text = {
@@ -372,7 +370,7 @@ const text = {
   fontSize: '15px',
   lineHeight: '24px',
   margin: '12px 0',
-  textAlign: 'left',
+  textAlign: 'center',
 };
 
 const statusCard = {
@@ -422,7 +420,7 @@ const h2 = {
   fontSize: '18px',
   fontWeight: '600',
   margin: '40px 0 24px 0',
-  textAlign: 'left',
+  textAlign: 'center',
 };
 
 const checklistItemBlock = {
@@ -532,9 +530,9 @@ const imageThumbnail = {
 };
 
 const footerContactText = {
-  fontSize: '14px',
+  fontSize: '13px',
   color: '#152a31',
-  textAlign: 'center',
+  textAlign: 'left',
   margin: '40px 0 0 0',
 };
 

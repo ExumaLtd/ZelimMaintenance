@@ -1,9 +1,7 @@
 import {
   Body,
-  Button,
   Container,
   Head,
-  Hr,
   Html,
   Img,
   Preview,
@@ -12,91 +10,40 @@ import {
   Heading,
   Row,
   Column,
+  Link,
 } from '@react-email/components';
 import * as React from 'react';
 
-export const TechnicalAlertEmail = ({ 
+export const FaultReportEmail = ({ 
+  engineerName = 'Engineer', 
   serialNumber = 'N/A',
-  displayType = 'Maintenance',
-  technicalData = {},
+  reportType = 'Fault Report',
+  maintenanceCompany = 'N/A',
+  companyName = 'N/A',
+  location = 'N/A',
   answers = {},
-  equipmentChecklist = null, // For depth maintenance (returned/condition format)
-  maintenanceChecklist = null, // For monthly maintenance (grouped yes/no questions)
-  brandColor = '#172F36',
+  brandColor = '#152a31',
   logoUrl = '/logo/zelim-logo-dark.png',
   previewUrl = null
 }) => {
-  // Format date and time
-  const submissionDate = new Date();
-  const formattedDate = submissionDate.toLocaleDateString('en-GB', {
+  const today = new Date().toLocaleDateString('en-GB', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   });
-  const formattedTime = submissionDate.toLocaleTimeString('en-GB', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-
-  // Parse equipment checklist if it's a string (depth maintenance)
-  let parsedEquipmentChecklist = null;
-  if (equipmentChecklist) {
-    try {
-      parsedEquipmentChecklist = typeof equipmentChecklist === 'string' 
-        ? JSON.parse(equipmentChecklist) 
-        : equipmentChecklist;
-    } catch (e) {
-      console.error('Error parsing equipment checklist:', e);
-    }
-  }
-
-  // Parse maintenance checklist if it's a string (monthly maintenance)
-  let parsedMaintenanceChecklist = null;
-  if (maintenanceChecklist) {
-    try {
-      parsedMaintenanceChecklist = typeof maintenanceChecklist === 'string' 
-        ? JSON.parse(maintenanceChecklist) 
-        : maintenanceChecklist;
-    } catch (e) {
-      console.error('Error parsing maintenance checklist:', e);
-    }
-  }
-
-  // Airtable configuration
-  const airtableBaseId = 'appOQXbopTwn0SdnL'; 
-  const airtableTableId = 'tblo0gVrtd422UQgd';
-  const airtableUrl = technicalData?.unit_record_id 
-    ? `https://airtable.com/${airtableBaseId}/${airtableTableId}/${technicalData.unit_record_id}`
-    : '#';
 
   // Ensure logo URL is absolute for email clients
   const absoluteLogoUrl = logoUrl?.startsWith('http') 
     ? logoUrl 
     : `https://maintenance.exuma.co.uk${logoUrl?.startsWith('/') ? logoUrl : `/${logoUrl}`}`;
 
-  // Determine section heading based on maintenance type
-  const getSectionHeading = () => {
-    if (displayType === 'Monthly') return 'Additional Comments';
-    if (displayType.toLowerCase().includes('fault')) return 'Fault Report';
-    return `${displayType} Details`;
-  };
-
   return (
     <Html>
       <Head />
-      <Preview>{serialNumber} {displayType} Submitted</Preview>
+      <Preview>Fault Report 🚨 {serialNumber}</Preview>
       <Body style={main}>
-        {/* View in browser link */}
-        {previewUrl && (
-          <Container style={previewLinkContainer}>
-            <Text style={previewLinkText}>
-              Having trouble viewing this email?{' '}
-              <a href={previewUrl} style={previewLink}>View in browser</a>
-            </Text>
-          </Container>
-        )}
         <Container style={container}>
-          {/* Header with Brand Color Accent */}
+          {/* Header */}
           <Section style={{ ...headerSection, borderTop: `6px solid ${brandColor}` }}>
             {logoUrl && (
               <Img
@@ -112,178 +59,68 @@ export const TechnicalAlertEmail = ({
           <Section style={contentPadding}>
             <Heading style={h1}>{serialNumber}</Heading>
             <Text style={{ ...subTitle, color: brandColor }}>
-              {displayType} Submitted
+              Fault Report Confirmation
             </Text>
             
             <Text style={text}>
-              A new <strong>{displayType}</strong> has been submitted for unit{' '}
-              <strong>{serialNumber}</strong>.
+              Hello <strong>{engineerName}</strong>,
+            </Text>
+            <Text style={text}>
+              This is your official fault report receipt for the issue reported on{' '}
+              <strong>{today}</strong>. A copy of this report has been logged in our 
+              central system.
             </Text>
 
-            <Hr style={hr} />
-
-            {/* Status Card - Submission Details */}
+            {/* Status Card - All Info */}
             <Section style={statusCard}>
-              <Row>
-                <Column style={{ paddingRight: '20px' }}>
-                  <Text style={label}>Maintenance Company</Text>
-                  <Text style={value}>{technicalData?.maintenance_company || 'N/A'}</Text>
+              <Row style={{ marginBottom: '20px' }}>
+                <Column style={{ paddingRight: '12px', width: '33.33%' }}>
+                  <Text style={label}>Unit Serial</Text>
+                  <Text style={value}>{serialNumber}</Text>
                 </Column>
-                <Column style={{ borderLeft: '1px solid #E2E8F0', paddingLeft: '20px' }}>
-                  <Text style={label}>Engineer Name</Text>
-                  <Text style={value}>{technicalData?.engineer_name || 'N/A'}</Text>
+                <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%' }}>
+                  <Text style={label}>Report Date</Text>
+                  <Text style={value}>{today}</Text>
                 </Column>
-              </Row>
-            </Section>
-
-            <Section style={statusCard}>
-              <Row>
-                <Column style={{ paddingRight: '20px' }}>
+                <Column style={{ paddingLeft: '12px', width: '33.33%' }}>
                   <Text style={label}>Location</Text>
-                  <Text style={value}>{technicalData?.location_display || 'N/A'}</Text>
-                </Column>
-                <Column style={{ borderLeft: '1px solid #E2E8F0', paddingLeft: '20px' }}>
-                  <Text style={label}>Date</Text>
-                  <Text style={value}>{formattedDate}</Text>
+                  <Text style={value}>{location}</Text>
                 </Column>
               </Row>
-            </Section>
-
-            <Section style={statusCard}>
               <Row>
-                <Column>
-                  <Text style={label}>Time</Text>
-                  <Text style={value}>{formattedTime}</Text>
+                <Column style={{ paddingRight: '12px', width: '33.33%' }}>
+                  <Text style={label}>Company Name</Text>
+                  <Text style={value}>{companyName}</Text>
+                </Column>
+                <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%' }}>
+                  <Text style={label}>Maintenance Company</Text>
+                  <Text style={value}>{maintenanceCompany}</Text>
+                </Column>
+                <Column style={{ paddingLeft: '12px', width: '33.33%' }}>
+                  <Text style={label}>Engineer Name</Text>
+                  <Text style={value}>{engineerName}</Text>
                 </Column>
               </Row>
             </Section>
 
-            {/* CTA Button */}
-            {technicalData?.unit_record_id && (
-              <>
-                <Hr style={hr} />
-                <Section style={buttonContainer}>
-                  <Button 
-                    pX={28} 
-                    pY={14} 
-                    style={{ ...button, backgroundColor: brandColor }} 
-                    href={airtableUrl}
-                  >
-                    View Record in Airtable
-                  </Button>
-                </Section>
-              </>
-            )}
-
-            {/* Equipment Checklist Section (Depth Maintenance) */}
-            {parsedEquipmentChecklist && parsedEquipmentChecklist.length > 0 && (
-              <>
-                <Hr style={hr} />
-                <Heading as="h2" style={h2}>Pre-disassembly Inspection</Heading>
-                
-                <Section>
-                  {parsedEquipmentChecklist.map((item, i) => (
-                    <div key={i} style={checklistItemBlock}>
-                      <Text style={checklistItemName}>{item.name}</Text>
-                      <Row>
-                        <Column style={{ paddingRight: '10px' }}>
-                          <Text style={checklistLabel}>Returned:</Text>
-                          <Text style={checklistValue}>
-                            {item.returned === true ? '✓ Yes' : item.returned === false ? '✗ No' : 'Not answered'}
-                          </Text>
-                        </Column>
-                        {item.returned === true && (
-                          <Column style={{ paddingLeft: '10px' }}>
-                            <Text style={checklistLabel}>Condition:</Text>
-                            <Text style={{
-                              ...checklistValue,
-                              color: item.condition === 'poor' ? '#EF4444' : item.condition === 'fair' ? '#F59E0B' : '#10B981'
-                            }}>
-                              {item.condition ? item.condition.charAt(0).toUpperCase() + item.condition.slice(1) : 'Not answered'}
-                            </Text>
-                          </Column>
-                        )}
-                      </Row>
-                      
-                      {/* Display images if item has poor condition */}
-                      {item.images && item.images.length > 0 && (
-                        <Section style={imageGallery}>
-                          {item.images.map((imageUrl, imgIndex) => (
-                            <a 
-                              key={imgIndex} 
-                              href={imageUrl}
-                              style={imageLink}
-                            >
-                              <Img
-                                src={imageUrl}
-                                alt={`${item.name} - Image ${imgIndex + 1}`}
-                                width="150"
-                                height="150"
-                                style={imageThumbnail}
-                              />
-                            </a>
-                          ))}
-                        </Section>
-                      )}
-                    </div>
-                  ))}
-                </Section>
-              </>
-            )}
-
-            {/* Maintenance Checklist Section (Monthly Maintenance) */}
-            {parsedMaintenanceChecklist && parsedMaintenanceChecklist.length > 0 && (
-              <>
-                <Hr style={hr} />
-                <Heading as="h2" style={h2}>Monthly Inspection Checklist</Heading>
-                
-                <Section>
-                  {parsedMaintenanceChecklist.map((group, groupIndex) => (
-                    <div key={groupIndex} style={monthlyGroupBlock}>
-                      <Text style={monthlyGroupTitle}>{group.title}</Text>
-                      
-                      {group.questions && group.questions.map((question, qIndex) => (
-                        <Row key={qIndex} style={monthlyQuestionRow}>
-                          <Column style={{ width: '70%' }}>
-                            <Text style={monthlyQuestionText}>{question.text}</Text>
-                          </Column>
-                          <Column style={{ width: '30%', textAlign: 'right' }}>
-                            <Text style={{
-                              ...monthlyAnswerText,
-                              color: question.answer === 'Yes' ? '#10B981' : question.answer === 'No' ? '#EF4444' : '#94A3B8'
-                            }}>
-                              {question.answer === 'Yes' ? '✓ Yes' : question.answer === 'No' ? '✗ No' : 'Not answered'}
-                            </Text>
-                          </Column>
-                        </Row>
-                      ))}
-                    </div>
-                  ))}
-                </Section>
-              </>
-            )}
-
-            {/* Maintenance Questions Section (Annual, Unscheduled, Fault Report, or Further Comments) */}
+            {/* Fault Report Details */}
             {Object.keys(answers).length > 0 && (
               <>
-                <Hr style={hr} />
-                <Heading as="h2" style={h2}>
-                  {getSectionHeading()}
-                </Heading>
+                <Heading as="h2" style={h2}>Fault Report Details</Heading>
                 
                 <Section>
                   {Object.entries(answers).map(([question, answerData], i) => {
                     // Handle both old format (string) and new format (object with text/images)
                     const isObject = typeof answerData === 'object' && answerData !== null;
-                    const answerTextValue = isObject ? answerData.text : answerData;
+                    const answerText = isObject ? answerData.text : answerData;
                     const images = isObject ? (answerData.images || []) : [];
 
                     return (
                       <div key={i} style={answerBlock}>
                         <Text style={questionText}>{question}</Text>
-                        <Text style={answerText}>
-                          {answerTextValue !== null && answerTextValue !== undefined && answerTextValue !== '' 
-                            ? String(answerTextValue) 
+                        <Text style={answerTextStyle}>
+                          {answerText !== null && answerText !== undefined && answerText !== '' 
+                            ? String(answerText) 
                             : 'Not answered'}
                         </Text>
                         
@@ -291,7 +128,7 @@ export const TechnicalAlertEmail = ({
                         {images.length > 0 && (
                           <Section style={imageGallery}>
                             {images.map((imageUrl, imgIndex) => (
-                              <a 
+                              <Link 
                                 key={imgIndex} 
                                 href={imageUrl}
                                 style={imageLink}
@@ -299,11 +136,11 @@ export const TechnicalAlertEmail = ({
                                 <Img
                                   src={imageUrl}
                                   alt={`${question} - Image ${imgIndex + 1}`}
-                                  width="150"
-                                  height="150"
+                                  width="100%"
+                                  height="134"
                                   style={imageThumbnail}
                                 />
-                              </a>
+                              </Link>
                             ))}
                           </Section>
                         )}
@@ -314,7 +151,12 @@ export const TechnicalAlertEmail = ({
               </>
             )}
 
-            <Hr style={hr} />
+            <Text style={footerContactText}>
+              Need technical assistance? Contact{' '}
+              <a href="mailto:maintenance@zelim.com" style={emailLink}>
+                maintenance@zelim.com
+              </a>
+            </Text>
           </Section>
 
           <Section style={footerSection}>
@@ -337,43 +179,25 @@ export const TechnicalAlertEmail = ({
   );
 };
 
-export default TechnicalAlertEmail;
+export default FaultReportEmail;
 
-// --- Styles: Professional Maritime Aesthetic (matching maintenance-report) ---
-const previewLinkContainer = {
-  maxWidth: '600px',
-  margin: '0 auto 10px auto',
-  textAlign: 'center',
-};
-
-const previewLinkText = {
-  fontSize: '12px',
-  color: '#64748B',
-  margin: '0',
-};
-
-const previewLink = {
-  color: '#172F36',
-  textDecoration: 'underline',
-};
-
+// --- Styles: Professional Maritime Aesthetic ---
 const main = {
-  backgroundColor: '#F8FAFC',
-  padding: '40px 0',
+  backgroundColor: '#eaeeed',
+  padding: '0',
+  margin: '0',
   fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
 };
 
 const container = {
   backgroundColor: '#ffffff',
   margin: '0 auto',
-  maxWidth: '600px',
-  borderRadius: '12px',
-  border: '1px solid #E2E8F0',
+  maxWidth: '620px',
   overflow: 'hidden',
 };
 
 const headerSection = {
-  padding: '40px 0 20px 0',
+  padding: '36px 0 30px 0',
   textAlign: 'center',
 };
 
@@ -388,163 +212,88 @@ const logo = {
 };
 
 const contentPadding = {
-  padding: '0 50px 50px 50px',
+  padding: '0 30px 50px 30px',
+  '@media only screen and (max-width: 600px)': {
+    padding: '0 20px 40px 20px',
+  },
 };
 
 const h1 = {
-  color: '#0F172A',
-  fontSize: '36px',
-  fontWeight: '800',
+  color: '#152a31',
+  fontSize: '32px',
+  fontWeight: '600',
   margin: '0',
   textAlign: 'center',
-  letterSpacing: '-1px',
+  letterSpacing: '1px',
 };
 
 const subTitle = {
   fontSize: '13px',
-  fontWeight: '700',
+  lineHeight: '24px',
+  fontWeight: '600',
   textTransform: 'uppercase',
-  textAlign: 'center',
-  letterSpacing: '1.5px',
-  margin: '4px 0 40px 0',
+  textAlign: 'left',
+  letterSpacing: '1px',
+  margin: '4px 0 36px 0',
 };
 
 const text = {
-  color: '#475569',
+  color: '#152a31',
   fontSize: '15px',
   lineHeight: '24px',
   margin: '12px 0',
+  textAlign: 'center',
 };
 
 const statusCard = {
-  backgroundColor: '#F1F5F9',
+  backgroundColor: '#f3f6f5',
   borderRadius: '8px',
-  padding: '24px',
-  margin: '16px 0',
+  padding: '20px 24px',
+  margin: '32px 0',
 };
 
 const label = {
   fontSize: '11px',
-  color: '#64748B',
+  lineHeight: '16px',
+  color: '#152a31',
   textTransform: 'uppercase',
-  fontWeight: '700',
+  fontWeight: '600',
   margin: '0',
   letterSpacing: '0.5px',
+  textAlign: 'left',
 };
 
 const value = {
   fontSize: '16px',
-  color: '#0F172A',
+  color: '#152a31',
   fontWeight: '600',
   margin: '4px 0 0 0',
-};
-
-const buttonContainer = {
-  textAlign: 'center',
-  margin: '32px 0',
-};
-
-const button = {
-  borderRadius: '8px',
-  color: '#ffffff',
-  fontSize: '16px',
-  fontWeight: '600',
-  textDecoration: 'none',
-  textAlign: 'center',
-  display: 'inline-block',
-  padding: '14px 28px',
+  textAlign: 'left',
 };
 
 const h2 = {
-  color: '#0F172A',
+  color: '#152a31',
   fontSize: '18px',
-  fontWeight: '700',
+  fontWeight: '600',
   margin: '40px 0 24px 0',
-};
-
-const checklistItemBlock = {
-  marginBottom: '24px',
-  padding: '16px',
-  backgroundColor: '#F8FAFC',
-  borderRadius: '8px',
-  border: '1px solid #E2E8F0',
-};
-
-const checklistItemName = {
-  fontSize: '15px',
-  fontWeight: '700',
-  color: '#0F172A',
-  margin: '0 0 12px 0',
-};
-
-const checklistLabel = {
-  fontSize: '11px',
-  color: '#64748B',
-  textTransform: 'uppercase',
-  fontWeight: '700',
-  margin: '0',
-  letterSpacing: '0.5px',
-};
-
-const checklistValue = {
-  fontSize: '14px',
-  color: '#0F172A',
-  fontWeight: '600',
-  margin: '4px 0 0 0',
-};
-
-// Monthly maintenance specific styles
-const monthlyGroupBlock = {
-  marginBottom: '24px',
-  padding: '16px',
-  backgroundColor: '#F8FAFC',
-  borderRadius: '8px',
-  border: '1px solid #E2E8F0',
-};
-
-const monthlyGroupTitle = {
-  fontSize: '15px',
-  fontWeight: '700',
-  color: '#0F172A',
-  margin: '0 0 12px 0',
-  paddingBottom: '8px',
-  borderBottom: '2px solid #E2E8F0',
-};
-
-const monthlyQuestionRow = {
-  padding: '8px 0',
-  borderBottom: '1px solid #F1F5F9',
-};
-
-const monthlyQuestionText = {
-  fontSize: '14px',
-  color: '#475569',
-  margin: '0',
-  fontWeight: '500',
-};
-
-const monthlyAnswerText = {
-  fontSize: '14px',
-  fontWeight: '600',
-  margin: '0',
+  textAlign: 'center',
 };
 
 const answerBlock = {
   marginBottom: '20px',
-  paddingLeft: '12px',
-  borderLeft: '2px solid #E2E8F0',
+  paddingLeft: '0',
 };
 
 const questionText = {
   fontSize: '14px',
-  fontWeight: '700',
-  color: '#1E293B',
+  fontWeight: '600',
+  color: '#152a31',
   margin: '0 0 4px 0',
 };
 
-const answerText = {
+const answerTextStyle = {
   fontSize: '14px',
-  color: '#475569',
+  color: '#152a31',
   margin: '0',
   lineHeight: '1.5',
   whiteSpace: 'pre-wrap',
@@ -559,21 +308,30 @@ const imageGallery = {
 
 const imageLink = {
   display: 'inline-block',
-  marginRight: '8px',
-  marginBottom: '8px',
+  flex: '0 0 calc(25% - 6px)',
+  marginBottom: '0',
 };
 
 const imageThumbnail = {
-  width: '150px',
-  height: '150px',
+  width: '100%',
+  height: '134px',
   objectFit: 'cover',
   borderRadius: '8px',
-  border: '2px solid #E2E8F0',
+  border: '1px solid #eaeeed',
+  display: 'block',
 };
 
-const hr = {
-  borderColor: '#F1F5F9',
-  margin: '40px 0',
+const footerContactText = {
+  fontSize: '13px',
+  color: '#152a31',
+  textAlign: 'left',
+  margin: '40px 0 0 0',
+};
+
+const emailLink = {
+  color: '#152a31',
+  textDecoration: 'underline',
+  fontWeight: '600',
 };
 
 const footerSection = {
@@ -597,6 +355,6 @@ const footerLogo = {
 
 const attribution = {
   fontSize: '12px',
-  color: '#CBD5E1',
+  color: '#152a31',
   margin: '0',
 };
