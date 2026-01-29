@@ -288,7 +288,13 @@ export const MaintenanceReportEmail = ({
                       <Text style={monthlyGroupTitle}>{group.title}</Text>
                       
                       {group.questions && group.questions.map((question, qIndex) => (
-                        <Row key={qIndex} style={monthlyQuestionRow}>
+                        <Row 
+                          key={qIndex} 
+                          style={{
+                            ...monthlyQuestionRow,
+                            marginBottom: qIndex === group.questions.length - 1 ? '0' : '12px'
+                          }}
+                        >
                           <Column style={{ width: '70%' }}>
                             <Text style={monthlyQuestionText}>{question.text}</Text>
                           </Column>
@@ -534,14 +540,13 @@ const monthlyGroupTitle = {
 
 const monthlyQuestionRow = {
   padding: '0',
-  marginBottom: '12px',
 };
 
 const monthlyQuestionText = {
   fontSize: '15px',
   color: '#152a31',
   margin: '0',
-  fontWeight: '500',
+  fontWeight: '400',
   lineHeight: '21px',
 };
 
