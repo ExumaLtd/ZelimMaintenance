@@ -29,6 +29,36 @@ export default async function handler(req, res) {
       companyLogoUrl 
     } = req.body;
 
+    // DEBUG: Log company data
+    console.log('=== COMPANY DEBUG ===');
+    console.log('company from req.body:', company);
+    console.log('technicalData:', JSON.stringify(technicalData, null, 2));
+    console.log('technicalData?.company:', technicalData?.company);
+    console.log('technicalData?.company_name:', technicalData?.company_name);
+    console.log('===================');
+
+    // Helper function to find company name from various possible sources
+    const getCompanyName = () => {
+      // Check all possible locations where company might be
+      // Handle both string and array formats (Airtable linked records return arrays)
+      const getValue = (val) => {
+        if (!val) return null;
+        if (typeof val === 'string') return val;
+        if (Array.isArray(val) && val.length > 0) return val[0]; // Airtable linked record
+        return null;
+      };
+
+      return getValue(company) ||                         // Top-level req.body.company
+             getValue(technicalData?.company) ||           // technicalData.company (from Airtable unit)
+             getValue(technicalData?.company_name) ||      // Alt naming
+             getValue(technicalData?.companyName) ||       // CamelCase variant
+             getValue(technicalData?.unit?.company) ||     // If unit data is nested
+             'N/A';
+    };
+
+    const companyName = getCompanyName();
+    console.log('Final companyName:', companyName);
+
     // 2. Define constants and brand colors
     const ZELIM_GREEN = "#172F36"; 
     const logoUrl = companyLogoUrl || "https://maintenance.exuma.co.uk/logo/zelim-logo-dark.png";
@@ -79,7 +109,7 @@ export default async function handler(req, res) {
           serialNumber,
           reportType: displayType,
           maintenanceCompany: technicalData?.maintenance_company || 'N/A',
-          companyName: company || technicalData?.company || 'N/A',
+          companyName: companyName,
           location: technicalData?.location_display || 'N/A',
           answers,
           equipmentChecklist: equipment_checklist, // Depth maintenance (returned/condition)
@@ -99,7 +129,7 @@ export default async function handler(req, res) {
           displayType, 
           technicalData: {
             unit_record_id: technicalData?.unit_record_id,
-            company_name: company || technicalData?.company || 'N/A',
+            company_name: companyName,
             maintenance_company: technicalData?.maintenance_company || 'N/A',
             engineer_name: technicalData?.engineer_name || engineerName,
             location_display: technicalData?.location_display || 'N/A',
