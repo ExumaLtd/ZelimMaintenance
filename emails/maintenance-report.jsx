@@ -30,8 +30,8 @@ export const MaintenanceReportEmail = ({
   previewUrl = null
 }) => {
   const today = new Date().toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'long',
+    day: '2-digit',
+    month: '2-digit',
     year: 'numeric',
   });
 
@@ -106,31 +106,31 @@ export const MaintenanceReportEmail = ({
             {/* Status Card - All Info */}
             <Section style={statusCard}>
               <Row style={{ marginBottom: '20px' }}>
-                <Column style={{ paddingRight: '12px', width: '33.33%' }}>
+                <Column style={{ paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }}>
                   <Text style={label}>Unit Serial</Text>
                   <Text style={value}>{serialNumber}</Text>
                 </Column>
-                <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%' }}>
-                  <Text style={label}>Completion Date</Text>
-                  <Text style={value}>{today}</Text>
-                </Column>
-                <Column style={{ paddingLeft: '12px', width: '33.33%' }}>
-                  <Text style={label}>Location</Text>
-                  <Text style={value}>{location}</Text>
-                </Column>
-              </Row>
-              <Row>
-                <Column style={{ paddingRight: '12px', width: '33.33%' }}>
+                <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }}>
                   <Text style={label}>Company Name</Text>
                   <Text style={value}>{companyName}</Text>
                 </Column>
-                <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%' }}>
+                <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }}>
+                  <Text style={label}>Date</Text>
+                  <Text style={value}>{today}</Text>
+                </Column>
+              </Row>
+              <Row>
+                <Column style={{ paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }}>
                   <Text style={label}>Maintenance Company</Text>
                   <Text style={value}>{maintenanceCompany}</Text>
                 </Column>
-                <Column style={{ paddingLeft: '12px', width: '33.33%' }}>
+                <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }}>
                   <Text style={label}>Engineer Name</Text>
                   <Text style={value}>{engineerName}</Text>
+                </Column>
+                <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }}>
+                  <Text style={label}>Location</Text>
+                  <Text style={value}>{location}</Text>
                 </Column>
               </Row>
             </Section>
@@ -369,7 +369,7 @@ const subTitle = {
   lineHeight: '24px',
   fontWeight: '600',
   textTransform: 'uppercase',
-  textAlign: 'left',
+  textAlign: 'center',
   letterSpacing: '1px',
   margin: '4px 0 36px 0',
 };
@@ -379,7 +379,7 @@ const text = {
   fontSize: '15px',
   lineHeight: '24px',
   margin: '12px 0',
-  textAlign: 'center',
+  textAlign: 'left',
 };
 
 const statusCard = {
