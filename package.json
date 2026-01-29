@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "email:dev": "react-email dev"
+    "email:dev": "email dev"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
