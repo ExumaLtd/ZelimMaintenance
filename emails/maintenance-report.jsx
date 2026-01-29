@@ -273,7 +273,7 @@ export const MaintenanceReportEmail = ({
 
             <Text style={footerContactText}>
               Need technical assistance? Contact{' '}
-              <a href="mailto:maintenance@zelim.com" style={emailLink}>
+              <a href={`mailto:maintenance@zelim.com?subject=${encodeURIComponent(`${serialNumber} Technical Assistance Request`)}`} style={emailLink}>
                 maintenance@zelim.com
               </a>
             </Text>
