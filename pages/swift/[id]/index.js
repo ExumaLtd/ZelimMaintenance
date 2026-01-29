@@ -35,7 +35,7 @@ const getClientLogo = (companyName, serialNumber) => {
     milford: {
       serials: ["SWI003"],
       nameMatch: "Port of Milford Haven",
-      src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven(White).svg",
+      src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven_Logo(White).svg",
     },
     hatloy: {
       serials: ["SWI010", "SWI011"],
