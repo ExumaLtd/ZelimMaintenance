@@ -66,7 +66,22 @@ export const MaintenanceReportEmail = ({
 
   return (
     <Html>
-      <Head />
+      <Head>
+        <style>{`
+          @media only screen and (max-width: 600px) {
+            .mobile-col {
+              width: 50% !important;
+              padding-left: 0 !important;
+              padding-right: 8px !important;
+              margin-bottom: 16px !important;
+            }
+            .mobile-col:nth-child(2n) {
+              padding-left: 8px !important;
+              padding-right: 0 !important;
+            }
+          }
+        `}</style>
+      </Head>
       <Preview>{reportType} {
         reportType.toLowerCase().includes('depth') ? '🔧' : 
         reportType.toLowerCase().includes('unscheduled') ? '⚠️' : 
@@ -106,29 +121,29 @@ export const MaintenanceReportEmail = ({
             {/* Status Card - All Info */}
             <Section style={statusCard}>
               <Row style={{ marginBottom: '20px' }}>
-                <Column style={{ paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }}>
+                <Column style={{ paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Serial</Text>
                   <Text style={value}>{serialNumber}</Text>
                 </Column>
-                <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }}>
+                <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Company</Text>
                   <Text style={value}>{companyName}</Text>
                 </Column>
-                <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }}>
+                <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Date</Text>
                   <Text style={value}>{today}</Text>
                 </Column>
               </Row>
               <Row>
-                <Column style={{ paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }}>
+                <Column style={{ paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Maintained By</Text>
                   <Text style={value}>{maintenanceCompany}</Text>
                 </Column>
-                <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }}>
+                <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Engineer</Text>
                   <Text style={value}>{engineerName}</Text>
                 </Column>
-                <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }}>
+                <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Location</Text>
                   <Text style={value}>{location}</Text>
                 </Column>
