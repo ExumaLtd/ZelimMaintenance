@@ -289,7 +289,7 @@ const h1 = {
 
 const subTitle = {
   fontSize: '13px',
-  lineHeight: '24px',
+  lineHeight: '21px',
   fontWeight: '600',
   textTransform: 'uppercase',
   textAlign: 'center',
@@ -300,7 +300,7 @@ const subTitle = {
 const text = {
   color: '#152a31',
   fontSize: '15px',
-  lineHeight: '22px',
+  lineHeight: '21px',
   margin: '12px 0',
   textAlign: 'left',
 };
@@ -324,7 +324,8 @@ const label = {
 };
 
 const value = {
-  fontSize: '16px',
+  fontSize: '15px',
+  lineHeight: '21px',
   color: '#152a31',
   fontWeight: '600',
   margin: '4px 0 0 0',
