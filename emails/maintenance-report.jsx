@@ -422,7 +422,7 @@ const subTitle = {
 const text = {
   color: '#152a31',
   fontSize: '15px',
-  lineHeight: '24px',
+  lineHeight: '22px',
   margin: '12px 0',
   textAlign: 'left',
 };
