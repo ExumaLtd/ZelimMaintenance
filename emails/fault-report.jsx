@@ -289,7 +289,7 @@ const h1 = {
 
 const subTitle = {
   fontSize: '13px',
-  lineHeight: '21px',
+  lineHeight: '24px',
   fontWeight: '600',
   textTransform: 'uppercase',
   textAlign: 'center',
