@@ -520,6 +520,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
           engineerEmail: engEmail,
           engineerName: engName,
           serialNumber: unit?.serial_number,
+          company: unit?.company,
           answers: emailFriendlyAnswers,
           reportType: "Annual",
           companyLogoUrl: companyLogoUrl,

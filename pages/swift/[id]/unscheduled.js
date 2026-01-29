@@ -501,6 +501,7 @@ try {
           engineerEmail: engEmail,
           engineerName: engName,
           serialNumber: unit?.serial_number,
+          company: unit?.company,
           answers: emailFriendlyAnswers,
           reportType: "Unscheduled",
           companyLogoUrl: companyLogoUrl,

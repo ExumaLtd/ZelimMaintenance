@@ -501,6 +501,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
           engineerEmail: engEmail,
           engineerName: engName,
           serialNumber: unit?.serial_number,
+          company: unit?.company,
           answers: emailFriendlyAnswers,
           reportType: "Fault report",
           companyLogoUrl: companyLogoUrl,

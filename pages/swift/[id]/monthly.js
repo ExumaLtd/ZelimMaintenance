@@ -588,6 +588,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           engineerEmail: engEmail,
           engineerName: engName,
           serialNumber: unit?.serial_number,
+          company: unit?.company,
           maintenance_checklist: checklistData.map(group => ({
             id: group.id,
             title: group.title,

@@ -692,6 +692,7 @@ useAutoSave({
           engineerEmail: engEmail,
           engineerName: engName,
           serialNumber: unit?.serial_number,
+          company: unit?.company,
           answers: emailFriendlyAnswers,
           equipment_checklist: checklistData.map(item => ({
             ...item,
