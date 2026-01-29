@@ -53,9 +53,9 @@ export default async function handler(req, res) {
     
     console.log(`Marking draft ${draftId} as complete...`);
     
+    // ✅ FIXED: Only update the 'completed' checkbox field (not completed_at)
     await base('maintenance_drafts').update(draftId, {
       completed: true,
-      completed_at: new Date().toISOString(),
     });
 
     console.log('✅ Draft marked as complete');

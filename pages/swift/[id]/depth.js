@@ -1091,15 +1091,19 @@ export async function getServerSideProps({ params }) {
       return { redirect: { destination: '/', permanent: false } };
     }
     
-    // Extract equipment_checklist from the RAW data
-    const maintenanceChecklist = data.template?.rawData?.equipment_checklist || [];
+    // Extract BOTH equipment_checklist AND questions from rawData
+    const equipment_checklist = data.template?.rawData?.equipment_checklist || [];
+    const questions = data.template?.rawData?.questions || [];
     
     return {
       props: {
         unit: data.unit,
         template: {
-          ...data.template,
-          maintenanceChecklist,  // This is what the component expects
+          id: data.template?.id,
+          type: data.template?.type,
+          maintenanceChecklist: equipment_checklist,  // Step 1: Equipment table
+          questionsData: questions,  // Step 2: Question textareas ← YOU'RE MISSING THIS
+          questions: questions.map(q => q.title),  // Question titles ← AND THIS
         },
         allCompanies: data.companies,
         allEngineers: data.engineers,
