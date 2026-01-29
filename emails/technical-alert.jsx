@@ -60,11 +60,7 @@ export const TechnicalAlertEmail = ({
     }
   }
 
-  const airtableBaseId = 'appOQXbopTwn0SdnL'; 
-  const airtableTableId = 'tblo0gVrtd422UQgd';
-  const airtableUrl = technicalData?.unit_record_id 
-    ? `https://airtable.com/${airtableBaseId}/${airtableTableId}/${technicalData.unit_record_id}`
-    : '#';
+  const airtableUrl = 'https://airtable.com/appOQXbopTwn0SdnL/tblAVxcIGNSWQTP9o/viweP5xYy6J5Nroal?blocks=hide';
 
   // Extract just the country from location
   const getCountryFromLocation = (locationStr) => {
@@ -122,42 +118,9 @@ export const TechnicalAlertEmail = ({
               margin: 0 !important;
             }
             
-            /* Force status card to show 2 per row across ALL 6 items */
-            .status-card-section {
-              display: block !important;
-            }
-            
-            .status-card-section table,
-            .status-card-section tbody,
-            .status-card-section tr {
-              display: block !important;
-              width: 100% !important;
-            }
-            
-            .status-card-section td {
-              display: inline-block !important;
-              width: 50% !important;
-              max-width: 50% !important;
-              box-sizing: border-box !important;
-              vertical-align: top !important;
-              padding: 0 8px 16px 0 !important;
-              float: left !important;
-            }
-            
-            .status-card-section td:nth-child(even) {
-              padding-right: 0 !important;
-              padding-left: 8px !important;
-            }
-            
-            .status-card-section td:nth-child(odd) {
-              clear: left !important;
-              padding-right: 8px !important;
-              padding-left: 0 !important;
-            }
-            
-            /* Image gallery - 3 per row on mobile, squares, full width */
+            /* Image gallery - 2 per row on mobile, squares, 50% width with 8px gap */
             .image-link {
-              width: calc(33.333% - 10px) !important;
+              width: calc(50% - 4px) !important;
               box-sizing: border-box !important;
             }
             
@@ -198,7 +161,7 @@ export const TechnicalAlertEmail = ({
             </Text>
             
             <Text style={text}>
-              A new <strong>{displayType}</strong> has been submitted for unit{' '}
+              A new <strong>{displayType.toLowerCase()}</strong> has been submitted for unit{' '}
               <strong>{serialNumber}</strong>.
             </Text>
 
@@ -503,7 +466,7 @@ const h2 = {
   color: '#152a31',
   fontSize: '18px',
   fontWeight: '600',
-  margin: '40px 0 32px 0',
+  margin: '40px 0 26px 0',
   textAlign: 'left',
 };
 
@@ -600,14 +563,14 @@ const imageGallery = {
   display: 'flex',
   flexWrap: 'wrap',
   marginTop: '12px',
-  marginLeft: '-5px',
-  marginRight: '-5px',
+  marginLeft: '-4px',
+  marginRight: '-4px',
 };
 
 const imageLink = {
   display: 'inline-block',
   textDecoration: 'none',
-  padding: '0 5px 10px 5px',
+  padding: '0 4px 8px 4px',
 };
 
 const imageThumbnail = {
