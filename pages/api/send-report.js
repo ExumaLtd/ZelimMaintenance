@@ -48,10 +48,13 @@ export default async function handler(req, res) {
     const engineerPreviewUrl = `${baseUrl}/api/emails/preview-maintenance-report?engineerName=${encodeURIComponent(engineerName)}&serialNumber=${encodeURIComponent(serialNumber)}`;
     const internalPreviewUrl = `${baseUrl}/api/emails/preview-technical-alert?serialNumber=${encodeURIComponent(serialNumber)}&displayType=${encodeURIComponent(displayType)}`;
 
-    // 5. Set the subject lines with emojis
-    let emojiIcon = '📋'; // Default for Monthly/Annual
+    // 5. Set sender name and subject line
+    const senderName = displayType.toLowerCase().includes('fault') 
+      ? `Zelim Fault Submission`
+      : `Zelim Maintenance Submission`;
     
     // Determine emoji based on maintenance type
+    let emojiIcon = '📋'; // Default for Monthly/Annual
     if (displayType.toLowerCase().includes('depth')) {
       emojiIcon = '🔧';
     } else if (displayType.toLowerCase().includes('unscheduled')) {
@@ -60,21 +63,16 @@ export default async function handler(req, res) {
       emojiIcon = '🚨';
     }
     
-    // Engineer email subject (simple, clean)
-    const engineerSubject = displayType.toLowerCase().includes('fault') 
-      ? `Fault Submission`
-      : `Maintenance Submission`;
-    
-    // Internal email subject (includes emoji and serial number)
-    const internalSubject = `${displayType} ${emojiIcon} ${serialNumber}`;
+    // Subject includes type, emoji, and serial number
+    const emailSubject = `${displayType} ${emojiIcon} ${serialNumber}`;
 
     // 6. Send both emails in a single batch call
     const data = await resend.batch.send([
       {
         // EMAIL 1: The receipt for the Engineer
-        from: 'Zelim Maintenance <maintenance@exuma.co.uk>',
+        from: `${senderName} <maintenance@exuma.co.uk>`,
         to: [engineerEmail],
-        subject: engineerSubject,
+        subject: emailSubject,
         react: MaintenanceReportEmail({ 
           engineerName, 
           serialNumber,
@@ -89,9 +87,9 @@ export default async function handler(req, res) {
       },
       {
         // EMAIL 2: The Internal Technical Alert for the Zelim Team
-        from: 'Zelim Maintenance Submission <maintenance@exuma.co.uk>',
+        from: `${senderName} <maintenance@exuma.co.uk>`,
         to: ['maintenance@exuma.co.uk'], 
-        subject: internalSubject,
+        subject: emailSubject,
         react: TechnicalAlertEmail({ 
           serialNumber, 
           displayType, 
