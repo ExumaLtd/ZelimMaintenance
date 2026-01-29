@@ -29,8 +29,8 @@ export const TechnicalAlertEmail = ({
 }) => {
   const submissionDate = new Date();
   const formattedDate = submissionDate.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'long',
+    day: '2-digit',
+    month: '2-digit',
     year: 'numeric',
   });
   const formattedTime = submissionDate.toLocaleTimeString('en-GB', {
@@ -90,6 +90,8 @@ export const TechnicalAlertEmail = ({
           @media only screen and (max-width: 600px) {
             body, .email-body {
               background-color: #ffffff !important;
+              padding: 0 !important;
+              margin: 0 !important;
             }
             
             /* Make container full width on mobile */
@@ -172,30 +174,30 @@ export const TechnicalAlertEmail = ({
             <Section style={statusCard} className="status-card-section">
               <Row style={{ marginBottom: '20px' }}>
                 <Column style={{ paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
-                  <Text style={label}>Unit Serial</Text>
+                  <Text style={label}>Serial</Text>
                   <Text style={value}>{serialNumber}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
-                  <Text style={label}>Date</Text>
-                  <Text style={value}>{formattedDate}</Text>
+                  <Text style={label}>Company</Text>
+                  <Text style={value}>{technicalData?.company_name || 'N/A'}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
-                  <Text style={label}>Location</Text>
-                  <Text style={value}>{technicalData?.location_display || 'N/A'}</Text>
+                  <Text style={label}>Date</Text>
+                  <Text style={value}>{formattedDate}</Text>
                 </Column>
               </Row>
               <Row>
                 <Column style={{ paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
-                  <Text style={label}>Time</Text>
-                  <Text style={value}>{formattedTime}</Text>
-                </Column>
-                <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
-                  <Text style={label}>Maintenance Company</Text>
+                  <Text style={label}>Maintained By</Text>
                   <Text style={value}>{technicalData?.maintenance_company || 'N/A'}</Text>
                 </Column>
-                <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
-                  <Text style={label}>Engineer Name</Text>
+                <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
+                  <Text style={label}>Engineer</Text>
                   <Text style={value}>{technicalData?.engineer_name || 'N/A'}</Text>
+                </Column>
+                <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
+                  <Text style={label}>Location</Text>
+                  <Text style={value}>{technicalData?.location_display || 'N/A'}</Text>
                 </Column>
               </Row>
             </Section>
@@ -285,7 +287,7 @@ export const TechnicalAlertEmail = ({
             {Object.keys(answers).length > 0 && (
               <>
                 <Heading as="h2" style={h2}>
-                  {displayType === 'Monthly' ? 'Additional comments' : `${displayType.toLowerCase()} details`}
+                  {displayType === 'Monthly' ? 'Additional comments' : `${displayType.charAt(0).toUpperCase() + displayType.slice(1).toLowerCase()} details`}
                 </Heading>
                 
                 <Section>
@@ -592,13 +594,12 @@ const portalButton = {
   display: 'inline-block',
   padding: '8px 16px',
   borderRadius: '8px',
-  backgroundColor: '#00fff6',
-  color: '#0d3037',
+  backgroundColor: '#27454B',
+  color: '#ffffff',
   fontSize: '16px',
   fontWeight: '600',
   textDecoration: 'none',
-  textTransform: 'none',
-  border: '2px solid rgba(255, 255, 255, 0.12)',
+  border: 'none',
 };
 
 const footerSection = {
