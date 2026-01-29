@@ -111,7 +111,7 @@ export const MaintenanceReportEmail = ({
                   <Text style={value}>{serialNumber}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }}>
-                  <Text style={label}>Company Name</Text>
+                  <Text style={label}>Company</Text>
                   <Text style={value}>{companyName}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }}>
@@ -121,7 +121,7 @@ export const MaintenanceReportEmail = ({
               </Row>
               <Row>
                 <Column style={{ paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }}>
-                  <Text style={label}>Maintenance Company</Text>
+                  <Text style={label}>Maintained By</Text>
                   <Text style={value}>{maintenanceCompany}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }}>
