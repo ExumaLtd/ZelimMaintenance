@@ -83,23 +83,32 @@ export const MaintenanceReportEmail = ({
               margin: 0 !important;
             }
             
-            /* Status card columns - 2 per row on mobile */
-            table[role="presentation"] td.mobile-col {
+            /* Force status card columns to 2 per row on mobile - AGGRESSIVE */
+            .mobile-col,
+            td.mobile-col,
+            [class*="mobile-col"],
+            table td[class~="mobile-col"] {
               display: inline-block !important;
               width: 50% !important;
+              max-width: 50% !important;
+              min-width: 50% !important;
               box-sizing: border-box !important;
-              padding-left: 4px !important;
-              padding-right: 4px !important;
-              margin-bottom: 16px !important;
+              float: left !important;
+              padding: 0 4px 16px 4px !important;
               vertical-align: top !important;
             }
             
-            table[role="presentation"] td.mobile-col:nth-child(odd) {
+            /* First column in each pair - no left padding */
+            .mobile-col:nth-child(odd),
+            td.mobile-col:nth-child(odd) {
               padding-left: 0 !important;
               padding-right: 8px !important;
+              clear: left !important;
             }
             
-            table[role="presentation"] td.mobile-col:nth-child(even) {
+            /* Second column in each pair - no right padding */
+            .mobile-col:nth-child(even),
+            td.mobile-col:nth-child(even) {
               padding-left: 8px !important;
               padding-right: 0 !important;
             }
