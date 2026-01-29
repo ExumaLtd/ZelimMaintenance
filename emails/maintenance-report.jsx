@@ -337,7 +337,7 @@ const contentPadding = {
 const h1 = {
   color: '#152a31',
   fontSize: '36px',
-  fontWeight: '800',
+  fontWeight: '600',
   margin: '0',
   textAlign: 'center',
   letterSpacing: '-1px',
@@ -345,7 +345,7 @@ const h1 = {
 
 const subTitle = {
   fontSize: '13px',
-  fontWeight: '700',
+  fontWeight: '600',
   textTransform: 'uppercase',
   textAlign: 'center',
   letterSpacing: '1.5px',
@@ -362,17 +362,19 @@ const text = {
 const statusCard = {
   backgroundColor: '#f3f6f5',
   borderRadius: '8px',
-  padding: '24px',
+  padding: '20px 24px',
   margin: '32px 0',
 };
 
 const label = {
   fontSize: '11px',
+  lineHeight: '16px',
   color: '#152a31',
   textTransform: 'uppercase',
-  fontWeight: '700',
+  fontWeight: '600',
   margin: '0',
   letterSpacing: '0.5px',
+  textAlign: 'left',
 };
 
 const value = {
@@ -380,12 +382,13 @@ const value = {
   color: '#152a31',
   fontWeight: '600',
   margin: '4px 0 0 0',
+  textAlign: 'left',
 };
 
 const h2 = {
   color: '#152a31',
   fontSize: '18px',
-  fontWeight: '700',
+  fontWeight: '600',
   margin: '40px 0 24px 0',
 };
 
@@ -399,7 +402,7 @@ const checklistItemBlock = {
 
 const checklistItemName = {
   fontSize: '15px',
-  fontWeight: '700',
+  fontWeight: '600',
   color: '#152a31',
   margin: '0 0 12px 0',
 };
@@ -408,7 +411,7 @@ const checklistLabel = {
   fontSize: '11px',
   color: '#152a31',
   textTransform: 'uppercase',
-  fontWeight: '700',
+  fontWeight: '600',
   margin: '0',
   letterSpacing: '0.5px',
 };
@@ -431,7 +434,7 @@ const monthlyGroupBlock = {
 
 const monthlyGroupTitle = {
   fontSize: '15px',
-  fontWeight: '700',
+  fontWeight: '600',
   color: '#152a31',
   margin: '0 0 12px 0',
   paddingBottom: '8px',
@@ -464,7 +467,7 @@ const answerBlock = {
 
 const questionText = {
   fontSize: '14px',
-  fontWeight: '700',
+  fontWeight: '600',
   color: '#152a31',
   margin: '0 0 4px 0',
 };
