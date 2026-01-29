@@ -123,10 +123,38 @@ export const TechnicalAlertEmail = ({
               padding: 0 20px 50px 20px !important;
             }
             
-            /* Image gallery - 2 per row on mobile, squares, 50% width with 10px gap */
+            /* Reduce answer block padding on mobile */
+            .answer-block-mobile {
+              padding: 16px !important;
+            }
+            
+            /* Reduce status card padding on mobile */
+            .status-card-mobile {
+              padding: 16px !important;
+            }
+            
+            /* Image gallery - 2 per row on mobile, fill width inside grey box with 10px gap */
+            .image-gallery-mobile {
+              margin-left: 0 !important;
+              margin-right: 0 !important;
+              margin-top: 12px !important;
+            }
+            
             .image-link {
-              width: calc(50% - 5px) !important;
               box-sizing: border-box !important;
+              margin: 0 !important;
+              padding: 0 !important;
+            }
+            
+            .image-link:nth-child(2n+1) {
+              width: calc(50% - 5px) !important;
+              margin-right: 10px !important;
+            }
+            
+            .image-link:nth-child(2n) {
+              width: calc(50% - 5px) !important;
+              margin-left: 0 !important;
+              margin-bottom: 10px !important;
             }
             
             .image-link img {
@@ -171,7 +199,7 @@ export const TechnicalAlertEmail = ({
             </Text>
 
             {/* Status Card - All Info in One Card */}
-            <Section style={statusCard} className="status-card-section">
+            <Section style={statusCard} className="status-card-section status-card-mobile">
               <Row style={{ marginBottom: '20px' }}>
                 <Column style={{ paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Serial</Text>
@@ -297,7 +325,7 @@ export const TechnicalAlertEmail = ({
                     const images = isObject ? (answerData.images || []) : [];
 
                     return (
-                      <div key={i} style={answerBlock}>
+                      <div key={i} style={answerBlock} className="answer-block-mobile">
                         <Text style={questionText}>{question}</Text>
                         <Text style={answerTextStyle}>
                           {answerTextValue !== null && answerTextValue !== undefined && answerTextValue !== '' 
@@ -306,7 +334,7 @@ export const TechnicalAlertEmail = ({
                         </Text>
                         
                         {images.length > 0 && (
-                          <Section style={imageGallery}>
+                          <Section style={imageGallery} className="image-gallery-mobile">
                             {images.map((imageUrl, imgIndex) => (
                               <Link 
                                 key={imgIndex} 
@@ -572,8 +600,6 @@ const imageGallery = {
   display: 'flex',
   flexWrap: 'wrap',
   marginTop: '12px',
-  marginLeft: '-5px',
-  marginRight: '-5px',
 };
 
 const imageLink = {
