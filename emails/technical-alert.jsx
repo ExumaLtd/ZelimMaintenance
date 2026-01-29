@@ -544,38 +544,37 @@ const checklistValue = {
 };
 
 const monthlyGroupBlock = {
-  marginBottom: '24px',
-  padding: '16px',
-  backgroundColor: '#F8FAFC',
+  marginBottom: '0',
+  padding: '20px 24px',
+  backgroundColor: '#f3f6f5',
   borderRadius: '8px',
-  border: '1px solid #E2E8F0',
 };
 
 const monthlyGroupTitle = {
   fontSize: '15px',
   fontWeight: '600',
   color: '#152a31',
-  margin: '0 0 12px 0',
-  paddingBottom: '8px',
-  borderBottom: '2px solid #E2E8F0',
+  margin: '0 0 16px 0',
+  lineHeight: '21px',
 };
 
 const monthlyQuestionRow = {
-  padding: '8px 0',
-  borderBottom: '1px solid #F1F5F9',
+  padding: '0 0 12px 0',
 };
 
 const monthlyQuestionText = {
-  fontSize: '14px',
+  fontSize: '15px',
   color: '#152a31',
   margin: '0',
   fontWeight: '500',
+  lineHeight: '21px',
 };
 
 const monthlyAnswerText = {
-  fontSize: '14px',
+  fontSize: '15px',
   fontWeight: '600',
   margin: '0',
+  lineHeight: '21px',
 };
 
 const answerBlock = {
