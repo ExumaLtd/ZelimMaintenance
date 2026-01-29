@@ -73,12 +73,12 @@ export const TechnicalAlertEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>{displayType} {
-        displayType.toLowerCase().includes('depth') ? '🔧' : 
-        displayType.toLowerCase().includes('unscheduled') ? '⚠️' : 
-        displayType.toLowerCase().includes('fault') ? '🚨' : 
-        '📋'
-      } {serialNumber}</Preview>
+<Preview>{displayType.replace('Reporting', 'Report')} {
+  displayType.toLowerCase().includes('depth') ? '🔧' : 
+  displayType.toLowerCase().includes('unscheduled') ? '⚠️' : 
+  displayType.toLowerCase().includes('fault') ? '🚨' : 
+  '📋'
+} {serialNumber}</Preview>
       <Body style={main}>
         <Container style={container}>
           <Section style={{ ...headerSection, borderTop: `6px solid ${brandColor}` }}>
