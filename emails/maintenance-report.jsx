@@ -336,20 +336,21 @@ const contentPadding = {
 
 const h1 = {
   color: '#152a31',
-  fontSize: '36px',
+  fontSize: '32px',
   fontWeight: '600',
   margin: '0',
-  textAlign: 'left',
-  letterSpacing: '-1px',
+  textAlign: 'center',
+  letterSpacing: '1px',
 };
 
 const subTitle = {
   fontSize: '13px',
+  lineHeight: '24px',
   fontWeight: '600',
   textTransform: 'uppercase',
   textAlign: 'left',
-  letterSpacing: '1.5px',
-  margin: '4px 0 40px 0',
+  letterSpacing: '1px',
+  margin: '4px 0 36px 0',
 };
 
 const text = {
@@ -357,7 +358,7 @@ const text = {
   fontSize: '15px',
   lineHeight: '24px',
   margin: '12px 0',
-  textAlign: 'left',
+  textAlign: 'center',
 };
 
 const statusCard = {
@@ -391,7 +392,7 @@ const h2 = {
   fontSize: '18px',
   fontWeight: '600',
   margin: '40px 0 24px 0',
-  textAlign: 'left',
+  textAlign: 'center',
 };
 
 const checklistItemBlock = {
@@ -511,8 +512,8 @@ const hr = {
 const footerContactText = {
   fontSize: '13px',
   color: '#152a31',
-  textAlign: 'center',
-  margin: '0',
+  textAlign: 'left',
+  margin: '40px 0 0 0',
 };
 
 const emailLink = {
