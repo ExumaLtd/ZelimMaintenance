@@ -118,9 +118,14 @@ export const TechnicalAlertEmail = ({
               margin: 0 !important;
             }
             
-            /* Image gallery - 2 per row on mobile, squares, 50% width with 8px gap */
+            /* Reduce content padding to 20px on mobile */
+            .content-padding {
+              padding: 0 20px 50px 20px !important;
+            }
+            
+            /* Image gallery - 2 per row on mobile, squares, 50% width with 10px gap */
             .image-link {
-              width: calc(50% - 4px) !important;
+              width: calc(50% - 5px) !important;
               box-sizing: border-box !important;
             }
             
@@ -154,7 +159,7 @@ export const TechnicalAlertEmail = ({
             )}
           </Section>
 
-          <Section style={contentPadding}>
+          <Section style={contentPadding} className="content-padding">
             <Heading style={h1}>{serialNumber}</Heading>
             <Text style={{ ...subTitle, color: brandColor }}>
               {displayType} Submitted
@@ -393,6 +398,10 @@ const contentPadding = {
   padding: '0 30px 50px 30px',
 };
 
+const contentPaddingMobile = {
+  padding: '0 20px 50px 20px',
+};
+
 const h1 = {
   color: '#152a31',
   fontSize: '32px',
@@ -563,14 +572,14 @@ const imageGallery = {
   display: 'flex',
   flexWrap: 'wrap',
   marginTop: '12px',
-  marginLeft: '-4px',
-  marginRight: '-4px',
+  marginLeft: '-5px',
+  marginRight: '-5px',
 };
 
 const imageLink = {
   display: 'inline-block',
   textDecoration: 'none',
-  padding: '0 4px 8px 4px',
+  padding: '0 5px 10px 5px',
 };
 
 const imageThumbnail = {
