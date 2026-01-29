@@ -138,11 +138,13 @@ export const TechnicalAlertEmail = ({
               margin-left: 0 !important;
               margin-right: 0 !important;
               margin-top: 12px !important;
+              display: flex !important;
+              flex-wrap: wrap !important;
             }
             
             .image-link {
               box-sizing: border-box !important;
-              margin: 0 !important;
+              margin: 0 0 10px 0 !important;
               padding: 0 !important;
             }
             
@@ -154,7 +156,6 @@ export const TechnicalAlertEmail = ({
             .image-link:nth-child(2n) {
               width: calc(50% - 5px) !important;
               margin-left: 0 !important;
-              margin-bottom: 10px !important;
             }
             
             .image-link img {
@@ -264,6 +265,7 @@ export const TechnicalAlertEmail = ({
                             <Link 
                               key={imgIndex} 
                               href={imageUrl}
+                              target="_blank"
                               style={imageLink}
                               className="image-link"
                             >
@@ -339,6 +341,7 @@ export const TechnicalAlertEmail = ({
                               <Link 
                                 key={imgIndex} 
                                 href={imageUrl}
+                                target="_blank"
                                 style={imageLink}
                                 className="image-link"
                               >
