@@ -66,6 +66,19 @@ export const TechnicalAlertEmail = ({
     ? `https://airtable.com/${airtableBaseId}/${airtableTableId}/${technicalData.unit_record_id}`
     : '#';
 
+  // Extract just the country from location
+  const getCountryFromLocation = (locationStr) => {
+    if (!locationStr || locationStr === 'N/A') return 'N/A';
+    
+    // If it contains a comma, take the last part (country)
+    if (locationStr.includes(',')) {
+      const parts = locationStr.split(',');
+      return parts[parts.length - 1].trim();
+    }
+    
+    return locationStr;
+  };
+
   const absoluteLogoUrl = logoUrl?.startsWith('http') 
     ? logoUrl 
     : `https://maintenance.exuma.co.uk${logoUrl?.startsWith('/') ? logoUrl : `/${logoUrl}`}`;
@@ -90,6 +103,7 @@ export const TechnicalAlertEmail = ({
               height: auto !important;
               aspect-ratio: 1 / 1 !important;
               object-fit: cover !important;
+              border: none !important;
             }
           }
           
@@ -108,33 +122,43 @@ export const TechnicalAlertEmail = ({
               margin: 0 !important;
             }
             
-            /* Force status card to 2 per row - ALL 6 items */
-            .status-card-section table tr {
+            /* Force status card to show 2 per row across ALL 6 items */
+            .status-card-section {
               display: block !important;
             }
             
-            .status-card-section table td {
+            .status-card-section table,
+            .status-card-section tbody,
+            .status-card-section tr {
+              display: block !important;
+              width: 100% !important;
+            }
+            
+            .status-card-section td {
               display: inline-block !important;
               width: 50% !important;
               max-width: 50% !important;
               box-sizing: border-box !important;
               vertical-align: top !important;
               padding: 0 8px 16px 0 !important;
+              float: left !important;
             }
             
-            .status-card-section table td:nth-child(2n) {
+            .status-card-section td:nth-child(even) {
               padding-right: 0 !important;
               padding-left: 8px !important;
             }
             
-            .status-card-section table td:nth-child(2n+1) {
+            .status-card-section td:nth-child(odd) {
+              clear: left !important;
               padding-right: 8px !important;
               padding-left: 0 !important;
             }
             
-            /* Image gallery - 3 per row on mobile */
+            /* Image gallery - 3 per row on mobile, squares, full width */
             .image-link {
               width: calc(33.333% - 10px) !important;
+              box-sizing: border-box !important;
             }
             
             .image-link img {
@@ -142,6 +166,7 @@ export const TechnicalAlertEmail = ({
               height: auto !important;
               aspect-ratio: 1 / 1 !important;
               object-fit: cover !important;
+              border: none !important;
             }
           }
         `}</style>
@@ -204,7 +229,7 @@ export const TechnicalAlertEmail = ({
                 </Column>
                 <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Location</Text>
-                  <Text style={value}>{technicalData?.location_display ? (technicalData.location_display.includes(',') ? technicalData.location_display.split(',').pop().trim() : technicalData.location_display) : 'N/A'}</Text>
+                  <Text style={value}>{getCountryFromLocation(technicalData?.location_display)}</Text>
                 </Column>
               </Row>
             </Section>
@@ -478,7 +503,7 @@ const h2 = {
   color: '#152a31',
   fontSize: '18px',
   fontWeight: '600',
-  margin: '40px 0 24px 0',
+  margin: '40px 0 32px 0',
   textAlign: 'left',
 };
 
@@ -553,7 +578,6 @@ const answerBlock = {
   padding: '20px 24px',
   backgroundColor: '#f3f6f5',
   borderRadius: '8px',
-  margin: '32px 0',
 };
 
 const questionText = {
@@ -589,18 +613,17 @@ const imageLink = {
 const imageThumbnail = {
   width: '100%',
   borderRadius: '8px',
-  border: '1px solid #E2E8F0',
   display: 'block',
 };
 
 const buttonContainerLeft = {
   textAlign: 'left',
-  margin: '40px 0 0 0',
+  margin: '20px 0 0 0',
 };
 
 const portalButton = {
   display: 'inline-block',
-  padding: '8px 16px',
+  padding: '10px 18px',
   borderRadius: '8px',
   backgroundColor: '#27454B',
   color: '#ffffff',
