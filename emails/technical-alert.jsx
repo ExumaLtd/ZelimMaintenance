@@ -72,15 +72,90 @@ export const TechnicalAlertEmail = ({
 
   return (
     <Html>
-      <Head />
-<Preview>{displayType.replace('Reporting', 'Report')} {
-  displayType.toLowerCase().includes('depth') ? '🔧' : 
-  displayType.toLowerCase().includes('unscheduled') ? '⚠️' : 
-  displayType.toLowerCase().includes('fault') ? '🚨' : 
-  '📋'
-} {serialNumber}</Preview>
-      <Body style={main}>
-        <Container style={container}>
+      <Head>
+        <style>{`
+          @media only screen and (max-width: 600px) {
+            /* White background on mobile only */
+            body, .email-body {
+              background-color: #ffffff !important;
+              padding: 0 !important;
+              margin: 0 !important;
+            }
+            
+            /* Make container full width on mobile */
+            .email-container {
+              max-width: 100% !important;
+              width: 100% !important;
+              margin: 0 !important;
+            }
+            
+            /* Force ALL table cells in status card to stack 2 per row */
+            .status-card-section table {
+              width: 100% !important;
+            }
+            
+            .status-card-section table tr {
+              display: flex !important;
+              flex-wrap: wrap !important;
+            }
+            
+            .status-card-section table td {
+              width: 50% !important;
+              max-width: 50% !important;
+              display: inline-block !important;
+              box-sizing: border-box !important;
+              padding: 0 8px 16px 0 !important;
+              vertical-align: top !important;
+            }
+            
+            .status-card-section table td:nth-child(even) {
+              padding-right: 0 !important;
+              padding-left: 8px !important;
+            }
+            
+            /* Image gallery - 3 per row on mobile with square aspect ratio */
+            .image-link {
+              width: calc(33.333% - 7px) !important;
+              margin-bottom: 10px !important;
+            }
+            
+            .image-link img {
+              width: 100% !important;
+              height: auto !important;
+              aspect-ratio: 1 / 1 !important;
+              object-fit: cover !important;
+            }
+          }
+          
+          @media only screen and (min-width: 601px) {
+            /* Grey background on desktop */
+            body, .email-body {
+              background-color: #eaeeed !important;
+            }
+            
+            /* Image gallery - 4 per row on desktop with square aspect ratio and horizontal padding */
+            .image-link {
+              width: calc(25% - 7.5px) !important;
+              margin-bottom: 10px !important;
+            }
+            
+            .image-link img {
+              width: 100% !important;
+              height: auto !important;
+              aspect-ratio: 1 / 1 !important;
+              object-fit: cover !important;
+            }
+          }
+        `}</style>
+      </Head>
+      <Preview>{displayType.replace('Reporting', 'Report')} {
+        displayType.toLowerCase().includes('depth') ? '🔧' : 
+        displayType.toLowerCase().includes('unscheduled') ? '⚠️' : 
+        displayType.toLowerCase().includes('fault') ? '🚨' : 
+        '📋'
+      } {serialNumber}</Preview>
+      <Body style={main} className="email-body">
+        <Container style={container} className="email-container">
           <Section style={{ ...headerSection, borderTop: `6px solid ${brandColor}` }}>
             {logoUrl && (
               <Img
@@ -105,31 +180,31 @@ export const TechnicalAlertEmail = ({
             </Text>
 
             {/* Status Card - All Info in One Card */}
-            <Section style={statusCard}>
+            <Section style={statusCard} className="status-card-section">
               <Row style={{ marginBottom: '20px' }}>
-                <Column style={{ paddingRight: '12px', width: '33.33%' }}>
+                <Column style={{ paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Unit Serial</Text>
                   <Text style={value}>{serialNumber}</Text>
                 </Column>
-                <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%' }}>
+                <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Date</Text>
                   <Text style={value}>{formattedDate}</Text>
                 </Column>
-                <Column style={{ paddingLeft: '12px', width: '33.33%' }}>
+                <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Location</Text>
                   <Text style={value}>{technicalData?.location_display || 'N/A'}</Text>
                 </Column>
               </Row>
               <Row>
-                <Column style={{ paddingRight: '12px', width: '33.33%' }}>
+                <Column style={{ paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Time</Text>
                   <Text style={value}>{formattedTime}</Text>
                 </Column>
-                <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%' }}>
+                <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Maintenance Company</Text>
                   <Text style={value}>{technicalData?.maintenance_company || 'N/A'}</Text>
                 </Column>
-                <Column style={{ paddingLeft: '12px', width: '33.33%' }}>
+                <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Engineer Name</Text>
                   <Text style={value}>{technicalData?.engineer_name || 'N/A'}</Text>
                 </Column>
@@ -151,7 +226,7 @@ export const TechnicalAlertEmail = ({
 
             {parsedEquipmentChecklist && parsedEquipmentChecklist.length > 0 && (
               <>
-                <Heading as="h2" style={h2}>Pre-disassembly Inspection</Heading>
+                <Heading as="h2" style={h2}>Pre-disassembly inspection</Heading>
                 
                 <Section>
                   {parsedEquipmentChecklist.map((item, i) => (
@@ -184,12 +259,11 @@ export const TechnicalAlertEmail = ({
                               key={imgIndex} 
                               href={imageUrl}
                               style={imageLink}
+                              className="image-link"
                             >
                               <Img
                                 src={imageUrl}
                                 alt={`${item.name} - Image ${imgIndex + 1}`}
-                                width="100%"
-                                height="134"
                                 style={imageThumbnail}
                               />
                             </Link>
@@ -204,7 +278,7 @@ export const TechnicalAlertEmail = ({
 
             {parsedMaintenanceChecklist && parsedMaintenanceChecklist.length > 0 && (
               <>
-                <Heading as="h2" style={h2}>Monthly Inspection Checklist</Heading>
+                <Heading as="h2" style={h2}>Monthly inspection checklist</Heading>
                 
                 <Section>
                   {parsedMaintenanceChecklist.map((group, groupIndex) => (
@@ -235,7 +309,7 @@ export const TechnicalAlertEmail = ({
             {Object.keys(answers).length > 0 && (
               <>
                 <Heading as="h2" style={h2}>
-                  {displayType === 'Monthly' ? 'Additional Comments' : `${displayType} Details`}
+                  {displayType === 'Monthly' ? 'Additional comments' : `${displayType} details`}
                 </Heading>
                 
                 <Section>
@@ -260,12 +334,11 @@ export const TechnicalAlertEmail = ({
                                 key={imgIndex} 
                                 href={imageUrl}
                                 style={imageLink}
+                                className="image-link"
                               >
                                 <Img
                                   src={imageUrl}
                                   alt={`${question} - Image ${imgIndex + 1}`}
-                                  width="100%"
-                                  height="134"
                                   style={imageThumbnail}
                                 />
                               </Link>
@@ -309,9 +382,9 @@ export const TechnicalAlertEmail = ({
 
 export default TechnicalAlertEmail;
 
-// Styles matching maintenance-report.jsx
+// --- Styles matching MaintenanceReportEmail ---
 const main = {
-  backgroundColor: '#eaeeed',
+  backgroundColor: '#eaeeed', // Grey on desktop, overridden to white on mobile
   padding: '0',
   margin: '0',
   fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
@@ -341,9 +414,6 @@ const logo = {
 
 const contentPadding = {
   padding: '0 30px 50px 30px',
-  '@media only screen and (max-width: 600px)': {
-    padding: '0 20px 40px 20px',
-  },
 };
 
 const h1 = {
@@ -360,7 +430,7 @@ const subTitle = {
   lineHeight: '24px',
   fontWeight: '600',
   textTransform: 'uppercase',
-  textAlign: 'left',
+  textAlign: 'center',
   letterSpacing: '1px',
   margin: '4px 0 36px 0',
 };
@@ -368,9 +438,9 @@ const subTitle = {
 const text = {
   color: '#152a31',
   fontSize: '15px',
-  lineHeight: '24px',
+  lineHeight: '22px',
   margin: '12px 0',
-  textAlign: 'center',
+  textAlign: 'left',
 };
 
 const statusCard = {
@@ -420,14 +490,16 @@ const h2 = {
   fontSize: '18px',
   fontWeight: '600',
   margin: '40px 0 24px 0',
-  textAlign: 'center',
+  textAlign: 'left',
+  textTransform: 'capitalize',
 };
 
 const checklistItemBlock = {
   marginBottom: '24px',
   padding: '16px',
-  backgroundColor: '#f3f6f5',
+  backgroundColor: '#F8FAFC',
   borderRadius: '8px',
+  border: '1px solid #E2E8F0',
 };
 
 const checklistItemName = {
@@ -456,8 +528,9 @@ const checklistValue = {
 const monthlyGroupBlock = {
   marginBottom: '24px',
   padding: '16px',
-  backgroundColor: '#f3f6f5',
+  backgroundColor: '#F8FAFC',
   borderRadius: '8px',
+  border: '1px solid #E2E8F0',
 };
 
 const monthlyGroupTitle = {
@@ -466,12 +539,12 @@ const monthlyGroupTitle = {
   color: '#152a31',
   margin: '0 0 12px 0',
   paddingBottom: '8px',
-  borderBottom: '2px solid #eaeeed',
+  borderBottom: '2px solid #E2E8F0',
 };
 
 const monthlyQuestionRow = {
   padding: '8px 0',
-  borderBottom: '1px solid #f3f6f5',
+  borderBottom: '1px solid #F1F5F9',
 };
 
 const monthlyQuestionText = {
@@ -510,27 +583,25 @@ const answerTextStyle = {
 const imageGallery = {
   display: 'flex',
   flexWrap: 'wrap',
-  gap: '8px',
+  gap: '10px',
   marginTop: '12px',
 };
 
 const imageLink = {
   display: 'inline-block',
-  flex: '0 0 calc(25% - 6px)',
-  marginBottom: '0',
+  textDecoration: 'none',
 };
 
 const imageThumbnail = {
   width: '100%',
-  height: '134px',
-  objectFit: 'cover',
   borderRadius: '8px',
-  border: '1px solid #eaeeed',
+  border: '1px solid #E2E8F0',
   display: 'block',
 };
 
 const footerContactText = {
-  fontSize: '13px',
+  fontSize: '15px',
+  lineHeight: '22px',
   color: '#152a31',
   textAlign: 'left',
   margin: '40px 0 0 0',
