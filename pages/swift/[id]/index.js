@@ -40,7 +40,7 @@ const getClientLogo = (companyName, serialNumber) => {
     hatloy: {
       serials: ["SWI010", "SWI011"],
       nameMatch: "Hatloy",
-      src: "/client_logos/Hatloy Maritime/HatloyMaritime_Logo(White).svg",
+      src: "/client_logos/hatloy_maritime/HatloyMaritime_Logo(White).svg",
     },
   };
 
