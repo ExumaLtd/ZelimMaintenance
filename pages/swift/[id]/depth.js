@@ -8,7 +8,7 @@ import VoiceInput from '../../../components/voice-input';
 import DatePicker from '../../../components/date-picker';
 import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
 import { useAutoSave } from '../../../hooks/use-auto-save';
-import { fetchFormData } from '@/lib/data-fetching'; // ✅ NEW IMPORT
+import { fetchFormData } from '@/lib/data-fetching';
 
 const autoGrow = (e) => {
   const el = e.target || e;
@@ -1081,10 +1081,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   );
 }
 
-// ============================================================================
-// ✅ UPDATED getServerSideProps - Uses shared data fetching
-// ============================================================================
-
 export async function getServerSideProps({ params }) {
   const token = params.id;
   
@@ -1095,23 +1091,15 @@ export async function getServerSideProps({ params }) {
       return { redirect: { destination: '/', permanent: false } };
     }
     
-    // Parse the template to extract equipment_checklist
-    let maintenanceChecklist = [];
-    try {
-      const questionsJson = data.template?.questionsData;
-      if (questionsJson && !Array.isArray(questionsJson)) {
-        maintenanceChecklist = questionsJson.equipment_checklist || [];
-      }
-    } catch (e) {
-      console.error('Error parsing equipment checklist:', e);
-    }
+    // Extract equipment_checklist from the RAW data
+    const maintenanceChecklist = data.template?.rawData?.equipment_checklist || [];
     
     return {
       props: {
         unit: data.unit,
         template: {
           ...data.template,
-          maintenanceChecklist,
+          maintenanceChecklist,  // This is what the component expects
         },
         allCompanies: data.companies,
         allEngineers: data.engineers,

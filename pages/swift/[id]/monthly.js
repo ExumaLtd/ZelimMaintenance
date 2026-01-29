@@ -8,6 +8,7 @@ import VoiceInput from '../../../components/voice-input';
 import DatePicker from '../../../components/date-picker';
 import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
 import { useAutoSave } from '../../../hooks/use-auto-save';
+import { fetchFormData } from '@/lib/data-fetching';
 
 const autoGrow = (e) => {
   const el = e.target || e;
@@ -911,76 +912,30 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
 export async function getServerSideProps({ params }) {
   const token = params.id;
+  
   try {
-    const apiKey = process.env.AIRTABLE_API_KEY;
-    const baseId = process.env.AIRTABLE_BASE_ID;
-    const tableName = process.env.AIRTABLE_SWIFT_TABLE || "swift_units";
-
-    if (!apiKey || !baseId) throw new Error("Missing Airtable Env");
-
-    const headers = { Authorization: `Bearer ${apiKey}` };
-    const unitFormula = encodeURIComponent(`{public_token}='${token}'`);
-    const templateFormula = encodeURIComponent(`{template_name}='Monthly maintenance'`);
-
-    // OPTIMIZED: Added maxRecords to all queries
-    const urls = [
-      `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${unitFormula}&maxRecords=1`,
-      `https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula=${templateFormula}&maxRecords=1`,
-      `https://api.airtable.com/v0/${baseId}/maintenance_companies?maxRecords=100`,
-      `https://api.airtable.com/v0/${baseId}/engineers?maxRecords=500`,
-    ];
-
-    const responses = await Promise.all(urls.map((url) => fetch(url, { headers })));
-    const results = await Promise.all(responses.map((res) => res.json()));
-    const [unitData, templateData, companyData, engineerData] = results;
-
-    if (!unitData.records || unitData.records.length === 0) return { notFound: true };
-
-    const unitRecord = unitData.records[0];
-    const companyLookup = {};
-    if (companyData.records) {
-      companyData.records.forEach((r) => {
-        if (r.fields.company_name) companyLookup[r.id] = r.fields.company_name;
-      });
+    const data = await fetchFormData(token, 'Monthly');
+    
+    if (data.notFound) {
+      return { redirect: { destination: '/', permanent: false } };
     }
-
-    // Parse the JSON from checklist_templates
-    let parsedTemplate = { maintenance_checklist: [] };
-    if (templateData.records?.[0]?.fields.questions_json) {
-      try {
-        parsedTemplate = JSON.parse(templateData.records[0].fields.questions_json);
-      } catch (e) {
-        console.error("Failed to parse template JSON:", e);
-      }
-    }
-
+    
+    // Extract maintenance_checklist from the RAW data
+    const maintenanceChecklist = data.template?.rawData?.maintenance_checklist || [];
+    
     return {
       props: {
-        unit: {
-          serial_number: unitRecord.fields.unit_name || unitRecord.fields.serial_number || "Unit",
-          company: unitRecord.fields.company || "",
-          record_id: unitRecord.id,
-          public_token: unitRecord.fields.public_token || token,
-        },
+        unit: data.unit,
         template: {
-          id: templateData.records?.[0]?.id || "",
-          maintenanceChecklist: parsedTemplate.maintenance_checklist || [],
+          ...data.template,
+          maintenanceChecklist,  // This is what the component expects
         },
-        allCompanies: Object.values(companyLookup).filter(Boolean),
-        allEngineers:
-          engineerData.records
-            ?.map((r) => ({
-              name: r.fields.engineer_name,
-              email: r.fields.email || "",
-              phone: r.fields.phone || "",
-              companyName:
-                r.fields["company"] && r.fields["company"][0] ? companyLookup[r.fields["company"][0]] : "",
-            }))
-            .filter((e) => e.name) || [],
+        allCompanies: data.companies,
+        allEngineers: data.engineers,
       },
     };
-  } catch (err) {
-    console.error("getServerSideProps error:", err);
-    return { notFound: true };
+  } catch (error) {
+    console.error('Error loading monthly form:', error);
+    return { redirect: { destination: '/', permanent: false } };
   }
 }
