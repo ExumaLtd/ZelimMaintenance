@@ -89,6 +89,12 @@ export const TechnicalAlertEmail = ({
               background-color: #eaeeed !important;
             }
             
+            /* Desktop info values - larger text */
+            .status-value {
+              font-size: 16px !important;
+              line-height: 24px !important;
+            }
+            
             /* Image gallery - 4 per row on desktop with square aspect ratio */
             .image-link {
               width: calc(25% - 10px) !important;
@@ -199,29 +205,29 @@ export const TechnicalAlertEmail = ({
               <Row style={{ marginBottom: '20px' }}>
                 <Column style={{ paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Serial</Text>
-                  <Text style={value}>{serialNumber}</Text>
+                  <Text style={value} className="status-value">{serialNumber}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Company</Text>
-                  <Text style={value}>{technicalData?.company_name || 'N/A'}</Text>
+                  <Text style={value} className="status-value">{technicalData?.company_name || 'N/A'}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Date</Text>
-                  <Text style={value}>{formattedDate}</Text>
+                  <Text style={value} className="status-value">{formattedDate}</Text>
                 </Column>
               </Row>
               <Row>
                 <Column style={{ paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Maintained By</Text>
-                  <Text style={value}>{technicalData?.maintenance_company || 'N/A'}</Text>
+                  <Text style={value} className="status-value">{technicalData?.maintenance_company || 'N/A'}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Engineer</Text>
-                  <Text style={value}>{technicalData?.engineer_name || 'N/A'}</Text>
+                  <Text style={value} className="status-value">{technicalData?.engineer_name || 'N/A'}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Location</Text>
-                  <Text style={value}>{getCountryFromLocation(technicalData?.location_display)}</Text>
+                  <Text style={value} className="status-value">{getCountryFromLocation(technicalData?.location_display)}</Text>
                 </Column>
               </Row>
             </Section>
@@ -450,7 +456,7 @@ const subTitle = {
 const text = {
   color: '#152a31',
   fontSize: '15px',
-  lineHeight: '22px',
+  lineHeight: '21px',
   margin: '12px 0',
   textAlign: 'left',
 };
@@ -474,7 +480,8 @@ const label = {
 };
 
 const value = {
-  fontSize: '16px',
+  fontSize: '15px',
+  lineHeight: '21px',
   color: '#152a31',
   fontWeight: '600',
   margin: '4px 0 0 0',
@@ -489,7 +496,7 @@ const buttonContainer = {
 const button = {
   borderRadius: '8px',
   color: '#ffffff',
-  fontSize: '16px',
+  fontSize: '15px',
   fontWeight: '600',
   textDecoration: 'none',
   textAlign: 'center',
@@ -501,7 +508,7 @@ const h2 = {
   color: '#152a31',
   fontSize: '18px',
   fontWeight: '600',
-  margin: '40px 0 26px 0',
+  margin: '40px 0 24px 0',
   textAlign: 'left',
 };
 
@@ -576,7 +583,6 @@ const answerBlock = {
   padding: '20px 24px',
   backgroundColor: '#f3f6f5',
   borderRadius: '8px',
-  margin: '32px 0',
 };
 
 const questionText = {
@@ -624,7 +630,7 @@ const portalButton = {
   borderRadius: '8px',
   backgroundColor: '#27454B',
   color: '#ffffff',
-  fontSize: '16px',
+  fontSize: '15px',
   fontWeight: '600',
   textDecoration: 'none',
   border: 'none',
