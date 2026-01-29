@@ -98,13 +98,13 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
       engPhone,
     }
   }, 
+    // ✅ Only save if user has made MANUAL inputs
     Object.keys(answers).some(key => answers[key]?.trim()) ||
     Object.keys(questionImages).length > 0 ||
-    selectedCompany ||
-    locationDisplay?.trim() ||
-    engName?.trim() ||
-    engEmail?.trim() ||
-    engPhone?.trim()
+    (selectedCompany && selectedCompany !== '') ||
+    (engName && engName !== '' && engName !== 'Please select') ||
+    (engEmail && engEmail !== '') ||
+    (engPhone && engPhone !== '')
   );
 
   // ✅ Changed: allEngineers → engineers

@@ -84,37 +84,37 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
   const storageKey = useMemo(() => `draft_depth_${unit?.serial_number}`, [unit?.serial_number]);
 
-  // Auto-save draft to Airtable
-  useAutoSave({
-    unitId: unit?.record_id,
-    maintenanceType: '30-month depth',
-    engineerEmail: engEmail,
-    draftData: {
-      checklistData,
-      currentStep,
-      answers,
-      questionImages,
-      checklistImages,
-      selectedCompany,
-      locationDisplay,
-      locationCountry,
-      engName,
-      engEmail,
-      engPhone,
-    }
-  }, 
-    (checklistData && checklistData.length > 0 && checklistData.some(item => 
-      item.returned !== null || item.condition !== null
-    )) ||
-    Object.keys(answers).some(key => answers[key]?.trim()) ||
-    Object.keys(questionImages).length > 0 ||
-    Object.keys(checklistImages).length > 0 ||
-    selectedCompany ||
-    locationDisplay?.trim() ||
-    engName?.trim() ||
-    engEmail?.trim() ||
-    engPhone?.trim()
-  );
+useAutoSave({
+  unitId: unit?.record_id,
+  maintenanceType: '30-month depth',
+  engineerEmail: engEmail,
+  draftData: {
+    checklistData,
+    currentStep,
+    answers,
+    questionImages,
+    checklistImages,
+    selectedCompany,
+    locationDisplay,
+    locationCountry,
+    engName,
+    engEmail,
+    engPhone,
+  }
+}, 
+  // ✅ Only save if user has made MANUAL inputs
+  (checklistData && checklistData.length > 0 && checklistData.some(item => 
+    item.returned !== null || item.condition !== null
+  )) ||
+  Object.keys(answers).some(key => answers[key]?.trim()) ||
+  Object.keys(questionImages).length > 0 ||
+  Object.keys(checklistImages).length > 0 ||
+  (selectedCompany && selectedCompany !== '') ||  // Has selected a company
+  (engName && engName !== '' && engName !== 'Please select') ||  // Has entered/selected engineer
+  (engEmail && engEmail !== '') ||
+  (engPhone && engPhone !== '')
+  // NOTE: Removed locationDisplay because it's auto-filled by geolocation
+);
 
   // Initialize checklist data from template
   useEffect(() => {

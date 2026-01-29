@@ -78,7 +78,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
 
   const storageKey = useMemo(() => `draft_fault_reporting_${unit?.serial_number}`, [unit?.serial_number]);
 
-  // Auto-save draft to Airtable - ✅ Updated condition
+// Auto-save draft to Airtable
   useAutoSave({
     unitId: unit?.record_id,
     maintenanceType: 'Fault report',
@@ -94,14 +94,13 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
       engPhone,
     }
   }, 
-    // ✅ Save if there's ANY content, not just when email is valid
-    Object.keys(answers).some(key => answers[key]?.trim()) || // Has any answers
-    Object.keys(questionImages).length > 0 || // Has images
-    selectedCompany || // Has company selected
-    locationDisplay?.trim() || // Has location
-    engName?.trim() || // Has engineer name
-    engEmail?.trim() || // Has email (even if invalid)
-    engPhone?.trim() // Has phone
+    // ✅ Only save if user has made MANUAL inputs
+    Object.keys(answers).some(key => answers[key]?.trim()) ||
+    Object.keys(questionImages).length > 0 ||
+    (selectedCompany && selectedCompany !== '') ||
+    (engName && engName !== '' && engName !== 'Please select') ||
+    (engEmail && engEmail !== '') ||
+    (engPhone && engPhone !== '')
   );
 
   const filteredEngineers = useMemo(() => {

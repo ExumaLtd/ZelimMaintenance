@@ -83,7 +83,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
   const storageKey = useMemo(() => `draft_monthly_${unit?.serial_number}`, [unit?.serial_number]);
 
-  // Auto-save draft to Airtable
+// Auto-save draft to Airtable
   useAutoSave({
     unitId: unit?.record_id,
     maintenanceType: 'Monthly',
@@ -100,17 +100,16 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       engPhone,
     }
   }, 
-    // ✅ Save if there's ANY content, not just when email is valid
+    // ✅ Only save if user has made MANUAL inputs
     (checklistData && checklistData.length > 0 && checklistData.some(group => 
       group.questions.some(q => q.answer !== null)
-    )) || // Has any checklist answers
-    furtherComments?.trim() || // Has comments
-    (commentImages && commentImages.length > 0) || // Has images
-    selectedCompany || // Has company selected
-    locationDisplay?.trim() || // Has location
-    engName?.trim() || // Has engineer name
-    engEmail?.trim() || // Has email (even if invalid)
-    engPhone?.trim() // Has phone
+    )) ||
+    furtherComments?.trim() ||
+    (commentImages && commentImages.length > 0) ||
+    (selectedCompany && selectedCompany !== '') ||
+    (engName && engName !== '' && engName !== 'Please select') ||
+    (engEmail && engEmail !== '') ||
+    (engPhone && engPhone !== '')
   );
 
   // Initialize checklist data from template (grouped structure)
