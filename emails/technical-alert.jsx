@@ -123,11 +123,6 @@ export const TechnicalAlertEmail = ({
               padding: 0 20px 50px 20px !important;
             }
             
-            /* Reduce answer block padding on mobile */
-            .answer-block-mobile {
-              padding: 16px !important;
-            }
-            
             /* Reduce status card padding on mobile */
             .status-card-mobile {
               padding: 16px !important;
@@ -581,6 +576,7 @@ const answerBlock = {
   padding: '20px 24px',
   backgroundColor: '#f3f6f5',
   borderRadius: '8px',
+  margin: '32px 0',
 };
 
 const questionText = {
