@@ -113,7 +113,7 @@ export const MaintenanceReportEmail = ({
                   <Text style={label}>Unit Serial</Text>
                   <Text style={value}>{serialNumber}</Text>
                 </Column>
-                <Column style={{ borderLeft: '1px solid #E2E8F0', paddingLeft: '20px' }}>
+                <Column style={{ paddingLeft: '20px' }}>
                   <Text style={label}>Completion Date</Text>
                   <Text style={value}>{today}</Text>
                 </Column>
@@ -371,7 +371,7 @@ const text = {
 };
 
 const statusCard = {
-  backgroundColor: '#F1F5F9',
+  backgroundColor: '#f3f6f5',
   borderRadius: '8px',
   padding: '24px',
   margin: '32px 0',
