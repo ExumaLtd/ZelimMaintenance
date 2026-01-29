@@ -78,7 +78,7 @@ export default async function handler(req, res) {
           serialNumber,
           reportType: displayType,
           maintenanceCompany: technicalData?.maintenance_company || 'N/A',
-          companyName: technicalData?.company_name || 'N/A',
+          companyName: technicalData?.company || 'N/A',
           location: technicalData?.location_display || 'N/A',
           answers,
           equipmentChecklist: equipment_checklist, // Depth maintenance (returned/condition)
@@ -98,6 +98,7 @@ export default async function handler(req, res) {
           displayType, 
           technicalData: {
             unit_record_id: technicalData?.unit_record_id,
+            company_name: technicalData?.company || 'N/A',
             maintenance_company: technicalData?.maintenance_company || 'N/A',
             engineer_name: technicalData?.engineer_name || engineerName,
             location_display: technicalData?.location_display || 'N/A',

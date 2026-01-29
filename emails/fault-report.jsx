@@ -47,9 +47,23 @@ export const FaultReportEmail = ({
               background-color: #eaeeed !important;
             }
             
-            /* Image gallery - 4 per row on desktop */
+            /* Desktop info values - larger text */
+            .status-value {
+              font-size: 16px !important;
+              line-height: 24px !important;
+            }
+            
+            /* Image gallery - 4 per row on desktop with square aspect ratio */
             .image-link {
               width: calc(25% - 10px) !important;
+            }
+            
+            .image-link img {
+              width: 100% !important;
+              height: auto !important;
+              aspect-ratio: 1 / 1 !important;
+              object-fit: cover !important;
+              border: none !important;
             }
           }
           
@@ -57,6 +71,8 @@ export const FaultReportEmail = ({
           @media only screen and (max-width: 600px) {
             body, .email-body {
               background-color: #ffffff !important;
+              padding: 0 !important;
+              margin: 0 !important;
             }
             
             /* Make container full width on mobile */
@@ -66,33 +82,39 @@ export const FaultReportEmail = ({
               margin: 0 !important;
             }
             
-            /* Force status card to 2 per row - ALL 6 items */
-            .status-card-section table tr {
-              display: block !important;
+            /* Reduce content padding to 20px on mobile */
+            .content-padding {
+              padding: 0 20px 50px 20px !important;
             }
             
-            .status-card-section table td {
-              display: inline-block !important;
-              width: 50% !important;
-              max-width: 50% !important;
-              box-sizing: border-box !important;
-              vertical-align: top !important;
-              padding: 0 8px 16px 0 !important;
+            /* Reduce status card padding on mobile */
+            .status-card-mobile {
+              padding: 16px !important;
             }
             
-            .status-card-section table td:nth-child(2n) {
-              padding-right: 0 !important;
-              padding-left: 8px !important;
+            /* Image gallery - 2 per row on mobile, fill width inside grey box with 10px gap */
+            .image-gallery-mobile {
+              margin-left: 0 !important;
+              margin-right: 0 !important;
+              margin-top: 12px !important;
+              display: flex !important;
+              flex-wrap: wrap !important;
             }
             
-            .status-card-section table td:nth-child(2n+1) {
-              padding-right: 8px !important;
-              padding-left: 0 !important;
-            }
-            
-            /* Image gallery - 3 per row on mobile */
             .image-link {
-              width: calc(33.333% - 10px) !important;
+              box-sizing: border-box !important;
+              margin: 0 0 10px 0 !important;
+              padding: 0 !important;
+            }
+            
+            .image-link:nth-child(2n+1) {
+              width: calc(50% - 5px) !important;
+              margin-right: 10px !important;
+            }
+            
+            .image-link:nth-child(2n) {
+              width: calc(50% - 5px) !important;
+              margin-left: 0 !important;
             }
             
             .image-link img {
@@ -100,6 +122,7 @@ export const FaultReportEmail = ({
               height: auto !important;
               aspect-ratio: 1 / 1 !important;
               object-fit: cover !important;
+              border: none !important;
             }
           }
         `}</style>
@@ -120,7 +143,7 @@ export const FaultReportEmail = ({
             )}
           </Section>
 
-          <Section style={contentPadding}>
+          <Section style={contentPadding} className="content-padding">
             <Heading style={h1}>{serialNumber}</Heading>
             <Text style={{ ...subTitle, color: brandColor }}>
               Fault Report Confirmation
@@ -136,33 +159,33 @@ export const FaultReportEmail = ({
             </Text>
 
             {/* Status Card - All Info */}
-            <Section style={statusCard} className="status-card-section">
+            <Section style={statusCard} className="status-card-section status-card-mobile">
               <Row style={{ marginBottom: '20px' }}>
                 <Column style={{ paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Unit Serial</Text>
-                  <Text style={value}>{serialNumber}</Text>
+                  <Text style={value} className="status-value">{serialNumber}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Report Date</Text>
-                  <Text style={value}>{today}</Text>
+                  <Text style={value} className="status-value">{today}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Location</Text>
-                  <Text style={value}>{location && location.includes(',') ? location.split(',').pop().trim() : location}</Text>
+                  <Text style={value} className="status-value">{location && location.includes(',') ? location.split(',').pop().trim() : location}</Text>
                 </Column>
               </Row>
               <Row>
                 <Column style={{ paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Company Name</Text>
-                  <Text style={value}>{companyName}</Text>
+                  <Text style={value} className="status-value">{companyName}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Maintenance Company</Text>
-                  <Text style={value}>{maintenanceCompany}</Text>
+                  <Text style={value} className="status-value">{maintenanceCompany}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Engineer Name</Text>
-                  <Text style={value}>{engineerName}</Text>
+                  <Text style={value} className="status-value">{engineerName}</Text>
                 </Column>
               </Row>
             </Section>
@@ -190,11 +213,12 @@ export const FaultReportEmail = ({
                         
                         {/* Display images if present */}
                         {images.length > 0 && (
-                          <Section style={imageGallery}>
+                          <Section style={imageGallery} className="image-gallery-mobile">
                             {images.map((imageUrl, imgIndex) => (
                               <Link 
                                 key={imgIndex} 
                                 href={imageUrl}
+                                target="_blank"
                                 style={imageLink}
                                 className="image-link"
                               >
@@ -342,24 +366,24 @@ const h2 = {
 
 const answerBlock = {
   marginBottom: '20px',
-  padding: '16px',
-  backgroundColor: '#F8FAFC',
+  padding: '20px 24px',
+  backgroundColor: '#f3f6f5',
   borderRadius: '8px',
-  border: '1px solid #E2E8F0',
 };
 
 const questionText = {
-  fontSize: '14px',
+  fontSize: '15px',
   fontWeight: '600',
   color: '#152a31',
   margin: '0 0 4px 0',
+  lineHeight: '21px',
 };
 
 const answerTextStyle = {
-  fontSize: '14px',
+  fontSize: '15px',
   color: '#152a31',
   margin: '0',
-  lineHeight: '1.5',
+  lineHeight: '21px',
   whiteSpace: 'pre-wrap',
 };
 
@@ -367,8 +391,6 @@ const imageGallery = {
   display: 'flex',
   flexWrap: 'wrap',
   marginTop: '12px',
-  marginLeft: '-5px',
-  marginRight: '-5px',
 };
 
 const imageLink = {
@@ -380,7 +402,6 @@ const imageLink = {
 const imageThumbnail = {
   width: '100%',
   borderRadius: '8px',
-  border: '1px solid #E2E8F0',
   display: 'block',
 };
 
@@ -389,7 +410,7 @@ const footerContactText = {
   lineHeight: '21px',
   color: '#152a31',
   textAlign: 'left',
-  margin: '40px 0 0 0',
+  margin: '24px 0 0 0',
 };
 
 const emailLink = {
