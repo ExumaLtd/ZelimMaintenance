@@ -495,15 +495,21 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
 
       if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
 
-      await fetch('/api/mark-draft-complete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          unitId: unit?.record_id,
-          maintenanceType: 'Annual',
-          engineerEmail: engEmail,
-        }),
-      });
+// Mark draft as complete (if one exists)
+      try {
+        await fetch('/api/mark-draft-complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            unitId: unit?.record_id,
+            maintenanceType: 'Annual',
+            engineerEmail: engEmail,
+          }),
+        });
+      } catch (err) {
+        // Silently ignore if no draft exists - that's fine
+        console.log('No draft to mark complete (form completed without auto-save)');
+      }
 
       const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
 

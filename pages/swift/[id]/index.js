@@ -108,13 +108,13 @@ export async function getServerSideProps(context) {
     try {
       console.log('Fetching drafts for this unit only...');
       
-      // Get all active drafts
-      const allDrafts = await base('maintenance_drafts')
-        .select({
-          filterByFormula: 'NOT({completed})',
-          fields: ['unit_id', 'maintenance_type', 'last_updated', 'engineer_email'],
-        })
-        .all();
+// Get all active drafts
+const allDrafts = await base('maintenance_drafts')
+  .select({
+    filterByFormula: '{completed} = 0',  // ← Only get explicitly unchecked drafts
+    fields: ['unit_id', 'maintenance_type', 'last_updated', 'engineer_email'],
+  })
+  .all();
       
       // Filter in JavaScript to match unit_id (Link field returns array)
       const matchingDrafts = allDrafts.filter(d => {
