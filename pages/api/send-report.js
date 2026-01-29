@@ -20,6 +20,7 @@ export default async function handler(req, res) {
       engineerEmail, 
       engineerName, 
       serialNumber, 
+      company, // Company name
       answers, // Now: { "Question text": { text: "answer", images: ["url1", "url2"] } }
       equipment_checklist, // Depth maintenance: [{ name, returned, condition, images }]
       maintenance_checklist, // Monthly maintenance: [{ id, title, questions: [{ text, answer }] }]
@@ -78,7 +79,7 @@ export default async function handler(req, res) {
           serialNumber,
           reportType: displayType,
           maintenanceCompany: technicalData?.maintenance_company || 'N/A',
-          companyName: technicalData?.company || 'N/A',
+          companyName: company || technicalData?.company || 'N/A',
           location: technicalData?.location_display || 'N/A',
           answers,
           equipmentChecklist: equipment_checklist, // Depth maintenance (returned/condition)
@@ -98,7 +99,7 @@ export default async function handler(req, res) {
           displayType, 
           technicalData: {
             unit_record_id: technicalData?.unit_record_id,
-            company_name: technicalData?.company || 'N/A',
+            company_name: company || technicalData?.company || 'N/A',
             maintenance_company: technicalData?.maintenance_company || 'N/A',
             engineer_name: technicalData?.engineer_name || engineerName,
             location_display: technicalData?.location_display || 'N/A',

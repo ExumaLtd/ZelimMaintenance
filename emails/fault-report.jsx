@@ -365,7 +365,7 @@ const h2 = {
 };
 
 const answerBlock = {
-  marginBottom: '20px',
+  marginBottom: '12px',
   padding: '20px 24px',
   backgroundColor: '#f3f6f5',
   borderRadius: '8px',

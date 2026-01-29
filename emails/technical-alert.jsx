@@ -240,16 +240,16 @@ export const TechnicalAlertEmail = ({
                   {parsedEquipmentChecklist.map((item, i) => (
                     <div key={i} style={checklistItemBlock}>
                       <Text style={checklistItemName}>{item.name}</Text>
-                      <Row>
+                      <Row style={{ marginBottom: '12px' }}>
                         <Column style={{ paddingRight: '10px' }}>
-                          <Text style={checklistLabel}>Returned:</Text>
+                          <Text style={checklistLabel}>Returned</Text>
                           <Text style={checklistValue}>
                             {item.returned === true ? '✓ Yes' : item.returned === false ? '✗ No' : 'Not answered'}
                           </Text>
                         </Column>
                         {item.returned === true && (
                           <Column style={{ paddingLeft: '10px' }}>
-                            <Text style={checklistLabel}>Condition:</Text>
+                            <Text style={checklistLabel}>Condition</Text>
                             <Text style={{
                               ...checklistValue,
                               color: item.condition === 'poor' ? '#EF4444' : item.condition === 'fair' ? '#F59E0B' : '#10B981'
@@ -513,7 +513,7 @@ const h2 = {
 };
 
 const checklistItemBlock = {
-  marginBottom: '10px',
+  marginBottom: '12px',
   padding: '20px 24px',
   backgroundColor: '#f3f6f5',
   borderRadius: '8px',
@@ -545,7 +545,7 @@ const checklistValue = {
 };
 
 const monthlyGroupBlock = {
-  marginBottom: '10px',
+  marginBottom: '12px',
   padding: '20px 24px',
   backgroundColor: '#f3f6f5',
   borderRadius: '8px',
@@ -580,7 +580,7 @@ const monthlyAnswerText = {
 };
 
 const answerBlock = {
-  marginBottom: '20px',
+  marginBottom: '12px',
   padding: '20px 24px',
   backgroundColor: '#f3f6f5',
   borderRadius: '8px',
