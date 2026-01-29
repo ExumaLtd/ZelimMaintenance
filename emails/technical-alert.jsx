@@ -75,13 +75,6 @@ export const TechnicalAlertEmail = ({
       <Head>
         <style>{`
           @media only screen and (max-width: 600px) {
-            /* White background on mobile only */
-            body, .email-body {
-              background-color: #ffffff !important;
-              padding: 0 !important;
-              margin: 0 !important;
-            }
-            
             /* Make container full width on mobile */
             .email-container {
               max-width: 100% !important;
@@ -128,12 +121,7 @@ export const TechnicalAlertEmail = ({
           }
           
           @media only screen and (min-width: 601px) {
-            /* Grey background on desktop */
-            body, .email-body {
-              background-color: #eaeeed !important;
-            }
-            
-            /* Image gallery - 4 per row on desktop with square aspect ratio and horizontal padding */
+            /* Image gallery - 4 per row on desktop with square aspect ratio */
             .image-link {
               width: calc(25% - 7.5px) !important;
               margin-bottom: 10px !important;
@@ -562,7 +550,10 @@ const monthlyAnswerText = {
 
 const answerBlock = {
   marginBottom: '20px',
-  paddingLeft: '0',
+  padding: '16px',
+  backgroundColor: '#F8FAFC',
+  borderRadius: '8px',
+  border: '1px solid #E2E8F0',
 };
 
 const questionText = {
@@ -583,13 +574,15 @@ const answerTextStyle = {
 const imageGallery = {
   display: 'flex',
   flexWrap: 'wrap',
-  gap: '10px',
   marginTop: '12px',
+  marginLeft: '-5px',
+  marginRight: '-5px',
 };
 
 const imageLink = {
   display: 'inline-block',
   textDecoration: 'none',
+  padding: '0 5px 10px 5px',
 };
 
 const imageThumbnail = {
@@ -601,7 +594,7 @@ const imageThumbnail = {
 
 const footerContactText = {
   fontSize: '15px',
-  lineHeight: '22px',
+  lineHeight: '21px',
   color: '#152a31',
   textAlign: 'left',
   margin: '40px 0 0 0',

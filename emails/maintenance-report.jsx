@@ -69,13 +69,6 @@ export const MaintenanceReportEmail = ({
       <Head>
         <style>{`
           @media only screen and (max-width: 600px) {
-            /* Remove ALL grey background and padding on mobile */
-            body, .email-body {
-              background-color: #ffffff !important;
-              padding: 0 !important;
-              margin: 0 !important;
-            }
-            
             /* Make container full width on mobile */
             .email-container {
               max-width: 100% !important;
@@ -83,39 +76,33 @@ export const MaintenanceReportEmail = ({
               margin: 0 !important;
             }
             
-            /* Force status card columns to 2 per row on mobile - AGGRESSIVE */
-            .mobile-col,
-            td.mobile-col,
-            [class*="mobile-col"],
-            table td[class~="mobile-col"] {
-              display: inline-block !important;
+            /* Force ALL table cells in status card to stack 2 per row */
+            .status-card-section table {
+              width: 100% !important;
+            }
+            
+            .status-card-section table tr {
+              display: flex !important;
+              flex-wrap: wrap !important;
+            }
+            
+            .status-card-section table td {
               width: 50% !important;
               max-width: 50% !important;
-              min-width: 50% !important;
+              display: inline-block !important;
               box-sizing: border-box !important;
-              float: left !important;
-              padding: 0 4px 16px 4px !important;
+              padding: 0 8px 16px 0 !important;
               vertical-align: top !important;
             }
             
-            /* First column in each pair - no left padding */
-            .mobile-col:nth-child(odd),
-            td.mobile-col:nth-child(odd) {
-              padding-left: 0 !important;
-              padding-right: 8px !important;
-              clear: left !important;
-            }
-            
-            /* Second column in each pair - no right padding */
-            .mobile-col:nth-child(even),
-            td.mobile-col:nth-child(even) {
-              padding-left: 8px !important;
+            .status-card-section table td:nth-child(even) {
               padding-right: 0 !important;
+              padding-left: 8px !important;
             }
             
-            /* Image gallery - 2 per row on mobile with square aspect ratio */
+            /* Image gallery - 3 per row on mobile with square aspect ratio */
             .image-link {
-              width: calc(50% - 5px) !important;
+              width: calc(33.333% - 7px) !important;
               margin-bottom: 10px !important;
             }
             
@@ -180,7 +167,7 @@ export const MaintenanceReportEmail = ({
             </Text>
 
             {/* Status Card - All Info */}
-            <Section style={statusCard}>
+            <Section style={statusCard} className="status-card-section">
               <Row style={{ marginBottom: '20px' }}>
                 <Column style={{ paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Serial</Text>
@@ -377,7 +364,7 @@ export default MaintenanceReportEmail;
 
 // --- Styles: Professional Maritime Aesthetic ---
 const main = {
-  backgroundColor: '#ffffff', // White, not grey
+  backgroundColor: '#eaeeed', // Grey on desktop, overridden to white on mobile
   padding: '0',
   margin: '0',
   fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
@@ -467,7 +454,8 @@ const h2 = {
   fontSize: '18px',
   fontWeight: '600',
   margin: '40px 0 24px 0',
-  textAlign: 'center',
+  textAlign: 'left',
+  textTransform: 'capitalize',
 };
 
 const checklistItemBlock = {
@@ -539,7 +527,10 @@ const monthlyAnswerText = {
 
 const answerBlock = {
   marginBottom: '20px',
-  paddingLeft: '0',
+  padding: '16px',
+  backgroundColor: '#F8FAFC',
+  borderRadius: '8px',
+  border: '1px solid #E2E8F0',
 };
 
 const questionText = {
@@ -560,13 +551,15 @@ const answerTextStyle = {
 const imageGallery = {
   display: 'flex',
   flexWrap: 'wrap',
-  gap: '10px', // 10px gap between images
   marginTop: '12px',
+  marginLeft: '-5px',
+  marginRight: '-5px',
 };
 
 const imageLink = {
   display: 'inline-block',
   textDecoration: 'none',
+  padding: '0 5px 10px 5px', // Padding instead of margin for spacing
 };
 
 const imageThumbnail = {
@@ -582,7 +575,7 @@ const hr = {
 };
 
 const footerContactText = {
-  fontSize: '13px',
+  fontSize: '15px',
   lineHeight: '21px',
   color: '#152a31',
   textAlign: 'left',
