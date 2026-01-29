@@ -64,20 +64,16 @@ export const MaintenanceReportEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>Maintenance Summary: {serialNumber}</Preview>
+      <Preview>{reportType} {
+        reportType.toLowerCase().includes('depth') ? '🔧' : 
+        reportType.toLowerCase().includes('unscheduled') ? '⚠️' : 
+        reportType.toLowerCase().includes('fault') ? '🚨' : 
+        '📋'
+      } {serialNumber}</Preview>
       <Body style={main}>
-        {/* View in browser link */}
-        {previewUrl && (
-          <Container style={previewLinkContainer}>
-            <Text style={previewLinkText}>
-              Having trouble viewing this email?{' '}
-              <a href={previewUrl} style={previewLink}>View in browser</a>
-            </Text>
-          </Container>
-        )}
         <Container style={container}>
-          {/* Header with Brand Color Accent */}
-          <Section style={{ ...headerSection, borderTop: `6px solid ${brandColor}` }}>
+          {/* Header */}
+          <Section style={headerSection}>
             {logoUrl && (
               <Img
                 src={absoluteLogoUrl}
@@ -92,7 +88,7 @@ export const MaintenanceReportEmail = ({
           <Section style={contentPadding}>
             <Heading style={h1}>{serialNumber}</Heading>
             <Text style={{ ...subTitle, color: brandColor }}>
-              {reportType} Maintenance Confirmation
+              {reportType} Confirmation
             </Text>
             
             <Text style={text}>
@@ -159,8 +155,8 @@ export const MaintenanceReportEmail = ({
                               <Img
                                 src={imageUrl}
                                 alt={`${item.name} - Image ${imgIndex + 1}`}
-                                width="150"
-                                height="150"
+                                width="140"
+                                height="140"
                                 style={imageThumbnail}
                               />
                             </Link>
@@ -239,8 +235,8 @@ export const MaintenanceReportEmail = ({
                                 <Img
                                   src={imageUrl}
                                   alt={`${question} - Image ${imgIndex + 1}`}
-                                  width="150"
-                                  height="150"
+                                  width="140"
+                                  height="140"
                                   style={imageThumbnail}
                                 />
                               </Link>
@@ -495,11 +491,11 @@ const imageLink = {
 };
 
 const imageThumbnail = {
-  width: '150px',
-  height: '150px',
+  width: '140px',
+  height: '140px',
   objectFit: 'cover',
   borderRadius: '8px',
-  border: '2px solid #E2E8F0',
+  border: '1px solid #eaeeed',
 };
 
 const hr = {
