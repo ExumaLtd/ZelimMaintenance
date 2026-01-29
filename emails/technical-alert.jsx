@@ -6,6 +6,7 @@ import {
   Hr,
   Html,
   Img,
+  Link,
   Preview,
   Section,
   Text,
@@ -20,13 +21,12 @@ export const TechnicalAlertEmail = ({
   displayType = 'Maintenance',
   technicalData = {},
   answers = {},
-  equipmentChecklist = null, // For depth maintenance (returned/condition format)
-  maintenanceChecklist = null, // For monthly maintenance (grouped yes/no questions)
-  brandColor = '#172F36',
+  equipmentChecklist = null,
+  maintenanceChecklist = null,
+  brandColor = '#152a31',
   logoUrl = '/logo/zelim-logo-dark.png',
   previewUrl = null
 }) => {
-  // Format date and time
   const submissionDate = new Date();
   const formattedDate = submissionDate.toLocaleDateString('en-GB', {
     day: 'numeric',
@@ -38,7 +38,6 @@ export const TechnicalAlertEmail = ({
     minute: '2-digit',
   });
 
-  // Parse equipment checklist if it's a string (depth maintenance)
   let parsedEquipmentChecklist = null;
   if (equipmentChecklist) {
     try {
@@ -50,7 +49,6 @@ export const TechnicalAlertEmail = ({
     }
   }
 
-  // Parse maintenance checklist if it's a string (monthly maintenance)
   let parsedMaintenanceChecklist = null;
   if (maintenanceChecklist) {
     try {
@@ -62,14 +60,12 @@ export const TechnicalAlertEmail = ({
     }
   }
 
-  // Airtable configuration
   const airtableBaseId = 'appOQXbopTwn0SdnL'; 
   const airtableTableId = 'tblo0gVrtd422UQgd';
   const airtableUrl = technicalData?.unit_record_id 
     ? `https://airtable.com/${airtableBaseId}/${airtableTableId}/${technicalData.unit_record_id}`
     : '#';
 
-  // Ensure logo URL is absolute for email clients
   const absoluteLogoUrl = logoUrl?.startsWith('http') 
     ? logoUrl 
     : `https://maintenance.exuma.co.uk${logoUrl?.startsWith('/') ? logoUrl : `/${logoUrl}`}`;
@@ -77,19 +73,14 @@ export const TechnicalAlertEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>{serialNumber} {displayType} Submitted</Preview>
+      <Preview>{displayType} {
+        displayType.toLowerCase().includes('depth') ? '🔧' : 
+        displayType.toLowerCase().includes('unscheduled') ? '⚠️' : 
+        displayType.toLowerCase().includes('fault') ? '🚨' : 
+        '📋'
+      } {serialNumber}</Preview>
       <Body style={main}>
-        {/* View in browser link */}
-        {previewUrl && (
-          <Container style={previewLinkContainer}>
-            <Text style={previewLinkText}>
-              Having trouble viewing this email?{' '}
-              <a href={previewUrl} style={previewLink}>View in browser</a>
-            </Text>
-          </Container>
-        )}
         <Container style={container}>
-          {/* Header with Brand Color Accent */}
           <Section style={{ ...headerSection, borderTop: `6px solid ${brandColor}` }}>
             {logoUrl && (
               <Img
@@ -113,16 +104,13 @@ export const TechnicalAlertEmail = ({
               <strong>{serialNumber}</strong>.
             </Text>
 
-            <Hr style={hr} />
-
-            {/* Status Card - Submission Details */}
             <Section style={statusCard}>
               <Row>
                 <Column style={{ paddingRight: '20px' }}>
                   <Text style={label}>Maintenance Company</Text>
                   <Text style={value}>{technicalData?.maintenance_company || 'N/A'}</Text>
                 </Column>
-                <Column style={{ borderLeft: '1px solid #E2E8F0', paddingLeft: '20px' }}>
+                <Column style={{ paddingLeft: '20px' }}>
                   <Text style={label}>Engineer Name</Text>
                   <Text style={value}>{technicalData?.engineer_name || 'N/A'}</Text>
                 </Column>
@@ -135,7 +123,7 @@ export const TechnicalAlertEmail = ({
                   <Text style={label}>Location</Text>
                   <Text style={value}>{technicalData?.location_display || 'N/A'}</Text>
                 </Column>
-                <Column style={{ borderLeft: '1px solid #E2E8F0', paddingLeft: '20px' }}>
+                <Column style={{ paddingLeft: '20px' }}>
                   <Text style={label}>Date</Text>
                   <Text style={value}>{formattedDate}</Text>
                 </Column>
@@ -151,27 +139,21 @@ export const TechnicalAlertEmail = ({
               </Row>
             </Section>
 
-            {/* CTA Button */}
             {technicalData?.unit_record_id && (
-              <>
-                <Hr style={hr} />
-                <Section style={buttonContainer}>
-                  <Button 
-                    pX={28} 
-                    pY={14} 
-                    style={{ ...button, backgroundColor: brandColor }} 
-                    href={airtableUrl}
-                  >
-                    View Record in Airtable
-                  </Button>
-                </Section>
-              </>
+              <Section style={buttonContainer}>
+                <Button 
+                  pX={28} 
+                  pY={14} 
+                  style={{ ...button, backgroundColor: brandColor }} 
+                  href={airtableUrl}
+                >
+                  View Record in Airtable
+                </Button>
+              </Section>
             )}
 
-            {/* Equipment Checklist Section (Depth Maintenance) */}
             {parsedEquipmentChecklist && parsedEquipmentChecklist.length > 0 && (
               <>
-                <Hr style={hr} />
                 <Heading as="h2" style={h2}>Pre-disassembly Inspection</Heading>
                 
                 <Section>
@@ -198,11 +180,10 @@ export const TechnicalAlertEmail = ({
                         )}
                       </Row>
                       
-                      {/* Display images if item has poor condition */}
                       {item.images && item.images.length > 0 && (
                         <Section style={imageGallery}>
                           {item.images.map((imageUrl, imgIndex) => (
-                            <a 
+                            <Link 
                               key={imgIndex} 
                               href={imageUrl}
                               style={imageLink}
@@ -210,11 +191,11 @@ export const TechnicalAlertEmail = ({
                               <Img
                                 src={imageUrl}
                                 alt={`${item.name} - Image ${imgIndex + 1}`}
-                                width="150"
-                                height="150"
+                                width="100%"
+                                height="134"
                                 style={imageThumbnail}
                               />
-                            </a>
+                            </Link>
                           ))}
                         </Section>
                       )}
@@ -224,10 +205,8 @@ export const TechnicalAlertEmail = ({
               </>
             )}
 
-            {/* Maintenance Checklist Section (Monthly Maintenance) */}
             {parsedMaintenanceChecklist && parsedMaintenanceChecklist.length > 0 && (
               <>
-                <Hr style={hr} />
                 <Heading as="h2" style={h2}>Monthly Inspection Checklist</Heading>
                 
                 <Section>
@@ -256,17 +235,14 @@ export const TechnicalAlertEmail = ({
               </>
             )}
 
-            {/* Maintenance Questions Section (Annual, Unscheduled, or Further Comments) */}
             {Object.keys(answers).length > 0 && (
               <>
-                <Hr style={hr} />
                 <Heading as="h2" style={h2}>
                   {displayType === 'Monthly' ? 'Additional Comments' : `${displayType} Details`}
                 </Heading>
                 
                 <Section>
                   {Object.entries(answers).map(([question, answerData], i) => {
-                    // Handle both old format (string) and new format (object with text/images)
                     const isObject = typeof answerData === 'object' && answerData !== null;
                     const answerTextValue = isObject ? answerData.text : answerData;
                     const images = isObject ? (answerData.images || []) : [];
@@ -274,17 +250,16 @@ export const TechnicalAlertEmail = ({
                     return (
                       <div key={i} style={answerBlock}>
                         <Text style={questionText}>{question}</Text>
-                        <Text style={answerText}>
+                        <Text style={answerTextStyle}>
                           {answerTextValue !== null && answerTextValue !== undefined && answerTextValue !== '' 
                             ? String(answerTextValue) 
                             : 'Not answered'}
                         </Text>
                         
-                        {/* Display images if present */}
                         {images.length > 0 && (
                           <Section style={imageGallery}>
                             {images.map((imageUrl, imgIndex) => (
-                              <a 
+                              <Link 
                                 key={imgIndex} 
                                 href={imageUrl}
                                 style={imageLink}
@@ -292,11 +267,11 @@ export const TechnicalAlertEmail = ({
                                 <Img
                                   src={imageUrl}
                                   alt={`${question} - Image ${imgIndex + 1}`}
-                                  width="150"
-                                  height="150"
+                                  width="100%"
+                                  height="134"
                                   style={imageThumbnail}
                                 />
-                              </a>
+                              </Link>
                             ))}
                           </Section>
                         )}
@@ -307,11 +282,16 @@ export const TechnicalAlertEmail = ({
               </>
             )}
 
-            <Hr style={hr} />
+            <Text style={footerContactText}>
+              Need technical assistance? Contact{' '}
+              <a href="mailto:maintenance@zelim.com" style={emailLink}>
+                maintenance@zelim.com
+              </a>
+            </Text>
           </Section>
 
           <Section style={footerSection}>
-            <a href="https://www.zelim.com" style={footerLink}>
+            <Link href="https://www.zelim.com" style={footerLink}>
               <Img
                 src="https://maintenance.exuma.co.uk/logo/zelim-logo-dark.png"
                 width="120"
@@ -319,7 +299,7 @@ export const TechnicalAlertEmail = ({
                 alt="Zelim logo"
                 style={footerLogo}
               />
-            </a>
+            </Link>
             <Text style={attribution}>
               © {new Date().getFullYear()} Zelim Limited | Find Recover Protect
             </Text>
@@ -332,41 +312,23 @@ export const TechnicalAlertEmail = ({
 
 export default TechnicalAlertEmail;
 
-// --- Styles: Professional Maritime Aesthetic (matching maintenance-report) ---
-const previewLinkContainer = {
-  maxWidth: '600px',
-  margin: '0 auto 10px auto',
-  textAlign: 'center',
-};
-
-const previewLinkText = {
-  fontSize: '12px',
-  color: '#64748B',
-  margin: '0',
-};
-
-const previewLink = {
-  color: '#172F36',
-  textDecoration: 'underline',
-};
-
+// Styles matching maintenance-report.jsx
 const main = {
-  backgroundColor: '#F8FAFC',
-  padding: '40px 0',
+  backgroundColor: '#eaeeed',
+  padding: '0',
+  margin: '0',
   fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
 };
 
 const container = {
   backgroundColor: '#ffffff',
   margin: '0 auto',
-  maxWidth: '600px',
-  borderRadius: '12px',
-  border: '1px solid #E2E8F0',
+  maxWidth: '620px',
   overflow: 'hidden',
 };
 
 const headerSection = {
-  padding: '40px 0 20px 0',
+  padding: '36px 0 30px 0',
   textAlign: 'center',
 };
 
@@ -381,55 +343,62 @@ const logo = {
 };
 
 const contentPadding = {
-  padding: '0 50px 50px 50px',
+  padding: '0 30px 50px 30px',
+  '@media only screen and (max-width: 600px)': {
+    padding: '0 20px 40px 20px',
+  },
 };
 
 const h1 = {
-  color: '#0F172A',
+  color: '#152a31',
   fontSize: '36px',
-  fontWeight: '800',
+  fontWeight: '600',
   margin: '0',
-  textAlign: 'center',
+  textAlign: 'left',
   letterSpacing: '-1px',
 };
 
 const subTitle = {
   fontSize: '13px',
-  fontWeight: '700',
+  fontWeight: '600',
   textTransform: 'uppercase',
-  textAlign: 'center',
+  textAlign: 'left',
   letterSpacing: '1.5px',
   margin: '4px 0 40px 0',
 };
 
 const text = {
-  color: '#475569',
+  color: '#152a31',
   fontSize: '15px',
   lineHeight: '24px',
   margin: '12px 0',
+  textAlign: 'left',
 };
 
 const statusCard = {
-  backgroundColor: '#F1F5F9',
+  backgroundColor: '#f3f6f5',
   borderRadius: '8px',
-  padding: '24px',
-  margin: '16px 0',
+  padding: '20px 24px',
+  margin: '32px 0',
 };
 
 const label = {
   fontSize: '11px',
-  color: '#64748B',
+  lineHeight: '16px',
+  color: '#152a31',
   textTransform: 'uppercase',
-  fontWeight: '700',
+  fontWeight: '600',
   margin: '0',
   letterSpacing: '0.5px',
+  textAlign: 'left',
 };
 
 const value = {
   fontSize: '16px',
-  color: '#0F172A',
+  color: '#152a31',
   fontWeight: '600',
   margin: '4px 0 0 0',
+  textAlign: 'left',
 };
 
 const buttonContainer = {
@@ -449,69 +418,67 @@ const button = {
 };
 
 const h2 = {
-  color: '#0F172A',
+  color: '#152a31',
   fontSize: '18px',
-  fontWeight: '700',
+  fontWeight: '600',
   margin: '40px 0 24px 0',
+  textAlign: 'left',
 };
 
 const checklistItemBlock = {
   marginBottom: '24px',
   padding: '16px',
-  backgroundColor: '#F8FAFC',
+  backgroundColor: '#f3f6f5',
   borderRadius: '8px',
-  border: '1px solid #E2E8F0',
 };
 
 const checklistItemName = {
   fontSize: '15px',
-  fontWeight: '700',
-  color: '#0F172A',
+  fontWeight: '600',
+  color: '#152a31',
   margin: '0 0 12px 0',
 };
 
 const checklistLabel = {
   fontSize: '11px',
-  color: '#64748B',
+  color: '#152a31',
   textTransform: 'uppercase',
-  fontWeight: '700',
+  fontWeight: '600',
   margin: '0',
   letterSpacing: '0.5px',
 };
 
 const checklistValue = {
   fontSize: '14px',
-  color: '#0F172A',
+  color: '#152a31',
   fontWeight: '600',
   margin: '4px 0 0 0',
 };
 
-// Monthly maintenance specific styles
 const monthlyGroupBlock = {
   marginBottom: '24px',
   padding: '16px',
-  backgroundColor: '#F8FAFC',
+  backgroundColor: '#f3f6f5',
   borderRadius: '8px',
-  border: '1px solid #E2E8F0',
 };
 
 const monthlyGroupTitle = {
   fontSize: '15px',
-  fontWeight: '700',
-  color: '#0F172A',
+  fontWeight: '600',
+  color: '#152a31',
   margin: '0 0 12px 0',
   paddingBottom: '8px',
-  borderBottom: '2px solid #E2E8F0',
+  borderBottom: '2px solid #eaeeed',
 };
 
 const monthlyQuestionRow = {
   padding: '8px 0',
-  borderBottom: '1px solid #F1F5F9',
+  borderBottom: '1px solid #f3f6f5',
 };
 
 const monthlyQuestionText = {
   fontSize: '14px',
-  color: '#475569',
+  color: '#152a31',
   margin: '0',
   fontWeight: '500',
 };
@@ -524,20 +491,19 @@ const monthlyAnswerText = {
 
 const answerBlock = {
   marginBottom: '20px',
-  paddingLeft: '12px',
-  borderLeft: '2px solid #E2E8F0',
+  paddingLeft: '0',
 };
 
 const questionText = {
   fontSize: '14px',
-  fontWeight: '700',
-  color: '#1E293B',
+  fontWeight: '600',
+  color: '#152a31',
   margin: '0 0 4px 0',
 };
 
-const answerText = {
+const answerTextStyle = {
   fontSize: '14px',
-  color: '#475569',
+  color: '#152a31',
   margin: '0',
   lineHeight: '1.5',
   whiteSpace: 'pre-wrap',
@@ -552,21 +518,30 @@ const imageGallery = {
 
 const imageLink = {
   display: 'inline-block',
-  marginRight: '8px',
-  marginBottom: '8px',
+  flex: '0 0 calc(25% - 6px)',
+  marginBottom: '0',
 };
 
 const imageThumbnail = {
-  width: '150px',
-  height: '150px',
+  width: '100%',
+  height: '134px',
   objectFit: 'cover',
   borderRadius: '8px',
-  border: '2px solid #E2E8F0',
+  border: '1px solid #eaeeed',
+  display: 'block',
 };
 
-const hr = {
-  borderColor: '#F1F5F9',
-  margin: '40px 0',
+const footerContactText = {
+  fontSize: '14px',
+  color: '#152a31',
+  textAlign: 'center',
+  margin: '40px 0 0 0',
+};
+
+const emailLink = {
+  color: '#152a31',
+  textDecoration: 'underline',
+  fontWeight: '600',
 };
 
 const footerSection = {
@@ -590,6 +565,6 @@ const footerLogo = {
 
 const attribution = {
   fontSize: '12px',
-  color: '#CBD5E1',
+  color: '#152a31',
   margin: '0',
 };

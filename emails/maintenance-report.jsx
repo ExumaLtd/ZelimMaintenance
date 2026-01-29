@@ -73,7 +73,7 @@ export const MaintenanceReportEmail = ({
       <Body style={main}>
         <Container style={container}>
           {/* Header */}
-          <Section style={headerSection}>
+          <Section style={{ ...headerSection, borderTop: `6px solid ${brandColor}` }}>
             {logoUrl && (
               <Img
                 src={absoluteLogoUrl}
@@ -155,8 +155,8 @@ export const MaintenanceReportEmail = ({
                               <Img
                                 src={imageUrl}
                                 alt={`${item.name} - Image ${imgIndex + 1}`}
-                                width="140"
-                                height="140"
+                                width="100%"
+                                height="134"
                                 style={imageThumbnail}
                               />
                             </Link>
@@ -235,8 +235,8 @@ export const MaintenanceReportEmail = ({
                                 <Img
                                   src={imageUrl}
                                   alt={`${question} - Image ${imgIndex + 1}`}
-                                  width="140"
-                                  height="140"
+                                  width="100%"
+                                  height="134"
                                   style={imageThumbnail}
                                 />
                               </Link>
@@ -294,7 +294,7 @@ const previewLinkText = {
 };
 
 const previewLink = {
-  color: '#172F36',
+  color: '#152a31',
   textDecoration: 'underline',
 };
 
@@ -339,7 +339,7 @@ const h1 = {
   fontSize: '36px',
   fontWeight: '600',
   margin: '0',
-  textAlign: 'center',
+  textAlign: 'left',
   letterSpacing: '-1px',
 };
 
@@ -347,7 +347,7 @@ const subTitle = {
   fontSize: '13px',
   fontWeight: '600',
   textTransform: 'uppercase',
-  textAlign: 'center',
+  textAlign: 'left',
   letterSpacing: '1.5px',
   margin: '4px 0 40px 0',
 };
@@ -357,6 +357,7 @@ const text = {
   fontSize: '15px',
   lineHeight: '24px',
   margin: '12px 0',
+  textAlign: 'left',
 };
 
 const statusCard = {
@@ -390,6 +391,7 @@ const h2 = {
   fontSize: '18px',
   fontWeight: '600',
   margin: '40px 0 24px 0',
+  textAlign: 'left',
 };
 
 const checklistItemBlock = {
@@ -461,8 +463,7 @@ const monthlyAnswerText = {
 
 const answerBlock = {
   marginBottom: '20px',
-  paddingLeft: '12px',
-  borderLeft: '2px solid #E2E8F0',
+  paddingLeft: '0',
 };
 
 const questionText = {
@@ -489,16 +490,17 @@ const imageGallery = {
 
 const imageLink = {
   display: 'inline-block',
-  marginRight: '8px',
-  marginBottom: '8px',
+  flex: '0 0 calc(25% - 6px)', // 4 per row on desktop (25% minus gap adjustment)
+  marginBottom: '0',
 };
 
 const imageThumbnail = {
-  width: '140px',
-  height: '140px',
+  width: '100%',
+  height: '134px',
   objectFit: 'cover',
   borderRadius: '8px',
   border: '1px solid #eaeeed',
+  display: 'block',
 };
 
 const hr = {
@@ -514,7 +516,7 @@ const footerContactText = {
 };
 
 const emailLink = {
-  color: '#172F36',
+  color: '#152a31',
   textDecoration: 'underline',
   fontWeight: '600',
 };
