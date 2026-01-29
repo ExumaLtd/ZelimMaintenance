@@ -300,7 +300,7 @@ const previewLinkContainer = {
 
 const previewLinkText = {
   fontSize: '12px',
-  color: '#64748B',
+  color: '#152a31',
   margin: '0',
 };
 
@@ -310,17 +310,16 @@ const previewLink = {
 };
 
 const main = {
-  backgroundColor: '#F8FAFC',
-  padding: '40px 0',
+  backgroundColor: '#eaeeed',
+  padding: '0',
+  margin: '0',
   fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
 };
 
 const container = {
   backgroundColor: '#ffffff',
-  margin: '0 auto',
-  maxWidth: '600px',
-  borderRadius: '12px',
-  border: '1px solid #E2E8F0',
+  margin: '0',
+  maxWidth: '100%',
   overflow: 'hidden',
 };
 
@@ -340,11 +339,14 @@ const logo = {
 };
 
 const contentPadding = {
-  padding: '0 50px 50px 50px',
+  padding: '0 30px 50px 30px',
+  '@media only screen and (max-width: 600px)': {
+    padding: '0 20px 50px 20px',
+  },
 };
 
 const h1 = {
-  color: '#0F172A',
+  color: '#152a31',
   fontSize: '36px',
   fontWeight: '800',
   margin: '0',
@@ -362,7 +364,7 @@ const subTitle = {
 };
 
 const text = {
-  color: '#475569',
+  color: '#152a31',
   fontSize: '15px',
   lineHeight: '24px',
   margin: '12px 0',
@@ -377,7 +379,7 @@ const statusCard = {
 
 const label = {
   fontSize: '11px',
-  color: '#64748B',
+  color: '#152a31',
   textTransform: 'uppercase',
   fontWeight: '700',
   margin: '0',
@@ -386,13 +388,13 @@ const label = {
 
 const value = {
   fontSize: '16px',
-  color: '#0F172A',
+  color: '#152a31',
   fontWeight: '600',
   margin: '4px 0 0 0',
 };
 
 const h2 = {
-  color: '#0F172A',
+  color: '#152a31',
   fontSize: '18px',
   fontWeight: '700',
   margin: '40px 0 24px 0',
@@ -409,13 +411,13 @@ const checklistItemBlock = {
 const checklistItemName = {
   fontSize: '15px',
   fontWeight: '700',
-  color: '#0F172A',
+  color: '#152a31',
   margin: '0 0 12px 0',
 };
 
 const checklistLabel = {
   fontSize: '11px',
-  color: '#64748B',
+  color: '#152a31',
   textTransform: 'uppercase',
   fontWeight: '700',
   margin: '0',
@@ -424,7 +426,7 @@ const checklistLabel = {
 
 const checklistValue = {
   fontSize: '14px',
-  color: '#0F172A',
+  color: '#152a31',
   fontWeight: '600',
   margin: '4px 0 0 0',
 };
@@ -441,7 +443,7 @@ const monthlyGroupBlock = {
 const monthlyGroupTitle = {
   fontSize: '15px',
   fontWeight: '700',
-  color: '#0F172A',
+  color: '#152a31',
   margin: '0 0 12px 0',
   paddingBottom: '8px',
   borderBottom: '2px solid #E2E8F0',
@@ -454,7 +456,7 @@ const monthlyQuestionRow = {
 
 const monthlyQuestionText = {
   fontSize: '14px',
-  color: '#475569',
+  color: '#152a31',
   margin: '0',
   fontWeight: '500',
 };
@@ -474,13 +476,13 @@ const answerBlock = {
 const questionText = {
   fontSize: '14px',
   fontWeight: '700',
-  color: '#1E293B',
+  color: '#152a31',
   margin: '0 0 4px 0',
 };
 
 const answerTextStyle = {
   fontSize: '14px',
-  color: '#475569',
+  color: '#152a31',
   margin: '0',
   lineHeight: '1.5',
   whiteSpace: 'pre-wrap',
@@ -514,7 +516,7 @@ const hr = {
 
 const footerContactText = {
   fontSize: '13px',
-  color: '#94A3B8',
+  color: '#152a31',
   textAlign: 'center',
   margin: '0',
 };
@@ -546,6 +548,6 @@ const footerLogo = {
 
 const attribution = {
   fontSize: '12px',
-  color: '#CBD5E1',
+  color: '#152a31',
   margin: '0',
 };
