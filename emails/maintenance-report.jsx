@@ -313,7 +313,7 @@ const container = {
 };
 
 const headerSection = {
-  padding: '40px 0 20px 0',
+  padding: '36px 0 30px 0',
   textAlign: 'center',
 };
 
@@ -330,7 +330,7 @@ const logo = {
 const contentPadding = {
   padding: '0 30px 50px 30px',
   '@media only screen and (max-width: 600px)': {
-    padding: '0 20px 50px 20px',
+    padding: '0 20px 40px 20px',
   },
 };
 
