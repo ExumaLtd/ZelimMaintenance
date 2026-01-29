@@ -48,9 +48,25 @@ export default async function handler(req, res) {
     const engineerPreviewUrl = `${baseUrl}/api/emails/preview-maintenance-report?engineerName=${encodeURIComponent(engineerName)}&serialNumber=${encodeURIComponent(serialNumber)}`;
     const internalPreviewUrl = `${baseUrl}/api/emails/preview-technical-alert?serialNumber=${encodeURIComponent(serialNumber)}&displayType=${encodeURIComponent(displayType)}`;
 
-    // 5. Set the subject lines
-    const engineerSubject = `${serialNumber} ${displayType} Confirmation`;
-    const internalSubject = `${serialNumber} ${displayType} Submitted`;
+    // 5. Set the subject lines with emojis
+    let emojiIcon = '📋'; // Default for Monthly/Annual
+    
+    // Determine emoji based on maintenance type
+    if (displayType.toLowerCase().includes('depth')) {
+      emojiIcon = '🔧';
+    } else if (displayType.toLowerCase().includes('unscheduled')) {
+      emojiIcon = '⚠️';
+    } else if (displayType.toLowerCase().includes('fault')) {
+      emojiIcon = '🚨';
+    }
+    
+    // Engineer email subject (simple, clean)
+    const engineerSubject = displayType.toLowerCase().includes('fault') 
+      ? `Fault Submission`
+      : `Maintenance Submission`;
+    
+    // Internal email subject (includes emoji and serial number)
+    const internalSubject = `${displayType} ${emojiIcon} ${serialNumber}`;
 
     // 6. Send both emails in a single batch call
     const data = await resend.batch.send([
