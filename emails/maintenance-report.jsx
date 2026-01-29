@@ -107,7 +107,7 @@ export const MaintenanceReportEmail = ({
             <Section style={statusCard}>
               <Row style={{ marginBottom: '20px' }}>
                 <Column style={{ paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }}>
-                  <Text style={label}>Unit Serial</Text>
+                  <Text style={label}>Serial</Text>
                   <Text style={value}>{serialNumber}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }}>
@@ -125,7 +125,7 @@ export const MaintenanceReportEmail = ({
                   <Text style={value}>{maintenanceCompany}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }}>
-                  <Text style={label}>Engineer Name</Text>
+                  <Text style={label}>Engineer</Text>
                   <Text style={value}>{engineerName}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }}>
