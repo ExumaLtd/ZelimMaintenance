@@ -68,7 +68,24 @@ export const MaintenanceReportEmail = ({
     <Html>
       <Head>
         <style>{`
+          /* Desktop styles */
+          @media only screen and (min-width: 601px) {
+            body, .email-body {
+              background-color: #eaeeed !important;
+            }
+            
+            /* Image gallery - 4 per row on desktop */
+            .image-link {
+              width: calc(25% - 10px) !important;
+            }
+          }
+          
+          /* Mobile styles */
           @media only screen and (max-width: 600px) {
+            body, .email-body {
+              background-color: #ffffff !important;
+            }
+            
             /* Make container full width on mobile */
             .email-container {
               max-width: 100% !important;
@@ -76,49 +93,33 @@ export const MaintenanceReportEmail = ({
               margin: 0 !important;
             }
             
-            /* Force ALL table cells in status card to stack 2 per row */
-            .status-card-section table {
-              width: 100% !important;
-            }
-            
+            /* Force status card to 2 per row - ALL 6 items */
             .status-card-section table tr {
-              display: flex !important;
-              flex-wrap: wrap !important;
+              display: block !important;
             }
             
             .status-card-section table td {
+              display: inline-block !important;
               width: 50% !important;
               max-width: 50% !important;
-              display: inline-block !important;
               box-sizing: border-box !important;
-              padding: 0 8px 16px 0 !important;
               vertical-align: top !important;
+              padding: 0 8px 16px 0 !important;
             }
             
-            .status-card-section table td:nth-child(even) {
+            .status-card-section table td:nth-child(2n) {
               padding-right: 0 !important;
               padding-left: 8px !important;
             }
             
-            /* Image gallery - 3 per row on mobile with square aspect ratio */
-            .image-link {
-              width: calc(33.333% - 7px) !important;
-              margin-bottom: 10px !important;
+            .status-card-section table td:nth-child(2n+1) {
+              padding-right: 8px !important;
+              padding-left: 0 !important;
             }
             
-            .image-link img {
-              width: 100% !important;
-              height: auto !important;
-              aspect-ratio: 1 / 1 !important;
-              object-fit: cover !important;
-            }
-          }
-          
-          @media only screen and (min-width: 601px) {
-            /* Image gallery - 4 per row on desktop with square aspect ratio */
+            /* Image gallery - 3 per row on mobile */
             .image-link {
-              width: calc(25% - 7.5px) !important;
-              margin-bottom: 10px !important;
+              width: calc(33.333% - 10px) !important;
             }
             
             .image-link img {
@@ -201,7 +202,7 @@ export const MaintenanceReportEmail = ({
             {/* Equipment Checklist Section (Depth Maintenance) */}
             {parsedEquipmentChecklist && parsedEquipmentChecklist.length > 0 && (
               <>
-                <Heading as="h2" style={h2}>Pre-disassembly Inspection</Heading>
+                <Heading as="h2" style={h2}>Pre-disassembly inspection</Heading>
                 
                 <Section>
                   {parsedEquipmentChecklist.map((item, i) => (
@@ -255,7 +256,7 @@ export const MaintenanceReportEmail = ({
             {/* Maintenance Checklist Section (Monthly Maintenance) */}
             {parsedMaintenanceChecklist && parsedMaintenanceChecklist.length > 0 && (
               <>
-                <Heading as="h2" style={h2}>Monthly Inspection Checklist</Heading>
+                <Heading as="h2" style={h2}>Monthly inspection checklist</Heading>
                 
                 <Section>
                   {parsedMaintenanceChecklist.map((group, groupIndex) => (
@@ -287,7 +288,7 @@ export const MaintenanceReportEmail = ({
             {Object.keys(answers).length > 0 && (
               <>
                 <Heading as="h2" style={h2}>
-                  {reportType === 'Monthly' ? 'Additional Comments' : `${reportType} Details`}
+                  {reportType === 'Monthly' ? 'Additional comments' : `${reportType.toLowerCase()} details`}
                 </Heading>
                 
                 <Section>
@@ -455,7 +456,6 @@ const h2 = {
   fontWeight: '600',
   margin: '40px 0 24px 0',
   textAlign: 'left',
-  textTransform: 'capitalize',
 };
 
 const checklistItemBlock = {
