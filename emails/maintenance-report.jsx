@@ -312,7 +312,7 @@ export const MaintenanceReportEmail = ({
             {Object.keys(answers).length > 0 && (
               <>
                 <Heading as="h2" style={h2}>
-                  {reportType === 'Monthly' ? 'Additional comments' : `${reportType.toLowerCase()} details`}
+                  {reportType === 'Monthly' ? 'Additional comments' : `${reportType.charAt(0).toUpperCase() + reportType.slice(1).toLowerCase()} details`}
                 </Heading>
                 
                 <Section>
@@ -602,7 +602,7 @@ const footerContactText = {
   lineHeight: '21px',
   color: '#152a31',
   textAlign: 'left',
-  margin: '40px 0 0 0',
+  margin: '24px 0 0 0',
 };
 
 const emailLink = {

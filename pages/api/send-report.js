@@ -77,6 +77,9 @@ export default async function handler(req, res) {
           engineerName, 
           serialNumber,
           reportType: displayType,
+          maintenanceCompany: technicalData?.maintenance_company || 'N/A',
+          companyName: technicalData?.company_name || 'N/A',
+          location: technicalData?.location_display || 'N/A',
           answers,
           equipmentChecklist: equipment_checklist, // Depth maintenance (returned/condition)
           maintenanceChecklist: maintenance_checklist, // Monthly maintenance (yes/no questions)
