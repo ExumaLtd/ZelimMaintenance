@@ -485,18 +485,18 @@ const h2 = {
 };
 
 const checklistItemBlock = {
-  marginBottom: '24px',
-  padding: '16px',
-  backgroundColor: '#F8FAFC',
+  marginBottom: '0',
+  padding: '20px 24px',
+  backgroundColor: '#f3f6f5',
   borderRadius: '8px',
-  border: '1px solid #E2E8F0',
 };
 
 const checklistItemName = {
   fontSize: '15px',
   fontWeight: '600',
   color: '#152a31',
-  margin: '0 0 12px 0',
+  margin: '0 0 16px 0',
+  lineHeight: '21px',
 };
 
 const checklistLabel = {
@@ -509,10 +509,11 @@ const checklistLabel = {
 };
 
 const checklistValue = {
-  fontSize: '14px',
+  fontSize: '15px',
   color: '#152a31',
   fontWeight: '600',
   margin: '4px 0 0 0',
+  lineHeight: '21px',
 };
 
 // Monthly maintenance specific styles
@@ -532,7 +533,8 @@ const monthlyGroupTitle = {
 };
 
 const monthlyQuestionRow = {
-  padding: '0 0 12px 0',
+  padding: '0',
+  marginBottom: '12px',
 };
 
 const monthlyQuestionText = {
