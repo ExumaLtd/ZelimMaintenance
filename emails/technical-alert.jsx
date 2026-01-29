@@ -80,9 +80,16 @@ export const TechnicalAlertEmail = ({
               background-color: #eaeeed !important;
             }
             
-            /* Image gallery - 4 per row on desktop */
+            /* Image gallery - 4 per row on desktop with square aspect ratio */
             .image-link {
               width: calc(25% - 10px) !important;
+            }
+            
+            .image-link img {
+              width: 100% !important;
+              height: auto !important;
+              aspect-ratio: 1 / 1 !important;
+              object-fit: cover !important;
             }
           }
           
@@ -543,24 +550,25 @@ const monthlyAnswerText = {
 
 const answerBlock = {
   marginBottom: '20px',
-  padding: '16px',
-  backgroundColor: '#F8FAFC',
+  padding: '20px 24px',
+  backgroundColor: '#f3f6f5',
   borderRadius: '8px',
-  border: '1px solid #E2E8F0',
+  margin: '32px 0',
 };
 
 const questionText = {
-  fontSize: '14px',
+  fontSize: '15px',
   fontWeight: '600',
   color: '#152a31',
   margin: '0 0 4px 0',
+  lineHeight: '21px',
 };
 
 const answerTextStyle = {
-  fontSize: '14px',
+  fontSize: '15px',
   color: '#152a31',
   margin: '0',
-  lineHeight: '1.5',
+  lineHeight: '21px',
   whiteSpace: 'pre-wrap',
 };
 
