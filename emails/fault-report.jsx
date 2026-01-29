@@ -87,9 +87,9 @@ export const FaultReportEmail = ({
               padding: 0 20px 50px 20px !important;
             }
             
-            /* Reduce status card padding on mobile */
+            /* Status card padding on mobile - match checklist boxes */
             .status-card-mobile {
-              padding: 16px !important;
+              padding: 20px 24px !important;
             }
             
             /* Image gallery - 2 per row on mobile, fill width inside grey box with 10px gap */
@@ -373,7 +373,7 @@ const answerBlock = {
 
 const questionText = {
   fontSize: '15px',
-  fontWeight: '600',
+  fontWeight: '400',
   color: '#152a31',
   margin: '0 0 4px 0',
   lineHeight: '21px',

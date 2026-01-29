@@ -129,9 +129,9 @@ export const TechnicalAlertEmail = ({
               padding: 0 20px 50px 20px !important;
             }
             
-            /* Reduce status card padding on mobile */
+            /* Status card padding on mobile - match checklist boxes */
             .status-card-mobile {
-              padding: 16px !important;
+              padding: 20px 24px !important;
             }
             
             /* Image gallery - 2 per row on mobile, fill width inside grey box with 10px gap */
