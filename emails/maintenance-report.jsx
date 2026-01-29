@@ -318,8 +318,8 @@ const main = {
 
 const container = {
   backgroundColor: '#ffffff',
-  margin: '0',
-  maxWidth: '100%',
+  margin: '0 auto',
+  maxWidth: '620px',
   overflow: 'hidden',
 };
 
