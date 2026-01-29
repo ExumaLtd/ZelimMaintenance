@@ -513,7 +513,7 @@ const h2 = {
 };
 
 const checklistItemBlock = {
-  marginBottom: '0',
+  marginBottom: '10px',
   padding: '20px 24px',
   backgroundColor: '#f3f6f5',
   borderRadius: '8px',
@@ -545,7 +545,7 @@ const checklistValue = {
 };
 
 const monthlyGroupBlock = {
-  marginBottom: '0',
+  marginBottom: '10px',
   padding: '20px 24px',
   backgroundColor: '#f3f6f5',
   borderRadius: '8px',
