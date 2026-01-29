@@ -194,7 +194,7 @@ export const MaintenanceReportEmail = ({
                 </Column>
                 <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Location</Text>
-                  <Text style={value}>{location}</Text>
+                  <Text style={value}>{location && location.includes(',') ? location.split(',').pop().trim() : location}</Text>
                 </Column>
               </Row>
             </Section>

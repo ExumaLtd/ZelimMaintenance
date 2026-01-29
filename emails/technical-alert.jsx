@@ -204,7 +204,7 @@ export const TechnicalAlertEmail = ({
                 </Column>
                 <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Location</Text>
-                  <Text style={value}>{technicalData?.location_display || 'N/A'}</Text>
+                  <Text style={value}>{technicalData?.location_display ? (technicalData.location_display.includes(',') ? technicalData.location_display.split(',').pop().trim() : technicalData.location_display) : 'N/A'}</Text>
                 </Column>
               </Row>
             </Section>
