@@ -299,7 +299,7 @@ export const TechnicalAlertEmail = ({
                           key={qIndex} 
                           style={{
                             ...monthlyQuestionRow,
-                            marginBottom: qIndex === group.questions.length - 1 ? '0' : '12px'
+                            marginBottom: qIndex === group.questions.length - 1 ? '0' : '8px'
                           }}
                         >
                           <Column style={{ width: '70%' }}>
@@ -561,7 +561,7 @@ const monthlyGroupTitle = {
   fontSize: '15px',
   fontWeight: '600',
   color: '#152a31',
-  margin: '0 0 16px 0',
+  margin: '0 0 8px 0',
   lineHeight: '21px',
 };
 
