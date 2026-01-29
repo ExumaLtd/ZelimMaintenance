@@ -104,8 +104,6 @@ export const MaintenanceReportEmail = ({
               central system.
             </Text>
 
-            <Hr style={hr} />
-
             {/* Status Card - Visual Summary */}
             <Section style={statusCard}>
               <Row>
@@ -123,7 +121,6 @@ export const MaintenanceReportEmail = ({
             {/* Equipment Checklist Section (Depth Maintenance) */}
             {parsedEquipmentChecklist && parsedEquipmentChecklist.length > 0 && (
               <>
-                <Hr style={hr} />
                 <Heading as="h2" style={h2}>Pre-disassembly Inspection</Heading>
                 
                 <Section>
@@ -179,7 +176,6 @@ export const MaintenanceReportEmail = ({
             {/* Maintenance Checklist Section (Monthly Maintenance) */}
             {parsedMaintenanceChecklist && parsedMaintenanceChecklist.length > 0 && (
               <>
-                <Hr style={hr} />
                 <Heading as="h2" style={h2}>Monthly Inspection Checklist</Heading>
                 
                 <Section>
@@ -211,7 +207,6 @@ export const MaintenanceReportEmail = ({
             {/* Maintenance Questions Section (Annual, Unscheduled, or Further Comments) */}
             {Object.keys(answers).length > 0 && (
               <>
-                <Hr style={hr} />
                 <Heading as="h2" style={h2}>
                   {reportType === 'Monthly' ? 'Additional Comments' : `${reportType} Maintenance Details`}
                 </Heading>
@@ -256,8 +251,6 @@ export const MaintenanceReportEmail = ({
                     );
                   })}
                 </Section>
-
-                <Hr style={hr} />
               </>
             )}
 
