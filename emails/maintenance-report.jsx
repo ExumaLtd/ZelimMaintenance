@@ -69,15 +69,67 @@ export const MaintenanceReportEmail = ({
       <Head>
         <style>{`
           @media only screen and (max-width: 600px) {
-            .mobile-col {
+            /* Remove ALL grey background and padding on mobile */
+            body, .email-body {
+              background-color: #ffffff !important;
+              padding: 0 !important;
+              margin: 0 !important;
+            }
+            
+            /* Make container full width on mobile */
+            .email-container {
+              max-width: 100% !important;
+              width: 100% !important;
+              margin: 0 !important;
+            }
+            
+            /* Status card columns - 2 per row on mobile */
+            table[role="presentation"] td.mobile-col {
+              display: inline-block !important;
               width: 50% !important;
+              box-sizing: border-box !important;
+              padding-left: 4px !important;
+              padding-right: 4px !important;
+              margin-bottom: 16px !important;
+              vertical-align: top !important;
+            }
+            
+            table[role="presentation"] td.mobile-col:nth-child(odd) {
               padding-left: 0 !important;
               padding-right: 8px !important;
-              margin-bottom: 16px !important;
             }
-            .mobile-col:nth-child(2n) {
+            
+            table[role="presentation"] td.mobile-col:nth-child(even) {
               padding-left: 8px !important;
               padding-right: 0 !important;
+            }
+            
+            /* Image gallery - 2 per row on mobile with square aspect ratio */
+            .image-link {
+              width: calc(50% - 5px) !important;
+              margin-bottom: 10px !important;
+            }
+            
+            .image-link img {
+              width: 100% !important;
+              height: auto !important;
+              aspect-ratio: 1 / 1 !important;
+              object-fit: cover !important;
+            }
+          }
+          
+          @media only screen and (min-width: 601px) {
+            /* Image gallery - 4 per row on desktop with square aspect ratio */
+            .image-link {
+              width: calc(25% - 7.5px) !important;
+              margin-bottom: 10px !important;
+            }
+            
+            .image-link img {
+              width: 100% !important;
+              height: auto !important;
+              aspect-ratio: 1 / 1 !important;
+              object-fit: cover !important;
             }
           }
         `}</style>
@@ -88,8 +140,8 @@ export const MaintenanceReportEmail = ({
         reportType.toLowerCase().includes('fault') ? '🚨' : 
         '📋'
       } {serialNumber}</Preview>
-      <Body style={main}>
-        <Container style={container}>
+      <Body style={main} className="email-body">
+        <Container style={container} className="email-container">
           {/* Header */}
           <Section style={{ ...headerSection, borderTop: `6px solid ${brandColor}` }}>
             {logoUrl && (
@@ -187,12 +239,11 @@ export const MaintenanceReportEmail = ({
                               key={imgIndex} 
                               href={imageUrl}
                               style={imageLink}
+                              className="image-link"
                             >
                               <Img
                                 src={imageUrl}
                                 alt={`${item.name} - Image ${imgIndex + 1}`}
-                                width="100%"
-                                height="134"
                                 style={imageThumbnail}
                               />
                             </Link>
@@ -240,7 +291,7 @@ export const MaintenanceReportEmail = ({
             {Object.keys(answers).length > 0 && (
               <>
                 <Heading as="h2" style={h2}>
-                  {reportType === 'Monthly' ? 'Additional Comments' : `${reportType} Maintenance Details`}
+                  {reportType === 'Monthly' ? 'Additional Comments' : `${reportType} Details`}
                 </Heading>
                 
                 <Section>
@@ -267,12 +318,11 @@ export const MaintenanceReportEmail = ({
                                 key={imgIndex} 
                                 href={imageUrl}
                                 style={imageLink}
+                                className="image-link"
                               >
                                 <Img
                                   src={imageUrl}
                                   alt={`${question} - Image ${imgIndex + 1}`}
-                                  width="100%"
-                                  height="134"
                                   style={imageThumbnail}
                                 />
                               </Link>
@@ -317,25 +367,8 @@ export const MaintenanceReportEmail = ({
 export default MaintenanceReportEmail;
 
 // --- Styles: Professional Maritime Aesthetic ---
-const previewLinkContainer = {
-  maxWidth: '600px',
-  margin: '0 auto 10px auto',
-  textAlign: 'center',
-};
-
-const previewLinkText = {
-  fontSize: '12px',
-  color: '#152a31',
-  margin: '0',
-};
-
-const previewLink = {
-  color: '#152a31',
-  textDecoration: 'underline',
-};
-
 const main = {
-  backgroundColor: '#eaeeed',
+  backgroundColor: '#ffffff', // White, not grey
   padding: '0',
   margin: '0',
   fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
@@ -365,9 +398,6 @@ const logo = {
 
 const contentPadding = {
   padding: '0 30px 50px 30px',
-  '@media only screen and (max-width: 600px)': {
-    padding: '0 20px 40px 20px',
-  },
 };
 
 const h1 = {
@@ -521,22 +551,19 @@ const answerTextStyle = {
 const imageGallery = {
   display: 'flex',
   flexWrap: 'wrap',
-  gap: '8px',
+  gap: '10px', // 10px gap between images
   marginTop: '12px',
 };
 
 const imageLink = {
   display: 'inline-block',
-  flex: '0 0 calc(25% - 6px)', // 4 per row on desktop (25% minus gap adjustment)
-  marginBottom: '0',
+  textDecoration: 'none',
 };
 
 const imageThumbnail = {
   width: '100%',
-  height: '134px',
-  objectFit: 'cover',
   borderRadius: '8px',
-  border: '1px solid #eaeeed',
+  border: '1px solid #E2E8F0',
   display: 'block',
 };
 
@@ -547,6 +574,7 @@ const hr = {
 
 const footerContactText = {
   fontSize: '13px',
+  lineHeight: '21px',
   color: '#152a31',
   textAlign: 'left',
   margin: '40px 0 0 0',
