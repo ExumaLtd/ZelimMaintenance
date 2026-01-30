@@ -961,12 +961,6 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
           margin: 0 0 22px !important;
         }
       `}</style>
-
-      <style jsx global>{`
-        .image-drop-zone.has-error {
-          border: 2px solid #ff6b6b !important;
-        }
-      `}</style>
     </div>
   );
 }
