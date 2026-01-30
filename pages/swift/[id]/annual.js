@@ -842,7 +842,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
                   All annual maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual.
                 </p>
                 
-                {currentSection && (
+                {currentSection && currentSection.step > 1 && (
                   <>
                     <h4 className="checklist-section-title" style={{ marginTop: "24px", fontSize: "20px" }}>
                       {currentSection.title}
