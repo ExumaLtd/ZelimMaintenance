@@ -853,7 +853,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
                 
                 {currentSection && currentSection.step > 1 && (
                   <>
-                    <h4 className="checklist-section-title step-section-title" style={{ marginTop: "24px", fontSize: "20px" }}>
+                    <h4 className="checklist-section-title step-section-title" style={{ marginTop: "24px", marginBottom: "0", fontSize: "20px" }}>
                       {currentSection.title}
                     </h4>
                     {currentSection.subtitle && (
@@ -955,10 +955,12 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
       <style jsx>{`
         .step-section-title {
           padding-bottom: 0 !important;
+          margin-bottom: 0 !important;
         }
 
         .step-section-subtitle {
           margin: 0 0 22px !important;
+          padding: 0 !important;
         }
       `}</style>
     </div>
