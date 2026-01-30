@@ -399,6 +399,11 @@
   border-color: rgb(255, 77, 77) !important;
 }
 
+/* Image uploader error state */
+.form-scope .image-drop-zone.has-error {
+  border-color: rgb(255, 77, 77) !important;
+}
+
 /* Footer */
 .form-scope .footer-section {
   width: 100%;
