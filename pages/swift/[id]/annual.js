@@ -300,8 +300,17 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
     window.history.pushState({ step: currentStep + 1 }, '', window.location.href);
     
     setTimeout(() => {
-      // Scroll to 20px from top of viewport
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (card2Ref.current) {
+        const elementPosition = card2Ref.current.getBoundingClientRect().top + window.pageYOffset;
+        const isMobile = window.innerWidth <= 768;
+        const offset = isMobile ? 50 : 58;
+        const offsetPosition = elementPosition - offset;
+        
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
     }, 100);
   };
 
@@ -325,12 +334,32 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
       if (event.state?.step) {
         setCurrentStep(event.state.step);
         setTimeout(() => {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          if (card2Ref.current) {
+            const elementPosition = card2Ref.current.getBoundingClientRect().top + window.pageYOffset;
+            const isMobile = window.innerWidth <= 768;
+            const offset = isMobile ? 50 : 58;
+            const offsetPosition = elementPosition - offset;
+            
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+          }
         }, 100);
       } else if (currentStep > 1) {
         setCurrentStep(currentStep - 1);
         setTimeout(() => {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          if (card2Ref.current) {
+            const elementPosition = card2Ref.current.getBoundingClientRect().top + window.pageYOffset;
+            const isMobile = window.innerWidth <= 768;
+            const offset = isMobile ? 50 : 58;
+            const offsetPosition = elementPosition - offset;
+            
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+          }
         }, 100);
       }
     };
