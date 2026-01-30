@@ -9,7 +9,7 @@
 
 .landing-scope .landing-root {
   display: flex;
-  min-height: 100vh;
+  min-height: 100dvh;
   height: 100%;
   align-items: stretch !important;
 }
@@ -24,7 +24,7 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  min-height: 100vh !important;
+  min-height: 100dvh !important;
 }
 
 .landing-scope .landing-hero-inner {
