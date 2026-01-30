@@ -110,39 +110,48 @@ export default function Home() {
     }
   };
 
-  const handleQrCodeDetected = async (decodedText, html5QrCode) => {
-    if (hasNavigatedRef.current) return;
-    hasNavigatedRef.current = true;
+const handleQrCodeDetected = async (decodedText, html5QrCode) => {
+  if (hasNavigatedRef.current) return;
+  hasNavigatedRef.current = true;
 
-    console.log("QR Code detected:", decodedText);
-    
-    if (navigator.vibrate) navigator.vibrate(100);
+  console.log("QR Code detected:", decodedText);
+  
+  if (navigator.vibrate) navigator.vibrate(100);
 
-    try {
-      await html5QrCode.stop();
-      scannerRef.current = null;
-    } catch (err) {
-      console.error("Scanner stop error:", err);
-    }
+  try {
+    await html5QrCode.stop();
+    scannerRef.current = null;
+  } catch (err) {
+    console.error("Scanner stop error:", err);
+  }
 
-    setShowScanner(false);
+  setShowScanner(false);
 
-    // Handle full URLs directly
-    if (decodedText.startsWith('http://') || decodedText.startsWith('https://')) {
-      window.location.href = decodedText;
-      return;
-    }
+  // Extract code from any format (URL or plain code)
+  let code;
+  if (decodedText.startsWith('http://') || decodedText.startsWith('https://')) {
+    // Extract code from URL path
+    code = decodedText.split('/').filter(Boolean).pop();
+  } else if (decodedText.includes('/')) {
+    // Handle path-like strings
+    code = decodedText.split('/').filter(Boolean).pop();
+  } else {
+    // Plain code
+    code = decodedText;
+  }
 
-    // Extract code from path-like strings
-    const code = decodedText.includes('/') 
-      ? decodedText.split('/').filter(Boolean).pop() 
-      : decodedText;
-    const data = await resolveAndNavigate(code);
-    
-    if (data?.success) {
-      window.location.href = '/portal/swift';
-    }
-  };
+  console.log("Extracted code:", code);
+
+  // Use resolveAndNavigate to properly create session
+  const data = await resolveAndNavigate(code);
+  
+  if (data?.success) {
+    window.location.href = '/portal/swift';
+  } else {
+    // Show error if QR code was invalid
+    setError('Invalid QR code.');
+  }
+};
 
   const startScanner = async () => {
     hasNavigatedRef.current = false;
