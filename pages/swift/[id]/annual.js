@@ -846,20 +846,19 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
             {/* CARD 2: QUESTIONS (Multi-step) */}
             <div ref={card2Ref} className="checklist-form-card" style={{ marginTop: "20px" }}>
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-                <h3 className="checklist-section-title">Annual maintenance</h3>
-                <p className="checklist-section-subtitle">
-                  All annual maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual.
-                </p>
-                
-                {currentSection && currentSection.step > 1 && (
+                {/* Step 1: Keep subtitle */}
+                {currentStep === 1 && (
                   <>
-                    <h4 className="checklist-section-title step-section-title" style={{ marginTop: "24px", marginBottom: "0", fontSize: "20px" }}>
-                      {currentSection.title}
-                    </h4>
-                    {currentSection.subtitle && (
-                      <p className="checklist-section-subtitle step-section-subtitle">{currentSection.subtitle}</p>
-                    )}
+                    <h3 className="checklist-section-title">Annual maintenance</h3>
+                    <p className="checklist-section-subtitle">
+                      All annual maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual.
+                    </p>
                   </>
+                )}
+                
+                {/* Steps 2-8: Just section title with adjusted spacing */}
+                {currentSection && currentSection.step > 1 && (
+                  <h3 className="checklist-section-title" style={{ margin: "0 0 22px" }}>{currentSection.title}</h3>
                 )}
                 
                 {currentQuestions.map((q, idx) => {
@@ -951,18 +950,6 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
           </a>
         </footer>
       </div>
-
-      <style jsx>{`
-        .step-section-title {
-          padding-bottom: 0 !important;
-          margin-bottom: 0 !important;
-        }
-
-        .step-section-subtitle {
-          margin: 0 0 22px !important;
-          padding: 0 !important;
-        }
-      `}</style>
     </div>
   );
 }
