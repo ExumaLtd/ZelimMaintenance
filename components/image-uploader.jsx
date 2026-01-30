@@ -13,6 +13,7 @@ import { Camera, Loader2, AlertCircle, X } from 'lucide-react';
  * @param {string} maintenanceType - e.g., "annual", "monthly"
  * @param {function} onImagesChange - Callback when images are uploaded/removed
  * @param {array} initialImages - Images to load from draft (optional)
+ * @param {boolean} hasError - Whether to show error styling (optional)
  */
 export default function ImageUploader({ 
   questionKey, 
@@ -20,7 +21,8 @@ export default function ImageUploader({
   serialNumber, 
   maintenanceType,
   onImagesChange,
-  initialImages = []
+  initialImages = [],
+  hasError = false
 }) {
   const [images, setImages] = useState([]);
   const [uploading, setUploading] = useState(false);
@@ -256,7 +258,7 @@ export default function ImageUploader({
     <div className="image-uploader-container">
       {/* Drop Zone */}
       <div 
-        className="image-drop-zone"
+        className={`image-drop-zone ${hasError ? 'has-error' : ''}`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onClick={() => fileInputRef.current?.click()}

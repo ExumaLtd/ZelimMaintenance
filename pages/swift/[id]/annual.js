@@ -78,6 +78,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
     engineerName: false,
     engineerEmail: false,
     engineerPhone: false,
+    photographImages: false, // Add image upload error tracking
   });
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -176,6 +177,12 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
       ...prev,
       [questionKey]: images
     }));
+    
+    // Clear photograph images error when user uploads at least one image
+    if (questionKey === 'q1' && images.length > 0) {
+      setFieldErrors(prev => ({ ...prev, photographImages: false }));
+      setErrorMsg("");
+    }
   };
 
   // Get current section configuration
@@ -198,6 +205,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
       engineerName: false,
       engineerEmail: false,
       engineerPhone: false,
+      photographImages: false,
     };
 
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
@@ -244,6 +252,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
         const images = questionImages[`q${questionIndex}`] || [];
         if (images.length === 0) {
           errors.push('photograph_images');
+          newFieldErrors.photographImages = true;
           setErrorMsg("Please upload at least one photo of the SWIFT.");
         }
       }
@@ -844,11 +853,11 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
                 
                 {currentSection && currentSection.step > 1 && (
                   <>
-                    <h4 className="checklist-section-title" style={{ marginTop: "24px", fontSize: "20px" }}>
+                    <h4 className="checklist-section-title step-section-title" style={{ marginTop: "24px", fontSize: "20px" }}>
                       {currentSection.title}
                     </h4>
                     {currentSection.subtitle && (
-                      <p className="checklist-section-subtitle">{currentSection.subtitle}</p>
+                      <p className="checklist-section-subtitle step-section-subtitle">{currentSection.subtitle}</p>
                     )}
                   </>
                 )}
@@ -908,6 +917,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
                             maintenanceType="annual"
                             initialImages={questionImages[`q${questionIndex}`] || []}
                             onImagesChange={(images) => handleImagesChange(`q${questionIndex}`, images)}
+                            hasError={q.id === 1 && fieldErrors.photographImages}
                           />
                         )}
                       </div>
@@ -941,6 +951,16 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
           </a>
         </footer>
       </div>
+
+      <style jsx>{`
+        .step-section-title {
+          padding-bottom: 0 !important;
+        }
+
+        .step-section-subtitle {
+          margin: 0 0 22px !important;
+        }
+      `}</style>
     </div>
   );
 }
