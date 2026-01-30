@@ -202,18 +202,26 @@ export const FaultReportEmail = ({
                     const answerText = isObject ? answerData.text : answerData;
                     const images = isObject ? (answerData.images || []) : [];
 
+                    // ✅ Skip showing "Not answered" for Photograph SWIFT if there are images
+                    const isPhotographQuestion = question.toLowerCase().includes('photograph');
+                    const hasImages = images.length > 0;
+                    const hasNoText = !answerText || answerText === '';
+                    const shouldSkipNotAnswered = isPhotographQuestion && hasImages && hasNoText;
+
                     return (
                       <div key={i} style={answerBlock}>
                         <Text style={questionText}>{question}</Text>
-                        <Text style={answerTextStyle}>
-                          {answerText !== null && answerText !== undefined && answerText !== '' 
-                            ? String(answerText) 
-                            : 'Not answered'}
-                        </Text>
+                        {!shouldSkipNotAnswered && (
+                          <Text style={answerTextStyle}>
+                            {answerText !== null && answerText !== undefined && answerText !== '' 
+                              ? String(answerText) 
+                              : 'Not answered'}
+                          </Text>
+                        )}
                         
                         {/* Display images if present */}
                         {images.length > 0 && (
-                          <Section style={imageGallery} className="image-gallery-mobile">
+                          <Section style={{...imageGallery, marginTop: shouldSkipNotAnswered ? '8px' : '12px'}} className="image-gallery-mobile">
                             {images.map((imageUrl, imgIndex) => (
                               <Link 
                                 key={imgIndex} 
