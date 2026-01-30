@@ -236,6 +236,17 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
         const phoneInput = document.querySelector('[name="engineer_phone"]');
         if (phoneInput) phoneInput.classList.add('has-error');
       }
+      
+      // Special validation for Step 1: Photograph SWIFT must have images
+      const photographQuestion = currentQuestions.find(q => q.id === 1);
+      if (photographQuestion) {
+        const questionIndex = (template?.questionsData || []).indexOf(photographQuestion) + 1;
+        const images = questionImages[`q${questionIndex}`] || [];
+        if (images.length === 0) {
+          errors.push('photograph_images');
+          setErrorMsg("Please upload at least one photo of the SWIFT.");
+        }
+      }
     }
 
     // Validate current step questions
@@ -256,7 +267,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
 
     setFieldErrors(newFieldErrors);
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && !errors.includes('photograph_images')) {
       if (errors.length === 1) {
         if (errors.includes('company')) setErrorMsg("Please select a maintenance company.");
         else if (errors.includes('location')) setErrorMsg("Please provide a location.");
@@ -268,6 +279,10 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
         setErrorMsg("Please check for multiple errors.");
       }
       return;
+    }
+
+    if (errors.includes('photograph_images')) {
+      return; // Error message already set above
     }
 
     setErrorMsg("");
@@ -822,10 +837,21 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
             {/* CARD 2: QUESTIONS (Multi-step) */}
             <div ref={card2Ref} className="checklist-form-card" style={{ marginTop: "20px" }}>
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-                <h3 className="checklist-section-title">{currentSection?.title || "Annual maintenance"}</h3>
+                <h3 className="checklist-section-title">Annual maintenance</h3>
                 <p className="checklist-section-subtitle">
                   All annual maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual.
                 </p>
+                
+                {currentSection && (
+                  <>
+                    <h4 className="checklist-section-title" style={{ marginTop: "24px", fontSize: "20px" }}>
+                      {currentSection.title}
+                    </h4>
+                    {currentSection.subtitle && (
+                      <p className="checklist-section-subtitle">{currentSection.subtitle}</p>
+                    )}
+                  </>
+                )}
                 
                 {currentQuestions.map((q, idx) => {
                   const questionIndex = (template?.questionsData || []).indexOf(q) + 1;
