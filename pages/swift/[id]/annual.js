@@ -300,9 +300,8 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
     window.history.pushState({ step: currentStep + 1 }, '', window.location.href);
     
     setTimeout(() => {
-      if (card2Ref.current) {
-        card2Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      // Scroll to 20px from top of viewport
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 100);
   };
 
@@ -326,16 +325,12 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
       if (event.state?.step) {
         setCurrentStep(event.state.step);
         setTimeout(() => {
-          if (card2Ref.current) {
-            card2Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }, 100);
       } else if (currentStep > 1) {
         setCurrentStep(currentStep - 1);
         setTimeout(() => {
-          if (card2Ref.current) {
-            card2Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }, 100);
       }
     };
