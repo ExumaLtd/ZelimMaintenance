@@ -1,5 +1,5 @@
 // pages/swift/[id]/annual.js
-// ✅ UPDATED to use shared data fetching
+// ✅ UPDATED with multi-step flow
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/router";
@@ -11,7 +11,7 @@ import VoiceInput from '../../../components/voice-input';
 import DatePicker from '../../../components/date-picker';
 import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
 import { useAutoSave } from '../../../hooks/use-auto-save';
-import { fetchFormData } from '@/lib/data-fetching'; // ✅ NEW IMPORT
+import { fetchFormData } from '@/lib/data-fetching';
 
 const autoGrow = (e) => {
   const el = e.target || e;
@@ -46,7 +46,18 @@ const getClientLogo = (companyName, serialNumber) => {
   return null;
 };
 
-// ✅ Props now come from fetchFormData
+// Define sections for multi-step flow
+const sections = [
+  { step: 1, title: "Photograph SWIFT", subtitle: null, questionIds: [1] },
+  { step: 2, title: "Records and visual checks", subtitle: null, questionIds: [2, 3] },
+  { step: 3, title: "Lubrication and mechanical checks", subtitle: null, questionIds: [4, 5, 6] },
+  { step: 4, title: "Conveyor belt checks", subtitle: null, questionIds: [7, 8, 9, 10] },
+  { step: 5, title: "Functional and control tests", subtitle: null, questionIds: [11, 12, 13, 14, 15] },
+  { step: 6, title: "Deployment and winch checks", subtitle: null, questionIds: [16, 17, 18, 19, 20, 21, 22, 23] },
+  { step: 7, title: "Electrical checks", subtitle: null, questionIds: [24, 25] },
+  { step: 8, title: "Verification trial and notes", subtitle: null, questionIds: [26, 27] }
+];
+
 export default function Annual({ unit, template, companies = [], engineers = [] }) {
   const router = useRouter();
 
@@ -55,6 +66,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
   const engineerFieldRef = useRef(null);
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
+  const card2Ref = useRef(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -68,6 +80,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
     engineerPhone: false,
   });
 
+  const [currentStep, setCurrentStep] = useState(1);
   const [locationDisplay, setLocationDisplay] = useState("");
   const [locationCountry, setLocationCountry] = useState("");
   const [selectedCompany, setSelectedCompany] = useState("");
@@ -88,6 +101,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
     maintenanceType: 'Annual',
     engineerEmail: engEmail,
     draftData: {
+      currentStep,
       answers,
       questionImages,
       selectedCompany,
@@ -107,7 +121,6 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
     (engPhone && engPhone !== '')
   );
 
-  // ✅ Changed: allEngineers → engineers
   const filteredEngineers = useMemo(() => {
     if (!selectedCompany) return [];
     let list = engineers.filter(e => e.companyName === selectedCompany && e.name !== engName);
@@ -117,7 +130,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
       return list.filter(e => e.name.toLowerCase().includes(search));
     }
     return list;
-  }, [selectedCompany, engName, engineers]); // ✅ Changed dependency
+  }, [selectedCompany, engName, engineers]);
 
   const selectCompany = useCallback((company) => {
     setSelectedCompany(company);
@@ -165,6 +178,110 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
     }));
   };
 
+  // Get current section configuration
+  const currentSection = sections.find(s => s.step === currentStep);
+  
+  // Get questions for current step
+  const currentQuestions = useMemo(() => {
+    if (!currentSection || !template?.questionsData) return [];
+    return template.questionsData.filter(q => 
+      currentSection.questionIds.includes(q.id)
+    );
+  }, [currentSection, template?.questionsData]);
+
+  // Handle continue to next step
+  const handleContinueToNextStep = () => {
+    const errors = [];
+    const newFieldErrors = {
+      company: false,
+      location: false,
+      engineerName: false,
+      engineerEmail: false,
+      engineerPhone: false,
+    };
+
+    document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+
+    // Only validate admin fields on step 1
+    if (currentStep === 1) {
+      if (!selectedCompany || selectedCompany === "Please select") {
+        errors.push('company');
+        newFieldErrors.company = true;
+      }
+
+      if (!locationDisplay || !locationDisplay.trim()) {
+        errors.push('location');
+        newFieldErrors.location = true;
+        const locationInput = document.querySelector('[name="location_display"]');
+        if (locationInput) locationInput.classList.add('has-error');
+      }
+
+      if (!engName || engName === "Please select" || !engName.trim()) {
+        errors.push('engineer');
+        newFieldErrors.engineerName = true;
+        const engineerInput = document.querySelector('[name="engineer_name"]');
+        if (engineerInput) engineerInput.classList.add('has-error');
+      }
+
+      if (!engEmail || !engEmail.trim()) {
+        errors.push('email');
+        newFieldErrors.engineerEmail = true;
+        const emailInput = document.querySelector('[name="engineer_email"]');
+        if (emailInput) emailInput.classList.add('has-error');
+      }
+
+      if (!engPhone || !engPhone.trim()) {
+        errors.push('phone');
+        newFieldErrors.engineerPhone = true;
+        const phoneInput = document.querySelector('[name="engineer_phone"]');
+        if (phoneInput) phoneInput.classList.add('has-error');
+      }
+    }
+
+    // Validate current step questions
+    const requiredQuestions = currentQuestions.filter(q => q.required);
+    for (let i = 0; i < requiredQuestions.length; i++) {
+      const q = requiredQuestions[i];
+      const questionIndex = (template?.questionsData || []).indexOf(q) + 1;
+      const answer = answers[`q${questionIndex}`];
+      
+      if (!answer || !answer.trim()) {
+        errors.push(`q${questionIndex}`);
+        const questionElement = document.querySelector(`[name="q${questionIndex}"]`);
+        if (questionElement) {
+          questionElement.classList.add('has-error');
+        }
+      }
+    }
+
+    setFieldErrors(newFieldErrors);
+
+    if (errors.length > 0) {
+      if (errors.length === 1) {
+        if (errors.includes('company')) setErrorMsg("Please select a maintenance company.");
+        else if (errors.includes('location')) setErrorMsg("Please provide a location.");
+        else if (errors.includes('engineer')) setErrorMsg("Please select or enter an engineer name.");
+        else if (errors.includes('email')) setErrorMsg("Please provide an engineer email.");
+        else if (errors.includes('phone')) setErrorMsg("Please provide an engineer phone number.");
+        else setErrorMsg("Please complete all required questions.");
+      } else {
+        setErrorMsg("Please check for multiple errors.");
+      }
+      return;
+    }
+
+    setErrorMsg("");
+    setCurrentStep(currentStep + 1);
+    
+    window.history.pushState({ step: currentStep + 1 }, '', window.location.href);
+    
+    setTimeout(() => {
+      if (card2Ref.current) {
+        card2Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  };
+
   // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -178,6 +295,30 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Handle browser back button
+  useEffect(() => {
+    const handlePopState = (event) => {
+      if (event.state?.step) {
+        setCurrentStep(event.state.step);
+        setTimeout(() => {
+          if (card2Ref.current) {
+            card2Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      } else if (currentStep > 1) {
+        setCurrentStep(currentStep - 1);
+        setTimeout(() => {
+          if (card2Ref.current) {
+            card2Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [currentStep]);
 
   // Load draft from localStorage
   useEffect(() => {
@@ -231,6 +372,13 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
         const data = await res.json();
         
         if (data.draft) {
+          if (data.draft.currentStep) {
+            setCurrentStep(data.draft.currentStep);
+            // Set up history state for all previous steps
+            for (let i = 1; i <= data.draft.currentStep; i++) {
+              window.history.pushState({ step: i }, '', window.location.href);
+            }
+          }
           if (data.draft.answers) setAnswers(data.draft.answers);
           if (data.draft.questionImages) setQuestionImages(data.draft.questionImages);
           if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
@@ -356,63 +504,11 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
 
     const errors = [];
     let firstErrorField = null;
-    const newFieldErrors = {
-      company: false,
-      location: false,
-      engineerName: false,
-      engineerEmail: false,
-      engineerPhone: false,
-    };
 
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
 
-    // Validation
-    if (!selectedCompany || selectedCompany === "Please select") {
-      errors.push({ field: 'company', message: 'Please select a maintenance company.' });
-      newFieldErrors.company = true;
-      if (!firstErrorField) firstErrorField = companyFieldRef;
-    }
-
-    if (!locationDisplay || !locationDisplay.trim()) {
-      errors.push({ field: 'location', message: 'Please provide a location.' });
-      newFieldErrors.location = true;
-      if (!firstErrorField) firstErrorField = locationFieldRef;
-      const locationInput = document.querySelector('[name="location_display"]');
-      if (locationInput) locationInput.classList.add('has-error');
-    }
-
-    if (!engName || engName === "Please select" || !engName.trim()) {
-      errors.push({ field: 'engineer', message: 'Please select or enter an engineer name.' });
-      newFieldErrors.engineerName = true;
-      if (!firstErrorField) firstErrorField = engineerFieldRef;
-      const engineerInput = document.querySelector('[name="engineer_name"]');
-      if (engineerInput) engineerInput.classList.add('has-error');
-    }
-
-    if (!engEmail || !engEmail.trim()) {
-      errors.push({ field: 'engineer_email', message: 'Please provide an engineer email.' });
-      newFieldErrors.engineerEmail = true;
-      if (!firstErrorField) {
-        const emailInput = document.querySelector('[name="engineer_email"]');
-        if (emailInput) firstErrorField = { current: emailInput };
-      }
-      const emailInput = document.querySelector('[name="engineer_email"]');
-      if (emailInput) emailInput.classList.add('has-error');
-    }
-
-    if (!engPhone || !engPhone.trim()) {
-      errors.push({ field: 'engineer_phone', message: 'Please provide an engineer phone number.' });
-      newFieldErrors.engineerPhone = true;
-      if (!firstErrorField) {
-        const phoneInput = document.querySelector('[name="engineer_phone"]');
-        if (phoneInput) firstErrorField = { current: phoneInput };
-      }
-      const phoneInput = document.querySelector('[name="engineer_phone"]');
-      if (phoneInput) phoneInput.classList.add('has-error');
-    }
-
-    // Validate required questions
-    const requiredQuestions = (template?.questionsData || []).filter(q => q.required);
+    // Validate current step questions
+    const requiredQuestions = currentQuestions.filter(q => q.required);
     for (let i = 0; i < requiredQuestions.length; i++) {
       const q = requiredQuestions[i];
       const questionIndex = (template?.questionsData || []).indexOf(q) + 1;
@@ -428,8 +524,6 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
       }
     }
 
-    setFieldErrors(newFieldErrors);
-
     if (errors.length > 0) {
       if (errors.length === 1) {
         setErrorMsg(errors[0].message);
@@ -437,15 +531,13 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
         setErrorMsg("Please check for multiple errors.");
       }
       
-      if (firstErrorField) {
-        if (firstErrorField.current) {
-          firstErrorField.current.scrollIntoView({ behavior: "smooth", block: "center" });
-          setTimeout(() => {
-            if (firstErrorField.current.focus) {
-              firstErrorField.current.focus();
-            }
-          }, 300);
-        }
+      if (firstErrorField?.current) {
+        firstErrorField.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        setTimeout(() => {
+          if (firstErrorField.current.focus) {
+            firstErrorField.current.focus();
+          }
+        }, 300);
       }
       return;
     }
@@ -495,7 +587,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
 
       if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
 
-// Mark draft as complete (if one exists)
+      // Mark draft as complete (if one exists)
       try {
         await fetch('/api/mark-draft-complete', {
           method: 'POST',
@@ -507,7 +599,6 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
           }),
         });
       } catch (err) {
-        // Silently ignore if no draft exists - that's fine
         console.log('No draft to mark complete (form completed without auto-save)');
       }
 
@@ -599,7 +690,6 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
                     </div>
                     {showCompanyDropdown && (
                       <ul className={`custom-dropdown-list ${fieldErrors.company ? "has-error" : ""}`}>
-                        {/* ✅ Changed: allCompanies → companies */}
                         {companies.sort().map((c, i) => (
                           <li
                             key={i}
@@ -729,77 +819,91 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
               </div>
             </div>
 
-            {/* CARD 2: QUESTIONS */}
-            <div className="checklist-form-card" style={{ marginTop: "20px" }}>
+            {/* CARD 2: QUESTIONS (Multi-step) */}
+            <div ref={card2Ref} className="checklist-form-card" style={{ marginTop: "20px" }}>
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-                <h3 className="checklist-section-title">Annual maintenance</h3>
+                <h3 className="checklist-section-title">{currentSection?.title || "Annual maintenance"}</h3>
                 <p className="checklist-section-subtitle">
                   All annual maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual.
                 </p>
                 
-                {(template?.questionsData || []).map((q, i) => (
-                  <div key={i} style={{ marginTop: i === 0 ? "0" : "24px" }}>
-                    <label className="checklist-label">
-                      {q.title}
-                    </label>
-                    {q.instruction && (
-                      <p className="question-instruction">{q.instruction}</p>
-                    )}
-                    
-                    <div className="question-with-upload">
-                      <div className="textarea-wrapper">
-                        <textarea
-                          name={`q${i + 1}`}
-                          className="checklist-textarea"
-                          value={answers[`q${i + 1}`] || ""}
-                          onChange={(e) => {
-                            setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-                            autoGrow(e);
-                            if (e.target.value.trim()) {
-                              e.target.classList.remove('has-error');
-                            }
-                          }}
-                          onInput={autoGrow}
-                          placeholder=""
-                          required={q.required}
-                        />
-
-                        <VoiceInput
-                          onTranscript={(text) => {
-                            const questionKey = `q${i + 1}`;
-                            setAnswers((prev) => ({
-                              ...prev,
-                              [questionKey]: (prev[questionKey] || '') + text
-                            }));
-                            requestAnimationFrame(() => {
-                              requestAnimationFrame(() => {
-                                const textarea = document.querySelector(`[name="${questionKey}"]`);
-                                if (textarea) autoGrow(textarea);
-                              });
-                            });
-                          }}
-                          onError={(errorMsg) => setErrorMsg(errorMsg)}
-                        />
-                      </div>
-                      
-                      {q.allow_uploads && (
-                        <ImageUploader
-                          questionKey={`q${i + 1}`}
-                          questionText={q.title}
-                          serialNumber={unit?.serial_number}
-                          maintenanceType="annual"
-                          initialImages={questionImages[`q${i + 1}`] || []}
-                          onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
-                        />
+                {currentQuestions.map((q, idx) => {
+                  const questionIndex = (template?.questionsData || []).indexOf(q) + 1;
+                  return (
+                    <div key={q.id} style={{ marginTop: idx === 0 ? "0" : "24px" }}>
+                      <label className="checklist-label">
+                        {q.title}
+                      </label>
+                      {q.instruction && (
+                        <p className="question-instruction">{q.instruction}</p>
                       )}
+                      
+                      <div className="question-with-upload">
+                        <div className="textarea-wrapper">
+                          <textarea
+                            name={`q${questionIndex}`}
+                            className="checklist-textarea"
+                            value={answers[`q${questionIndex}`] || ""}
+                            onChange={(e) => {
+                              setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+                              autoGrow(e);
+                              if (e.target.value.trim()) {
+                                e.target.classList.remove('has-error');
+                              }
+                            }}
+                            onInput={autoGrow}
+                            placeholder=""
+                            required={q.required}
+                          />
+
+                          <VoiceInput
+                            onTranscript={(text) => {
+                              const questionKey = `q${questionIndex}`;
+                              setAnswers((prev) => ({
+                                ...prev,
+                                [questionKey]: (prev[questionKey] || '') + text
+                              }));
+                              requestAnimationFrame(() => {
+                                requestAnimationFrame(() => {
+                                  const textarea = document.querySelector(`[name="${questionKey}"]`);
+                                  if (textarea) autoGrow(textarea);
+                                });
+                              });
+                            }}
+                            onError={(errorMsg) => setErrorMsg(errorMsg)}
+                          />
+                        </div>
+                        
+                        {q.allow_uploads && (
+                          <ImageUploader
+                            questionKey={`q${questionIndex}`}
+                            questionText={q.title}
+                            serialNumber={unit?.serial_number}
+                            maintenanceType="annual"
+                            initialImages={questionImages[`q${questionIndex}`] || []}
+                            onImagesChange={(images) => handleImagesChange(`q${questionIndex}`, images)}
+                          />
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 {errorMsg && <p className="error-message">{errorMsg}</p>}
-                <button type="submit" className="checklist-submit" disabled={submitting}>
-                  {submitting ? "Submitting..." : "Submit maintenance"}
-                </button>
+                
+                {currentStep < sections.length ? (
+                  <button 
+                    type="button"
+                    className="checklist-submit"
+                    onClick={handleContinueToNextStep}
+                  >
+                    Continue
+                  </button>
+                ) : (
+                  <button type="submit" className="checklist-submit" disabled={submitting}>
+                    {submitting ? "Submitting..." : "Submit maintenance"}
+                  </button>
+                )}
               </form>
             </div>
           </div>
@@ -815,30 +919,22 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
   );
 }
 
-// ============================================================================
-// ✅ UPDATED getServerSideProps - Now uses shared data fetching
-// ============================================================================
-
 export async function getServerSideProps({ params }) {
   const publicToken = params.id;
   
   try {
-    // ✅ Single function call fetches everything in parallel with caching
     const data = await fetchFormData(publicToken, 'Annual');
     
-    // If unit not found, redirect to home
     if (data.notFound) {
       return { redirect: { destination: '/', permanent: false } };
     }
     
-    // Return all the data
-    // Note: The prop names match what the component expects
     return { 
       props: {
         unit: data.unit,
         template: data.template,
-        companies: data.companies,    // ✅ Changed from allCompanies
-        engineers: data.engineers,    // ✅ Changed from allEngineers
+        companies: data.companies,
+        engineers: data.engineers,
       } 
     };
   } catch (error) {
