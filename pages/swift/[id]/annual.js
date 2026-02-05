@@ -379,7 +379,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
         return;
       }
       
-      // PRIORITY 1: ALWAYS check Airtable first
+// PRIORITY 1: ALWAYS check Airtable first
       if (unit?.record_id) {
         try {
           console.log('🔍 Checking Airtable for draft...');
@@ -391,12 +391,12 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
           if (data.draft) {
             console.log('📦 Draft found in Airtable');
             
+            // CRITICAL FIX: Set currentStep WITHOUT pushing history to prevent auto-submit
             if (data.draft.currentStep) {
               setCurrentStep(data.draft.currentStep);
-              for (let i = 1; i <= data.draft.currentStep; i++) {
-                window.history.pushState({ step: i }, '', window.location.href);
-              }
+              // DON'T push history states - it was causing form auto-submit on Step 8
             }
+            
             if (data.draft.answers) setAnswers(data.draft.answers);
             if (data.draft.questionImages) setQuestionImages(data.draft.questionImages);
             if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
