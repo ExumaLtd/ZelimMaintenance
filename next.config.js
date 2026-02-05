@@ -23,9 +23,32 @@ const nextConfig = {
     ],
   },
 
-  // Add custom headers for better caching
+  // Add custom headers for caching control
   async headers() {
     return [
+      // ========================================
+      // PREVENT caching of HTML pages and API routes
+      // ========================================
+      {
+        source: '/:path((?!_next/static|favicon|client_logos|logo|images).*)*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+          },
+          {
+            key: 'Pragma',
+            value: 'no-cache',
+          },
+          {
+            key: 'Expires',
+            value: '0',
+          },
+        ],
+      },
+      // ========================================
+      // ALLOW caching of static assets
+      // ========================================
       {
         source: '/_next/static/:path*',
         headers: [
