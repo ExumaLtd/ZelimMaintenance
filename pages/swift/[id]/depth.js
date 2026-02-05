@@ -58,39 +58,51 @@ const sections = [
   },
   { 
     step: 3, 
-    title: "Service history and condition review", 
+    title: "Functional test", 
     subtitle: null, 
-    questionIds: [2, 3] 
+    questionIds: [2] 
   },
   { 
     step: 4, 
-    title: "Disassembly and cleaning", 
+    title: "Clean the SWIFT", 
+    subtitle: null, 
+    questionIds: [3] 
+  },
+  { 
+    step: 5, 
+    title: "Service history and condition review", 
     subtitle: null, 
     questionIds: [4, 5] 
   },
   { 
-    step: 5, 
-    title: "Component inspections", 
-    subtitle: null, 
-    questionIds: [6, 7, 8, 9, 10, 11] 
-  },
-  { 
     step: 6, 
-    title: "Winch maintenance", 
+    title: "Disassembly and cleaning", 
     subtitle: null, 
-    questionIds: [12, 13, 14, 15, 16, 17] 
+    questionIds: [6, 7] 
   },
   { 
     step: 7, 
-    title: "Reassembly and testing", 
+    title: "Component inspections", 
     subtitle: null, 
-    questionIds: [18, 19, 20, 21] 
+    questionIds: [8, 9, 10, 11, 12, 13] 
   },
   { 
     step: 8, 
+    title: "Winch maintenance", 
+    subtitle: null, 
+    questionIds: [14, 15, 16, 17, 18, 19] 
+  },
+  { 
+    step: 9, 
+    title: "Reassembly and testing", 
+    subtitle: null, 
+    questionIds: [20, 21, 22, 23] 
+  },
+  { 
+    step: 10, 
     title: "Final packaging and notes", 
     subtitle: null, 
-    questionIds: [22, 23] 
+    questionIds: [24, 25] 
   }
 ];
 
@@ -465,11 +477,11 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
     setErrorMsg("");
     
-    // ✅ NEW: Skip Step 6 (Winch maintenance) if winch not returned
+    // ✅ NEW: Skip Step 8 (Winch maintenance) if winch not returned
     let nextStep = currentStep + 1;
-    if (currentStep === 5 && !isWinchReturned) {
-      nextStep = 7; // Skip step 6
-      console.log('⏭️ Skipping Step 6 (Winch maintenance) - winch not returned');
+    if (currentStep === 7 && !isWinchReturned) {
+      nextStep = 9; // Skip step 8
+      console.log('⏭️ Skipping Step 8 (Winch maintenance) - winch not returned');
     }
     
     setCurrentStep(nextStep);
@@ -525,8 +537,8 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       } else if (currentStep > 1) {
         // ✅ NEW: Handle back button with winch skip logic
         let previousStep = currentStep - 1;
-        if (currentStep === 7 && !isWinchReturned) {
-          previousStep = 5; // Skip back over step 6
+        if (currentStep === 9 && !isWinchReturned) {
+          previousStep = 7; // Skip back over step 8
         }
         setCurrentStep(previousStep);
         setTimeout(() => {
