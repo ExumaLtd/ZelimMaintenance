@@ -426,7 +426,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
     // Validate current step questions (Steps 2-8)
     if (currentStep > 1) {
-      const requiredQuestions = currentQuestions.filter(q => q.required);
+      const requiredQuestions = currentQuestions.filter(q => q.required && q.id !== 1); // Exclude photograph question
       for (let i = 0; i < requiredQuestions.length; i++) {
         const q = requiredQuestions[i];
         const questionIndex = (template?.questionsData || []).indexOf(q) + 1;
