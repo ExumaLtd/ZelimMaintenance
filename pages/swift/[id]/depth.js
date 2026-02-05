@@ -561,6 +561,13 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     return () => window.removeEventListener('popstate', handlePopState);
   }, [currentStep, isWinchReturned]);
 
+// Save currentStep to localStorage whenever it changes
+useEffect(() => {
+  if (currentStep > 1) {
+    localStorage.setItem(`${storageKey}_step`, currentStep.toString());
+  }
+}, [currentStep, storageKey]);
+
   // Load localStorage draft (only for page refreshes, not "Continue maintenance")
   useEffect(() => {
     setToday(new Date().toISOString().split("T")[0]);
@@ -592,6 +599,15 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
         if (key.startsWith("q")) draftAnswers[key] = data[key];
       });
       setAnswers(draftAnswers);
+      
+      // ✅ NEW: Restore currentStep from localStorage
+      const savedStep = localStorage.getItem(`${storageKey}_step`);
+      if (savedStep) {
+        const stepNum = parseInt(savedStep, 10);
+        if (stepNum > 1 && stepNum <= sections.length) {
+          setCurrentStep(stepNum);
+        }
+      }
     } catch (e) {
       console.error("Draft load error:", e);
     }
