@@ -1089,33 +1089,38 @@ useAutoSave({
 }
 
 export async function getServerSideProps({ params }) {
+  console.time('⏱️ TOTAL getServerSideProps');
   const token = params.id;
   
   try {
+    console.time('⏱️ fetchFormData call');
     const data = await fetchFormData(token, '30-month depth');
+    console.timeEnd('⏱️ fetchFormData call');
     
     if (data.notFound) {
       return { redirect: { destination: '/', permanent: false } };
     }
     
-    // Extract BOTH equipment_checklist AND questions from rawData
+    console.time('⏱️ Building props');
     const equipment_checklist = data.template?.rawData?.equipment_checklist || [];
     const questions = data.template?.rawData?.questions || [];
     
-    return {
-      props: {
-        unit: data.unit,
-        template: {
-          id: data.template?.id,
-          type: data.template?.type,
-          maintenanceChecklist: equipment_checklist,  // Step 1: Equipment table
-          questionsData: questions,  // Step 2: Question textareas ← YOU'RE MISSING THIS
-          questions: questions.map(q => q.title),  // Question titles ← AND THIS
-        },
-        allCompanies: data.companies,
-        allEngineers: data.engineers,
+    const props = {
+      unit: data.unit,
+      template: {
+        id: data.template?.id,
+        type: data.template?.type,
+        maintenanceChecklist: equipment_checklist,
+        questionsData: questions,
+        questions: questions.map(q => q.title),
       },
+      allCompanies: data.companies,
+      allEngineers: data.engineers,
     };
+    console.timeEnd('⏱️ Building props');
+    console.timeEnd('⏱️ TOTAL getServerSideProps');
+    
+    return { props };
   } catch (error) {
     console.error('Error loading depth form:', error);
     return { redirect: { destination: '/', permanent: false } };
