@@ -103,7 +103,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
   const card2Ref = useRef(null);
-  const hasLoadedDraftRef = useRef(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -136,6 +135,10 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
   const storageKey = useMemo(() => `draft_depth_${unit?.serial_number}`, [unit?.serial_number]);
 
+  // Refs to prevent duplicate operations
+  const hasLoadedDraftRef = useRef(false);
+  const hasSubmittedRef = useRef(false);
+
   useAutoSave({
     unitId: unit?.record_id,
     maintenanceType: '30-month depth',
@@ -154,19 +157,21 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       engPhone,
     }
   }, 
-  !submitting && (
-    (checklistData && checklistData.length > 0 && checklistData.some(item => 
-      item.returned !== null || item.condition !== null
-    )) ||
-    Object.keys(answers).some(key => answers[key]?.trim()) ||
-    Object.keys(questionImages).length > 0 ||
-    Object.keys(checklistImages).length > 0 ||
-    (selectedCompany && selectedCompany !== '') ||
-    (engName && engName !== '' && engName !== 'Please select') ||
-    (engEmail && engEmail !== '') ||
-    (engPhone && engPhone !== '')
-  )
-);
+    !submitting && 
+    !hasSubmittedRef.current &&
+    (
+      (checklistData && checklistData.length > 0 && checklistData.some(item => 
+        item.returned !== null || item.condition !== null
+      )) ||
+      Object.keys(answers).some(key => answers[key]?.trim()) ||
+      Object.keys(questionImages).length > 0 ||
+      Object.keys(checklistImages).length > 0 ||
+      (selectedCompany && selectedCompany !== '') ||
+      (engName && engName !== '' && engName !== 'Please select') ||
+      (engEmail && engEmail !== '') ||
+      (engPhone && engPhone !== '')
+    )
+  );
 
   // Initialize checklist data from template (only for fresh starts)
   useEffect(() => {
@@ -500,22 +505,55 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     return () => window.removeEventListener('popstate', handlePopState);
   }, [currentStep]);
 
-  // Load draft - ALWAYS check Airtable first, localStorage as fallback
-  // Load draft - ALWAYS check Airtable first, localStorage as fallback
-useEffect(() => {
-  setToday(new Date().toISOString().split("T")[0]);
-  
-  const loadDraft = async () => {
-    // Only load once per session
-    if (hasLoadedDraftRef.current) {
-      console.log('⏭️ Draft already loaded, skipping...');
-      return;
-    }
+  // Load localStorage draft (only for page refreshes, not "Continue maintenance")
+  useEffect(() => {
+    setToday(new Date().toISOString().split("T")[0]);
     
-    // PRIORITY 1: ALWAYS check Airtable first
-    if (unit?.record_id) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const isDraft = urlParams.get('draft') === 'true';
+    if (isDraft) return; // Skip localStorage when loading from Airtable
+    
+    const savedDraft = localStorage.getItem(storageKey);
+    if (!savedDraft) return;
+
+    try {
+      const data = JSON.parse(savedDraft);
+      if (data.maintained_by) setSelectedCompany(data.maintained_by);
+      if (data.location_display && data.location_display.trim()) {
+        setLocationDisplay(data.location_display);
+      }
+      if (data.location_country) setLocationCountry(data.location_country);
+      if (data.engineer_name) setEngName(data.engineer_name);
+      if (data.engineer_email) setEngEmail(data.engineer_email);
+      if (data.engineer_phone) setEngPhone(data.engineer_phone);
+      
+      if (data.checklist_data && Array.isArray(data.checklist_data)) {
+        setChecklistData(data.checklist_data);
+      }
+
+      const draftAnswers = {};
+      Object.keys(data).forEach((key) => {
+        if (key.startsWith("q")) draftAnswers[key] = data[key];
+      });
+      setAnswers(draftAnswers);
+    } catch (e) {
+      console.error("Draft load error:", e);
+    }
+  }, [storageKey]);
+
+  // Load draft from Airtable - ONLY when coming from "Continue maintenance"
+  useEffect(() => {
+    const loadDraft = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const isDraft = urlParams.get('draft') === 'true';
+      
+      if (!isDraft) return;
+      if (!unit?.record_id) return;
+      if (hasLoadedDraftRef.current) return; // Prevent duplicate loads
+      
+      hasLoadedDraftRef.current = true; // Mark as loaded immediately
+      
       try {
-        console.log('🔍 Checking Airtable for draft...');
         const res = await fetch(
           `/api/get-draft?unitId=${unit.record_id}&maintenanceType=30-month depth`
         );
@@ -524,14 +562,8 @@ useEffect(() => {
         if (data.draft) {
           console.log('📦 Draft found in Airtable');
           
+          // Load all data FIRST
           if (data.draft.checklistData) setChecklistData(data.draft.checklistData);
-          
-          // CRITICAL FIX: Set currentStep WITHOUT pushing history to prevent auto-submit
-          if (data.draft.currentStep) {
-            setCurrentStep(data.draft.currentStep);
-            // DON'T push history states - it was causing form auto-submit on Step 8
-          }
-          
           if (data.draft.answers) setAnswers(data.draft.answers);
           if (data.draft.questionImages) setQuestionImages(data.draft.questionImages);
           if (data.draft.checklistImages) setChecklistImages(data.draft.checklistImages);
@@ -542,58 +574,26 @@ useEffect(() => {
           if (data.draft.engEmail) setEngEmail(data.draft.engEmail);
           if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
           
-          // Clear stale localStorage
-          localStorage.removeItem(storageKey);
-          
-          hasLoadedDraftRef.current = true;
-          console.log('✅ Draft loaded from Airtable:', new Date(data.lastUpdated).toLocaleString());
-          return;
-        } else {
-          console.log('ℹ️ No draft found in Airtable');
+          // Load currentStep LAST to prevent race conditions
+          if (data.draft.currentStep) {
+            // Use setTimeout to ensure all state updates complete first
+            setTimeout(() => {
+              setCurrentStep(data.draft.currentStep);
+              console.log(`✅ Draft loaded - restored to step ${data.draft.currentStep}`);
+            }, 0);
+          } else {
+            console.log('✅ Draft loaded from Airtable');
+          }
         }
       } catch (error) {
-        console.error('❌ Failed to load Airtable draft:', error);
+        console.error('Failed to load draft:', error);
+        hasLoadedDraftRef.current = false; // Reset on error so user can retry
       }
-    }
+    };
     
-    // PRIORITY 2: localStorage fallback
-    console.log('🔍 Checking localStorage for draft...');
-    const savedDraft = localStorage.getItem(storageKey);
-    if (savedDraft) {
-      try {
-        const data = JSON.parse(savedDraft);
-        if (data.maintained_by) setSelectedCompany(data.maintained_by);
-        if (data.location_display && data.location_display.trim()) {
-          setLocationDisplay(data.location_display);
-        }
-        if (data.location_country) setLocationCountry(data.location_country);
-        if (data.engineer_name) setEngName(data.engineer_name);
-        if (data.engineer_email) setEngEmail(data.engineer_email);
-        if (data.engineer_phone) setEngPhone(data.engineer_phone);
-        
-        if (data.checklist_data && Array.isArray(data.checklist_data)) {
-          setChecklistData(data.checklist_data);
-        }
-
-        const draftAnswers = {};
-        Object.keys(data).forEach((key) => {
-          if (key.startsWith("q")) draftAnswers[key] = data[key];
-        });
-        setAnswers(draftAnswers);
-        
-        hasLoadedDraftRef.current = true;
-        console.log('✅ Draft loaded from localStorage');
-      } catch (e) {
-        console.error("❌ localStorage draft load error:", e);
-      }
-    } else {
-      console.log('ℹ️ No draft found in localStorage - fresh start');
-    }
-  };
-  
-  loadDraft();
-}, [unit?.record_id, storageKey]);
-
+    loadDraft();
+  }, [unit?.record_id]);
+    
   // Get geolocation
   useEffect(() => {
     if (typeof window === "undefined" || !navigator.geolocation) return;
@@ -739,6 +739,7 @@ useEffect(() => {
     }
 
     setSubmitting(true);
+    hasSubmittedRef.current = true; // Mark as submitted to prevent auto-save
 
     const emailFriendlyAnswers = {};
     (template?.questionsData || []).forEach((q, i) => {
@@ -845,6 +846,7 @@ useEffect(() => {
     } catch (err) {
       setErrorMsg(err.message);
       setSubmitting(false);
+      hasSubmittedRef.current = false; // Reset on error
     }
   };
 

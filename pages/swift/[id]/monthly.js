@@ -51,6 +51,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   const engineerFieldRef = useRef(null);
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
+  const hasLoadedDraftRef = useRef(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -83,7 +84,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
   const storageKey = useMemo(() => `draft_monthly_${unit?.serial_number}`, [unit?.serial_number]);
 
-// Auto-save draft to Airtable
+  // Auto-save draft to Airtable
   useAutoSave({
     unitId: unit?.record_id,
     maintenanceType: 'Monthly',
@@ -115,18 +116,17 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
   // Initialize checklist data from template (grouped structure)
   useEffect(() => {
-    // Don't initialize if coming from "Continue maintenance" - draft will load instead
     const urlParams = new URLSearchParams(window.location.search);
     const isDraft = urlParams.get('draft') === 'true';
-    if (isDraft) return; // Skip template initialization when loading a draft
+    if (isDraft) return;
     
-    if (template?.maintenanceChecklist && template.maintenanceChecklist.length > 0) {
+    if (template?.maintenanceChecklist && template.maintenanceChecklist.length > 0 && !hasLoadedDraftRef.current) {
       setChecklistData(
         template.maintenanceChecklist.map(group => ({
           ...group,
           questions: group.questions.map(q => ({
             ...q,
-            answer: null // null = unanswered, true = Yes, false = No
+            answer: null
           }))
         }))
       );
@@ -194,7 +194,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
         )
       };
       
-      // Remove error class from buttons when item is updated
       const row = document.querySelector(`[data-group="${groupIndex}"][data-question="${questionIndex}"]`);
       if (row) {
         const allButtons = row.querySelectorAll('.toggle-btn');
@@ -224,90 +223,93 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Load draft from localStorage
+  // Load draft - ALWAYS check Airtable first, localStorage as fallback
   useEffect(() => {
     setToday(new Date().toISOString().split("T")[0]);
     
-    // Don't load localStorage if coming from "Continue maintenance"
-    const urlParams = new URLSearchParams(window.location.search);
-    const isDraft = urlParams.get('draft') === 'true';
-    if (isDraft) return; // Skip localStorage when loading from Airtable
-    
-    const savedDraft = localStorage.getItem(storageKey);
-    if (!savedDraft) return;
-
-    try {
-      const data = JSON.parse(savedDraft);
-      if (data.maintained_by) setSelectedCompany(data.maintained_by);
-      if (data.location_display && data.location_display.trim()) {
-        setLocationDisplay(data.location_display);
-      }
-      if (data.location_country) setLocationCountry(data.location_country);
-      if (data.engineer_name) setEngName(data.engineer_name);
-      if (data.engineer_email) setEngEmail(data.engineer_email);
-      if (data.engineer_phone) setEngPhone(data.engineer_phone);
-      if (data.further_comments) setFurtherComments(data.further_comments);
-      
-      // Restore checklist data if it exists
-      if (data.checklist_data && Array.isArray(data.checklist_data)) {
-        setChecklistData(data.checklist_data);
-      }
-    } catch (e) {
-      console.error("Draft load error:", e);
-    }
-  }, [storageKey]);
-
-  // Load draft from Airtable - UPDATED TO NOT REQUIRE EMAIL
-  useEffect(() => {
     const loadDraft = async () => {
-      // Check if we have draft query param from dashboard
-      const urlParams = new URLSearchParams(window.location.search);
-      const isDraft = urlParams.get('draft') === 'true';
+      if (hasLoadedDraftRef.current) {
+        console.log('⏭️ Draft already loaded, skipping...');
+        return;
+      }
       
-      if (!isDraft) return; // Only run when coming from "Continue maintenance"
-      
-      if (!unit?.record_id) return;
-      
-      try {
-        // Call API WITHOUT email - it will find the most recent draft for this unit+type
-        const res = await fetch(
-          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Monthly`
-        );
-        const data = await res.json();
-        
-        if (data.draft) {
-          console.log('📦 Draft data received:', data.draft);
+      // PRIORITY 1: ALWAYS check Airtable first
+      if (unit?.record_id) {
+        try {
+          console.log('🔍 Checking Airtable for draft...');
+          const res = await fetch(
+            `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Monthly`
+          );
+          const data = await res.json();
           
-          // Restore form state from draft
-          if (data.draft.checklistData) setChecklistData(data.draft.checklistData);
-          if (data.draft.furtherComments) setFurtherComments(data.draft.furtherComments);
-          if (data.draft.commentImages) setCommentImages(data.draft.commentImages);
-          if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
-          if (data.draft.locationDisplay) setLocationDisplay(data.draft.locationDisplay);
-          if (data.draft.locationCountry) setLocationCountry(data.draft.locationCountry);
-          if (data.draft.engName) setEngName(data.draft.engName);
-          if (data.draft.engEmail) setEngEmail(data.draft.engEmail);
-          if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
-          
-          console.log('✅ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
+          if (data.draft) {
+            console.log('📦 Draft found in Airtable');
+            
+            if (data.draft.checklistData) setChecklistData(data.draft.checklistData);
+            if (data.draft.furtherComments) setFurtherComments(data.draft.furtherComments);
+            if (data.draft.commentImages) setCommentImages(data.draft.commentImages);
+            if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
+            if (data.draft.locationDisplay) setLocationDisplay(data.draft.locationDisplay);
+            if (data.draft.locationCountry) setLocationCountry(data.draft.locationCountry);
+            if (data.draft.engName) setEngName(data.draft.engName);
+            if (data.draft.engEmail) setEngEmail(data.draft.engEmail);
+            if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
+            
+            // Clear stale localStorage
+            localStorage.removeItem(storageKey);
+            
+            hasLoadedDraftRef.current = true;
+            console.log('✅ Draft loaded from Airtable:', new Date(data.lastUpdated).toLocaleString());
+            return;
+          } else {
+            console.log('ℹ️ No draft found in Airtable');
+          }
+        } catch (error) {
+          console.error('❌ Failed to load Airtable draft:', error);
         }
-      } catch (error) {
-        console.error('Failed to load draft:', error);
+      }
+      
+      // PRIORITY 2: localStorage fallback
+      console.log('🔍 Checking localStorage for draft...');
+      const savedDraft = localStorage.getItem(storageKey);
+      if (savedDraft) {
+        try {
+          const data = JSON.parse(savedDraft);
+          if (data.maintained_by) setSelectedCompany(data.maintained_by);
+          if (data.location_display && data.location_display.trim()) {
+            setLocationDisplay(data.location_display);
+          }
+          if (data.location_country) setLocationCountry(data.location_country);
+          if (data.engineer_name) setEngName(data.engineer_name);
+          if (data.engineer_email) setEngEmail(data.engineer_email);
+          if (data.engineer_phone) setEngPhone(data.engineer_phone);
+          if (data.further_comments) setFurtherComments(data.further_comments);
+          
+          if (data.checklist_data && Array.isArray(data.checklist_data)) {
+            setChecklistData(data.checklist_data);
+          }
+          
+          hasLoadedDraftRef.current = true;
+          console.log('✅ Draft loaded from localStorage');
+        } catch (e) {
+          console.error("❌ localStorage draft load error:", e);
+        }
+      } else {
+        console.log('ℹ️ No draft found in localStorage - fresh start');
       }
     };
     
     loadDraft();
-  }, [unit?.record_id]); // Run when unit loads
+  }, [unit?.record_id, storageKey]);
 
   // Get geolocation
   useEffect(() => {
     if (typeof window === "undefined" || !navigator.geolocation) return;
     if (locationDisplay && locationDisplay.trim() !== "") return;
 
-    // IMPORTANT: Don't run if coming from "Continue maintenance"
     const urlParams = new URLSearchParams(window.location.search);
     const isDraft = urlParams.get('draft') === 'true';
-    if (isDraft) return; // Skip geolocation if loading a draft
+    if (isDraft) return;
 
     const options = {
       enableHighAccuracy: true,
@@ -367,28 +369,25 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     );
   }, []);
 
-  // Pre-request microphone permission on page load
+  // Pre-request microphone permission
   useEffect(() => {
     if (typeof window === "undefined" || !navigator.mediaDevices) return;
     
-    // Request microphone permission early (silent request)
     navigator.mediaDevices.getUserMedia({ audio: true })
       .then(stream => {
-        // Permission granted - immediately close the stream
         stream.getTracks().forEach(track => track.stop());
         if (process.env.NODE_ENV === 'development') {
           console.log('✓ Microphone permission pre-granted');
         }
       })
       .catch(err => {
-        // User denied or error - that's okay, VoiceInput will handle it later
         if (process.env.NODE_ENV === 'development') {
           console.log('Microphone permission denied or unavailable:', err.message);
         }
       });
   }, []);
 
-  // Save draft to localStorage
+  // Save draft to localStorage (refresh protection)
   useEffect(() => {
     const draftData = {
       maintained_by: selectedCompany,
@@ -420,7 +419,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
 
-    // Validate top fields
     if (!selectedCompany || selectedCompany === "Please select") {
       errors.push({ field: 'company', message: 'Please select a maintenance company.' });
       newFieldErrors.company = true;
@@ -449,7 +447,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       newFieldErrors.engineerPhone = true;
     }
 
-    // Check if checklist is complete (grouped structure)
     const incompleteItems = [];
     let hasNoAnswers = false;
     
@@ -466,7 +463,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
     if (incompleteItems.length > 0) {
       errors.push({ field: 'checklist', message: 'Please complete all checklist questions.' });
-      // Add error styling to incomplete items
       incompleteItems.forEach(incomplete => {
         const row = document.querySelector(`[data-group="${incomplete.groupIndex}"][data-question="${incomplete.questionIndex}"]`);
         if (row) {
@@ -476,7 +472,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       });
     }
     
-    // Require further comments if any question answered "No"
     if (hasNoAnswers && (!furtherComments || !furtherComments.trim())) {
       errors.push({ field: 'comments', message: 'Further comments are required when any question is answered "No".' });
       const textarea = document.querySelector('.checklist-textarea');
@@ -510,7 +505,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
     setSubmitting(true);
 
-    // Build answers array for API (not object)
     const answers = [];
     if (furtherComments || commentImages.length > 0) {
       answers.push({
@@ -555,7 +549,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
       if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
 
-// Mark draft as complete (if one exists)
       try {
         await fetch('/api/mark-draft-complete', {
           method: 'POST',
@@ -567,13 +560,11 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           }),
         });
       } catch (err) {
-        // Silently ignore if no draft exists - that's fine
         console.log('No draft to mark complete (form completed without auto-save)');
       }
 
       const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
 
-      // Build answers object for email report
       const answersForEmail = {};
       if (furtherComments || commentImages.length > 0) {
         answersForEmail["Further comments"] = {
@@ -807,13 +798,11 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                 
                 {checklistData.map((group, groupIndex) => (
                   <div key={group.id} className="equipment-table" style={{ marginBottom: groupIndex < checklistData.length - 1 ? '24px' : '0' }}>
-                    {/* Group Header with Title on left, Completed? on right */}
                     <div className="equipment-header equipment-header-monthly" style={{ gridTemplateColumns: '1fr 120px' }}>
                       <div className="header-item" style={{ textAlign: 'left' }}>{group.title}</div>
                       <div className="header-returned">Completed?</div>
                     </div>
                     
-                    {/* Wrapper for questions only - gets the teal card background */}
                     <div className="equipment-questions-wrapper">
                       {group.questions.map((question, questionIndex) => (
                         <div 
@@ -862,7 +851,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                         onChange={(e) => {
                           setFurtherComments(e.target.value);
                           autoGrow(e);
-                          // Remove error styling when user types
                           if (e.target.value.trim()) {
                             e.target.classList.remove('has-error');
                           }
@@ -874,7 +862,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                       <VoiceInput
                         onTranscript={(text) => {
                           setFurtherComments((prev) => (prev || '') + text);
-                          // Auto-grow the textarea after voice input
                           requestAnimationFrame(() => {
                             requestAnimationFrame(() => {
                               const textarea = document.querySelector('.checklist-textarea');
@@ -926,7 +913,6 @@ export async function getServerSideProps({ params }) {
       return { redirect: { destination: '/', permanent: false } };
     }
     
-    // Extract maintenance_checklist from the RAW data
     const maintenanceChecklist = data.template?.rawData?.maintenance_checklist || [];
     
     return {
@@ -934,7 +920,7 @@ export async function getServerSideProps({ params }) {
         unit: data.unit,
         template: {
           ...data.template,
-          maintenanceChecklist,  // This is what the component expects
+          maintenanceChecklist,
         },
         allCompanies: data.companies,
         allEngineers: data.engineers,
