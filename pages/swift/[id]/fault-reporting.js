@@ -51,6 +51,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
   const hasLoadedDraftRef = useRef(false);
+  const hasSubmittedRef = useRef(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -95,7 +96,9 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
       engPhone,
     }
   }, 
-    !submitting && (
+    !submitting && 
+    !hasSubmittedRef.current &&
+    (
       Object.keys(answers).some(key => answers[key]?.trim()) ||
       Object.keys(questionImages).length > 0 ||
       (selectedCompany && selectedCompany !== '') ||
@@ -359,6 +362,8 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
     setErrorMsg("");
     if (submitting) return;
 
+    hasSubmittedRef.current = true;
+
     const errors = [];
     let firstErrorField = null;
     const newFieldErrors = {
@@ -434,6 +439,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
           }, 300);
         }
       }
+      hasSubmittedRef.current = false;
       return;
     }
 
@@ -534,6 +540,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
     } catch (err) {
       setErrorMsg(err.message);
       setSubmitting(false);
+      hasSubmittedRef.current = false;
     }
   };
 
