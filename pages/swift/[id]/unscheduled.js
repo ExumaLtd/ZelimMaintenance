@@ -51,6 +51,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
   const hasLoadedDraftRef = useRef(false);
+  const hasSubmittedRef = useRef(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -95,7 +96,9 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       engPhone,
     }
   }, 
-    !submitting && (
+    !submitting && 
+    !hasSubmittedRef.current &&
+    (
       Object.keys(answers).some(key => answers[key]?.trim()) ||
       Object.keys(questionImages).length > 0 ||
       (selectedCompany && selectedCompany !== '') ||
@@ -437,6 +440,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
     }
 
     setSubmitting(true);
+    hasSubmittedRef.current = true; // Block all future auto-saves
 
     const emailFriendlyAnswers = {};
     (template?.questionsData || []).forEach((q, i) => {
@@ -533,6 +537,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
     } catch (err) {
       setErrorMsg(err.message);
       setSubmitting(false);
+      hasSubmittedRef.current = false; // Reset on error
     }
   };
 
