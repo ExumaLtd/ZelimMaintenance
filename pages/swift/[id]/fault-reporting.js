@@ -50,6 +50,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
   const engineerFieldRef = useRef(null);
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
+  const hasLoadedDraftRef = useRef(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -78,7 +79,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
 
   const storageKey = useMemo(() => `draft_fault_reporting_${unit?.serial_number}`, [unit?.serial_number]);
 
-// Auto-save draft to Airtable
+  // Auto-save draft to Airtable
   useAutoSave({
     unitId: unit?.record_id,
     maintenanceType: 'Fault report',
@@ -174,86 +175,91 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Load draft from localStorage
+  // Load draft - ALWAYS check Airtable first, localStorage as fallback
   useEffect(() => {
     setToday(new Date().toISOString().split("T")[0]);
     
-    // Don't load localStorage if coming from "Continue maintenance"
-    const urlParams = new URLSearchParams(window.location.search);
-    const isDraft = urlParams.get('draft') === 'true';
-    if (isDraft) return;
-    
-    const savedDraft = localStorage.getItem(storageKey);
-    if (!savedDraft) return;
-
-    try {
-      const data = JSON.parse(savedDraft);
-      if (data.maintained_by) setSelectedCompany(data.maintained_by);
-      if (data.location_display && data.location_display.trim()) {
-        setLocationDisplay(data.location_display);
-      }
-      if (data.location_country) setLocationCountry(data.location_country);
-      if (data.engineer_name) setEngName(data.engineer_name);
-      if (data.engineer_email) setEngEmail(data.engineer_email);
-      if (data.engineer_phone) setEngPhone(data.engineer_phone);
-
-      const draftAnswers = {};
-      Object.keys(data).forEach((key) => {
-        if (key.startsWith("q")) draftAnswers[key] = data[key];
-      });
-      setAnswers(draftAnswers);
-    } catch (e) {
-      console.error("Draft load error:", e);
-    }
-  }, [storageKey]);
-
-  // Load draft from Airtable - UPDATED TO NOT REQUIRE EMAIL
-  useEffect(() => {
     const loadDraft = async () => {
-      // Check if we have draft query param from dashboard
-      const urlParams = new URLSearchParams(window.location.search);
-      const isDraft = urlParams.get('draft') === 'true';
+      // Only load once per session
+      if (hasLoadedDraftRef.current) {
+        console.log('⏭️ Draft already loaded, skipping...');
+        return;
+      }
       
-      if (!isDraft) return; // Only run when coming from "Continue maintenance"
-      
-      if (!unit?.record_id) return;
-      
-      try {
-        // Call API WITHOUT email - it will find the most recent draft for this unit+type
-        const res = await fetch(
-          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Fault report`
-        );
-        const data = await res.json();
-        
-        if (data.draft) {
-          console.log('📦 Draft data received:', data.draft);
+      // PRIORITY 1: ALWAYS check Airtable first
+      if (unit?.record_id) {
+        try {
+          console.log('🔍 Checking Airtable for draft...');
+          const res = await fetch(
+            `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Fault report`
+          );
+          const data = await res.json();
           
-          // Restore form state from draft
-          if (data.draft.answers) setAnswers(data.draft.answers);
-          if (data.draft.questionImages) setQuestionImages(data.draft.questionImages);
-          if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
-          if (data.draft.locationDisplay) setLocationDisplay(data.draft.locationDisplay);
-          if (data.draft.locationCountry) setLocationCountry(data.draft.locationCountry);
-          if (data.draft.engName) setEngName(data.draft.engName);
-          if (data.draft.engEmail) setEngEmail(data.draft.engEmail);
-          if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
-          
-          console.log('✅ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
+          if (data.draft) {
+            console.log('📦 Draft found in Airtable');
+            
+            if (data.draft.answers) setAnswers(data.draft.answers);
+            if (data.draft.questionImages) setQuestionImages(data.draft.questionImages);
+            if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
+            if (data.draft.locationDisplay) setLocationDisplay(data.draft.locationDisplay);
+            if (data.draft.locationCountry) setLocationCountry(data.draft.locationCountry);
+            if (data.draft.engName) setEngName(data.draft.engName);
+            if (data.draft.engEmail) setEngEmail(data.draft.engEmail);
+            if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
+            
+            // Clear stale localStorage
+            localStorage.removeItem(storageKey);
+            
+            hasLoadedDraftRef.current = true;
+            console.log('✅ Draft loaded from Airtable:', new Date(data.lastUpdated).toLocaleString());
+            return; // STOP
+          } else {
+            console.log('ℹ️ No draft found in Airtable');
+          }
+        } catch (error) {
+          console.error('❌ Failed to load Airtable draft:', error);
         }
-      } catch (error) {
-        console.error('Failed to load draft:', error);
+      }
+      
+      // PRIORITY 2: localStorage fallback (only if Airtable had nothing)
+      console.log('🔍 Checking localStorage for draft...');
+      const savedDraft = localStorage.getItem(storageKey);
+      if (savedDraft) {
+        try {
+          const data = JSON.parse(savedDraft);
+          if (data.maintained_by) setSelectedCompany(data.maintained_by);
+          if (data.location_display && data.location_display.trim()) {
+            setLocationDisplay(data.location_display);
+          }
+          if (data.location_country) setLocationCountry(data.location_country);
+          if (data.engineer_name) setEngName(data.engineer_name);
+          if (data.engineer_email) setEngEmail(data.engineer_email);
+          if (data.engineer_phone) setEngPhone(data.engineer_phone);
+
+          const draftAnswers = {};
+          Object.keys(data).forEach((key) => {
+            if (key.startsWith("q")) draftAnswers[key] = data[key];
+          });
+          setAnswers(draftAnswers);
+          
+          hasLoadedDraftRef.current = true;
+          console.log('✅ Draft loaded from localStorage');
+        } catch (e) {
+          console.error("❌ localStorage draft load error:", e);
+        }
+      } else {
+        console.log('ℹ️ No draft found in localStorage - fresh start');
       }
     };
     
     loadDraft();
-  }, [unit?.record_id]); // Run when unit loads
+  }, [unit?.record_id, storageKey]);
 
   // Get geolocation
   useEffect(() => {
     if (typeof window === "undefined" || !navigator.geolocation) return;
     if (locationDisplay && locationDisplay.trim() !== "") return;
 
-    // Skip geolocation if loading a draft
     const urlParams = new URLSearchParams(window.location.search);
     const isDraft = urlParams.get('draft') === 'true';
     if (isDraft) return;
@@ -334,7 +340,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
       });
   }, []);
 
-  // Save draft to localStorage
+  // Save draft to localStorage (refresh protection)
   useEffect(() => {
     const draftData = {
       maintained_by: selectedCompany,
@@ -365,7 +371,6 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
 
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
 
-    // Validate top fields
     if (!selectedCompany || selectedCompany === "Please select") {
       errors.push({ field: 'company', message: 'Please select a maintenance company.' });
       newFieldErrors.company = true;
@@ -477,7 +482,6 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
 
       if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
 
-// Mark draft as complete (if one exists)
       try {
         await fetch('/api/mark-draft-complete', {
           method: 'POST',
@@ -489,7 +493,6 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
           }),
         });
       } catch (err) {
-        // Silently ignore if no draft exists - that's fine
         console.log('No draft to mark complete (form completed without auto-save)');
       }
 
