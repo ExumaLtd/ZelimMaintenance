@@ -694,10 +694,15 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     localStorage.setItem(storageKey, JSON.stringify(draftData));
   }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, checklistData, answers, storageKey]);
   
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrorMsg("");
-    if (submitting) return;
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  console.log('🔴 FORM SUBMITTED - Step:', currentStep);
+  console.log('  - Event type:', e.type);
+  console.log('  - Submitter:', e.nativeEvent?.submitter);
+  console.log('  - Stack trace:', new Error().stack);
+  
+  setErrorMsg("");
+  if (submitting) return;
 
     const errors = [];
     let firstErrorField = null;
@@ -789,20 +794,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       });
 
       if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
-
-      try {
-        await fetch('/api/mark-draft-complete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            unitId: unit?.record_id,
-            maintenanceType: '30-month depth',
-            engineerEmail: engEmail,
-          }),
-        });
-      } catch (err) {
-        console.log('No draft to mark complete (form completed without auto-save)');
-      }
 
       const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
 
