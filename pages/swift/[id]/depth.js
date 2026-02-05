@@ -114,6 +114,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     engineerName: false,
     engineerEmail: false,
     engineerPhone: false,
+    photographImages: false,
   });
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -251,6 +252,12 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       ...prev,
       [questionKey]: images
     }));
+    
+    // Clear photo error when images are uploaded for "Photograph SWIFT" question
+    if (questionKey === 'q1' && images.length > 0) {
+      setFieldErrors(prev => ({ ...prev, photographImages: false }));
+      setErrorMsg("");
+    }
   };
 
   const handleChecklistImagesChange = (itemId, images) => {
@@ -336,6 +343,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       engineerName: false,
       engineerEmail: false,
       engineerPhone: false,
+      photographImages: false,
     };
 
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
@@ -402,6 +410,20 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       }
     }
 
+    // Validate photograph upload on step 2 (Photograph SWIFT)
+    if (currentStep === 2) {
+      const photographQuestion = currentQuestions.find(q => q.id === 1);
+      if (photographQuestion) {
+        const questionIndex = (template?.questionsData || []).indexOf(photographQuestion) + 1;
+        const images = questionImages[`q${questionIndex}`] || [];
+        if (images.length === 0) {
+          errors.push('photograph_images');
+          newFieldErrors.photographImages = true;
+          setErrorMsg("Please upload at least one photo of the SWIFT.");
+        }
+      }
+    }
+
     // Validate current step questions (Steps 2-8)
     if (currentStep > 1) {
       const requiredQuestions = currentQuestions.filter(q => q.required);
@@ -422,7 +444,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
     setFieldErrors(newFieldErrors);
 
-    if (errors.length > 0) {
+    if (errors.length > 0 && !errors.includes('photograph_images')) {
       if (errors.length === 1) {
         if (errors.includes('company')) setErrorMsg("Please select a maintenance company.");
         else if (errors.includes('location')) setErrorMsg("Please provide a location.");
@@ -434,6 +456,10 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       } else {
         setErrorMsg("Please check for multiple errors.");
       }
+      return;
+    }
+
+    if (errors.includes('photograph_images')) {
       return;
     }
 
@@ -1204,6 +1230,7 @@ const handleSubmit = async (e) => {
                                 maintenanceType="depth"
                                 initialImages={questionImages[`q${questionIndex}`] || []}
                                 onImagesChange={(images) => handleImagesChange(`q${questionIndex}`, images)}
+                                hasError={q.id === 1 && fieldErrors.photographImages}
                               />
                             )}
                           </div>
