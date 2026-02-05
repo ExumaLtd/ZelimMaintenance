@@ -1206,7 +1206,17 @@ const handleSubmit = async (e) => {
                         Continue
                       </button>
                     ) : (
-                      <button type="submit" className="checklist-submit" disabled={submitting}>
+                      <button 
+                        type="button"
+                        className="checklist-submit" 
+                        disabled={submitting}
+                        onClick={(e) => {
+                          const form = e.target.closest('form');
+                          if (form) {
+                            form.requestSubmit();
+                          }
+                        }}
+                      >
                         {submitting ? "Submitting..." : "Submit maintenance"}
                       </button>
                     )}
