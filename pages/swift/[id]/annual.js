@@ -1,5 +1,5 @@
 // pages/swift/[id]/annual.js
-// ✅ UPDATED with multi-step flow
+// ✅ UPDATED with Airtable-first caching
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/router";
@@ -67,6 +67,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
   const card2Ref = useRef(null);
+  const hasLoadedDraftRef = useRef(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -78,7 +79,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
     engineerName: false,
     engineerEmail: false,
     engineerPhone: false,
-    photographImages: false, // Add image upload error tracking
+    photographImages: false,
   });
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -179,7 +180,6 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
       [questionKey]: images
     }));
     
-    // Clear photograph images error when user uploads at least one image
     if (questionKey === 'q1' && images.length > 0) {
       setFieldErrors(prev => ({ ...prev, photographImages: false }));
       setErrorMsg("");
@@ -246,7 +246,6 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
         if (phoneInput) phoneInput.classList.add('has-error');
       }
       
-      // Special validation for Step 1: Photograph SWIFT must have images
       const photographQuestion = currentQuestions.find(q => q.id === 1);
       if (photographQuestion) {
         const questionIndex = (template?.questionsData || []).indexOf(photographQuestion) + 1;
@@ -292,7 +291,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
     }
 
     if (errors.includes('photograph_images')) {
-      return; // Error message already set above
+      return;
     }
 
     setErrorMsg("");
@@ -369,83 +368,91 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
     return () => window.removeEventListener('popstate', handlePopState);
   }, [currentStep]);
 
-  // Load draft from localStorage
+  // Load draft - ALWAYS check Airtable first, localStorage as fallback
   useEffect(() => {
     setToday(new Date().toISOString().split("T")[0]);
     
-    const urlParams = new URLSearchParams(window.location.search);
-    const isDraft = urlParams.get('draft') === 'true';
-    if (isDraft) return;
-    
-    const savedDraft = localStorage.getItem(storageKey);
-    if (!savedDraft) return;
-
-    try {
-      const data = JSON.parse(savedDraft);
-      if (data.maintained_by) setSelectedCompany(data.maintained_by);
-      if (data.location_display && data.location_display.trim()) {
-        setLocationDisplay(data.location_display);
-      }
-      if (data.location_country) setLocationCountry(data.location_country);
-      if (data.engineer_name) setEngName(data.engineer_name);
-      if (data.engineer_email) setEngEmail(data.engineer_email);
-      if (data.engineer_phone) setEngPhone(data.engineer_phone);
-
-      const draftAnswers = {};
-      Object.keys(data).forEach((key) => {
-        if (key.startsWith("q")) draftAnswers[key] = data[key];
-      });
-      setAnswers(draftAnswers);
-    } catch (e) {
-      console.error("Draft load error:", e);
-    }
-  }, [storageKey]);
-
-  // Load draft from Airtable
-  useEffect(() => {
     const loadDraft = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const isDraft = urlParams.get('draft') === 'true';
-      const emailFromUrl = urlParams.get('email');
+      // Only load once per session
+      if (hasLoadedDraftRef.current) {
+        console.log('⏭️ Draft already loaded, skipping...');
+        return;
+      }
       
-      if (!isDraft || !emailFromUrl) return;
-      
-      const emailToUse = decodeURIComponent(emailFromUrl);
-      
-      if (!unit?.record_id || !emailToUse || !emailToUse.includes('@')) return;
-      
-      try {
-        const res = await fetch(
-          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Annual&engineerEmail=${encodeURIComponent(emailToUse)}`
-        );
-        const data = await res.json();
-        
-        if (data.draft) {
-          if (data.draft.currentStep) {
-            setCurrentStep(data.draft.currentStep);
-            // Set up history state for all previous steps
-            for (let i = 1; i <= data.draft.currentStep; i++) {
-              window.history.pushState({ step: i }, '', window.location.href);
-            }
-          }
-          if (data.draft.answers) setAnswers(data.draft.answers);
-          if (data.draft.questionImages) setQuestionImages(data.draft.questionImages);
-          if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
-          if (data.draft.locationDisplay) setLocationDisplay(data.draft.locationDisplay);
-          if (data.draft.locationCountry) setLocationCountry(data.draft.locationCountry);
-          if (data.draft.engName) setEngName(data.draft.engName);
-          if (data.draft.engEmail) setEngEmail(data.draft.engEmail);
-          if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
+      // PRIORITY 1: ALWAYS check Airtable first
+      if (unit?.record_id) {
+        try {
+          console.log('🔍 Checking Airtable for draft...');
+          const res = await fetch(
+            `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Annual`
+          );
+          const data = await res.json();
           
-          console.log('✓ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
+          if (data.draft) {
+            console.log('📦 Draft found in Airtable');
+            
+            if (data.draft.currentStep) {
+              setCurrentStep(data.draft.currentStep);
+              for (let i = 1; i <= data.draft.currentStep; i++) {
+                window.history.pushState({ step: i }, '', window.location.href);
+              }
+            }
+            if (data.draft.answers) setAnswers(data.draft.answers);
+            if (data.draft.questionImages) setQuestionImages(data.draft.questionImages);
+            if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
+            if (data.draft.locationDisplay) setLocationDisplay(data.draft.locationDisplay);
+            if (data.draft.locationCountry) setLocationCountry(data.draft.locationCountry);
+            if (data.draft.engName) setEngName(data.draft.engName);
+            if (data.draft.engEmail) setEngEmail(data.draft.engEmail);
+            if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
+            
+            // Clear stale localStorage
+            localStorage.removeItem(storageKey);
+            
+            hasLoadedDraftRef.current = true;
+            console.log('✅ Draft loaded from Airtable:', new Date(data.lastUpdated).toLocaleString());
+            return; // STOP
+          } else {
+            console.log('ℹ️ No draft found in Airtable');
+          }
+        } catch (error) {
+          console.error('❌ Failed to load Airtable draft:', error);
         }
-      } catch (error) {
-        console.error('Failed to load draft:', error);
+      }
+      
+      // PRIORITY 2: localStorage fallback (only if Airtable had nothing)
+      console.log('🔍 Checking localStorage for draft...');
+      const savedDraft = localStorage.getItem(storageKey);
+      if (savedDraft) {
+        try {
+          const data = JSON.parse(savedDraft);
+          if (data.maintained_by) setSelectedCompany(data.maintained_by);
+          if (data.location_display && data.location_display.trim()) {
+            setLocationDisplay(data.location_display);
+          }
+          if (data.location_country) setLocationCountry(data.location_country);
+          if (data.engineer_name) setEngName(data.engineer_name);
+          if (data.engineer_email) setEngEmail(data.engineer_email);
+          if (data.engineer_phone) setEngPhone(data.engineer_phone);
+
+          const draftAnswers = {};
+          Object.keys(data).forEach((key) => {
+            if (key.startsWith("q")) draftAnswers[key] = data[key];
+          });
+          setAnswers(draftAnswers);
+          
+          hasLoadedDraftRef.current = true;
+          console.log('✅ Draft loaded from localStorage');
+        } catch (e) {
+          console.error("❌ localStorage draft load error:", e);
+        }
+      } else {
+        console.log('ℹ️ No draft found in localStorage - fresh start');
       }
     };
     
     loadDraft();
-  }, [unit?.record_id]);
+  }, [unit?.record_id, storageKey]);
 
   // Get geolocation
   useEffect(() => {
@@ -532,7 +539,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
       });
   }, []);
 
-  // Save draft to localStorage
+  // Save draft to localStorage (refresh protection)
   useEffect(() => {
     const draftData = {
       maintained_by: selectedCompany,
@@ -556,7 +563,6 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
 
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
 
-    // Validate current step questions
     const requiredQuestions = currentQuestions.filter(q => q.required);
     for (let i = 0; i < requiredQuestions.length; i++) {
       const q = requiredQuestions[i];
@@ -636,7 +642,6 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
 
       if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
 
-      // Mark draft as complete (if one exists)
       try {
         await fetch('/api/mark-draft-complete', {
           method: 'POST',
@@ -871,7 +876,6 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
             {/* CARD 2: QUESTIONS (Multi-step) */}
             <div ref={card2Ref} className="checklist-form-card" style={{ marginTop: "20px" }}>
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-                {/* Step 1: Keep subtitle */}
                 {currentStep === 1 && (
                   <>
                     <h3 className="checklist-section-title">Annual maintenance</h3>
@@ -881,7 +885,6 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
                   </>
                 )}
                 
-                {/* Steps 2-8: Just section title with adjusted spacing */}
                 {currentSection && currentSection.step > 1 && (
                   <h3 className="checklist-section-title" style={{ margin: "0 0 22px" }}>{currentSection.title}</h3>
                 )}

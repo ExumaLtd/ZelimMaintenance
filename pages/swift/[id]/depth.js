@@ -103,6 +103,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
   const card2Ref = useRef(null);
+  const hasLoadedDraftRef = useRef(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -167,13 +168,13 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   )
 );
 
-  // Initialize checklist data from template
+  // Initialize checklist data from template (only for fresh starts)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const isDraft = urlParams.get('draft') === 'true';
     if (isDraft) return;
     
-    if (template?.maintenanceChecklist) {
+    if (template?.maintenanceChecklist && !hasLoadedDraftRef.current) {
       setChecklistData(
         template.maintenanceChecklist.map(item => ({
           ...item,
@@ -499,88 +500,97 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     return () => window.removeEventListener('popstate', handlePopState);
   }, [currentStep]);
 
-  // Load draft from localStorage
+  // Load draft - ALWAYS check Airtable first, localStorage as fallback
   useEffect(() => {
     setToday(new Date().toISOString().split("T")[0]);
     
-    const urlParams = new URLSearchParams(window.location.search);
-    const isDraft = urlParams.get('draft') === 'true';
-    if (isDraft) return;
-    
-    const savedDraft = localStorage.getItem(storageKey);
-    if (!savedDraft) return;
-
-    try {
-      const data = JSON.parse(savedDraft);
-      if (data.maintained_by) setSelectedCompany(data.maintained_by);
-      if (data.location_display && data.location_display.trim()) {
-        setLocationDisplay(data.location_display);
-      }
-      if (data.location_country) setLocationCountry(data.location_country);
-      if (data.engineer_name) setEngName(data.engineer_name);
-      if (data.engineer_email) setEngEmail(data.engineer_email);
-      if (data.engineer_phone) setEngPhone(data.engineer_phone);
-      
-      if (data.checklist_data && Array.isArray(data.checklist_data)) {
-        setChecklistData(data.checklist_data);
-      }
-
-      const draftAnswers = {};
-      Object.keys(data).forEach((key) => {
-        if (key.startsWith("q")) draftAnswers[key] = data[key];
-      });
-      setAnswers(draftAnswers);
-    } catch (e) {
-      console.error("Draft load error:", e);
-    }
-  }, [storageKey]);
-
-  // Load draft from Airtable
-  useEffect(() => {
     const loadDraft = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const isDraft = urlParams.get('draft') === 'true';
+      // Only load once per session
+      if (hasLoadedDraftRef.current) {
+        console.log('⏭️ Draft already loaded, skipping...');
+        return;
+      }
       
-      if (!isDraft) return;
-      
-      if (!unit?.record_id) return;
-      
-      try {
-        const res = await fetch(
-          `/api/get-draft?unitId=${unit.record_id}&maintenanceType=30-month depth`
-        );
-        const data = await res.json();
-        
-        if (data.draft) {
-          console.log('📦 Draft data received:', data.draft);
+      // PRIORITY 1: ALWAYS check Airtable first
+      if (unit?.record_id) {
+        try {
+          console.log('🔍 Checking Airtable for draft...');
+          const res = await fetch(
+            `/api/get-draft?unitId=${unit.record_id}&maintenanceType=30-month depth`
+          );
+          const data = await res.json();
           
-          if (data.draft.checklistData) setChecklistData(data.draft.checklistData);
-          if (data.draft.currentStep) {
-            setCurrentStep(data.draft.currentStep);
-            // Set up history state for all previous steps
-            for (let i = 1; i <= data.draft.currentStep; i++) {
-              window.history.pushState({ step: i }, '', window.location.href);
+          if (data.draft) {
+            console.log('📦 Draft found in Airtable');
+            
+            if (data.draft.checklistData) setChecklistData(data.draft.checklistData);
+            if (data.draft.currentStep) {
+              setCurrentStep(data.draft.currentStep);
+              for (let i = 1; i <= data.draft.currentStep; i++) {
+                window.history.pushState({ step: i }, '', window.location.href);
+              }
             }
+            if (data.draft.answers) setAnswers(data.draft.answers);
+            if (data.draft.questionImages) setQuestionImages(data.draft.questionImages);
+            if (data.draft.checklistImages) setChecklistImages(data.draft.checklistImages);
+            if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
+            if (data.draft.locationDisplay) setLocationDisplay(data.draft.locationDisplay);
+            if (data.draft.locationCountry) setLocationCountry(data.draft.locationCountry);
+            if (data.draft.engName) setEngName(data.draft.engName);
+            if (data.draft.engEmail) setEngEmail(data.draft.engEmail);
+            if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
+            
+            // Clear stale localStorage
+            localStorage.removeItem(storageKey);
+            
+            hasLoadedDraftRef.current = true;
+            console.log('✅ Draft loaded from Airtable:', new Date(data.lastUpdated).toLocaleString());
+            return; // STOP
+          } else {
+            console.log('ℹ️ No draft found in Airtable');
           }
-          if (data.draft.answers) setAnswers(data.draft.answers);
-          if (data.draft.questionImages) setQuestionImages(data.draft.questionImages);
-          if (data.draft.checklistImages) setChecklistImages(data.draft.checklistImages);
-          if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
-          if (data.draft.locationDisplay) setLocationDisplay(data.draft.locationDisplay);
-          if (data.draft.locationCountry) setLocationCountry(data.draft.locationCountry);
-          if (data.draft.engName) setEngName(data.draft.engName);
-          if (data.draft.engEmail) setEngEmail(data.draft.engEmail);
-          if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
-          
-          console.log('✅ Draft loaded from', new Date(data.lastUpdated).toLocaleString());
+        } catch (error) {
+          console.error('❌ Failed to load Airtable draft:', error);
         }
-      } catch (error) {
-        console.error('Failed to load draft:', error);
+      }
+      
+      // PRIORITY 2: localStorage fallback (only if Airtable had nothing)
+      console.log('🔍 Checking localStorage for draft...');
+      const savedDraft = localStorage.getItem(storageKey);
+      if (savedDraft) {
+        try {
+          const data = JSON.parse(savedDraft);
+          if (data.maintained_by) setSelectedCompany(data.maintained_by);
+          if (data.location_display && data.location_display.trim()) {
+            setLocationDisplay(data.location_display);
+          }
+          if (data.location_country) setLocationCountry(data.location_country);
+          if (data.engineer_name) setEngName(data.engineer_name);
+          if (data.engineer_email) setEngEmail(data.engineer_email);
+          if (data.engineer_phone) setEngPhone(data.engineer_phone);
+          
+          if (data.checklist_data && Array.isArray(data.checklist_data)) {
+            setChecklistData(data.checklist_data);
+          }
+
+          const draftAnswers = {};
+          Object.keys(data).forEach((key) => {
+            if (key.startsWith("q")) draftAnswers[key] = data[key];
+          });
+          setAnswers(draftAnswers);
+          
+          hasLoadedDraftRef.current = true;
+          console.log('✅ Draft loaded from localStorage');
+        } catch (e) {
+          console.error("❌ localStorage draft load error:", e);
+        }
+      } else {
+        console.log('ℹ️ No draft found in localStorage - fresh start');
       }
     };
     
     loadDraft();
-  }, [unit?.record_id]);
+  }, [unit?.record_id, storageKey]);
 
   // Get geolocation
   useEffect(() => {
@@ -667,7 +677,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       });
   }, []);
 
-  // Save draft to localStorage
+  // Save draft to localStorage (refresh protection)
   useEffect(() => {
     const draftData = {
       maintained_by: selectedCompany,
@@ -1114,99 +1124,96 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
                 {/* STEPS 2-8: QUESTIONS */}
                 {currentStep > 1 && (
-  <div>
-    {/* Step 2: Show title + subtitle */}
-    {currentStep === 2 && (
-      <>
-        <h3 className="checklist-section-title">{currentSection.title}</h3>
-        <p className="checklist-section-subtitle">{currentSection.subtitle}</p>
-      </>
-    )}
-    
-    {/* Steps 3-8: Just section title with adjusted spacing */}
-    {currentSection && currentStep > 2 && (
-      <h3 className="checklist-section-title" style={{ margin: "0 0 22px" }}>{currentSection.title}</h3>
-    )}
-    
-    {currentQuestions.map((q, idx) => {
-      const questionIndex = (template?.questionsData || []).indexOf(q) + 1;
-      // Determine if this is a winch question (Step 6: questions 12-17)
-      const isWinchQuestion = currentStep === 6;
-      
-      return (
-        <div key={q.id} style={{ marginTop: idx === 0 ? "0" : "24px" }}>
-          <label className="checklist-label">
-            {q.title}
-          </label>
-          {q.instruction && (
-            <p className="question-instruction">{q.instruction}</p>
-          )}
-          
-          <div className="question-with-upload">
-            <div className="textarea-wrapper">
-              <textarea
-                name={`q${questionIndex}`}
-                className="checklist-textarea"
-                value={answers[`q${questionIndex}`] || ""}
-                onChange={(e) => {
-                  setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-                  autoGrow(e);
-                  if (e.target.value.trim()) {
-                    e.target.classList.remove('has-error');
-                  }
-                }}
-                onInput={autoGrow}
-                placeholder={isWinchQuestion ? "Type N/A if winch not returned" : ""}
-                required={q.required}
-              />
+                  <div>
+                    {currentStep === 2 && (
+                      <>
+                        <h3 className="checklist-section-title">{currentSection.title}</h3>
+                        <p className="checklist-section-subtitle">{currentSection.subtitle}</p>
+                      </>
+                    )}
+                    
+                    {currentSection && currentStep > 2 && (
+                      <h3 className="checklist-section-title" style={{ margin: "0 0 22px" }}>{currentSection.title}</h3>
+                    )}
+                    
+                    {currentQuestions.map((q, idx) => {
+                      const questionIndex = (template?.questionsData || []).indexOf(q) + 1;
+                      const isWinchQuestion = currentStep === 6;
+                      
+                      return (
+                        <div key={q.id} style={{ marginTop: idx === 0 ? "0" : "24px" }}>
+                          <label className="checklist-label">
+                            {q.title}
+                          </label>
+                          {q.instruction && (
+                            <p className="question-instruction">{q.instruction}</p>
+                          )}
+                          
+                          <div className="question-with-upload">
+                            <div className="textarea-wrapper">
+                              <textarea
+                                name={`q${questionIndex}`}
+                                className="checklist-textarea"
+                                value={answers[`q${questionIndex}`] || ""}
+                                onChange={(e) => {
+                                  setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+                                  autoGrow(e);
+                                  if (e.target.value.trim()) {
+                                    e.target.classList.remove('has-error');
+                                  }
+                                }}
+                                onInput={autoGrow}
+                                placeholder={isWinchQuestion ? "Type N/A if winch not returned" : ""}
+                                required={q.required}
+                              />
 
-              <VoiceInput
-                onTranscript={(text) => {
-                  const questionKey = `q${questionIndex}`;
-                  setAnswers((prev) => ({
-                    ...prev,
-                    [questionKey]: (prev[questionKey] || '') + text
-                  }));
-                  requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                      const textarea = document.querySelector(`[name="${questionKey}"]`);
-                      if (textarea) autoGrow(textarea);
-                    });
-                  });
-                }}
-                onError={(errorMsg) => setErrorMsg(errorMsg)}
-              />
-            </div>
-            
-            {q.allow_uploads && (
-              <ImageUploader
-                questionKey={`q${questionIndex}`}
-                questionText={q.title}
-                serialNumber={unit?.serial_number}
-                maintenanceType="depth"
-                initialImages={questionImages[`q${questionIndex}`] || []}
-                onImagesChange={(images) => handleImagesChange(`q${questionIndex}`, images)}
-              />
-            )}
-          </div>
-        </div>
-      );
-    })}
+                              <VoiceInput
+                                onTranscript={(text) => {
+                                  const questionKey = `q${questionIndex}`;
+                                  setAnswers((prev) => ({
+                                    ...prev,
+                                    [questionKey]: (prev[questionKey] || '') + text
+                                  }));
+                                  requestAnimationFrame(() => {
+                                    requestAnimationFrame(() => {
+                                      const textarea = document.querySelector(`[name="${questionKey}"]`);
+                                      if (textarea) autoGrow(textarea);
+                                    });
+                                  });
+                                }}
+                                onError={(errorMsg) => setErrorMsg(errorMsg)}
+                              />
+                            </div>
+                            
+                            {q.allow_uploads && (
+                              <ImageUploader
+                                questionKey={`q${questionIndex}`}
+                                questionText={q.title}
+                                serialNumber={unit?.serial_number}
+                                maintenanceType="depth"
+                                initialImages={questionImages[`q${questionIndex}`] || []}
+                                onImagesChange={(images) => handleImagesChange(`q${questionIndex}`, images)}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
 
-    {errorMsg && <p className="error-message">{errorMsg}</p>}
-    
-    {currentStep < sections.length ? (
-      <button 
-        type="button"
-        className="checklist-submit"
-        onClick={handleContinueToNextStep}
-      >
-        Continue
-      </button>
-    ) : (
-      <button type="submit" className="checklist-submit" disabled={submitting}>
-        {submitting ? "Submitting..." : "Submit maintenance"}
-      </button>
+                    {errorMsg && <p className="error-message">{errorMsg}</p>}
+                    
+                    {currentStep < sections.length ? (
+                      <button 
+                        type="button"
+                        className="checklist-submit"
+                        onClick={handleContinueToNextStep}
+                      >
+                        Continue
+                      </button>
+                    ) : (
+                      <button type="submit" className="checklist-submit" disabled={submitting}>
+                        {submitting ? "Submitting..." : "Submit maintenance"}
+                      </button>
                     )}
                   </div>
                 )}
