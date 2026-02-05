@@ -43,6 +43,18 @@ const getClientLogo = (companyName, serialNumber) => {
   return null;
 };
 
+// Define sections for multi-step flow
+const sections = [
+  { step: 1, title: "Pre-disassembly inspection", subtitle: "Equipment checklist" },
+  { step: 2, title: "Photograph SWIFT", subtitle: null, questionIds: [1] },
+  { step: 3, title: "Service history and condition review", subtitle: null, questionIds: [2, 3] },
+  { step: 4, title: "Disassembly and cleaning", subtitle: null, questionIds: [4, 5] },
+  { step: 5, title: "Component inspections", subtitle: null, questionIds: [6, 7, 8, 9, 10] },
+  { step: 6, title: "Winch maintenance", subtitle: null, questionIds: [11, 12, 13, 14, 15, 16, 17] },
+  { step: 7, title: "Reassembly and testing", subtitle: null, questionIds: [18, 19, 20, 21] },
+  { step: 8, title: "Final packaging and notes", subtitle: null, questionIds: [22, 23] }
+];
+
 export default function Depth({ unit, template, allCompanies = [], allEngineers = [] }) {
   const router = useRouter();
 
@@ -84,37 +96,35 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
   const storageKey = useMemo(() => `draft_depth_${unit?.serial_number}`, [unit?.serial_number]);
 
-useAutoSave({
-  unitId: unit?.record_id,
-  maintenanceType: '30-month depth',
-  engineerEmail: engEmail,
-  draftData: {
-    checklistData,
-    currentStep,
-    answers,
-    questionImages,
-    checklistImages,
-    selectedCompany,
-    locationDisplay,
-    locationCountry,
-    engName,
-    engEmail,
-    engPhone,
-  }
-}, 
-  // ✅ Only save if user has made MANUAL inputs
-  (checklistData && checklistData.length > 0 && checklistData.some(item => 
-    item.returned !== null || item.condition !== null
-  )) ||
-  Object.keys(answers).some(key => answers[key]?.trim()) ||
-  Object.keys(questionImages).length > 0 ||
-  Object.keys(checklistImages).length > 0 ||
-  (selectedCompany && selectedCompany !== '') ||  // Has selected a company
-  (engName && engName !== '' && engName !== 'Please select') ||  // Has entered/selected engineer
-  (engEmail && engEmail !== '') ||
-  (engPhone && engPhone !== '')
-  // NOTE: Removed locationDisplay because it's auto-filled by geolocation
-);
+  useAutoSave({
+    unitId: unit?.record_id,
+    maintenanceType: '30-month depth',
+    engineerEmail: engEmail,
+    draftData: {
+      checklistData,
+      currentStep,
+      answers,
+      questionImages,
+      checklistImages,
+      selectedCompany,
+      locationDisplay,
+      locationCountry,
+      engName,
+      engEmail,
+      engPhone,
+    }
+  }, 
+    (checklistData && checklistData.length > 0 && checklistData.some(item => 
+      item.returned !== null || item.condition !== null
+    )) ||
+    Object.keys(answers).some(key => answers[key]?.trim()) ||
+    Object.keys(questionImages).length > 0 ||
+    Object.keys(checklistImages).length > 0 ||
+    (selectedCompany && selectedCompany !== '') ||
+    (engName && engName !== '' && engName !== 'Please select') ||
+    (engEmail && engEmail !== '') ||
+    (engPhone && engPhone !== '')
+  );
 
   // Initialize checklist data from template
   useEffect(() => {
@@ -253,7 +263,19 @@ useAutoSave({
     });
   };
 
-  const handleContinueToQuestions = () => {
+  // Get current section configuration
+  const currentSection = sections.find(s => s.step === currentStep);
+  
+  // Get questions for current step (Steps 2-8)
+  const currentQuestions = useMemo(() => {
+    if (!currentSection || !currentSection.questionIds || !template?.questionsData) return [];
+    return template.questionsData.filter(q => 
+      currentSection.questionIds.includes(q.id)
+    );
+  }, [currentSection, template?.questionsData]);
+
+  // Handle continue to next step
+  const handleContinueToNextStep = () => {
     const errors = [];
     const newFieldErrors = {
       company: false,
@@ -265,62 +287,84 @@ useAutoSave({
 
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
 
-    if (!selectedCompany || selectedCompany === "Please select") {
-      errors.push('company');
-      newFieldErrors.company = true;
-    }
-
-    if (!locationDisplay || !locationDisplay.trim()) {
-      errors.push('location');
-      newFieldErrors.location = true;
-      const locationInput = document.querySelector('[name="location_display"]');
-      if (locationInput) locationInput.classList.add('has-error');
-    }
-
-    if (!engName || engName === "Please select" || !engName.trim()) {
-      errors.push('engineer');
-      newFieldErrors.engineerName = true;
-      const engineerInput = document.querySelector('[name="engineer_name"]');
-      if (engineerInput) engineerInput.classList.add('has-error');
-    }
-
-    if (!engEmail || !engEmail.trim()) {
-      errors.push('email');
-      newFieldErrors.engineerEmail = true;
-      const emailInput = document.querySelector('[name="engineer_email"]');
-      if (emailInput) emailInput.classList.add('has-error');
-    }
-
-    if (!engPhone || !engPhone.trim()) {
-      errors.push('phone');
-      newFieldErrors.engineerPhone = true;
-      const phoneInput = document.querySelector('[name="engineer_phone"]');
-      if (phoneInput) phoneInput.classList.add('has-error');
-    }
-
-    const incompleteItems = [];
-    checklistData.forEach((item, index) => {
-      if (item.returned === null) {
-        incompleteItems.push({ index, type: 'returned' });
-      } else if (item.returned === true && item.condition === null) {
-        incompleteItems.push({ index, type: 'condition' });
+    // Only validate admin fields on step 1
+    if (currentStep === 1) {
+      if (!selectedCompany || selectedCompany === "Please select") {
+        errors.push('company');
+        newFieldErrors.company = true;
       }
-    });
 
-    if (incompleteItems.length > 0) {
-      errors.push('checklist');
-      incompleteItems.forEach(item => {
-        const rows = document.querySelectorAll('.equipment-row-wrapper');
-        if (rows[item.index]) {
-          if (item.type === 'returned') {
-            const returnedButtons = rows[item.index].querySelectorAll('.toggle-group:not(.condition-group) .toggle-btn');
-            returnedButtons.forEach(btn => btn.classList.add('has-error'));
-          } else if (item.type === 'condition') {
-            const conditionButtons = rows[item.index].querySelectorAll('.condition-group .toggle-btn');
-            conditionButtons.forEach(btn => btn.classList.add('has-error'));
-          }
+      if (!locationDisplay || !locationDisplay.trim()) {
+        errors.push('location');
+        newFieldErrors.location = true;
+        const locationInput = document.querySelector('[name="location_display"]');
+        if (locationInput) locationInput.classList.add('has-error');
+      }
+
+      if (!engName || engName === "Please select" || !engName.trim()) {
+        errors.push('engineer');
+        newFieldErrors.engineerName = true;
+        const engineerInput = document.querySelector('[name="engineer_name"]');
+        if (engineerInput) engineerInput.classList.add('has-error');
+      }
+
+      if (!engEmail || !engEmail.trim()) {
+        errors.push('email');
+        newFieldErrors.engineerEmail = true;
+        const emailInput = document.querySelector('[name="engineer_email"]');
+        if (emailInput) emailInput.classList.add('has-error');
+      }
+
+      if (!engPhone || !engPhone.trim()) {
+        errors.push('phone');
+        newFieldErrors.engineerPhone = true;
+        const phoneInput = document.querySelector('[name="engineer_phone"]');
+        if (phoneInput) phoneInput.classList.add('has-error');
+      }
+
+      // Validate equipment checklist
+      const incompleteItems = [];
+      checklistData.forEach((item, index) => {
+        if (item.returned === null) {
+          incompleteItems.push({ index, type: 'returned' });
+        } else if (item.returned === true && item.condition === null) {
+          incompleteItems.push({ index, type: 'condition' });
         }
       });
+
+      if (incompleteItems.length > 0) {
+        errors.push('checklist');
+        incompleteItems.forEach(item => {
+          const rows = document.querySelectorAll('.equipment-row-wrapper');
+          if (rows[item.index]) {
+            if (item.type === 'returned') {
+              const returnedButtons = rows[item.index].querySelectorAll('.toggle-group:not(.condition-group) .toggle-btn');
+              returnedButtons.forEach(btn => btn.classList.add('has-error'));
+            } else if (item.type === 'condition') {
+              const conditionButtons = rows[item.index].querySelectorAll('.condition-group .toggle-btn');
+              conditionButtons.forEach(btn => btn.classList.add('has-error'));
+            }
+          }
+        });
+      }
+    }
+
+    // Validate current step questions (Steps 2-8)
+    if (currentStep > 1) {
+      const requiredQuestions = currentQuestions.filter(q => q.required);
+      for (let i = 0; i < requiredQuestions.length; i++) {
+        const q = requiredQuestions[i];
+        const questionIndex = (template?.questionsData || []).indexOf(q) + 1;
+        const answer = answers[`q${questionIndex}`];
+        
+        if (!answer || !answer.trim()) {
+          errors.push(`q${questionIndex}`);
+          const questionElement = document.querySelector(`[name="q${questionIndex}"]`);
+          if (questionElement) {
+            questionElement.classList.add('has-error');
+          }
+        }
+      }
     }
 
     setFieldErrors(newFieldErrors);
@@ -333,6 +377,7 @@ useAutoSave({
         else if (errors.includes('email')) setErrorMsg("Please provide an engineer email.");
         else if (errors.includes('phone')) setErrorMsg("Please provide an engineer phone number.");
         else if (errors.includes('checklist')) setErrorMsg("Please complete the equipment checklist.");
+        else setErrorMsg("Please complete all required questions.");
       } else {
         setErrorMsg("Please check for multiple errors.");
       }
@@ -340,17 +385,26 @@ useAutoSave({
     }
 
     setErrorMsg("");
-    setCurrentStep(2);
+    setCurrentStep(currentStep + 1);
     
-    window.history.pushState({ step: 2 }, '', window.location.href);
+    window.history.pushState({ step: currentStep + 1 }, '', window.location.href);
     
     setTimeout(() => {
       if (card2Ref.current) {
-        card2Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const elementPosition = card2Ref.current.getBoundingClientRect().top + window.pageYOffset;
+        const isMobile = window.innerWidth <= 768;
+        const offset = isMobile ? 50 : 58;
+        const offsetPosition = elementPosition - offset;
+        
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
       }
     }, 100);
   };
 
+  // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (companyDropdownRef.current && !companyDropdownRef.current.contains(event.target)) {
@@ -364,22 +418,37 @@ useAutoSave({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Handle browser back button
   useEffect(() => {
     const handlePopState = (event) => {
       if (event.state?.step) {
         setCurrentStep(event.state.step);
-        if (event.state.step === 1) {
-          setTimeout(() => {
-            if (card2Ref.current) {
-              card2Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-          }, 100);
-        }
-      } else if (currentStep === 2) {
-        setCurrentStep(1);
         setTimeout(() => {
           if (card2Ref.current) {
-            card2Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const elementPosition = card2Ref.current.getBoundingClientRect().top + window.pageYOffset;
+            const isMobile = window.innerWidth <= 768;
+            const offset = isMobile ? 50 : 58;
+            const offsetPosition = elementPosition - offset;
+            
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+          }
+        }, 100);
+      } else if (currentStep > 1) {
+        setCurrentStep(currentStep - 1);
+        setTimeout(() => {
+          if (card2Ref.current) {
+            const elementPosition = card2Ref.current.getBoundingClientRect().top + window.pageYOffset;
+            const isMobile = window.innerWidth <= 768;
+            const offset = isMobile ? 50 : 58;
+            const offsetPosition = elementPosition - offset;
+            
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
           }
         }, 100);
       }
@@ -447,9 +516,9 @@ useAutoSave({
           if (data.draft.checklistData) setChecklistData(data.draft.checklistData);
           if (data.draft.currentStep) {
             setCurrentStep(data.draft.currentStep);
-            if (data.draft.currentStep === 2) {
-              window.history.pushState({ step: 1 }, '', window.location.href);
-              window.history.pushState({ step: 2 }, '', window.location.href);
+            // Set up history state for all previous steps
+            for (let i = 1; i <= data.draft.currentStep; i++) {
+              window.history.pushState({ step: i }, '', window.location.href);
             }
           }
           if (data.draft.answers) setAnswers(data.draft.answers);
@@ -582,7 +651,7 @@ useAutoSave({
 
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
 
-    const requiredQuestions = (template?.questionsData || []).filter(q => q.required);
+    const requiredQuestions = currentQuestions.filter(q => q.required);
     for (let i = 0; i < requiredQuestions.length; i++) {
       const q = requiredQuestions[i];
       const questionIndex = (template?.questionsData || []).indexOf(q) + 1;
@@ -667,7 +736,6 @@ useAutoSave({
 
       if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
 
-      // Mark draft as complete (if one exists)
       try {
         await fetch('/api/mark-draft-complete', {
           method: 'POST',
@@ -679,7 +747,6 @@ useAutoSave({
           }),
         });
       } catch (err) {
-        // Silently ignore if no draft exists - that's fine
         console.log('No draft to mark complete (form completed without auto-save)');
       }
 
@@ -753,163 +820,164 @@ useAutoSave({
               <span className="break-point">depth maintenance</span>
             </h1>
 
+            {/* CARD 1: ADMIN FIELDS */}
             <div className="checklist-form-card">
-              <form onSubmit={handleSubmit} autoComplete="off" noValidate>
-                <div className="checklist-inline-group">
-                  <div className="checklist-field" ref={companyFieldRef}>
-                    <label className="checklist-label">Maintenance company</label>
-                    <div className="custom-dropdown-container" ref={companyDropdownRef}>
-                      <div className="field-icon-wrapper">
-                        <input
-                          readOnly
-                          className={`checklist-input ${selectedCompany ? "is-active" : "is-placeholder"} ${
-                            showCompanyDropdown ? "is-focused" : ""
-                          } ${fieldErrors.company ? "has-error" : ""}`}
-                          value={selectedCompany || "Please select"}
-                          onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
-                          style={{ cursor: "pointer", paddingRight: "40px" }}
-                        />
+              <div className="checklist-inline-group">
+                <div className="checklist-field" ref={companyFieldRef}>
+                  <label className="checklist-label">Maintenance company</label>
+                  <div className="custom-dropdown-container" ref={companyDropdownRef}>
+                    <div className="field-icon-wrapper">
+                      <input
+                        readOnly
+                        className={`checklist-input ${selectedCompany ? "is-active" : "is-placeholder"} ${
+                          showCompanyDropdown ? "is-focused" : ""
+                        } ${fieldErrors.company ? "has-error" : ""}`}
+                        value={selectedCompany || "Please select"}
+                        onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
+                        style={{ cursor: "pointer", paddingRight: "40px" }}
+                      />
+                      <div className="field-icon-inside">
+                        {showCompanyDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
+                      </div>
+                    </div>
+                    {showCompanyDropdown && (
+                      <ul className={`custom-dropdown-list ${fieldErrors.company ? "has-error" : ""}`}>
+                        {allCompanies.sort().map((c, i) => (
+                          <li
+                            key={i}
+                            className={`custom-dropdown-item ${selectedCompany === c ? "active" : ""}`}
+                            onClick={() => selectCompany(c)}
+                          >
+                            {c}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+
+                <div className="checklist-field" ref={locationFieldRef}>
+                  <label className="checklist-label">Location</label>
+                  <input
+                    className={`checklist-input ${fieldErrors.location ? "has-error" : ""}`}
+                    name="location_display"
+                    required
+                    value={locationDisplay}
+                    onChange={(e) => {
+                      setLocationDisplay(e.target.value);
+                      if (e.target.value.trim()) {
+                        e.target.classList.remove('has-error');
+                        setFieldErrors(prev => ({ ...prev, location: false }));
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="checklist-field">
+                  <label className="checklist-label">Date</label>
+                  <DatePicker
+                    value={maintenanceDate}
+                    onChange={(date) => setMaintenanceDate(date)}
+                    max={today}
+                  />
+                </div>
+              </div>
+
+              <div className="checklist-inline-group" style={{ marginTop: "24px" }}>
+                <div className="checklist-field" ref={engineerFieldRef}>
+                  <label className="checklist-label">Engineer name</label>
+                  <div className="custom-dropdown-container" ref={engineerDropdownRef}>
+                    <div className="field-icon-wrapper">
+                      <input
+                        className={`checklist-input ${
+                          engName === "Please select" || !engName ? "is-placeholder" : "is-active"
+                        } ${shouldShowEngDropdown ? "is-focused" : ""} ${fieldErrors.engineerName ? "has-error" : ""}`}
+                        name="engineer_name"
+                        required
+                        value={engName}
+                        autoComplete="off"
+                        onFocus={() => {
+                          if (selectedCompany) setShowEngineerDropdown(true);
+                        }}
+                        onChange={(e) => {
+                          setEngName(e.target.value);
+                          if (selectedCompany) setShowEngineerDropdown(true);
+                          if (e.target.value.trim() && e.target.value !== "Please select") {
+                            setFieldErrors(prev => ({ ...prev, engineerName: false }));
+                          }
+                        }}
+                        style={{
+                          paddingRight: selectedCompany && (hasEngineerResults || hasClearEng) ? "40px" : "16px",
+                        }}
+                      />
+                      {selectedCompany && (hasEngineerResults || hasClearEng) && (
                         <div className="field-icon-inside">
-                          {showCompanyDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
+                          {showEngineerDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
                         </div>
-                      </div>
-                      {showCompanyDropdown && (
-                        <ul className={`custom-dropdown-list ${fieldErrors.company ? "has-error" : ""}`}>
-                          {allCompanies.sort().map((c, i) => (
-                            <li
-                              key={i}
-                              className={`custom-dropdown-item ${selectedCompany === c ? "active" : ""}`}
-                              onClick={() => selectCompany(c)}
-                            >
-                              {c}
-                            </li>
-                          ))}
-                        </ul>
                       )}
                     </div>
-                  </div>
-
-                  <div className="checklist-field" ref={locationFieldRef}>
-                    <label className="checklist-label">Location</label>
-                    <input
-                      className="checklist-input"
-                      name="location_display"
-                      required
-                      value={locationDisplay}
-                      onChange={(e) => {
-                        setLocationDisplay(e.target.value);
-                        if (e.target.value.trim()) {
-                          e.target.classList.remove('has-error');
-                          setFieldErrors(prev => ({ ...prev, location: false }));
-                        }
-                      }}
-                    />
-                  </div>
-
-                  <div className="checklist-field">
-                    <label className="checklist-label">Date</label>
-                    <DatePicker
-                      value={maintenanceDate}
-                      onChange={(date) => setMaintenanceDate(date)}
-                      max={today}
-                    />
-                  </div>
-                </div>
-
-                <div className="checklist-inline-group" style={{ marginTop: "24px" }}>
-                  <div className="checklist-field" ref={engineerFieldRef}>
-                    <label className="checklist-label">Engineer name</label>
-                    <div className="custom-dropdown-container" ref={engineerDropdownRef}>
-                      <div className="field-icon-wrapper">
-                        <input
-                          className={`checklist-input ${
-                            engName === "Please select" || !engName ? "is-placeholder" : "is-active"
-                          } ${shouldShowEngDropdown ? "is-focused" : ""} ${fieldErrors.engineerName ? "has-error" : ""}`}
-                          name="engineer_name"
-                          required
-                          value={engName}
-                          autoComplete="off"
-                          onFocus={() => {
-                            if (selectedCompany) setShowEngineerDropdown(true);
-                          }}
-                          onChange={(e) => {
-                            setEngName(e.target.value);
-                            if (selectedCompany) setShowEngineerDropdown(true);
-                            if (e.target.value.trim() && e.target.value !== "Please select") {
-                              setFieldErrors(prev => ({ ...prev, engineerName: false }));
-                            }
-                          }}
-                          style={{
-                            paddingRight: selectedCompany && (hasEngineerResults || hasClearEng) ? "40px" : "16px",
-                          }}
-                        />
-                        {selectedCompany && (hasEngineerResults || hasClearEng) && (
-                          <div className="field-icon-inside">
-                            {showEngineerDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
-                          </div>
+                    {shouldShowEngDropdown && (
+                      <ul className={`custom-dropdown-list ${fieldErrors.engineerName ? "has-error" : ""}`}>
+                        {hasClearEng && (
+                          <li className="custom-dropdown-item" onClick={clearEngineer}>
+                            Clear details
+                          </li>
                         )}
-                      </div>
-                      {shouldShowEngDropdown && (
-                        <ul className={`custom-dropdown-list ${fieldErrors.engineerName ? "has-error" : ""}`}>
-                          {hasClearEng && (
-                            <li className="custom-dropdown-item" onClick={clearEngineer}>
-                              Clear details
-                            </li>
-                          )}
-                          {filteredEngineers.map((eng, i) => (
-                            <li key={i} className="custom-dropdown-item" onClick={() => selectEngineer(eng)}>
-                              {eng.name}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="checklist-field">
-                    <label className="checklist-label">Engineer email</label>
-                    <input
-                      type="email"
-                      className="checklist-input"
-                      name="engineer_email"
-                      required
-                      value={engEmail}
-                      onChange={(e) => {
-                        setEngEmail(e.target.value);
-                        if (e.target.value.trim()) {
-                          e.target.classList.remove('has-error');
-                          setFieldErrors(prev => ({ ...prev, engineerEmail: false }));
-                        }
-                      }}
-                    />
-                  </div>
-
-                  <div className="checklist-field">
-                    <label className="checklist-label">Engineer phone</label>
-                    <input
-                      type="tel"
-                      className="checklist-input"
-                      name="engineer_phone"
-                      required
-                      value={engPhone}
-                      onChange={(e) => {
-                        setEngPhone(e.target.value);
-                        if (e.target.value.trim()) {
-                          e.target.classList.remove('has-error');
-                          setFieldErrors(prev => ({ ...prev, engineerPhone: false }));
-                        }
-                      }}
-                    />
+                        {filteredEngineers.map((eng, i) => (
+                          <li key={i} className="custom-dropdown-item" onClick={() => selectEngineer(eng)}>
+                            {eng.name}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
-              </form>
+
+                <div className="checklist-field">
+                  <label className="checklist-label">Engineer email</label>
+                  <input
+                    type="email"
+                    className={`checklist-input ${fieldErrors.engineerEmail ? "has-error" : ""}`}
+                    name="engineer_email"
+                    required
+                    value={engEmail}
+                    onChange={(e) => {
+                      setEngEmail(e.target.value);
+                      if (e.target.value.trim()) {
+                        e.target.classList.remove('has-error');
+                        setFieldErrors(prev => ({ ...prev, engineerEmail: false }));
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="checklist-field">
+                  <label className="checklist-label">Engineer phone</label>
+                  <input
+                    type="tel"
+                    className={`checklist-input ${fieldErrors.engineerPhone ? "has-error" : ""}`}
+                    name="engineer_phone"
+                    required
+                    value={engPhone}
+                    onChange={(e) => {
+                      setEngPhone(e.target.value);
+                      if (e.target.value.trim()) {
+                        e.target.classList.remove('has-error');
+                        setFieldErrors(prev => ({ ...prev, engineerPhone: false }));
+                      }
+                    }}
+                  />
+                </div>
+              </div>
             </div>
 
+            {/* CARD 2: MULTI-STEP CONTENT */}
             <div ref={card2Ref} className="checklist-form-card" style={{ marginTop: "20px" }}>
               <form onSubmit={handleSubmit} autoComplete="off" noValidate>
+                {/* STEP 1: EQUIPMENT CHECKLIST */}
                 {currentStep === 1 && (
                   <div>
-                    <h3 className="checklist-section-title">Pre-disassembly inspection</h3>
+                    <h3 className="checklist-section-title">{currentSection.title}</h3>
                     <p className="checklist-section-subtitle">
                       Please report equipment condition before starting maintenance.
                     </p>
@@ -996,81 +1064,109 @@ useAutoSave({
                     <button 
                       type="button"
                       className="checklist-submit"
-                      onClick={handleContinueToQuestions}
+                      onClick={handleContinueToNextStep}
                     >
                       Continue
                     </button>
                   </div>
                 )}
 
-                {currentStep === 2 && (
-                  <div>
-                    <h3 className="checklist-section-title">{template?.type || "Depth"} maintenance</h3>
-                    <p className="checklist-section-subtitle">
-                      All {(template?.type || "depth").toLowerCase()} maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual and Installation Guide.
-                    </p>
-                    
-                    {(template?.questionsData || []).map((q, i) => (
-                      <div key={i} style={{ marginTop: i === 0 ? "0" : "24px" }}>
-                        <label className="checklist-label">
-                          {q.title}
-                        </label>
-                        {q.instruction && (
-                          <p className="question-instruction">{q.instruction}</p>
-                        )}
-                        
-                        <div className="question-with-upload">
-                          <div className="textarea-wrapper">
-                            <textarea
-                              name={`q${i + 1}`}
-                              className="checklist-textarea"
-                              onInput={autoGrow}
-                              value={answers[`q${i + 1}`] || ""}
-                              onChange={(e) => {
-                                setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-                                if (e.target.value.trim()) {
-                                  e.target.classList.remove('has-error');
-                                }
-                              }}
-                              required={q.required}
-                            />
+                {/* STEPS 2-8: QUESTIONS */}
+                {currentStep > 1 && (
+  <div>
+    {currentStep === 2 && (
+      <h3 className="checklist-section-title" style={{ margin: "0 0 22px" }}>{currentSection.title}</h3>
+    )}
+    
+    {currentStep > 2 && (
+      <>
+        <h3 className="checklist-section-title">{template?.type || "Depth"} maintenance</h3>
+        <p className="checklist-section-subtitle">
+          All {(template?.type || "depth").toLowerCase()} maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual and Installation Guide.
+        </p>
+      </>
+    )}
+    
+    {currentQuestions.map((q, idx) => {
+      const questionIndex = (template?.questionsData || []).indexOf(q) + 1;
+      // Determine if this is a winch question (Step 6: questions 12-17)
+      const isWinchQuestion = currentStep === 6;
+      
+      return (
+        <div key={q.id} style={{ marginTop: idx === 0 ? (currentStep === 2 ? "0" : "0") : "24px" }}>
+          <label className="checklist-label">
+            {q.title}
+          </label>
+          {q.instruction && (
+            <p className="question-instruction">{q.instruction}</p>
+          )}
+          
+          <div className="question-with-upload">
+            <div className="textarea-wrapper">
+              <textarea
+                name={`q${questionIndex}`}
+                className="checklist-textarea"
+                value={answers[`q${questionIndex}`] || ""}
+                onChange={(e) => {
+                  setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+                  autoGrow(e);
+                  if (e.target.value.trim()) {
+                    e.target.classList.remove('has-error');
+                  }
+                }}
+                onInput={autoGrow}
+                placeholder={isWinchQuestion ? "Type N/A if winch not returned" : ""}
+                required={q.required}
+              />
 
-                            <VoiceInput
-                              onTranscript={(text) => {
-                                const questionKey = `q${i + 1}`;
-                                setAnswers((prev) => ({
-                                  ...prev,
-                                  [questionKey]: (prev[questionKey] || '') + text
-                                }));
-                                requestAnimationFrame(() => {
-                                  requestAnimationFrame(() => {
-                                    const textarea = document.querySelector(`[name="${questionKey}"]`);
-                                    if (textarea) autoGrow(textarea);
-                                  });
-                                });
-                              }}
-                              onError={(errorMsg) => setErrorMsg(errorMsg)}
-                            />
-                          </div>
-                          
-                          {q.allow_uploads && (
-                            <ImageUploader
-                              questionKey={`q${i + 1}`}
-                              questionText={q.title}
-                              serialNumber={unit?.serial_number}
-                              maintenanceType="depth"
-                              initialImages={questionImages[`q${i + 1}`] || []}
-                              onImagesChange={(images) => handleImagesChange(`q${i + 1}`, images)}
-                            />
-                          )}
-                        </div>
-                      </div>
-                    ))}
+              <VoiceInput
+                onTranscript={(text) => {
+                  const questionKey = `q${questionIndex}`;
+                  setAnswers((prev) => ({
+                    ...prev,
+                    [questionKey]: (prev[questionKey] || '') + text
+                  }));
+                  requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                      const textarea = document.querySelector(`[name="${questionKey}"]`);
+                      if (textarea) autoGrow(textarea);
+                    });
+                  });
+                }}
+                onError={(errorMsg) => setErrorMsg(errorMsg)}
+              />
+            </div>
+            
+            {q.allow_uploads && (
+              <ImageUploader
+                questionKey={`q${questionIndex}`}
+                questionText={q.title}
+                serialNumber={unit?.serial_number}
+                maintenanceType="depth"
+                initialImages={questionImages[`q${questionIndex}`] || []}
+                onImagesChange={(images) => handleImagesChange(`q${questionIndex}`, images)}
+              />
+            )}
+          </div>
+        </div>
+      );
+    })}
 
-                    {errorMsg && <p className="error-message">{errorMsg}</p>}
-                    <button className="checklist-submit" disabled={submitting}>
-                      {submitting ? "Submitting..." : "Submit maintenance"}
-                    </button>
+    {errorMsg && <p className="error-message">{errorMsg}</p>}
+    
+    {currentStep < sections.length ? (
+      <button 
+        type="button"
+        className="checklist-submit"
+        onClick={handleContinueToNextStep}
+      >
+        Continue
+      </button>
+    ) : (
+      <button type="submit" className="checklist-submit" disabled={submitting}>
+        {submitting ? "Submitting..." : "Submit maintenance"}
+      </button>
+                    )}
                   </div>
                 )}
               </form>
