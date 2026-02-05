@@ -1074,17 +1074,17 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
                 {/* STEPS 2-8: QUESTIONS */}
                 {currentStep > 1 && (
   <div>
+    {/* Step 2: Show title + subtitle */}
     {currentStep === 2 && (
-      <h3 className="checklist-section-title" style={{ margin: "0 0 22px" }}>{currentSection.title}</h3>
+      <>
+        <h3 className="checklist-section-title">{currentSection.title}</h3>
+        <p className="checklist-section-subtitle">{currentSection.subtitle}</p>
+      </>
     )}
     
-    {currentStep > 2 && (
-      <>
-        <h3 className="checklist-section-title">{template?.type || "Depth"} maintenance</h3>
-        <p className="checklist-section-subtitle">
-          All {(template?.type || "depth").toLowerCase()} maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual and Installation Guide.
-        </p>
-      </>
+    {/* Steps 3-8: Just section title with adjusted spacing */}
+    {currentSection && currentStep > 2 && (
+      <h3 className="checklist-section-title" style={{ margin: "0 0 22px" }}>{currentSection.title}</h3>
     )}
     
     {currentQuestions.map((q, idx) => {
@@ -1093,7 +1093,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       const isWinchQuestion = currentStep === 6;
       
       return (
-        <div key={q.id} style={{ marginTop: idx === 0 ? (currentStep === 2 ? "0" : "0") : "24px" }}>
+        <div key={q.id} style={{ marginTop: idx === 0 ? "0" : "24px" }}>
           <label className="checklist-label">
             {q.title}
           </label>
