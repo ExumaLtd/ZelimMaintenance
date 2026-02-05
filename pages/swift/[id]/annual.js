@@ -1,5 +1,5 @@
 // pages/swift/[id]/annual.js
-// ✅ UPDATED with Airtable-first caching
+// ✅ UPDATED with all recent fixes
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/router";
@@ -68,6 +68,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
   const engineerDropdownRef = useRef(null);
   const card2Ref = useRef(null);
   const hasLoadedDraftRef = useRef(false);
+  const hasSubmittedRef = useRef(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -114,7 +115,9 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
       engPhone,
     }
   }, 
-    !submitting && (
+    !submitting && 
+    !hasSubmittedRef.current &&
+    (
       Object.keys(answers).some(key => answers[key]?.trim()) ||
       Object.keys(questionImages).length > 0 ||
       (selectedCompany && selectedCompany !== '') ||
@@ -368,6 +371,13 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
     return () => window.removeEventListener('popstate', handlePopState);
   }, [currentStep]);
 
+  // Save currentStep to localStorage whenever it changes
+  useEffect(() => {
+    if (currentStep > 1) {
+      localStorage.setItem(`${storageKey}_step`, currentStep.toString());
+    }
+  }, [currentStep, storageKey]);
+
   // Load draft - ALWAYS check Airtable first, localStorage as fallback
   useEffect(() => {
     setToday(new Date().toISOString().split("T")[0]);
@@ -379,7 +389,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
         return;
       }
       
-// PRIORITY 1: ALWAYS check Airtable first
+      // PRIORITY 1: ALWAYS check Airtable first
       if (unit?.record_id) {
         try {
           console.log('🔍 Checking Airtable for draft...');
@@ -440,6 +450,15 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
             if (key.startsWith("q")) draftAnswers[key] = data[key];
           });
           setAnswers(draftAnswers);
+          
+          // ✅ NEW: Restore currentStep from localStorage
+          const savedStep = localStorage.getItem(`${storageKey}_step`);
+          if (savedStep) {
+            const stepNum = parseInt(savedStep, 10);
+            if (stepNum > 1 && stepNum <= sections.length) {
+              setCurrentStep(stepNum);
+            }
+          }
           
           hasLoadedDraftRef.current = true;
           console.log('✅ Draft loaded from localStorage');
@@ -598,6 +617,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
     }
 
     setSubmitting(true);
+    hasSubmittedRef.current = true; // Block all future auto-saves
 
     const emailFriendlyAnswers = {};
     (template?.questionsData || []).forEach((q, i) => {
@@ -689,11 +709,13 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
 
       localStorage.setItem("last_submitted_sn", unit?.serial_number);
       localStorage.setItem("last_maintenance_type", "Annual");
-      localStorage.removeItem(storageKey);
+      localStorage.removeItem(`${storageKey}_step`); // Clear step
+      localStorage.removeItem(storageKey); // Clear draft
       router.push(`/portal/swift/annual-complete`);
     } catch (err) {
       setErrorMsg(err.message);
       setSubmitting(false);
+      hasSubmittedRef.current = false; // Reset on error
     }
   };
 
