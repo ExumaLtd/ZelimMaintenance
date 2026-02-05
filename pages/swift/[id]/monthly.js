@@ -100,16 +100,17 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       engPhone,
     }
   }, 
-    // ✅ Only save if user has made MANUAL inputs
-    (checklistData && checklistData.length > 0 && checklistData.some(group => 
-      group.questions.some(q => q.answer !== null)
-    )) ||
-    furtherComments?.trim() ||
-    (commentImages && commentImages.length > 0) ||
-    (selectedCompany && selectedCompany !== '') ||
-    (engName && engName !== '' && engName !== 'Please select') ||
-    (engEmail && engEmail !== '') ||
-    (engPhone && engPhone !== '')
+    !submitting && (
+      (checklistData && checklistData.length > 0 && checklistData.some(group => 
+        group.questions.some(q => q.answer !== null)
+      )) ||
+      furtherComments?.trim() ||
+      (commentImages && commentImages.length > 0) ||
+      (selectedCompany && selectedCompany !== '') ||
+      (engName && engName !== '' && engName !== 'Please select') ||
+      (engEmail && engEmail !== '') ||
+      (engPhone && engPhone !== '')
+    )
   );
 
   // Initialize checklist data from template (grouped structure)

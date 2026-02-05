@@ -153,6 +153,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       engPhone,
     }
   }, 
+  !submitting && (
     (checklistData && checklistData.length > 0 && checklistData.some(item => 
       item.returned !== null || item.condition !== null
     )) ||
@@ -163,7 +164,8 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     (engName && engName !== '' && engName !== 'Please select') ||
     (engEmail && engEmail !== '') ||
     (engPhone && engPhone !== '')
-  );
+  )
+);
 
   // Initialize checklist data from template
   useEffect(() => {

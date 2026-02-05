@@ -94,13 +94,14 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
       engPhone,
     }
   }, 
-    // ✅ Only save if user has made MANUAL inputs
-    Object.keys(answers).some(key => answers[key]?.trim()) ||
-    Object.keys(questionImages).length > 0 ||
-    (selectedCompany && selectedCompany !== '') ||
-    (engName && engName !== '' && engName !== 'Please select') ||
-    (engEmail && engEmail !== '') ||
-    (engPhone && engPhone !== '')
+    !submitting && (
+      Object.keys(answers).some(key => answers[key]?.trim()) ||
+      Object.keys(questionImages).length > 0 ||
+      (selectedCompany && selectedCompany !== '') ||
+      (engName && engName !== '' && engName !== 'Please select') ||
+      (engEmail && engEmail !== '') ||
+      (engPhone && engPhone !== '')
+    )
   );
 
   const filteredEngineers = useMemo(() => {
