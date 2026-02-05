@@ -45,14 +45,53 @@ const getClientLogo = (companyName, serialNumber) => {
 
 // Define sections for multi-step flow
 const sections = [
-  { step: 1, title: "Pre-disassembly inspection", subtitle: "Equipment checklist" },
-  { step: 2, title: "Photograph SWIFT", subtitle: null, questionIds: [1] },
-  { step: 3, title: "Service history and condition review", subtitle: null, questionIds: [2, 3] },
-  { step: 4, title: "Disassembly and cleaning", subtitle: null, questionIds: [4, 5] },
-  { step: 5, title: "Component inspections", subtitle: null, questionIds: [6, 7, 8, 9, 10] },
-  { step: 6, title: "Winch maintenance", subtitle: null, questionIds: [11, 12, 13, 14, 15, 16, 17] },
-  { step: 7, title: "Reassembly and testing", subtitle: null, questionIds: [18, 19, 20, 21] },
-  { step: 8, title: "Final packaging and notes", subtitle: null, questionIds: [22, 23] }
+  { 
+    step: 1, 
+    title: "Pre-disassembly inspection", 
+    subtitle: "Equipment checklist"
+  },
+  { 
+    step: 2, 
+    title: "30-month depth maintenance",
+    subtitle: "All 30-month depth maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual and Installation Guide.", 
+    questionIds: [1] 
+  },
+  { 
+    step: 3, 
+    title: "Service history and condition review", 
+    subtitle: null, 
+    questionIds: [2, 3] 
+  },
+  { 
+    step: 4, 
+    title: "Disassembly and cleaning", 
+    subtitle: null, 
+    questionIds: [4, 5] 
+  },
+  { 
+    step: 5, 
+    title: "Component inspections", 
+    subtitle: null, 
+    questionIds: [6, 7, 8, 9, 10, 11] 
+  },
+  { 
+    step: 6, 
+    title: "Winch maintenance", 
+    subtitle: null, 
+    questionIds: [12, 13, 14, 15, 16, 17] 
+  },
+  { 
+    step: 7, 
+    title: "Reassembly and testing", 
+    subtitle: null, 
+    questionIds: [18, 19, 20, 21] 
+  },
+  { 
+    step: 8, 
+    title: "Final packaging and notes", 
+    subtitle: null, 
+    questionIds: [22, 23] 
+  }
 ];
 
 export default function Depth({ unit, template, allCompanies = [], allEngineers = [] }) {
