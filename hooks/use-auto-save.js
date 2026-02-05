@@ -76,7 +76,7 @@ export function useAutoSave(config, shouldSave) {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [draftDataString]); // Only draftData serialized - not the whole config object!
+  }, [draftDataString]);
 
   // Save on page unload
   useEffect(() => {
@@ -101,17 +101,5 @@ export function useAutoSave(config, shouldSave) {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('pagehide', handleBeforeUnload);
     };
-  }, []); // Empty array - only set up once
-
-  // Save on back button
-  useEffect(() => {
-    const handlePopState = () => {
-      if (shouldSaveRef.current && configRef.current.unitId) {
-        saveDraft(true);
-      }
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []); // Empty array - only set up once
+  }, []);
 }
