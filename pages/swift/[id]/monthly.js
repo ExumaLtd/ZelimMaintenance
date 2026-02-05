@@ -52,6 +52,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
   const hasLoadedDraftRef = useRef(false);
+  const hasSubmittedRef = useRef(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -101,7 +102,9 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       engPhone,
     }
   }, 
-    !submitting && (
+    !submitting && 
+    !hasSubmittedRef.current &&
+    (
       (checklistData && checklistData.length > 0 && checklistData.some(group => 
         group.questions.some(q => q.answer !== null)
       )) ||
@@ -407,6 +410,8 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     setErrorMsg("");
     if (submitting) return;
 
+    hasSubmittedRef.current = true;
+
     const errors = [];
     let firstErrorField = null;
     const newFieldErrors = {
@@ -500,6 +505,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           }, 300);
         }
       }
+      hasSubmittedRef.current = false;
       return;
     }
 
@@ -612,6 +618,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     } catch (err) {
       setErrorMsg(err.message);
       setSubmitting(false);
+      hasSubmittedRef.current = false;
     }
   };
 
