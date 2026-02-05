@@ -802,17 +802,22 @@ const handleSubmit = async (e) => {
     setSubmitting(true);
     hasSubmittedRef.current = true; // Mark as submitted to prevent auto-save
 
-    const emailFriendlyAnswers = {};
-    (template?.questionsData || []).forEach((q, i) => {
-      const questionKey = `q${i + 1}`;
-      const textAnswer = answers[questionKey] || "Not answered";
-      const images = questionImages[questionKey] || [];
-      
-      emailFriendlyAnswers[q.title] = {
-        text: textAnswer,
-        images: images.map(img => img.url)
-      };
-    });
+const emailFriendlyAnswers = {};
+(template?.questionsData || []).forEach((q, i) => {
+  // ✅ Skip winch questions (14-19) if winch not returned
+  if (!isWinchReturned && q.id >= 14 && q.id <= 19) {
+    return; // Skip this question
+  }
+  
+  const questionKey = `q${i + 1}`;
+  const textAnswer = answers[questionKey] || "Not answered";
+  const images = questionImages[questionKey] || [];
+  
+  emailFriendlyAnswers[q.title] = {
+    text: textAnswer,
+    images: images.map(img => img.url)
+  };
+});
 
     const payload = {
       maintained_by: selectedCompany,
@@ -832,14 +837,22 @@ const handleSubmit = async (e) => {
           images: checklistImages[`item_${item.id}`]?.map(img => img.url) || []
         }))
       ),
-      answers: (template?.questionsData || []).map((q, i) => {
-        const questionKey = `q${i + 1}`;
-        return {
-          question: questionKey,
-          answer: answers[questionKey] || "",
-          images: (questionImages[questionKey] || []).map(img => img.url)
-        };
-      }),
+      answers: (template?.questionsData || [])
+  .filter((q) => {
+    // ✅ Skip winch questions (14-19) if winch not returned
+    if (!isWinchReturned && q.id >= 14 && q.id <= 19) {
+      return false;
+    }
+    return true;
+  })
+  .map((q, i) => {
+    const questionKey = `q${i + 1}`;
+    return {
+      question: questionKey,
+      answer: answers[questionKey] || "",
+      images: (questionImages[questionKey] || []).map(img => img.url)
+    };
+  }),
     };
 
     try {
