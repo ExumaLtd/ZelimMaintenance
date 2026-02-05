@@ -139,6 +139,12 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   const hasLoadedDraftRef = useRef(false);
   const hasSubmittedRef = useRef(false);
 
+  // ✅ NEW: Check if winch was returned (item id: 3)
+  const isWinchReturned = useMemo(() => {
+    const winchItem = checklistData.find(item => item.id === 3);
+    return winchItem?.returned === true;
+  }, [checklistData]);
+
   useAutoSave({
     unitId: unit?.record_id,
     maintenanceType: '30-month depth',
@@ -321,7 +327,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     );
   }, [currentSection, template?.questionsData]);
 
-  // Handle continue to next step
+  // ✅ UPDATED: Handle continue to next step with winch skip logic
   const handleContinueToNextStep = () => {
     const errors = [];
     const newFieldErrors = {
@@ -432,9 +438,16 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     }
 
     setErrorMsg("");
-    setCurrentStep(currentStep + 1);
     
-    window.history.pushState({ step: currentStep + 1 }, '', window.location.href);
+    // ✅ NEW: Skip Step 6 (Winch maintenance) if winch not returned
+    let nextStep = currentStep + 1;
+    if (currentStep === 5 && !isWinchReturned) {
+      nextStep = 7; // Skip step 6
+      console.log('⏭️ Skipping Step 6 (Winch maintenance) - winch not returned');
+    }
+    
+    setCurrentStep(nextStep);
+    window.history.pushState({ step: nextStep }, '', window.location.href);
     
     setTimeout(() => {
       if (card2Ref.current) {
@@ -484,7 +497,12 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
           }
         }, 100);
       } else if (currentStep > 1) {
-        setCurrentStep(currentStep - 1);
+        // ✅ NEW: Handle back button with winch skip logic
+        let previousStep = currentStep - 1;
+        if (currentStep === 7 && !isWinchReturned) {
+          previousStep = 5; // Skip back over step 6
+        }
+        setCurrentStep(previousStep);
         setTimeout(() => {
           if (card2Ref.current) {
             const elementPosition = card2Ref.current.getBoundingClientRect().top + window.pageYOffset;
@@ -503,7 +521,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [currentStep]);
+  }, [currentStep, isWinchReturned]);
 
   // Load localStorage draft (only for page refreshes, not "Continue maintenance")
   useEffect(() => {
@@ -1133,7 +1151,6 @@ const handleSubmit = async (e) => {
                     
                     {currentQuestions.map((q, idx) => {
                       const questionIndex = (template?.questionsData || []).indexOf(q) + 1;
-                      const isWinchQuestion = currentStep === 6;
                       
                       return (
                         <div key={q.id} style={{ marginTop: idx === 0 ? "0" : "24px" }}>
@@ -1158,7 +1175,6 @@ const handleSubmit = async (e) => {
                                   }
                                 }}
                                 onInput={autoGrow}
-                                placeholder={isWinchQuestion ? "Type N/A if winch not returned" : ""}
                                 required={q.required}
                               />
 
