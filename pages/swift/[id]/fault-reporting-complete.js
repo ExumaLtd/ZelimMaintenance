@@ -46,7 +46,7 @@ export default function FaultReportingComplete() {
             </p>
 
             {publicToken ? (
-              <a href={`/portal/swift/${publicToken}`} className="return-dashboard-btn">
+              <a href="/portal/swift" className="return-dashboard-btn">
                 Return to dashboard
               </a>
             ) : (
