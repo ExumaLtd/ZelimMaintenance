@@ -654,6 +654,6 @@ const attribution = {
 
 const recordRefText = {
   fontSize: '12px',
-  color: '#94A3B8',
+  color: '#152a31',
   margin: '6px 0 0 0',
 };
