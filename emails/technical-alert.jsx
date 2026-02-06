@@ -394,7 +394,7 @@ export const TechnicalAlertEmail = ({
             </Text>
             {recordRef && (
               <Text style={recordRefText}>
-                {recordRef} | Submitted at {formattedTime} GMT
+                {recordRef} | {formattedTime} GMT, {formattedDate}
               </Text>
             )}
           </Section>
@@ -634,7 +634,7 @@ const footerSection = {
 const footerLink = {
   textDecoration: 'none',
   display: 'inline-block',
-  marginBottom: '12px',
+  marginBottom: '16px',
 };
 
 const footerLogo = {
@@ -654,5 +654,5 @@ const attribution = {
 const recordRefText = {
   fontSize: '12px',
   color: '#152a31',
-  margin: '6px 0 0 0',
+  margin: '2px 0 0 0',
 };
