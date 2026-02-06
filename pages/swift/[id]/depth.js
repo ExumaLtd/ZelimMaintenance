@@ -121,6 +121,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   const [errorMsg, setErrorMsg] = useState("");
   const [today, setToday] = useState("");
   const [maintenanceDate, setMaintenanceDate] = useState(new Date().toISOString().split("T")[0]);
+  const [declarationChecked, setDeclarationChecked] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({
     company: false,
     location: false,
@@ -128,6 +129,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     engineerEmail: false,
     engineerPhone: false,
     photographImages: false,
+    declaration: false,
   });
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -781,6 +783,13 @@ const handleSubmit = async (e) => {
   setErrorMsg("");
   if (submitting) return;
 
+    // Declaration must be checked
+    if (!declarationChecked) {
+      setErrorMsg("Please confirm the declaration before submitting.");
+      setFieldErrors(prev => ({ ...prev, declaration: true }));
+      return;
+    }
+
     const errors = [];
     let firstErrorField = null;
 
@@ -852,6 +861,7 @@ const emailFriendlyAnswers = {};
       unit_record_id: unit?.record_id,
       checklist_template_id: template?.id,
       serial_number: unit?.serial_number,
+      declaration_text: template?.declarationText || "",
       equipment_checklist: JSON.stringify(
         checklistData.map(item => ({
           ...item,
@@ -1210,7 +1220,7 @@ const emailFriendlyAnswers = {};
                   </div>
                 )}
 
-                {/* STEPS 2-8: QUESTIONS */}
+                {/* STEPS 2-10: QUESTIONS */}
                 {currentStep > 1 && (
                   <div>
                     {currentStep === 2 && (
@@ -1298,19 +1308,40 @@ const emailFriendlyAnswers = {};
                         Continue
                       </button>
                     ) : (
-                      <button 
-                        type="button"
-                        className="checklist-submit" 
-                        disabled={submitting}
-                        onClick={(e) => {
-                          const form = e.target.closest('form');
-                          if (form) {
-                            form.requestSubmit();
-                          }
-                        }}
-                      >
-                        {submitting ? "Submitting..." : "Submit maintenance"}
-                      </button>
+                      <>
+                        {template?.declarationText && (
+                          <label className={`declaration-checkbox ${fieldErrors.declaration ? 'has-error' : ''}`}>
+                            <input
+                              type="checkbox"
+                              checked={declarationChecked}
+                              onChange={(e) => {
+                                setDeclarationChecked(e.target.checked);
+                                if (e.target.checked) {
+                                  setFieldErrors(prev => ({ ...prev, declaration: false }));
+                                  setErrorMsg("");
+                                }
+                              }}
+                            />
+                            <span className="declaration-checkmark" />
+                            <span className="declaration-text">
+                              {template.declarationText}
+                            </span>
+                          </label>
+                        )}
+                        <button 
+                          type="button"
+                          className="checklist-submit" 
+                          disabled={submitting}
+                          onClick={(e) => {
+                            const form = e.target.closest('form');
+                            if (form) {
+                              form.requestSubmit();
+                            }
+                          }}
+                        >
+                          {submitting ? "Submitting..." : "Submit maintenance"}
+                        </button>
+                      </>
                     )}
                   </div>
                 )}
@@ -1351,6 +1382,7 @@ export async function getServerSideProps({ params }) {
       template: {
         id: data.template?.id,
         type: data.template?.type,
+        declarationText: data.template?.declarationText || "",
         maintenanceChecklist: equipment_checklist,
         questionsData: questions,
         questions: questions.map(q => q.title),

@@ -1,5 +1,5 @@
 // pages/swift/[id]/annual.js
-// ✅ UPDATED with all recent fixes + declaration checkbox
+// ✅ UPDATED with all recent fixes + declaration checkbox + dynamic declaration text from Airtable
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/router";
@@ -657,6 +657,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
       unit_record_id: unit?.record_id,
       checklist_template_id: template?.id,
       serial_number: unit?.serial_number,
+      declaration_text: template?.declarationText || "",
       answers: (template?.questionsData || []).map((q, i) => {
         const questionKey = `q${i + 1}`;
         return {
@@ -1003,23 +1004,25 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
                   </button>
                 ) : (
                   <>
-                    <label className={`declaration-checkbox ${fieldErrors.declaration ? 'has-error' : ''}`}>
-                      <input
-                        type="checkbox"
-                        checked={declarationChecked}
-                        onChange={(e) => {
-                          setDeclarationChecked(e.target.checked);
-                          if (e.target.checked) {
-                            setFieldErrors(prev => ({ ...prev, declaration: false }));
-                            setErrorMsg("");
-                          }
-                        }}
-                      />
-                      <span className="declaration-checkmark" />
-                      <span className="declaration-text">
-                        I confirm that this maintenance has been carried out in accordance with the manufacturer's guidelines and the information provided is accurate, true, and complete.
-                      </span>
-                    </label>
+                    {template?.declarationText && (
+                      <label className={`declaration-checkbox ${fieldErrors.declaration ? 'has-error' : ''}`}>
+                        <input
+                          type="checkbox"
+                          checked={declarationChecked}
+                          onChange={(e) => {
+                            setDeclarationChecked(e.target.checked);
+                            if (e.target.checked) {
+                              setFieldErrors(prev => ({ ...prev, declaration: false }));
+                              setErrorMsg("");
+                            }
+                          }}
+                        />
+                        <span className="declaration-checkmark" />
+                        <span className="declaration-text">
+                          {template.declarationText}
+                        </span>
+                      </label>
+                    )}
                     <button type="submit" className="checklist-submit" disabled={submitting}>
                       {submitting ? "Submitting..." : "Submit maintenance"}
                     </button>

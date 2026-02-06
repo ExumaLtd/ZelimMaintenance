@@ -58,12 +58,14 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [today, setToday] = useState("");
+  const [declarationChecked, setDeclarationChecked] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({
     company: false,
     location: false,
     engineerName: false,
     engineerEmail: false,
     engineerPhone: false,
+    declaration: false,
   });
 
   // Checklist data - initialize from template (grouped structure)
@@ -425,6 +427,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       engineerName: false,
       engineerEmail: false,
       engineerPhone: false,
+      declaration: false,
     };
 
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
@@ -491,6 +494,12 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       }
     }
 
+    // Declaration must be checked
+    if (!declarationChecked) {
+      errors.push({ field: 'declaration', message: 'Please confirm the declaration before submitting.' });
+      newFieldErrors.declaration = true;
+    }
+
     setFieldErrors(newFieldErrors);
 
     if (errors.length > 0) {
@@ -537,6 +546,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       unit_record_id: unit?.record_id,
       checklist_template_id: template?.id,
       serial_number: unit?.serial_number,
+      declaration_text: template?.declarationText || "",
       maintenance_checklist: JSON.stringify(
         checklistData.map(group => ({
           id: group.id,
@@ -898,6 +908,26 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                     />
                   </div>
                 </div>
+
+                {template?.declarationText && (
+                  <label className={`declaration-checkbox ${fieldErrors.declaration ? 'has-error' : ''}`}>
+                    <input
+                      type="checkbox"
+                      checked={declarationChecked}
+                      onChange={(e) => {
+                        setDeclarationChecked(e.target.checked);
+                        if (e.target.checked) {
+                          setFieldErrors(prev => ({ ...prev, declaration: false }));
+                          setErrorMsg("");
+                        }
+                      }}
+                    />
+                    <span className="declaration-checkmark" />
+                    <span className="declaration-text">
+                      {template.declarationText}
+                    </span>
+                  </label>
+                )}
 
                 {errorMsg && <p className="error-message">{errorMsg}</p>}
                 <button type="submit" className="checklist-submit" disabled={submitting}>

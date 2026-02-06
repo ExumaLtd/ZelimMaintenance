@@ -58,12 +58,14 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
   const [errorMsg, setErrorMsg] = useState("");
   const [today, setToday] = useState("");
   const [maintenanceDate, setMaintenanceDate] = useState(new Date().toISOString().split("T")[0]);
+  const [declarationChecked, setDeclarationChecked] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({
     company: false,
     location: false,
     engineerName: false,
     engineerEmail: false,
     engineerPhone: false,
+    declaration: false,
   });
 
   const [answers, setAnswers] = useState({});
@@ -377,6 +379,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
       engineerName: false,
       engineerEmail: false,
       engineerPhone: false,
+      declaration: false,
     };
 
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
@@ -423,6 +426,12 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
           if (!firstErrorField) firstErrorField = { current: questionElement };
         }
       }
+    }
+
+    // Declaration must be checked
+    if (!declarationChecked) {
+      errors.push({ field: 'declaration', message: 'Please confirm the declaration before submitting.' });
+      newFieldErrors.declaration = true;
     }
 
     setFieldErrors(newFieldErrors);
@@ -474,6 +483,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
       unit_record_id: unit?.record_id,
       checklist_template_id: template?.id,
       serial_number: unit?.serial_number,
+      declaration_text: template?.declarationText || "",
       answers: (template?.questionsData || []).map((q, i) => {
         const questionKey = `q${i + 1}`;
         return {
@@ -792,6 +802,26 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
                   </div>
                 ))}
 
+                {template?.declarationText && (
+                  <label className={`declaration-checkbox ${fieldErrors.declaration ? 'has-error' : ''}`}>
+                    <input
+                      type="checkbox"
+                      checked={declarationChecked}
+                      onChange={(e) => {
+                        setDeclarationChecked(e.target.checked);
+                        if (e.target.checked) {
+                          setFieldErrors(prev => ({ ...prev, declaration: false }));
+                          setErrorMsg("");
+                        }
+                      }}
+                    />
+                    <span className="declaration-checkmark" />
+                    <span className="declaration-text">
+                      {template.declarationText}
+                    </span>
+                  </label>
+                )}
+
                 {errorMsg && <p className="error-message">{errorMsg}</p>}
                 <button type="submit" className="checklist-submit" disabled={submitting}>
                   {submitting ? "Submitting..." : "Submit fault"}
@@ -854,6 +884,9 @@ export async function getServerSideProps({ params }) {
       console.error("Failed to parse questions_json:", e);
     }
 
+    // Extract declaration_text from template record
+    const declarationText = templateData.records?.[0]?.fields.declaration_text || "";
+
     return {
       props: {
         unit: {
@@ -864,6 +897,7 @@ export async function getServerSideProps({ params }) {
         },
         template: {
           id: templateData.records?.[0]?.id || "",
+          declarationText,
           questionsData: Array.isArray(parsedJson) ? parsedJson : (parsedJson.questions || []),
           questions: Array.isArray(parsedJson) ? parsedJson.map(q => q.title) : (parsedJson.questions?.map(q => q.title) || []),
         },
