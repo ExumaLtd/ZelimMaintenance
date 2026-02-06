@@ -922,6 +922,7 @@ const emailFriendlyAnswers = {};
 
       localStorage.setItem("last_submitted_sn", unit?.serial_number);
       localStorage.setItem("last_maintenance_type", template?.type || "Depth");
+      localStorage.setItem("last_public_token", unit?.public_token);
       localStorage.removeItem(storageKey);
       router.push('/portal/swift/depth-complete');
     } catch (err) {

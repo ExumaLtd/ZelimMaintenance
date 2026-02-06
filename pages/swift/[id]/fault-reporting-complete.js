@@ -7,15 +7,20 @@ import { ThumbsUp } from "lucide-react";
 
 export default function FaultReportingComplete() {
   const router = useRouter();
-  const { id } = router.query;
   const [unitSN, setUnitSN] = useState("");
+  const [publicToken, setPublicToken] = useState("");
 
   useEffect(() => {
     const savedSN = localStorage.getItem("last_submitted_sn");
+    const savedToken = localStorage.getItem("last_public_token");
     
     if (savedSN) {
       setUnitSN(savedSN);
       localStorage.removeItem("last_submitted_sn");
+    }
+    
+    if (savedToken) {
+      setPublicToken(savedToken);
     }
     
     localStorage.removeItem("last_maintenance_type");
@@ -43,9 +48,15 @@ export default function FaultReportingComplete() {
               Your fault report has been successfully submitted and sent to the maintenance facility for review and follow-up. You will receive email confirmation shortly.
             </p>
 
-            <Link href="/portal/swift" className="return-dashboard-btn">
-              Return to dashboard
-            </Link>
+            {publicToken ? (
+              <Link href={`/portal/swift/${publicToken}`} className="return-dashboard-btn">
+                Return to dashboard
+              </Link>
+            ) : (
+              <Link href="/" className="return-dashboard-btn">
+                Return to home
+              </Link>
+            )}
           </div>
         </div>
 

@@ -537,6 +537,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
 
       localStorage.setItem("last_submitted_sn", unit?.serial_number);
       localStorage.setItem("last_maintenance_type", "Unscheduled");
+      localStorage.setItem("last_public_token", unit?.public_token);
       localStorage.removeItem(storageKey);
       router.push(`/portal/swift/unscheduled-complete`);
     } catch (err) {

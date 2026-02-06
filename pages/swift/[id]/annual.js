@@ -714,8 +714,9 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
 
       localStorage.setItem("last_submitted_sn", unit?.serial_number);
       localStorage.setItem("last_maintenance_type", "Annual");
-      localStorage.removeItem(`${storageKey}_step`); // Clear step
-      localStorage.removeItem(storageKey); // Clear draft
+      localStorage.setItem("last_public_token", unit?.public_token);
+      localStorage.removeItem(`${storageKey}_step`);
+      localStorage.removeItem(storageKey);
       router.push(`/portal/swift/annual-complete`);
     } catch (err) {
       setErrorMsg(err.message);
