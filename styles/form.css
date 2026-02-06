@@ -1783,9 +1783,8 @@
   align-items: flex-start;
   gap: 12px;
   margin: 28px 0 0 0;
-  cursor: pointer;
+  cursor: default;
   -webkit-tap-highlight-color: transparent;
-  user-select: none;
 }
 
 .form-scope .declaration-checkbox input[type="checkbox"] {
@@ -1797,13 +1796,14 @@
 
 .form-scope .declaration-checkmark {
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  border: 1px solid #27454b;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #425558;
   border-radius: 4px;
   transition: all 0.15s ease;
   position: relative;
   background: #27454b;
+  cursor: pointer;
 }
 
 .form-scope .declaration-checkbox input[type="checkbox"]:checked ~ .declaration-checkmark {
