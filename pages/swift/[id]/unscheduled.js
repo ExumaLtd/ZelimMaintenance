@@ -800,9 +800,10 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                 ))}
 
                 {template?.declarationText && (
-                  <label className={`declaration-checkbox ${fieldErrors.declaration ? 'has-error' : ''}`}>
+                  <div className={`declaration-checkbox ${fieldErrors.declaration ? 'has-error' : ''}`}>
                     <input
                       type="checkbox"
+                      id="declaration-check"
                       checked={declarationChecked}
                       onChange={(e) => {
                         setDeclarationChecked(e.target.checked);
@@ -812,11 +813,11 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                         }
                       }}
                     />
-                    <span className="declaration-checkmark" />
+                    <label htmlFor="declaration-check" className="declaration-checkmark" />
                     <span className="declaration-text">
                       {template.declarationText}
                     </span>
-                  </label>
+                  </div>
                 )}
 
                 {errorMsg && <p className="error-message">{errorMsg}</p>}

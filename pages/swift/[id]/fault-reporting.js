@@ -803,23 +803,24 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
                 ))}
 
                 {template?.declarationText && (
-                  <label className={`declaration-checkbox ${fieldErrors.declaration ? 'has-error' : ''}`}>
-                    <input
-                      type="checkbox"
-                      checked={declarationChecked}
-                      onChange={(e) => {
-                        setDeclarationChecked(e.target.checked);
-                        if (e.target.checked) {
-                          setFieldErrors(prev => ({ ...prev, declaration: false }));
-                          setErrorMsg("");
-                        }
-                      }}
-                    />
-                    <span className="declaration-checkmark" />
-                    <span className="declaration-text">
-                      {template.declarationText}
-                    </span>
-                  </label>
+                  <div className={`declaration-checkbox ${fieldErrors.declaration ? 'has-error' : ''}`}>
+  <input
+    type="checkbox"
+    id="declaration-check"
+    checked={declarationChecked}
+    onChange={(e) => {
+      setDeclarationChecked(e.target.checked);
+      if (e.target.checked) {
+        setFieldErrors(prev => ({ ...prev, declaration: false }));
+        setErrorMsg("");
+      }
+    }}
+  />
+  <label htmlFor="declaration-check" className="declaration-checkmark" />
+  <span className="declaration-text">
+    {template.declarationText}
+  </span>
+</div>
                 )}
 
                 {errorMsg && <p className="error-message">{errorMsg}</p>}

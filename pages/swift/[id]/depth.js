@@ -159,7 +159,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   const hasLoadedDraftRef = useRef(false);
   const hasSubmittedRef = useRef(false);
 
-  // ✅ NEW: Check if winch was returned (item id: 3)
+  // Check if winch was returned (item id: 3)
   const isWinchReturned = useMemo(() => {
     const winchItem = checklistData.find(item => item.id === 3);
     return winchItem?.returned === true;
@@ -272,7 +272,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       [questionKey]: images
     }));
     
-    // Clear photo error when images are uploaded for "Photograph SWIFT" question
     if (questionKey === 'q1' && images.length > 0) {
       setFieldErrors(prev => ({ ...prev, photographImages: false }));
       setErrorMsg("");
@@ -345,7 +344,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   // Get current section configuration
   const currentSection = sections.find(s => s.step === currentStep);
   
-  // Get questions for current step (Steps 2-8)
+  // Get questions for current step
   const currentQuestions = useMemo(() => {
     if (!currentSection || !currentSection.questionIds || !template?.questionsData) return [];
     return template.questionsData.filter(q => 
@@ -353,7 +352,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     );
   }, [currentSection, template?.questionsData]);
 
-  // ✅ UPDATED: Handle continue to next step with winch skip logic
+  // Handle continue to next step with winch skip logic
   const handleContinueToNextStep = () => {
     const errors = [];
     const newFieldErrors = {
@@ -367,7 +366,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
 
-    // Only validate admin fields on step 1
     if (currentStep === 1) {
       if (!selectedCompany || selectedCompany === "Please select") {
         errors.push('company');
@@ -402,7 +400,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
         if (phoneInput) phoneInput.classList.add('has-error');
       }
 
-      // Validate equipment checklist
       const incompleteItems = [];
       checklistData.forEach((item, index) => {
         if (item.returned === null) {
@@ -429,7 +426,6 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       }
     }
 
-    // Validate photograph upload on step 2 (Photograph SWIFT)
     if (currentStep === 2) {
       const photographQuestion = currentQuestions.find(q => q.id === 1);
       if (photographQuestion) {
@@ -443,9 +439,8 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       }
     }
 
-    // Validate current step questions (Steps 2-8)
     if (currentStep > 1) {
-      const requiredQuestions = currentQuestions.filter(q => q.required && q.id !== 1); // Exclude photograph question
+      const requiredQuestions = currentQuestions.filter(q => q.required && q.id !== 1);
       for (let i = 0; i < requiredQuestions.length; i++) {
         const q = requiredQuestions[i];
         const questionIndex = (template?.questionsData || []).indexOf(q) + 1;
@@ -484,10 +479,10 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 
     setErrorMsg("");
     
-    // ✅ NEW: Skip Step 8 (Winch maintenance) if winch not returned
+    // Skip Step 8 (Winch maintenance) if winch not returned
     let nextStep = currentStep + 1;
     if (currentStep === 7 && !isWinchReturned) {
-      nextStep = 9; // Skip step 8
+      nextStep = 9;
       console.log('⏭️ Skipping Step 8 (Winch maintenance) - winch not returned');
     }
     
@@ -542,10 +537,9 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
           }
         }, 100);
       } else if (currentStep > 1) {
-        // ✅ NEW: Handle back button with winch skip logic
         let previousStep = currentStep - 1;
         if (currentStep === 9 && !isWinchReturned) {
-          previousStep = 7; // Skip back over step 8
+          previousStep = 7;
         }
         setCurrentStep(previousStep);
         setTimeout(() => {
@@ -568,12 +562,12 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     return () => window.removeEventListener('popstate', handlePopState);
   }, [currentStep, isWinchReturned]);
 
-// Save currentStep to localStorage whenever it changes
-useEffect(() => {
-  if (currentStep > 1) {
-    localStorage.setItem(`${storageKey}_step`, currentStep.toString());
-  }
-}, [currentStep, storageKey]);
+  // Save currentStep to localStorage whenever it changes
+  useEffect(() => {
+    if (currentStep > 1) {
+      localStorage.setItem(`${storageKey}_step`, currentStep.toString());
+    }
+  }, [currentStep, storageKey]);
 
   // Load localStorage draft (only for page refreshes, not "Continue maintenance")
   useEffect(() => {
@@ -581,7 +575,7 @@ useEffect(() => {
     
     const urlParams = new URLSearchParams(window.location.search);
     const isDraft = urlParams.get('draft') === 'true';
-    if (isDraft) return; // Skip localStorage when loading from Airtable
+    if (isDraft) return;
     
     const savedDraft = localStorage.getItem(storageKey);
     if (!savedDraft) return;
@@ -607,7 +601,6 @@ useEffect(() => {
       });
       setAnswers(draftAnswers);
       
-      // ✅ NEW: Restore currentStep from localStorage
       const savedStep = localStorage.getItem(`${storageKey}_step`);
       if (savedStep) {
         const stepNum = parseInt(savedStep, 10);
@@ -628,9 +621,9 @@ useEffect(() => {
       
       if (!isDraft) return;
       if (!unit?.record_id) return;
-      if (hasLoadedDraftRef.current) return; // Prevent duplicate loads
+      if (hasLoadedDraftRef.current) return;
       
-      hasLoadedDraftRef.current = true; // Mark as loaded immediately
+      hasLoadedDraftRef.current = true;
       
       try {
         const res = await fetch(
@@ -641,7 +634,6 @@ useEffect(() => {
         if (data.draft) {
           console.log('📦 Draft found in Airtable');
           
-          // Load all data FIRST
           if (data.draft.checklistData) setChecklistData(data.draft.checklistData);
           if (data.draft.answers) setAnswers(data.draft.answers);
           if (data.draft.questionImages) setQuestionImages(data.draft.questionImages);
@@ -653,9 +645,7 @@ useEffect(() => {
           if (data.draft.engEmail) setEngEmail(data.draft.engEmail);
           if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
           
-          // Load currentStep LAST to prevent race conditions
           if (data.draft.currentStep) {
-            // Use setTimeout to ensure all state updates complete first
             setTimeout(() => {
               setCurrentStep(data.draft.currentStep);
               console.log(`✅ Draft loaded - restored to step ${data.draft.currentStep}`);
@@ -666,7 +656,7 @@ useEffect(() => {
         }
       } catch (error) {
         console.error('Failed to load draft:', error);
-        hasLoadedDraftRef.current = false; // Reset on error so user can retry
+        hasLoadedDraftRef.current = false;
       }
     };
     
@@ -773,15 +763,15 @@ useEffect(() => {
     localStorage.setItem(storageKey, JSON.stringify(draftData));
   }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, checklistData, answers, storageKey]);
   
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  console.log('🔴 FORM SUBMITTED - Step:', currentStep);
-  console.log('  - Event type:', e.type);
-  console.log('  - Submitter:', e.nativeEvent?.submitter);
-  console.log('  - Stack trace:', new Error().stack);
-  
-  setErrorMsg("");
-  if (submitting) return;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log('🔴 FORM SUBMITTED - Step:', currentStep);
+    console.log('  - Event type:', e.type);
+    console.log('  - Submitter:', e.nativeEvent?.submitter);
+    console.log('  - Stack trace:', new Error().stack);
+    
+    setErrorMsg("");
+    if (submitting) return;
 
     // Declaration must be checked
     if (!declarationChecked) {
@@ -830,24 +820,24 @@ const handleSubmit = async (e) => {
     }
 
     setSubmitting(true);
-    hasSubmittedRef.current = true; // Mark as submitted to prevent auto-save
+    hasSubmittedRef.current = true;
 
-const emailFriendlyAnswers = {};
-(template?.questionsData || []).forEach((q, i) => {
-  // ✅ Skip winch questions (14-19) if winch not returned
-  if (!isWinchReturned && q.id >= 14 && q.id <= 19) {
-    return; // Skip this question
-  }
-  
-  const questionKey = `q${i + 1}`;
-  const textAnswer = answers[questionKey] || "Not answered";
-  const images = questionImages[questionKey] || [];
-  
-  emailFriendlyAnswers[q.title] = {
-    text: textAnswer,
-    images: images.map(img => img.url)
-  };
-});
+    const emailFriendlyAnswers = {};
+    (template?.questionsData || []).forEach((q, i) => {
+      // Skip winch questions (14-19) if winch not returned
+      if (!isWinchReturned && q.id >= 14 && q.id <= 19) {
+        return;
+      }
+      
+      const questionKey = `q${i + 1}`;
+      const textAnswer = answers[questionKey] || "Not answered";
+      const images = questionImages[questionKey] || [];
+      
+      emailFriendlyAnswers[q.title] = {
+        text: textAnswer,
+        images: images.map(img => img.url)
+      };
+    });
 
     const payload = {
       maintained_by: selectedCompany,
@@ -869,21 +859,20 @@ const emailFriendlyAnswers = {};
         }))
       ),
       answers: (template?.questionsData || [])
-  .filter((q) => {
-    // ✅ Skip winch questions (14-19) if winch not returned
-    if (!isWinchReturned && q.id >= 14 && q.id <= 19) {
-      return false;
-    }
-    return true;
-  })
-  .map((q, i) => {
-    const questionKey = `q${i + 1}`;
-    return {
-      question: questionKey,
-      answer: answers[questionKey] || "",
-      images: (questionImages[questionKey] || []).map(img => img.url)
-    };
-  }),
+        .filter((q) => {
+          if (!isWinchReturned && q.id >= 14 && q.id <= 19) {
+            return false;
+          }
+          return true;
+        })
+        .map((q, i) => {
+          const questionKey = `q${i + 1}`;
+          return {
+            question: questionKey,
+            answer: answers[questionKey] || "",
+            images: (questionImages[questionKey] || []).map(img => img.url)
+          };
+        }),
     };
 
     try {
@@ -940,7 +929,7 @@ const emailFriendlyAnswers = {};
     } catch (err) {
       setErrorMsg(err.message);
       setSubmitting(false);
-      hasSubmittedRef.current = false; // Reset on error
+      hasSubmittedRef.current = false;
     }
   };
 
@@ -1310,9 +1299,10 @@ const emailFriendlyAnswers = {};
                     ) : (
                       <>
                         {template?.declarationText && (
-                          <label className={`declaration-checkbox ${fieldErrors.declaration ? 'has-error' : ''}`}>
+                          <div className={`declaration-checkbox ${fieldErrors.declaration ? 'has-error' : ''}`}>
                             <input
                               type="checkbox"
+                              id="declaration-check"
                               checked={declarationChecked}
                               onChange={(e) => {
                                 setDeclarationChecked(e.target.checked);
@@ -1322,11 +1312,11 @@ const emailFriendlyAnswers = {};
                                 }
                               }}
                             />
-                            <span className="declaration-checkmark" />
+                            <label htmlFor="declaration-check" className="declaration-checkmark" />
                             <span className="declaration-text">
                               {template.declarationText}
                             </span>
-                          </label>
+                          </div>
                         )}
                         <button 
                           type="button"

@@ -1,5 +1,5 @@
 // pages/swift/[id]/annual.js
-// ✅ UPDATED with all recent fixes + declaration checkbox + dynamic declaration text from Airtable
+// ✅ UPDATED with all recent fixes + declaration checkbox (div/label htmlFor pattern)
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/router";
@@ -1005,9 +1005,10 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
                 ) : (
                   <>
                     {template?.declarationText && (
-                      <label className={`declaration-checkbox ${fieldErrors.declaration ? 'has-error' : ''}`}>
+                      <div className={`declaration-checkbox ${fieldErrors.declaration ? 'has-error' : ''}`}>
                         <input
                           type="checkbox"
+                          id="declaration-check"
                           checked={declarationChecked}
                           onChange={(e) => {
                             setDeclarationChecked(e.target.checked);
@@ -1017,11 +1018,11 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
                             }
                           }}
                         />
-                        <span className="declaration-checkmark" />
+                        <label htmlFor="declaration-check" className="declaration-checkmark" />
                         <span className="declaration-text">
                           {template.declarationText}
                         </span>
-                      </label>
+                      </div>
                     )}
                     <button type="submit" className="checklist-submit" disabled={submitting}>
                       {submitting ? "Submitting..." : "Submit maintenance"}
