@@ -75,6 +75,10 @@ export default async function handler(req, res) {
       const updateFields = {
         draft_data: draftDataString,
         last_updated: new Date().toISOString(),
+        // Ensure PIN fields are always set
+        access_pin_used: accessPin,
+        user_type: userType,
+        locked_by: accessPin,
       };
 
       if (isRealEmail) {
@@ -102,7 +106,7 @@ export default async function handler(req, res) {
         draft_data: draftDataString,
         last_updated: new Date().toISOString(),
         completed: false,
-        // NEW - Add PIN tracking
+        // Add PIN tracking
         access_pin_used: accessPin,
         user_type: userType,
         locked_by: accessPin,

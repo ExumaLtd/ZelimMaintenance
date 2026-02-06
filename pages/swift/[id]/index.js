@@ -2,15 +2,64 @@ import Head from "next/head";
 import Link from "next/link";
 import Image from "next/image";
 import Airtable from "airtable";
-import fs from "fs";
-import path from "path";
 import { useRouter } from "next/router";
-import { getSession } from "../../../lib/session"; // ADD THIS IMPORT
+import { getSession } from "../../../lib/session";
 
-// ... keep your getFileSize and getClientLogo functions exactly the same ...
+// REMOVE these imports - they'll be used inside getServerSideProps instead
+// import fs from "fs";
+// import path from "path";
+
+// Client logo resolver - KEEP THIS
+const getClientLogo = (companyName, serialNumber) => {
+  const logoMap = {
+    changi: {
+      serials: ["SWI001", "SWI002"],
+      nameMatch: "Changi",
+      src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg",
+    },
+    milford: {
+      serials: ["SWI003"],
+      nameMatch: "Port of Milford Haven",
+      src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven_Logo(White).svg",
+    },
+    hatloy: {
+      serials: ["SWI010", "SWI011"],
+      nameMatch: "Hatloy",
+      src: "/client_logos/hatloy_maritime/HatloyMaritime_Logo(White).svg",
+    },
+  };
+
+  for (const client of Object.values(logoMap)) {
+    if (client.serials.includes(serialNumber) || companyName?.includes(client.nameMatch)) {
+      return { src: client.src, alt: `${companyName} Logo` };
+    }
+  }
+
+  return null;
+};
 
 // Fetch unit data from Airtable
 export async function getServerSideProps(context) {
+  // MOVE getFileSize function HERE (inside getServerSideProps)
+  const getFileSize = (filePath) => {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const fullPath = path.join(process.cwd(), "public", filePath);
+      const stats = fs.statSync(fullPath);
+      const bytes = stats.size;
+      
+      if (bytes === 0) return "0 Bytes";
+
+      const k = 1024;
+      const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+    } catch {
+      return "Size N/A";
+    }
+  };
+
   const publicToken = context.params.id;
   
   // Get session to extract PIN
@@ -115,7 +164,7 @@ export async function getServerSideProps(context) {
         unit: unitDetails,
         publicToken,
         activeDrafts,
-        accessType, // Pass accessType to component
+        accessType,
         ...fileSizes,
       },
     };
@@ -125,12 +174,12 @@ export async function getServerSideProps(context) {
   }
 }
 
-// Main component - UPDATE to receive accessType from props
+// Main component
 export default function SwiftUnitPage({
   unit,
   publicToken,
   activeDrafts = [],
-  accessType = "maintenance", // NOW from server-side props, not query
+  accessType = "maintenance",
   maintenanceManualSize,
   installationGuideSize,
 }) {
