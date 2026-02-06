@@ -5,61 +5,30 @@ import Airtable from "airtable";
 import fs from "fs";
 import path from "path";
 import { useRouter } from "next/router";
+import { getSession } from "../../../lib/session"; // ADD THIS IMPORT
 
-// File size utility
-const getFileSize = (filePath) => {
-  try {
-    const fullPath = path.join(process.cwd(), "public", filePath);
-    const stats = fs.statSync(fullPath);
-    const bytes = stats.size;
-    
-    if (bytes === 0) return "0 Bytes";
-
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
-  } catch {
-    return "Size N/A";
-  }
-};
-
-// Client logo resolver
-const getClientLogo = (companyName, serialNumber) => {
-  const logoMap = {
-    changi: {
-      serials: ["SWI001", "SWI002"],
-      nameMatch: "Changi",
-      src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg",
-    },
-    milford: {
-      serials: ["SWI003"],
-      nameMatch: "Port of Milford Haven",
-      src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven_Logo(White).svg",
-    },
-    hatloy: {
-      serials: ["SWI010", "SWI011"],
-      nameMatch: "Hatloy",
-      src: "/client_logos/hatloy_maritime/HatloyMaritime_Logo(White).svg",
-    },
-  };
-
-  for (const client of Object.values(logoMap)) {
-    if (client.serials.includes(serialNumber) || companyName?.includes(client.nameMatch)) {
-      return { src: client.src, alt: `${companyName} Logo` };
-    }
-  }
-
-  return null;
-};
+// ... keep your getFileSize and getClientLogo functions exactly the same ...
 
 // Fetch unit data from Airtable
 export async function getServerSideProps(context) {
   const publicToken = context.params.id;
   
+  // Get session to extract PIN
+  const session = getSession(context.req);
+  
   console.log('=== DASHBOARD DEBUG ===');
   console.log('publicToken:', publicToken);
-  console.log('params:', context.params);
+  console.log('session:', session);
+  console.log('accessPin:', session?.pin);
+
+  // If no valid session, redirect to login
+  if (!session || !session.pin) {
+    console.log('❌ No valid session, redirecting to login');
+    return { redirect: { destination: "/", permanent: false } };
+  }
+
+  const accessPin = session.pin; // e.g., "SWI005" or "CREW005"
+  const accessType = session.access; // "maintenance" or "crew"
 
   const maintenanceManualPath = "/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf";
   const installationGuidePath = "/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf";
@@ -103,18 +72,23 @@ export async function getServerSideProps(context) {
         : "N/A",
     };
 
-    // Check for active drafts - use JavaScript filtering (works with linked records)
+    // Check for active drafts - FILTERED BY ACCESS PIN
     let activeDrafts = [];
     try {
-      console.log('Fetching drafts for this unit only...');
+      console.log(`Fetching drafts for unit ${unitRecordId} with PIN ${accessPin}...`);
       
-// Get all active drafts
-const allDrafts = await base('maintenance_drafts')
-  .select({
-    filterByFormula: '{completed} = 0',  // ← Only get explicitly unchecked drafts
-    fields: ['unit_id', 'maintenance_type', 'last_updated', 'engineer_email'],
-  })
-  .all();
+      // Get all active drafts for this access PIN
+      const allDrafts = await base('maintenance_drafts')
+        .select({
+          filterByFormula: `AND(
+            {completed} = 0,
+            {access_pin_used} = '${accessPin}'
+          )`,
+          fields: ['unit_id', 'maintenance_type', 'last_updated', 'engineer_email', 'access_pin_used'],
+        })
+        .all();
+      
+      console.log(`Found ${allDrafts.length} active drafts for PIN ${accessPin}`);
       
       // Filter in JavaScript to match unit_id (Link field returns array)
       const matchingDrafts = allDrafts.filter(d => {
@@ -122,7 +96,7 @@ const allDrafts = await base('maintenance_drafts')
         return linkedRecords && linkedRecords.includes(unitRecordId);
       });
       
-      console.log(`Matching drafts for ${unitRecordId}: ${matchingDrafts.length}`);
+      console.log(`Matching drafts for unit ${unitRecordId} + PIN ${accessPin}: ${matchingDrafts.length}`);
 
       activeDrafts = matchingDrafts.map(d => ({
         type: d.get('maintenance_type'),
@@ -141,6 +115,7 @@ const allDrafts = await base('maintenance_drafts')
         unit: unitDetails,
         publicToken,
         activeDrafts,
+        accessType, // Pass accessType to component
         ...fileSizes,
       },
     };
@@ -150,17 +125,16 @@ const allDrafts = await base('maintenance_drafts')
   }
 }
 
-// Main component
+// Main component - UPDATE to receive accessType from props
 export default function SwiftUnitPage({
   unit,
   publicToken,
   activeDrafts = [],
+  accessType = "maintenance", // NOW from server-side props, not query
   maintenanceManualSize,
   installationGuideSize,
 }) {
   const router = useRouter();
-  const { access } = router.query;
-  const accessType = access || "maintenance";
 
   const { serial_number: serialNumber, company: companyName } = unit;
   const logoProps = getClientLogo(companyName, serialNumber);

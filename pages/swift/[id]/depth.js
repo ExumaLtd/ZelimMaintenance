@@ -9,6 +9,7 @@ import DatePicker from '../../../components/date-picker';
 import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
 import { useAutoSave } from '../../../hooks/use-auto-save';
 import { fetchFormData } from '@/lib/data-fetching';
+import { getClientSession } from '../../../lib/session';
 
 const autoGrow = (e) => {
   const el = e.target || e;
@@ -146,7 +147,11 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
 
-  const storageKey = useMemo(() => `draft_depth_${unit?.serial_number}`, [unit?.serial_number]);
+  const storageKey = useMemo(() => {
+  const session = getClientSession();
+  const pin = session?.pin || 'unknown';
+  return `draft_depth_${unit?.serial_number}_${pin}`;
+}, [unit?.serial_number]);
 
   // Refs to prevent duplicate operations
   const hasLoadedDraftRef = useRef(false);
