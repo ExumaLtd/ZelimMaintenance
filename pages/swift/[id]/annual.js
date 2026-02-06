@@ -666,6 +666,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
       });
 
       if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
+      const submitResult = await res.json();
 
       try {
         await fetch('/api/mark-draft-complete', {
@@ -694,6 +695,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
           answers: emailFriendlyAnswers,
           reportType: "Annual",
           companyLogoUrl: companyLogoUrl,
+          recordRef: submitResult.recordRef,
           technicalData: {
             unit_record_id: unit?.record_id,
             checklist_template_id: template?.id,

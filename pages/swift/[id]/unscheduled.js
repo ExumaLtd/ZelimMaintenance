@@ -489,6 +489,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       });
 
       if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
+      const submitResult = await res.json();
 
       try {
         await fetch('/api/mark-draft-complete', {
@@ -517,6 +518,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
           answers: emailFriendlyAnswers,
           reportType: "Unscheduled",
           companyLogoUrl: companyLogoUrl,
+          recordRef: submitResult.recordRef,
           technicalData: {
             unit_record_id: unit?.record_id,
             checklist_template_id: template?.id,

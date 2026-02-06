@@ -884,6 +884,7 @@ const emailFriendlyAnswers = {};
       });
 
       if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
+      const submitResult = await res.json();
 
       const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
 
@@ -902,6 +903,7 @@ const emailFriendlyAnswers = {};
           })),
           reportType: template?.type || "Depth",
           companyLogoUrl: companyLogoUrl,
+          recordRef: submitResult.recordRef,
           technicalData: {
             unit_record_id: unit?.record_id,
             checklist_template_id: template?.id,
