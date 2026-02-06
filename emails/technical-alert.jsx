@@ -634,7 +634,7 @@ const footerSection = {
 const footerLink = {
   textDecoration: 'none',
   display: 'inline-block',
-  marginBottom: '16px',
+  marginBottom: '20px',
 };
 
 const footerLogo = {
@@ -654,5 +654,5 @@ const attribution = {
 const recordRefText = {
   fontSize: '12px',
   color: '#152a31',
-  margin: '2px 0 0 0',
+  margin: '0',
 };
