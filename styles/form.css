@@ -1797,9 +1797,9 @@
 
 .form-scope .declaration-checkmark {
   flex-shrink: 0;
-  width: 22px;
-  height: 22px;
-  border: 1px solid #425558;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #27454b;
   border-radius: 4px;
   transition: all 0.15s ease;
   position: relative;

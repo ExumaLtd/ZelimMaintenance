@@ -480,6 +480,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       unit_record_id: unit?.record_id,
       checklist_template_id: template?.id,
       serial_number: unit?.serial_number,
+      declaration_text: template?.declarationText || "",
       answers: (template?.questionsData || []).map((q, i) => {
         const questionKey = `q${i + 1}`;
         return {
@@ -798,23 +799,25 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                   </div>
                 ))}
 
-                <label className={`declaration-checkbox ${fieldErrors.declaration ? 'has-error' : ''}`}>
-                  <input
-                    type="checkbox"
-                    checked={declarationChecked}
-                    onChange={(e) => {
-                      setDeclarationChecked(e.target.checked);
-                      if (e.target.checked) {
-                        setFieldErrors(prev => ({ ...prev, declaration: false }));
-                        setErrorMsg("");
-                      }
-                    }}
-                  />
-                  <span className="declaration-checkmark" />
-                  <span className="declaration-text">
-                    I confirm that this maintenance has been carried out in accordance with the manufacturer's guidelines and the information provided is accurate, true, and complete.
-                  </span>
-                </label>
+                {template?.declarationText && (
+                  <label className={`declaration-checkbox ${fieldErrors.declaration ? 'has-error' : ''}`}>
+                    <input
+                      type="checkbox"
+                      checked={declarationChecked}
+                      onChange={(e) => {
+                        setDeclarationChecked(e.target.checked);
+                        if (e.target.checked) {
+                          setFieldErrors(prev => ({ ...prev, declaration: false }));
+                          setErrorMsg("");
+                        }
+                      }}
+                    />
+                    <span className="declaration-checkmark" />
+                    <span className="declaration-text">
+                      {template.declarationText}
+                    </span>
+                  </label>
+                )}
 
                 {errorMsg && <p className="error-message">{errorMsg}</p>}
                 <button type="submit" className="checklist-submit" disabled={submitting}>
@@ -890,6 +893,7 @@ export async function getServerSideProps({ params }) {
           id: templateData.records?.[0]?.id || "",
           questionsData: Array.isArray(parsedJson) ? parsedJson : (parsedJson.questions || []),
           questions: Array.isArray(parsedJson) ? parsedJson.map(q => q.title) : (parsedJson.questions?.map(q => q.title) || []),
+          declarationText: templateData.records?.[0]?.fields.declaration_text || "",
         },
         allCompanies: Object.values(companyLookup).filter(Boolean),
         allEngineers:

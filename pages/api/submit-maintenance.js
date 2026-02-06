@@ -75,7 +75,8 @@ export default async function handler(req, res) {
     answers,
     maintenance_checklist,
     serial_number,
-    checklist_template_id 
+    checklist_template_id,
+    declaration_text,
   } = req.body;
 
   const apiKey = process.env.AIRTABLE_API_KEY;
@@ -168,7 +169,9 @@ export default async function handler(req, res) {
       "cloudinary_folder": cloudinaryFolder,
       "access_pin_used": accessPin,
       "user_type": userType,
-      "record_ref": recordRef
+      "record_ref": recordRef,
+      "declaration_accepted": true,
+      "declaration_text": declaration_text || "",
     };
 
     if (maintenance_checklist) {
@@ -191,7 +194,9 @@ export default async function handler(req, res) {
       "access_pin_used": accessPin,
       "user_type": userType,
       "locked_by": accessPin,
-      "record_ref": recordRef
+      "record_ref": recordRef,
+      "declaration_accepted": true,
+      "declaration_text": declaration_text || "",
     };
 
     if (maintenance_checklist) {
