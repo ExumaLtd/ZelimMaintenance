@@ -62,14 +62,15 @@ export default function Home() {
       if (data?.publicToken && data?.accessType) {
         // Create session
         const sessionRes = await fetch('/api/create-session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            publicToken: data.publicToken,
-            accessType: data.accessType
-          }),
-          signal: abortControllerRef.current.signal
-        });
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    publicToken: data.publicToken,
+    accessType: data.accessType,
+    accessPin: code
+  }),
+  signal: abortControllerRef.current.signal
+});
         
         if (sessionRes.ok) {
           return { success: true };

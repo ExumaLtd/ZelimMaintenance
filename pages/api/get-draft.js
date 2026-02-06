@@ -1,5 +1,6 @@
-// pages/api/get-draft.js - WORKING VERSION (like yesterday)
+// pages/api/get-draft.js
 import Airtable from 'airtable';
+import { getSession } from '../../lib/session';
 
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
   process.env.AIRTABLE_BASE_ID
@@ -11,27 +12,39 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Get session to extract PIN
+    const session = getSession(req);
+    if (!session || !session.pin) {
+      return res.status(401).json({ error: 'No valid session found' });
+    }
+
+    const accessPin = session.pin; // e.g., "SWI005" or "CREW005"
+
     const { unitId, maintenanceType } = req.query;
-    // engineerEmail is now OPTIONAL
 
     console.log('=== GET DRAFT DEBUG ===');
     console.log('unitId:', unitId);
     console.log('maintenanceType:', maintenanceType);
+    console.log('accessPin:', accessPin);
 
     if (!unitId || !maintenanceType) {
       return res.status(400).json({ error: 'Missing required parameters' });
     }
 
-    // Find ANY active draft for this unit + maintenance type
+    // Find active drafts for this unit + maintenance type + access PIN
     const allDrafts = await base('maintenance_drafts')
       .select({
-        filterByFormula: `AND({maintenance_type} = '${maintenanceType}', NOT({completed}))`,
-        fields: ['unit_id', 'draft_data', 'last_updated', 'engineer_email'],
+        filterByFormula: `AND(
+          {maintenance_type} = '${maintenanceType}',
+          {access_pin_used} = '${accessPin}',
+          NOT({completed})
+        )`,
+        fields: ['unit_id', 'draft_data', 'last_updated', 'engineer_email', 'access_pin_used', 'user_type'],
         sort: [{ field: 'last_updated', direction: 'desc' }],
       })
       .all();
 
-    console.log(`Total active drafts for ${maintenanceType}: ${allDrafts.length}`);
+    console.log(`Total active drafts for ${maintenanceType} + PIN ${accessPin}: ${allDrafts.length}`);
 
     // Filter in JavaScript to match unit_id (Link field returns array)
     const matchingDrafts = allDrafts.filter(d => {
@@ -39,10 +52,10 @@ export default async function handler(req, res) {
       return linkedRecords && linkedRecords.includes(unitId);
     });
 
-    console.log('Matching drafts for this unit:', matchingDrafts.length);
+    console.log('Matching drafts for this unit + PIN:', matchingDrafts.length);
 
     if (matchingDrafts.length === 0) {
-      console.log('No draft found');
+      console.log('No draft found for this access PIN');
       return res.status(200).json({ draft: null });
     }
 

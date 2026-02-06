@@ -6,9 +6,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { publicToken, accessType } = req.body;
+  const { publicToken, accessType, accessPin } = req.body;
 
-  if (!publicToken || !accessType) {
+  if (!publicToken || !accessType || !accessPin) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
@@ -20,6 +20,7 @@ export default async function handler(req, res) {
     id: sessionId,
     token: publicToken,
     access: accessType,
+    pin: accessPin, // NEW - stores the actual PIN used (e.g., "SWI005" or "CREW005")
     created: Date.now(),
     expires: Date.now() + (8 * 60 * 60 * 1000) // 8 hours
   };

@@ -1,5 +1,16 @@
+import { getSession } from '../../lib/session';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  // Get session to extract PIN
+  const session = getSession(req);
+  if (!session || !session.pin) {
+    return res.status(401).json({ error: 'No valid session found' });
+  }
+
+  const accessPin = session.pin; // e.g., "SWI005" or "CREW005"
+  const userType = session.access === 'maintenance' ? 'Engineer' : 'Crew';
 
   const { 
     unit_record_id, 
@@ -102,7 +113,10 @@ export default async function handler(req, res) {
       "engineer_email": engineer_email,
       "location_display": location_display || "",
       "checklist_json": JSON.stringify(formattedAnswers),
-      "cloudinary_folder": cloudinaryFolder
+      "cloudinary_folder": cloudinaryFolder,
+      // NEW - Add PIN tracking
+      "access_pin_used": accessPin,
+      "user_type": userType
     };
 
     if (maintenance_checklist) {
@@ -121,7 +135,11 @@ export default async function handler(req, res) {
       "location_country": location_country || "",
       "checklist_template": [checklist_template_id],
       "checklist_json": JSON.stringify(formattedAnswers),
-      "cloudinary_folder": cloudinaryFolder
+      "cloudinary_folder": cloudinaryFolder,
+      // NEW - Add PIN tracking
+      "access_pin_used": accessPin,
+      "user_type": userType,
+      "locked_by": accessPin
     };
 
     if (maintenance_checklist) {
@@ -158,7 +176,10 @@ export default async function handler(req, res) {
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://maintenance.exuma.co.uk';
       const markCompleteRes = await fetch(`${baseUrl}/api/mark-draft-complete`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Cookie': req.headers.cookie // Pass session cookie along
+        },
         body: JSON.stringify({
           unitId: unit_record_id,
           maintenanceType: maintenance_type,
