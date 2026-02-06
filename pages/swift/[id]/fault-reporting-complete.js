@@ -1,12 +1,9 @@
 import Head from "next/head";
 import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { ThumbsUp } from "lucide-react";
 
 export default function FaultReportingComplete() {
-  const router = useRouter();
   const [unitSN, setUnitSN] = useState("");
   const [publicToken, setPublicToken] = useState("");
 
@@ -49,13 +46,13 @@ export default function FaultReportingComplete() {
             </p>
 
             {publicToken ? (
-              <Link href={`/portal/swift/${publicToken}`} className="return-dashboard-btn">
+              <a href={`/portal/swift/${publicToken}`} className="return-dashboard-btn">
                 Return to dashboard
-              </Link>
+              </a>
             ) : (
-              <Link href="/" className="return-dashboard-btn">
+              <a href="/" className="return-dashboard-btn">
                 Return to home
-              </Link>
+              </a>
             )}
           </div>
         </div>
