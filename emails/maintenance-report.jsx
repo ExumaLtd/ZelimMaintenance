@@ -23,16 +23,23 @@ export const MaintenanceReportEmail = ({
   companyName = 'N/A',
   location = 'N/A',
   answers = {},
-  equipmentChecklist = null, // For depth maintenance (returned/condition format)
-  maintenanceChecklist = null, // For monthly maintenance (grouped yes/no questions)
+  equipmentChecklist = null,
+  maintenanceChecklist = null,
   brandColor = '#172F36',
   logoUrl = '/logo/zelim-logo-dark.png',
-  previewUrl = null
+  previewUrl = null,
+  recordRef = null
 }) => {
-  const today = new Date().toLocaleDateString('en-GB', {
+  const now = new Date();
+  const today = now.toLocaleDateString('en-GB', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
+  });
+  const submittedTime = now.toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'GMT',
   });
 
   // Parse equipment checklist if it's a string (depth maintenance)
@@ -251,7 +258,6 @@ export const MaintenanceReportEmail = ({
                         )}
                       </Row>
                       
-                      {/* Display images if item has poor condition */}
                       {item.images && item.images.length > 0 && (
                         <Section style={imageGallery} className="image-gallery-mobile">
                           {item.images.map((imageUrl, imgIndex) => (
@@ -314,7 +320,7 @@ export const MaintenanceReportEmail = ({
               </>
             )}
 
-            {/* Maintenance Questions Section (Annual, Unscheduled, or Further Comments) */}
+            {/* Maintenance Questions Section */}
             {Object.keys(answers).length > 0 && (
               <>
                 <Heading as="h2" style={h2}>
@@ -323,12 +329,10 @@ export const MaintenanceReportEmail = ({
                 
                 <Section>
                   {Object.entries(answers).map(([question, answerData], i) => {
-                    // Handle both old format (string) and new format (object with text/images)
                     const isObject = typeof answerData === 'object' && answerData !== null;
                     const answerText = isObject ? answerData.text : answerData;
                     const images = isObject ? (answerData.images || []) : [];
 
-                    // ✅ Skip showing "Not answered" for Photograph SWIFT if there are images
                     const isPhotographQuestion = question.toLowerCase().includes('photograph');
                     const hasImages = images.length > 0;
                     const hasNoText = !answerText || answerText === '';
@@ -345,7 +349,6 @@ export const MaintenanceReportEmail = ({
                           </Text>
                         )}
                         
-                        {/* Display images if present */}
                         {images.length > 0 && (
                           <Section style={{...imageGallery, marginTop: shouldSkipNotAnswered ? '8px' : '12px'}} className="image-gallery-mobile">
                             {images.map((imageUrl, imgIndex) => (
@@ -393,6 +396,11 @@ export const MaintenanceReportEmail = ({
             <Text style={attribution}>
               © {new Date().getFullYear()} Zelim Limited | Find Recover Protect
             </Text>
+            {recordRef && (
+              <Text style={recordRefText}>
+                {recordRef} | Submitted at {submittedTime} GMT
+              </Text>
+            )}
           </Section>
         </Container>
       </Body>
@@ -402,9 +410,9 @@ export const MaintenanceReportEmail = ({
 
 export default MaintenanceReportEmail;
 
-// --- Styles: Professional Maritime Aesthetic ---
+// --- Styles ---
 const main = {
-  backgroundColor: '#eaeeed', // Grey on desktop, overridden to white on mobile
+  backgroundColor: '#eaeeed',
   padding: '0',
   margin: '0',
   fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
@@ -530,7 +538,6 @@ const checklistValue = {
   lineHeight: '21px',
 };
 
-// Monthly maintenance specific styles
 const monthlyGroupBlock = {
   marginBottom: '12px',
   padding: '20px 24px',
@@ -606,11 +613,6 @@ const imageThumbnail = {
   display: 'block',
 };
 
-const hr = {
-  borderColor: '#F1F5F9',
-  margin: '40px 0',
-};
-
 const footerContactText = {
   fontSize: '15px',
   lineHeight: '21px',
@@ -648,4 +650,10 @@ const attribution = {
   fontSize: '12px',
   color: '#152a31',
   margin: '0',
+};
+
+const recordRefText = {
+  fontSize: '12px',
+  color: '#94A3B8',
+  margin: '6px 0 0 0',
 };

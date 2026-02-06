@@ -25,7 +25,8 @@ export const TechnicalAlertEmail = ({
   maintenanceChecklist = null,
   brandColor = '#152a31',
   logoUrl = '/logo/zelim-logo-dark.png',
-  previewUrl = null
+  previewUrl = null,
+  recordRef = null
 }) => {
   const submissionDate = new Date();
   const formattedDate = submissionDate.toLocaleDateString('en-GB', {
@@ -36,6 +37,7 @@ export const TechnicalAlertEmail = ({
   const formattedTime = submissionDate.toLocaleTimeString('en-GB', {
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: 'GMT',
   });
 
   let parsedEquipmentChecklist = null;
@@ -62,16 +64,12 @@ export const TechnicalAlertEmail = ({
 
   const airtableUrl = 'https://airtable.com/appOQXbopTwn0SdnL/tblAVxcIGNSWQTP9o/viweP5xYy6J5Nroal?blocks=hide';
 
-  // Extract just the country from location
   const getCountryFromLocation = (locationStr) => {
     if (!locationStr || locationStr === 'N/A') return 'N/A';
-    
-    // If it contains a comma, take the last part (country)
     if (locationStr.includes(',')) {
       const parts = locationStr.split(',');
       return parts[parts.length - 1].trim();
     }
-    
     return locationStr;
   };
 
@@ -89,13 +87,11 @@ export const TechnicalAlertEmail = ({
               background-color: #eaeeed !important;
             }
             
-            /* Desktop info values - larger text */
             .status-value {
               font-size: 16px !important;
               line-height: 24px !important;
             }
             
-            /* Image gallery - 4 per row on desktop with square aspect ratio */
             .image-link {
               width: calc(25% - 10px) !important;
             }
@@ -117,24 +113,20 @@ export const TechnicalAlertEmail = ({
               margin: 0 !important;
             }
             
-            /* Make container full width on mobile */
             .email-container {
               max-width: 100% !important;
               width: 100% !important;
               margin: 0 !important;
             }
             
-            /* Reduce content padding to 20px on mobile */
             .content-padding {
               padding: 0 20px 50px 20px !important;
             }
             
-            /* Status card padding on mobile - match checklist boxes */
             .status-card-mobile {
               padding: 20px 24px !important;
             }
             
-            /* Image gallery - 2 per row on mobile, fill width inside grey box with 10px gap */
             .image-gallery-mobile {
               margin-left: 0 !important;
               margin-right: 0 !important;
@@ -200,7 +192,7 @@ export const TechnicalAlertEmail = ({
               <strong>{serialNumber}</strong>.
             </Text>
 
-            {/* Status Card - All Info in One Card */}
+            {/* Status Card */}
             <Section style={statusCard} className="status-card-section status-card-mobile">
               <Row style={{ marginBottom: '20px' }}>
                 <Column style={{ paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
@@ -333,7 +325,6 @@ export const TechnicalAlertEmail = ({
                     const answerTextValue = isObject ? answerData.text : answerData;
                     const images = isObject ? (answerData.images || []) : [];
 
-                    // ✅ Skip showing "Not answered" for Photograph SWIFT if there are images
                     const isPhotographQuestion = question.toLowerCase().includes('photograph');
                     const hasImages = images.length > 0;
                     const hasNoText = !answerTextValue || answerTextValue === '';
@@ -401,6 +392,11 @@ export const TechnicalAlertEmail = ({
             <Text style={attribution}>
               © {new Date().getFullYear()} Zelim Limited | Find Recover Protect
             </Text>
+            {recordRef && (
+              <Text style={recordRefText}>
+                {recordRef} | Submitted at {formattedTime} GMT
+              </Text>
+            )}
           </Section>
         </Container>
       </Body>
@@ -410,9 +406,9 @@ export const TechnicalAlertEmail = ({
 
 export default TechnicalAlertEmail;
 
-// --- Styles matching MaintenanceReportEmail ---
+// --- Styles ---
 const main = {
-  backgroundColor: '#eaeeed', // Grey on desktop, overridden to white on mobile
+  backgroundColor: '#eaeeed',
   padding: '0',
   margin: '0',
   fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
@@ -442,10 +438,6 @@ const logo = {
 
 const contentPadding = {
   padding: '0 30px 50px 30px',
-};
-
-const contentPaddingMobile = {
-  padding: '0 20px 50px 20px',
 };
 
 const h1 = {
@@ -500,22 +492,6 @@ const value = {
   fontWeight: '600',
   margin: '4px 0 0 0',
   textAlign: 'left',
-};
-
-const buttonContainer = {
-  textAlign: 'center',
-  margin: '32px 0',
-};
-
-const button = {
-  borderRadius: '8px',
-  color: '#ffffff',
-  fontSize: '15px',
-  fontWeight: '600',
-  textDecoration: 'none',
-  textAlign: 'center',
-  display: 'inline-block',
-  padding: '14px 28px',
 };
 
 const h2 = {
@@ -673,4 +649,10 @@ const attribution = {
   fontSize: '12px',
   color: '#152a31',
   margin: '0',
+};
+
+const recordRefText = {
+  fontSize: '12px',
+  color: '#94A3B8',
+  margin: '6px 0 0 0',
 };

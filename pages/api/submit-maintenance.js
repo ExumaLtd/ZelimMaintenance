@@ -1,5 +1,54 @@
 import { getSession } from '../../lib/session';
 
+// Generate a human-readable record reference
+// Format: RI/SWI005/A/060226/1
+async function generateRecordRef(serialNumber, maintenanceType, apiKey, baseId) {
+  const typeMap = {
+    'Monthly': 'M',
+    'Annual': 'A',
+    '30-month depth': 'D',
+    'Unscheduled': 'U',
+    'Fault report': 'F',
+    'Fault Reporting': 'F',
+    'FaultReporting': 'F',
+  };
+
+  const typeCode = typeMap[maintenanceType] || 'X';
+  
+  const now = new Date();
+  const dd = String(now.getDate()).padStart(2, '0');
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const yy = String(now.getFullYear()).slice(-2);
+  const dateCode = `${dd}${mm}${yy}`;
+
+  // Query today's existing records for this unit + type to get the daily counter
+  const todayISO = now.toISOString().split('T')[0]; // 2026-02-06
+  
+  try {
+    const formula = encodeURIComponent(
+      `AND({serial_number (from unit)}='${serialNumber}', {maintenance_type}='${maintenanceType}', DATESTR({date_of_maintenance})='${todayISO}')`
+    );
+    
+    const countRes = await fetch(
+      `https://api.airtable.com/v0/${baseId}/maintenance_checks?filterByFormula=${formula}&fields%5B%5D=record_ref`,
+      { headers: { Authorization: `Bearer ${apiKey}` } }
+    );
+
+    let dailyCount = 1;
+    
+    if (countRes.ok) {
+      const countData = await countRes.json();
+      dailyCount = (countData.records?.length || 0) + 1;
+    }
+
+    return `RI/${serialNumber}/${typeCode}/${dateCode}/${dailyCount}`;
+  } catch (error) {
+    // Fallback if count query fails
+    console.warn('Record ref count query failed, using fallback:', error.message);
+    return `RI/${serialNumber}/${typeCode}/${dateCode}/1`;
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -9,7 +58,7 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'No valid session found' });
   }
 
-  const accessPin = session.pin; // e.g., "SWI005" or "CREW005"
+  const accessPin = session.pin;
   const userType = session.access === 'maintenance' ? 'Engineer' : 'Crew';
 
   const { 
@@ -33,6 +82,10 @@ export default async function handler(req, res) {
   const baseId = process.env.AIRTABLE_BASE_ID;
 
   try {
+    // Generate record reference
+    const recordRef = await generateRecordRef(serial_number, maintenance_type, apiKey, baseId);
+    console.log('📋 Generated record ref:', recordRef);
+
     // OPTIMIZATION 1: Run company and engineer lookups IN PARALLEL
     const [compRes, engRes] = await Promise.all([
       fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies?filterByFormula={company_name}='${maintained_by}'&maxRecords=1`, {
@@ -63,7 +116,6 @@ export default async function handler(req, res) {
       engineerRecordId = engData.records[0].id;
       const existing = engData.records[0].fields;
       
-      // Only update if data actually changed
       const needsUpdate = 
         existing.email !== engineer_email ||
         existing.phone !== engineer_phone ||
@@ -114,9 +166,9 @@ export default async function handler(req, res) {
       "location_display": location_display || "",
       "checklist_json": JSON.stringify(formattedAnswers),
       "cloudinary_folder": cloudinaryFolder,
-      // NEW - Add PIN tracking
       "access_pin_used": accessPin,
-      "user_type": userType
+      "user_type": userType,
+      "record_ref": recordRef
     };
 
     if (maintenance_checklist) {
@@ -136,10 +188,10 @@ export default async function handler(req, res) {
       "checklist_template": [checklist_template_id],
       "checklist_json": JSON.stringify(formattedAnswers),
       "cloudinary_folder": cloudinaryFolder,
-      // NEW - Add PIN tracking
       "access_pin_used": accessPin,
       "user_type": userType,
-      "locked_by": accessPin
+      "locked_by": accessPin,
+      "record_ref": recordRef
     };
 
     if (maintenance_checklist) {
@@ -178,7 +230,7 @@ export default async function handler(req, res) {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Cookie': req.headers.cookie // Pass session cookie along
+          'Cookie': req.headers.cookie
         },
         body: JSON.stringify({
           unitId: unit_record_id,
@@ -193,14 +245,12 @@ export default async function handler(req, res) {
       } else {
         const errorText = await markCompleteRes.text();
         console.warn('⚠️ Failed to mark draft complete:', errorText);
-        // Don't fail the whole request - submission already succeeded
       }
     } catch (markError) {
       console.warn('⚠️ Error marking draft complete:', markError.message);
-      // Don't fail the whole request - submission already succeeded
     }
 
-    return res.status(200).json({ success: true });
+    return res.status(200).json({ success: true, recordRef });
   } catch (error) {
     console.error("Final Submission Failure:", error.message);
     return res.status(500).json({ success: false, error: error.message });

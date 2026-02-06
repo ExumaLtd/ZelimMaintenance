@@ -20,13 +20,14 @@ export default async function handler(req, res) {
       engineerEmail, 
       engineerName, 
       serialNumber, 
-      company, // Company name
-      answers, // Now: { "Question text": { text: "answer", images: ["url1", "url2"] } }
-      equipment_checklist, // Depth maintenance: [{ name, returned, condition, images }]
-      maintenance_checklist, // Monthly maintenance: [{ id, title, questions: [{ text, answer }] }]
+      company,
+      answers,
+      equipment_checklist,
+      maintenance_checklist,
       reportType, 
       technicalData,
-      companyLogoUrl 
+      companyLogoUrl,
+      recordRef
     } = req.body;
 
     // DEBUG: Log company data
@@ -39,20 +40,18 @@ export default async function handler(req, res) {
 
     // Helper function to find company name from various possible sources
     const getCompanyName = () => {
-      // Check all possible locations where company might be
-      // Handle both string and array formats (Airtable linked records return arrays)
       const getValue = (val) => {
         if (!val) return null;
         if (typeof val === 'string') return val;
-        if (Array.isArray(val) && val.length > 0) return val[0]; // Airtable linked record
+        if (Array.isArray(val) && val.length > 0) return val[0];
         return null;
       };
 
-      return getValue(company) ||                         // Top-level req.body.company
-             getValue(technicalData?.company) ||           // technicalData.company (from Airtable unit)
-             getValue(technicalData?.company_name) ||      // Alt naming
-             getValue(technicalData?.companyName) ||       // CamelCase variant
-             getValue(technicalData?.unit?.company) ||     // If unit data is nested
+      return getValue(company) ||
+             getValue(technicalData?.company) ||
+             getValue(technicalData?.company_name) ||
+             getValue(technicalData?.companyName) ||
+             getValue(technicalData?.unit?.company) ||
              'N/A';
     };
 
@@ -112,11 +111,12 @@ export default async function handler(req, res) {
           companyName: companyName,
           location: technicalData?.location_display || 'N/A',
           answers,
-          equipmentChecklist: equipment_checklist, // Depth maintenance (returned/condition)
-          maintenanceChecklist: maintenance_checklist, // Monthly maintenance (yes/no questions)
+          equipmentChecklist: equipment_checklist,
+          maintenanceChecklist: maintenance_checklist,
           brandColor: ZELIM_GREEN,
           logoUrl: logoUrl,
-          previewUrl: engineerPreviewUrl
+          previewUrl: engineerPreviewUrl,
+          recordRef: recordRef || null
         }),
       },
       {
@@ -135,11 +135,12 @@ export default async function handler(req, res) {
             location_display: technicalData?.location_display || 'N/A',
           },
           answers,
-          equipmentChecklist: equipment_checklist, // Depth maintenance (returned/condition)
-          maintenanceChecklist: maintenance_checklist, // Monthly maintenance (yes/no questions)
+          equipmentChecklist: equipment_checklist,
+          maintenanceChecklist: maintenance_checklist,
           brandColor: ZELIM_GREEN,
           logoUrl: logoUrl,
-          previewUrl: internalPreviewUrl
+          previewUrl: internalPreviewUrl,
+          recordRef: recordRef || null
         }),
       }
     ]);
