@@ -6,12 +6,10 @@ import { ThumbsUp } from "lucide-react";
 export default function AnnualComplete() {
   const [unitSN, setUnitSN] = useState("");
   const [maintenanceType, setMaintenanceType] = useState("Annual");
-  const [publicToken, setPublicToken] = useState("");
 
   useEffect(() => {
     const savedSN = localStorage.getItem("last_submitted_sn");
     const savedType = localStorage.getItem("last_maintenance_type");
-    const savedToken = localStorage.getItem("last_public_token");
     
     if (savedSN) {
       setUnitSN(savedSN);
@@ -21,10 +19,6 @@ export default function AnnualComplete() {
     if (savedType) {
       setMaintenanceType(savedType);
       localStorage.removeItem("last_maintenance_type");
-    }
-    
-    if (savedToken) {
-      setPublicToken(savedToken);
     }
   }, []);
 
@@ -50,15 +44,9 @@ export default function AnnualComplete() {
               Your {maintenanceType.toLowerCase()} maintenance has successfully been recorded. You will receive email confirmation shortly.
             </p>
 
-            {publicToken ? (
-              <a href="/portal/swift" className="return-dashboard-btn">
-                Return to dashboard
-              </a>
-            ) : (
-              <a href="/" className="return-dashboard-btn">
-                Return to home
-              </a>
-            )}
+            <a href="/portal/swift" className="return-dashboard-btn">
+              Return to dashboard
+            </a>
           </div>
         </div>
 
