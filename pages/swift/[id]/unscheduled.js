@@ -58,12 +58,14 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
   const [errorMsg, setErrorMsg] = useState("");
   const [today, setToday] = useState("");
   const [maintenanceDate, setMaintenanceDate] = useState(new Date().toISOString().split("T")[0]);
+  const [declarationChecked, setDeclarationChecked] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({
     company: false,
     location: false,
     engineerName: false,
     engineerEmail: false,
     engineerPhone: false,
+    declaration: false,
   });
 
   const [answers, setAnswers] = useState({});
@@ -374,6 +376,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       engineerName: false,
       engineerEmail: false,
       engineerPhone: false,
+      declaration: false,
     };
 
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
@@ -420,6 +423,12 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
           if (!firstErrorField) firstErrorField = { current: questionElement };
         }
       }
+    }
+
+    // Declaration must be checked
+    if (!declarationChecked) {
+      errors.push({ field: 'declaration', message: 'Please confirm the declaration before submitting.' });
+      newFieldErrors.declaration = true;
     }
 
     setFieldErrors(newFieldErrors);
@@ -788,6 +797,24 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                     </div>
                   </div>
                 ))}
+
+                <label className={`declaration-checkbox ${fieldErrors.declaration ? 'has-error' : ''}`}>
+                  <input
+                    type="checkbox"
+                    checked={declarationChecked}
+                    onChange={(e) => {
+                      setDeclarationChecked(e.target.checked);
+                      if (e.target.checked) {
+                        setFieldErrors(prev => ({ ...prev, declaration: false }));
+                        setErrorMsg("");
+                      }
+                    }}
+                  />
+                  <span className="declaration-checkmark" />
+                  <span className="declaration-text">
+                    I confirm that this maintenance has been carried out in accordance with the manufacturer's guidelines and the information provided is accurate, true, and complete.
+                  </span>
+                </label>
 
                 {errorMsg && <p className="error-message">{errorMsg}</p>}
                 <button type="submit" className="checklist-submit" disabled={submitting}>

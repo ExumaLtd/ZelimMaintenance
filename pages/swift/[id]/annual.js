@@ -1,5 +1,5 @@
 // pages/swift/[id]/annual.js
-// ✅ UPDATED with all recent fixes
+// ✅ UPDATED with all recent fixes + declaration checkbox
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/router";
@@ -75,6 +75,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
   const [errorMsg, setErrorMsg] = useState("");
   const [today, setToday] = useState("");
   const [maintenanceDate, setMaintenanceDate] = useState(new Date().toISOString().split("T")[0]);
+  const [declarationChecked, setDeclarationChecked] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({
     company: false,
     location: false,
@@ -82,6 +83,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
     engineerEmail: false,
     engineerPhone: false,
     photographImages: false,
+    declaration: false,
   });
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -582,6 +584,13 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
     setErrorMsg("");
     if (submitting) return;
 
+    // Declaration must be checked
+    if (!declarationChecked) {
+      setErrorMsg("Please confirm the declaration before submitting.");
+      setFieldErrors(prev => ({ ...prev, declaration: true }));
+      return;
+    }
+
     const errors = [];
     let firstErrorField = null;
 
@@ -993,9 +1002,28 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
                     Continue
                   </button>
                 ) : (
-                  <button type="submit" className="checklist-submit" disabled={submitting}>
-                    {submitting ? "Submitting..." : "Submit maintenance"}
-                  </button>
+                  <>
+                    <label className={`declaration-checkbox ${fieldErrors.declaration ? 'has-error' : ''}`}>
+                      <input
+                        type="checkbox"
+                        checked={declarationChecked}
+                        onChange={(e) => {
+                          setDeclarationChecked(e.target.checked);
+                          if (e.target.checked) {
+                            setFieldErrors(prev => ({ ...prev, declaration: false }));
+                            setErrorMsg("");
+                          }
+                        }}
+                      />
+                      <span className="declaration-checkmark" />
+                      <span className="declaration-text">
+                        I confirm that this maintenance has been carried out in accordance with the manufacturer's guidelines and the information provided is accurate, true, and complete.
+                      </span>
+                    </label>
+                    <button type="submit" className="checklist-submit" disabled={submitting}>
+                      {submitting ? "Submitting..." : "Submit maintenance"}
+                    </button>
+                  </>
                 )}
               </form>
             </div>
