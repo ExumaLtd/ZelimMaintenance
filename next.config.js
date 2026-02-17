@@ -3,6 +3,10 @@
 const nextConfig = {
   reactStrictMode: true,
 
+  turbopack: {
+    root: __dirname,
+  },
+
   // Add images configuration for external domains
   images: {
     remotePatterns: [
