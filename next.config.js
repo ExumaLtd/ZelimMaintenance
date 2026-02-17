@@ -3,22 +3,16 @@
 const nextConfig = {
   reactStrictMode: true,
 
-  experimental: {
-    serverActions: {
-      bodySizeLimit: "5mb",
-    },
-  },
-
   // Add images configuration for external domains
   images: {
-    domains: [
-      'res.cloudinary.com',
-      'api.airtable.com',
-    ],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'api.airtable.com',
       },
     ],
   },
