@@ -22,11 +22,6 @@ export default async function handler(req, res) {
 
     const { unitId, maintenanceType } = req.query;
 
-    console.log('=== GET DRAFT DEBUG ===');
-    console.log('unitId:', unitId);
-    console.log('maintenanceType:', maintenanceType);
-    console.log('accessPin:', accessPin);
-
     if (!unitId || !maintenanceType) {
       return res.status(400).json({ error: 'Missing required parameters' });
     }
@@ -44,18 +39,13 @@ export default async function handler(req, res) {
       })
       .all();
 
-    console.log(`Total active drafts for ${maintenanceType} + PIN ${accessPin}: ${allDrafts.length}`);
-
     // Filter in JavaScript to match unit_id (Link field returns array)
     const matchingDrafts = allDrafts.filter(d => {
       const linkedRecords = d.get('unit_id');
       return linkedRecords && linkedRecords.includes(unitId);
     });
 
-    console.log('Matching drafts for this unit + PIN:', matchingDrafts.length);
-
     if (matchingDrafts.length === 0) {
-      console.log('No draft found for this access PIN');
       return res.status(200).json({ draft: null });
     }
 
@@ -64,13 +54,11 @@ export default async function handler(req, res) {
     const lastUpdated = draft.get('last_updated');
 
     if (!draftDataString) {
-      console.log('Draft has no data');
       return res.status(200).json({ draft: null });
     }
 
     try {
       const draftData = JSON.parse(draftDataString);
-      console.log('✅ Draft retrieved successfully');
       return res.status(200).json({
         draft: draftData,
         lastUpdated: lastUpdated,

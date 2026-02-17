@@ -77,6 +77,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
   const [locationDisplay, setLocationDisplay] = useState("");
   const [locationCountry, setLocationCountry] = useState("");
+  const [locationHint, setLocationHint] = useState("");
   const [selectedCompany, setSelectedCompany] = useState("");
   const [engName, setEngName] = useState("");
   const [engEmail, setEngEmail] = useState("");
@@ -323,7 +324,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
     const options = {
       enableHighAccuracy: true,
-      timeout: 15000,
+      timeout: 10000,
       maximumAge: 0
     };
 
@@ -338,11 +339,8 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
               }
             }
           );
-          
-          if (!res.ok) {
-            console.error('Geocoding failed:', res.status);
-            return;
-          }
+
+          if (!res.ok) return;
 
           const data = await res.json();
 
@@ -357,23 +355,15 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
             setLocationCountry(formalCountry);
           }
         } catch (err) {
-          console.error("Geocoding error:", err);
+          setLocationHint("Location could not be detected. Please enter it manually.");
         }
       },
       (error) => {
-        switch(error.code) {
-          case error.PERMISSION_DENIED:
-            console.log("User denied location permission");
-            break;
-          case error.POSITION_UNAVAILABLE:
-            console.log("Location information unavailable");
-            break;
-          case error.TIMEOUT:
-            console.log("Location request timed out");
-            break;
-          default:
-            console.log("Unknown location error:", error.message);
+        let hint = "Location could not be detected. Please enter it manually.";
+        if (error.code === error.PERMISSION_DENIED) {
+          hint = "Location access was denied. Please enter your location manually.";
         }
+        setLocationHint(hint);
       },
       options
     );
@@ -452,6 +442,9 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
     if (!engEmail || !engEmail.trim()) {
       errors.push({ field: 'email', message: 'Please provide an engineer email.' });
+      newFieldErrors.engineerEmail = true;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(engEmail.trim())) {
+      errors.push({ field: 'email', message: 'Please provide a valid email address.' });
       newFieldErrors.engineerEmail = true;
     }
 
@@ -712,9 +705,13 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                       setLocationDisplay(e.target.value);
                       if (e.target.value.trim()) {
                         setFieldErrors(prev => ({ ...prev, location: false }));
+                        setLocationHint("");
                       }
                     }}
                   />
+                  {locationHint && !locationDisplay.trim() && (
+                    <p className="field-hint">{locationHint}</p>
+                  )}
                 </div>
 
                 <div className="checklist-field">

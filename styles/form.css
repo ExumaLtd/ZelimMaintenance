@@ -194,6 +194,12 @@
   border-color: rgb(255, 77, 77) !important;
 }
 
+.form-scope .field-hint {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #a0b4b8;
+}
+
 .form-scope .custom-dropdown-item {
   padding: 6px 16px;
   color: #F7F7F7;

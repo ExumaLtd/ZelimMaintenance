@@ -139,8 +139,6 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
   if (hasNavigatedRef.current) return;
   hasNavigatedRef.current = true;
 
-  console.log("QR Code detected:", decodedText);
-  
   if (navigator.vibrate) navigator.vibrate(100);
 
   try {
@@ -164,8 +162,6 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
     // Plain code
     code = decodedText;
   }
-
-  console.log("Extracted code:", code);
 
   // Use resolveAndNavigate to properly create session
   const data = await resolveAndNavigate(code);
@@ -266,11 +262,12 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
       <div className="landing-root">
         <div className="landing-hero">
           <div className="landing-hero-inner">
-            <Image 
+            <Image
               src="/images/swiftmaintenanceportal-hero.webp"
-              alt="Hero" 
-              fill 
-              priority 
+              alt="Hero"
+              fill
+              priority
+              sizes="50vw"
               style={{ objectFit: 'cover' }}
             />
           </div>

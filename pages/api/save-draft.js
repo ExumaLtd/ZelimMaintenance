@@ -25,15 +25,7 @@ export default async function handler(req, res) {
 
     const { unitId, maintenanceType, engineerEmail, draftData } = req.body;
 
-    console.log('=== SAVE DRAFT DEBUG ===');
-    console.log('unitId:', unitId);
-    console.log('maintenanceType:', maintenanceType);
-    console.log('engineerEmail:', engineerEmail);
-    console.log('accessPin:', accessPin);
-    console.log('userType:', userType);
-
     if (!unitId || !maintenanceType || !draftData) {
-      console.log('❌ Missing required fields');
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -41,7 +33,6 @@ export default async function handler(req, res) {
     const isRealEmail = emailToUse !== PLACEHOLDER_EMAIL && emailToUse.includes('@');
 
     // Get all active drafts for this maintenance type AND access pin
-    console.log('Checking for existing drafts...');
     const allDrafts = await base('maintenance_drafts')
       .select({
         filterByFormula: `AND(
@@ -59,8 +50,6 @@ export default async function handler(req, res) {
       const linkedRecords = d.get('unit_id');
       return linkedRecords && linkedRecords.includes(unitId);
     });
-
-    console.log('Existing drafts for this unit + PIN:', existingDrafts.length);
 
     const draftDataString = JSON.stringify(draftData);
 
@@ -83,22 +72,17 @@ export default async function handler(req, res) {
 
       if (isRealEmail) {
         updateFields.engineer_email = emailToUse;
-        console.log('🔄 Updating draft with real email:', emailToUse);
       }
 
       const result = await base('maintenance_drafts').update(draftId, updateFields);
 
-      console.log('✅ Draft updated successfully');
-      return res.status(200).json({ 
+      return res.status(200).json({
         success: true, 
         action: 'updated', 
         recordId: result.id 
       });
     } else {
       // Create new draft
-      console.log('Creating new draft...');
-      console.log('unit_id value:', [unitId]);
-      
       const result = await base('maintenance_drafts').create({
         unit_id: [unitId],
         maintenance_type: maintenanceType,
@@ -112,7 +96,6 @@ export default async function handler(req, res) {
         locked_by: accessPin,
       });
 
-      console.log('✅ Draft created successfully:', result.id);
       return res.status(200).json({ success: true, action: 'created', recordId: result.id });
     }
   } catch (error) {

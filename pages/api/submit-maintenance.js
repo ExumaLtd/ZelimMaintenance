@@ -85,7 +85,6 @@ export default async function handler(req, res) {
   try {
     // Generate record reference
     const recordRef = await generateRecordRef(serial_number, maintenance_type, apiKey, baseId);
-    console.log('📋 Generated record ref:', recordRef);
 
     // OPTIMIZATION 1: Run company and engineer lookups IN PARALLEL
     const [compRes, engRes] = await Promise.all([
@@ -228,7 +227,6 @@ export default async function handler(req, res) {
     }
 
     // CRITICAL: Mark the draft as completed now that submission succeeded
-    console.log('✅ Submission successful, marking draft as complete...');
     try {
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://maintenance.exuma.co.uk';
       const markCompleteRes = await fetch(`${baseUrl}/api/mark-draft-complete`, {
@@ -244,10 +242,7 @@ export default async function handler(req, res) {
         })
       });
       
-      if (markCompleteRes.ok) {
-        const result = await markCompleteRes.json();
-        console.log('✅ Draft marked as completed:', result);
-      } else {
+      if (!markCompleteRes.ok) {
         const errorText = await markCompleteRes.text();
         console.warn('⚠️ Failed to mark draft complete:', errorText);
       }
