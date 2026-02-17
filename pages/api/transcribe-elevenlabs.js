@@ -1,5 +1,3 @@
-import FormData from 'form-data';
-
 export const config = {
   api: {
     bodyParser: false,
@@ -47,22 +45,16 @@ export default async function handler(req, res) {
 
     // Build multipart form-data for ElevenLabs STT
     const form = new FormData();
-    form.append('file', buffer, {
-      filename: 'audio.webm',
-      contentType: mimeType,
-    });
+    form.append('file', new Blob([buffer], { type: mimeType }), 'audio.webm');
     form.append('model_id', 'scribe_v2');
 
     console.log('🌐 Sending to ElevenLabs API...');
 
-    // ✅ FIX: Import node-fetch dynamically and use it instead of native fetch
-    const fetch = (await import('node-fetch')).default;
-    
     const response = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {
       method: 'POST',
       headers: {
         'xi-api-key': process.env.ELEVENLABS_API_KEY,
-        ...form.getHeaders(), // Includes Content-Type with boundary
+        // Content-Type with boundary is set automatically by native fetch
       },
       body: form,
     });
