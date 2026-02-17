@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     const buffer = Buffer.concat(chunks);
 
     console.log('✅ Received audio buffer:', buffer.length, 'bytes');
-    console.log('🔍 Buffer first 20 bytes:', buffer.slice(0, 20));
+    console.log('🔍 Buffer first 20 bytes:', buffer.subarray(0, 20));
 
     if (!buffer.length) {
       return res.status(400).json({ 
