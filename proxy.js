@@ -1,62 +1,86 @@
 import { NextResponse } from 'next/server';
 
-export function proxy(request) {
+/**
+ * Verify the HMAC signature and decode the session cookie.
+ * Uses Web Crypto API (available in Edge Runtime and Node.js 18+).
+ */
+async function verifySession(value) {
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) return null;
+
+  const dotIndex = value.lastIndexOf('.');
+  if (dotIndex === -1) return null;
+
+  const payload = value.slice(0, dotIndex);
+  const sig = value.slice(dotIndex + 1);
+
+  try {
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['verify']
+    );
+
+    // Convert hex signature to bytes
+    const sigBytes = new Uint8Array(sig.match(/.{2}/g).map(h => parseInt(h, 16)));
+    const valid = await crypto.subtle.verify('HMAC', key, sigBytes, encoder.encode(payload));
+    if (!valid) return null;
+
+    return JSON.parse(atob(payload));
+  } catch {
+    return null;
+  }
+}
+
+export async function proxy(request) {
   const { pathname } = request.nextUrl;
 
   // Handle portal routes
   if (pathname.startsWith('/portal/swift')) {
-    // Get session from cookie
     const sessionCookie = request.cookies.get('portal_session');
 
     if (!sessionCookie) {
-      // No session - redirect to login
       return NextResponse.redirect(new URL('/', request.url));
     }
 
-    try {
-      // Decode session
-      const decoded = Buffer.from(sessionCookie.value, 'base64').toString('utf-8');
-      const session = JSON.parse(decoded);
+    const session = await verifySession(sessionCookie.value);
 
-      // Check expiry
-      if (session.expires < Date.now()) {
-        // Session expired - redirect to login
-        const response = NextResponse.redirect(new URL('/', request.url));
-        response.cookies.delete('portal_session');
-        return response;
-      }
-
-      // Extract page from portal URL
-      // /portal/swift → dashboard
-      // /portal/swift/monthly → monthly form
-      const pagePath = pathname.replace('/portal/swift', '') || '';
-
-      // Build the actual internal path with token
-      const internalPath = `/swift/${session.token}${pagePath}`;
-
-      // Rewrite to the actual page with token (user doesn't see this)
-      const url = request.nextUrl.clone();
-      url.pathname = internalPath;
-      url.searchParams.set('access', session.access);
-
-      return NextResponse.rewrite(url);
-
-    } catch (error) {
-      console.error('Session validation error:', error);
+    if (!session) {
       const response = NextResponse.redirect(new URL('/', request.url));
       response.cookies.delete('portal_session');
       return response;
     }
+
+    if (session.expires < Date.now()) {
+      const response = NextResponse.redirect(new URL('/', request.url));
+      response.cookies.delete('portal_session');
+      return response;
+    }
+
+    // Extract page from portal URL
+    // /portal/swift → dashboard
+    // /portal/swift/monthly → monthly form
+    const pagePath = pathname.replace('/portal/swift', '') || '';
+
+    // Build the actual internal path with token
+    const internalPath = `/swift/${session.token}${pagePath}`;
+
+    // Rewrite to the actual page with token (user doesn't see this)
+    const url = request.nextUrl.clone();
+    url.pathname = internalPath;
+    url.searchParams.set('access', session.access);
+
+    return NextResponse.rewrite(url);
   }
 
   // Block direct access to /swift/* URLs (force use of /portal/swift)
   if (pathname.startsWith('/swift/')) {
-    // Allow if coming from internal rewrite (has our marker)
     if (request.headers.get('x-middleware-rewrite')) {
       return NextResponse.next();
     }
-
-    // Otherwise redirect to login
     return NextResponse.redirect(new URL('/', request.url));
   }
 

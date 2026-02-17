@@ -1,5 +1,6 @@
 // pages/api/create-session.js
 import { serialize } from 'cookie';
+import { encodeSession } from '../../lib/session';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -25,8 +26,8 @@ export default async function handler(req, res) {
     expires: Date.now() + (8 * 60 * 60 * 1000) // 8 hours
   };
 
-  // Encode session data
-  const encodedSession = Buffer.from(JSON.stringify(sessionData)).toString('base64');
+  // Encode and sign session data
+  const encodedSession = encodeSession(sessionData);
 
   // Set HTTP-only cookie
   const cookie = serialize('portal_session', encodedSession, {
