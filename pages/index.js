@@ -4,7 +4,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
-import { Html5Qrcode } from "html5-qrcode";
 
 export default function Home() {
   const [accessCode, setAccessCode] = useState('');
@@ -186,6 +185,7 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
 
     setTimeout(async () => {
       try {
+        const { Html5Qrcode } = await import("html5-qrcode");
         const html5QrCode = new Html5Qrcode("reader");
         scannerRef.current = html5QrCode;
 
@@ -267,7 +267,7 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
         <div className="landing-hero">
           <div className="landing-hero-inner">
             <Image 
-              src="/images/swiftmaintenanceportal-hero.png" 
+              src="/images/swiftmaintenanceportal-hero.webp"
               alt="Hero" 
               fill 
               priority 
