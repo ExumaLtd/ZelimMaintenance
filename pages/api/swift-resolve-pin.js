@@ -1,6 +1,20 @@
 // pages/api/swift-resolve-pin.js
 
 import Airtable from "airtable";
+import { Redis } from "@upstash/redis";
+import { Ratelimit } from "@upstash/ratelimit";
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
+
+// 5 attempts per IP per 5 minutes
+const ratelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, "5 m"),
+  prefix: "rl:pin",
+});
 
 // Connect to correct Airtable base
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
@@ -11,10 +25,23 @@ const TABLE_NAME = process.env.AIRTABLE_SWIFT_TABLE; // swift_units
 
 export default async function handler(req, res) {
   try {
+    // Rate limit by IP — 5 attempts per 5 minutes
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ?? '127.0.0.1';
+    const { success, reset } = await ratelimit.limit(ip);
+    if (!success) {
+      const retryAfter = Math.ceil((reset - Date.now()) / 1000);
+      return res.status(429).json({ error: "Too many failed attempts.", retryAfter });
+    }
+
     const pin = req.query.pin;
 
     if (!pin) {
       return res.status(400).json({ error: "Missing pin" });
+    }
+
+    // Reject anything that isn't alphanumeric or is too long (prevents formula injection)
+    if (pin.length > 20 || !/^[a-zA-Z0-9]+$/.test(pin)) {
+      return res.status(400).json({ error: "Invalid pin format" });
     }
 
     // Lookup using either access_pin OR crew_pin

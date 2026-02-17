@@ -11,6 +11,23 @@ export default function Home() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+  const [rateLimitCountdown, setRateLimitCountdown] = useState(0);
+
+  // Tick down the rate-limit countdown every second
+  useEffect(() => {
+    if (rateLimitCountdown <= 0) return;
+    const timer = setTimeout(() => {
+      setRateLimitCountdown(prev => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [rateLimitCountdown]);
+
+  const formatCountdown = (secs) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    if (m > 0) return `${m} minute${m !== 1 ? 's' : ''} ${s} second${s !== 1 ? 's' : ''}`;
+    return `${s} second${s !== 1 ? 's' : ''}`;
+  };
 
   const router = useRouter();
   const scannerRef = useRef(null);
@@ -55,8 +72,14 @@ export default function Home() {
         signal: abortControllerRef.current.signal
       });
       
+      if (res.status === 429) {
+        const data = await res.json();
+        setRateLimitCountdown(data.retryAfter ?? 300);
+        return { rateLimited: true };
+      }
+
       if (!res.ok) return null;
-      
+
       const data = await res.json();
       
       if (data?.publicToken && data?.accessType) {
@@ -105,6 +128,8 @@ export default function Home() {
     
     if (data?.success) {
       window.location.href = '/portal/swift';
+    } else if (data?.rateLimited) {
+      setIsSubmitting(false);
     } else if (isManualSubmit) {
       setError('Invalid access code.');
       setIsSubmitting(false);
@@ -264,7 +289,7 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
             </div>
 
             <form onSubmit={handleFormSubmit} className="form-stack">
-              <div className={`input-wrapper ${error ? 'has-error' : ''}`}>
+              <div className={`input-wrapper ${error || rateLimitCountdown > 0 ? 'has-error' : ''}`}>
                 <input
                   className="input-field"
                   placeholder="Enter your access code"
@@ -275,7 +300,10 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
                   }}
                   disabled={isSubmitting}
                 />
-                {error && <p className="error-text">{error}</p>}
+                {rateLimitCountdown > 0
+                  ? <p className="error-text">Too many failed attempts. Try again in {formatCountdown(rateLimitCountdown)}.</p>
+                  : error && <p className="error-text">{error}</p>
+                }
               </div>
 
               <button type="submit" className="primary-btn" disabled={isSubmitting}>
