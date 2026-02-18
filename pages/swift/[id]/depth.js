@@ -702,7 +702,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
         async (pos) => {
           try {
             const res = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14&accept-language=en-GB`
+              `/api/reverse-geocode?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`
             );
 
             if (!res.ok) {
