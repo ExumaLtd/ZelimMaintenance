@@ -295,74 +295,78 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       maximumAge: 0
     };
 
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14&accept-language=en-GB`,
-            {
-              headers: {
-                'User-Agent': 'SWIFT Maintenance App'
+    const doGetLocation = () => {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          try {
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14&accept-language=en-GB`,
+              {
+                headers: {
+                  'User-Agent': 'SWIFT Maintenance App'
+                }
               }
+            );
+
+            if (!res.ok) {
+              console.error('Geocoding failed:', res.status);
+              return;
             }
-          );
-          
-          if (!res.ok) {
-            console.error('Geocoding failed:', res.status);
-            return;
+
+            const data = await res.json();
+
+            if (data?.address) {
+              const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
+              const formalCountry = data.address.country || "";
+              const displayCountry = data.address.country_code ? data.address.country_code.toUpperCase() : formalCountry;
+              const shortCountry = displayCountry === "GB" ? "UK" : displayCountry;
+              const combinedDisplay = loc ? `${loc}, ${shortCountry}` : shortCountry;
+
+              setLocationDisplay((prev) => (!prev || prev.trim() === "") ? combinedDisplay : prev);
+              setLocationCountry(formalCountry);
+            }
+          } catch (err) {
+            console.error("Geocoding error:", err);
           }
-
-          const data = await res.json();
-
-          if (data?.address) {
-            const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
-            const formalCountry = data.address.country || "";
-            const displayCountry = data.address.country_code ? data.address.country_code.toUpperCase() : formalCountry;
-            const shortCountry = displayCountry === "GB" ? "UK" : displayCountry;
-            const combinedDisplay = loc ? `${loc}, ${shortCountry}` : shortCountry;
-
-            setLocationDisplay((prev) => (!prev || prev.trim() === "") ? combinedDisplay : prev);
-            setLocationCountry(formalCountry);
+        },
+        (error) => {
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              console.log("User denied location permission");
+              break;
+            case error.POSITION_UNAVAILABLE:
+              console.log("Location information unavailable");
+              break;
+            case error.TIMEOUT:
+              console.log("Location request timed out");
+              break;
+            default:
+              console.log("Unknown location error:", error.message);
           }
-        } catch (err) {
-          console.error("Geocoding error:", err);
-        }
-      },
-      (error) => {
-        switch(error.code) {
-          case error.PERMISSION_DENIED:
-            console.log("User denied location permission");
-            break;
-          case error.POSITION_UNAVAILABLE:
-            console.log("Location information unavailable");
-            break;
-          case error.TIMEOUT:
-            console.log("Location request timed out");
-            break;
-          default:
-            console.log("Unknown location error:", error.message);
-        }
-      },
-      options
-    );
+        },
+        options
+      );
+    };
+
+    if (navigator.permissions) {
+      navigator.permissions.query({ name: 'geolocation' }).then(result => {
+        if (result.state !== 'denied') doGetLocation();
+      }).catch(() => doGetLocation());
+    } else {
+      doGetLocation();
+    }
   }, []);
 
   // Pre-request microphone permission
   useEffect(() => {
-    if (typeof window === "undefined" || !navigator.mediaDevices) return;
-    
-    navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(stream => {
-        stream.getTracks().forEach(track => track.stop());
-        if (process.env.NODE_ENV === 'development') {
-          console.log('✓ Microphone permission pre-granted');
-        }
-      })
-      .catch(err => {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Microphone permission denied or unavailable:', err.message);
-        }
-      });
+    if (typeof window === "undefined" || !navigator.mediaDevices || !navigator.permissions) return;
+    navigator.permissions.query({ name: 'microphone' }).then(result => {
+      if (result.state === 'prompt') {
+        navigator.mediaDevices.getUserMedia({ audio: true })
+          .then(stream => { stream.getTracks().forEach(t => t.stop()); })
+          .catch(() => {});
+      }
+    }).catch(() => {});
   }, []);
 
   // Save draft to localStorage (refresh protection)
@@ -472,6 +476,33 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       return;
     }
 
+    // Upload signature to Cloudinary from the browser (avoids server-side FormData issues)
+    let signatureUrl = null;
+    if (signatureData) {
+      try {
+        const today = new Date();
+        const dd = String(today.getDate()).padStart(2, '0');
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const yyyy = today.getFullYear();
+        const sigFormData = new FormData();
+        sigFormData.append('file', signatureData);
+        sigFormData.append('upload_preset', 'maintenance-uploads');
+        sigFormData.append('folder', `zelimmaintenance/SWIFT/signatures/${unit?.serial_number}/${dd}-${mm}-${yyyy}`);
+        const sigRes = await fetch('https://api.cloudinary.com/v1_1/zelimmaintenanceportal/image/upload', {
+          method: 'POST',
+          body: sigFormData,
+        });
+        if (sigRes.ok) {
+          const sigData = await sigRes.json();
+          signatureUrl = sigData.secure_url;
+        } else {
+          console.warn('Signature Cloudinary upload failed:', sigRes.status);
+        }
+      } catch (sigErr) {
+        console.warn('Signature upload error:', sigErr);
+      }
+    }
+
     setSubmitting(true);
     hasSubmittedRef.current = true; // Block all future auto-saves
 
@@ -500,7 +531,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       checklist_template_id: template?.id,
       serial_number: unit?.serial_number,
       declaration_text: template?.declarationText || "",
-      signature: signatureData,
+      signature: signatureUrl,
       answers: (template?.questionsData || []).map((_, i) => {
         const questionKey = `q${i + 1}`;
         return {
@@ -758,7 +789,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} autoComplete="off" noValidate>
+            <form onSubmit={handleSubmit} autoComplete="off" noValidate style={{ width: "100%", display: "block", margin: 0, padding: 0 }}>
             {/* CARD 2: QUESTIONS */}
             <div className="checklist-form-card" style={{ marginTop: "20px" }}>
                 <h3 className="checklist-section-title">Unscheduled maintenance</h3>
@@ -825,31 +856,34 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                   </div>
                 ))}
 
-                {template?.declarationText && (
-                  <div className={clsx("declaration-checkbox", fieldErrors.declaration && "has-error")}>
-                    <input
-                      type="checkbox"
-                      id="declaration-check"
-                      checked={declarationChecked}
-                      onChange={(e) => {
-                        setDeclarationChecked(e.target.checked);
-                        if (e.target.checked) {
-                          setFieldErrors(prev => ({ ...prev, declaration: false }));
-                          setErrorMsg("");
-                        }
-                      }}
-                    />
-                    <label htmlFor="declaration-check" className="declaration-checkmark" />
-                    <span className="declaration-text">
-                      {template.declarationText}
-                    </span>
-                  </div>
-                )}
             </div>
 
-            {/* CARD 3: SIGNATURE */}
+            {/* CARD 3: DECLARATION & SIGNATURE */}
             <div className="checklist-form-card" style={{ marginTop: "20px" }}>
-                  <label className="checklist-label" style={{ marginTop: 0 }}>Signature</label>
+                  <h3 className="checklist-section-title">Declaration</h3>
+
+                  {template?.declarationText && (
+                    <div className={clsx("declaration-checkbox", fieldErrors.declaration && "has-error")}>
+                      <input
+                        type="checkbox"
+                        id="declaration-check"
+                        checked={declarationChecked}
+                        onChange={(e) => {
+                          setDeclarationChecked(e.target.checked);
+                          if (e.target.checked) {
+                            setFieldErrors(prev => ({ ...prev, declaration: false }));
+                            setErrorMsg("");
+                          }
+                        }}
+                      />
+                      <label htmlFor="declaration-check" className="declaration-checkmark" />
+                      <span className="declaration-text">
+                        {template.declarationText}
+                      </span>
+                    </div>
+                  )}
+
+                  <label className="checklist-label">Signature</label>
                   <div style={{ marginTop: "8px" }}>
                     <SignaturePad
                       ref={signatureRef}

@@ -510,74 +510,78 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
       maximumAge: 0
     };
 
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14&accept-language=en-GB`,
-            {
-              headers: {
-                'User-Agent': 'SWIFT Maintenance App'
+    const doGetLocation = () => {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          try {
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14&accept-language=en-GB`,
+              {
+                headers: {
+                  'User-Agent': 'SWIFT Maintenance App'
+                }
               }
+            );
+
+            if (!res.ok) {
+              console.error('Geocoding failed:', res.status);
+              return;
             }
-          );
-          
-          if (!res.ok) {
-            console.error('Geocoding failed:', res.status);
-            return;
+
+            const data = await res.json();
+
+            if (data?.address) {
+              const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
+              const formalCountry = data.address.country || "";
+              const displayCountry = data.address.country_code ? data.address.country_code.toUpperCase() : formalCountry;
+              const shortCountry = displayCountry === "GB" ? "UK" : displayCountry;
+              const combinedDisplay = loc ? `${loc}, ${shortCountry}` : shortCountry;
+
+              setLocationDisplay((prev) => (!prev || prev.trim() === "") ? combinedDisplay : prev);
+              setLocationCountry(formalCountry);
+            }
+          } catch (err) {
+            console.error("Geocoding error:", err);
           }
-
-          const data = await res.json();
-
-          if (data?.address) {
-            const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
-            const formalCountry = data.address.country || "";
-            const displayCountry = data.address.country_code ? data.address.country_code.toUpperCase() : formalCountry;
-            const shortCountry = displayCountry === "GB" ? "UK" : displayCountry;
-            const combinedDisplay = loc ? `${loc}, ${shortCountry}` : shortCountry;
-
-            setLocationDisplay((prev) => (!prev || prev.trim() === "") ? combinedDisplay : prev);
-            setLocationCountry(formalCountry);
+        },
+        (error) => {
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              console.log("User denied location permission");
+              break;
+            case error.POSITION_UNAVAILABLE:
+              console.log("Location information unavailable");
+              break;
+            case error.TIMEOUT:
+              console.log("Location request timed out");
+              break;
+            default:
+              console.log("Unknown location error:", error.message);
           }
-        } catch (err) {
-          console.error("Geocoding error:", err);
-        }
-      },
-      (error) => {
-        switch(error.code) {
-          case error.PERMISSION_DENIED:
-            console.log("User denied location permission");
-            break;
-          case error.POSITION_UNAVAILABLE:
-            console.log("Location information unavailable");
-            break;
-          case error.TIMEOUT:
-            console.log("Location request timed out");
-            break;
-          default:
-            console.log("Unknown location error:", error.message);
-        }
-      },
-      options
-    );
+        },
+        options
+      );
+    };
+
+    if (navigator.permissions) {
+      navigator.permissions.query({ name: 'geolocation' }).then(result => {
+        if (result.state !== 'denied') doGetLocation();
+      }).catch(() => doGetLocation());
+    } else {
+      doGetLocation();
+    }
   }, []);
 
   // Pre-request microphone permission
   useEffect(() => {
-    if (typeof window === "undefined" || !navigator.mediaDevices) return;
-    
-    navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(stream => {
-        stream.getTracks().forEach(track => track.stop());
-        if (process.env.NODE_ENV === 'development') {
-          console.log('✓ Microphone permission pre-granted');
-        }
-      })
-      .catch(err => {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Microphone permission denied or unavailable:', err.message);
-        }
-      });
+    if (typeof window === "undefined" || !navigator.mediaDevices || !navigator.permissions) return;
+    navigator.permissions.query({ name: 'microphone' }).then(result => {
+      if (result.state === 'prompt') {
+        navigator.mediaDevices.getUserMedia({ audio: true })
+          .then(stream => { stream.getTracks().forEach(t => t.stop()); })
+          .catch(() => {});
+      }
+    }).catch(() => {});
   }, []);
 
   // Save draft to localStorage (refresh protection)

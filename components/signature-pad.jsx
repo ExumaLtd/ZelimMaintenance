@@ -62,11 +62,20 @@ const SignaturePad = forwardRef(function SignaturePad({ onChange, hasError }, re
       padRef.current = pad;
       setIsReady(true);
 
+      const MIN_POINTS = 20;
+
       pad.addEventListener('beginStroke', () => {
         setIsEmpty(false);
       });
 
       pad.addEventListener('endStroke', () => {
+        const totalPoints = pad.toData().reduce((sum, g) => sum + g.points.length, 0);
+        if (totalPoints < MIN_POINTS) {
+          pad.clear();
+          setIsEmpty(true);
+          if (onChange) onChange(null);
+          return;
+        }
         if (onChange) onChange(pad.toDataURL('image/png'));
       });
 
@@ -110,7 +119,7 @@ const SignaturePad = forwardRef(function SignaturePad({ onChange, hasError }, re
         {isEmpty && isReady && (
           <div className="signature-placeholder" aria-hidden="true">
             <PenLine size={22} strokeWidth={1.5} />
-            <span>Draw your signature here</span>
+            <span>Sign here</span>
           </div>
         )}
 
@@ -149,12 +158,12 @@ const SignaturePad = forwardRef(function SignaturePad({ onChange, hasError }, re
         .signature-canvas-area {
           position: relative;
           width: 100%;
-          height: 110px;
+          height: 132px;
         }
 
         @media (min-width: 992px) {
           .signature-canvas-area {
-            height: 140px;
+            height: 168px;
           }
         }
 
@@ -177,7 +186,7 @@ const SignaturePad = forwardRef(function SignaturePad({ onChange, hasError }, re
           gap: 8px;
           pointer-events: none;
           color: #7d8f93;
-          font-size: 16px;
+          font-size: 14px;
           font-family: 'Montserrat', sans-serif;
           font-weight: 400;
           user-select: none;
@@ -211,7 +220,7 @@ const SignaturePad = forwardRef(function SignaturePad({ onChange, hasError }, re
         }
 
         .signature-clear-btn:hover {
-          background: rgba(0, 255, 246, 0.05);
+          background: rgba(21, 42, 49, 0.95);
           color: #F7F7F7;
         }
 
