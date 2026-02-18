@@ -1,5 +1,13 @@
 import { getSession } from '../../lib/session';
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '4mb',
+    },
+  },
+};
+
 // Generate a human-readable record reference
 // Format: RI/SWI005/A/060226/1
 async function generateRecordRef(serialNumber, maintenanceType, apiKey, baseId) {
@@ -150,8 +158,32 @@ export default async function handler(req, res) {
     const dateStr = `${dd}-${mm}-${yyyy}`;
     const cloudinaryFolder = `zelimmaintenance/SWIFT/${maintenance_type.toLowerCase()}/${serial_number}/${dateStr}`;
 
-    // Signature arrives as a Cloudinary URL (uploaded client-side before submit)
-    const signatureAttachment = signature ? [{ url: signature }] : null;
+    // Upload signature server-side so record_ref can be used as the filename
+    let signatureAttachment = null;
+    if (signature && signature.startsWith('data:image/')) {
+      try {
+        const base64Data = signature.split(',')[1];
+        const buffer = Buffer.from(base64Data, 'base64');
+        const blob = new Blob([buffer], { type: 'image/png' });
+        const safeRef = recordRef.replace(/\//g, '_'); // e.g. RI_SWI005_U_180226_5
+        const sigFormData = new FormData();
+        sigFormData.append('file', blob, `${safeRef}_signature.png`);
+        sigFormData.append('upload_preset', 'maintenance-uploads');
+        sigFormData.append('public_id', `${cloudinaryFolder}/${safeRef}_signature`);
+        const sigRes = await fetch('https://api.cloudinary.com/v1_1/zelimmaintenanceportal/image/upload', {
+          method: 'POST',
+          body: sigFormData,
+        });
+        if (sigRes.ok) {
+          const sigData = await sigRes.json();
+          signatureAttachment = [{ url: sigData.secure_url }];
+        } else {
+          console.warn('Signature upload failed:', await sigRes.text());
+        }
+      } catch (sigErr) {
+        console.warn('Signature upload error:', sigErr.message);
+      }
+    }
 
     const formattedAnswers = answers.reduce((acc, item) => {
       acc[item.question] = {

@@ -10,6 +10,16 @@ html {
   background-color: #172F36;
 }
 
+::selection {
+  background-color: #27454B;
+  color: #F7F7F7;
+}
+
+::-moz-selection {
+  background-color: #27454B;
+  color: #F7F7F7;
+}
+
 body {
   padding: 0;
   margin: 0; 

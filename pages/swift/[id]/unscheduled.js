@@ -476,32 +476,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       return;
     }
 
-    // Upload signature to Cloudinary from the browser (avoids server-side FormData issues)
-    let signatureUrl = null;
-    if (signatureData) {
-      try {
-        const today = new Date();
-        const dd = String(today.getDate()).padStart(2, '0');
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const yyyy = today.getFullYear();
-        const sigFormData = new FormData();
-        sigFormData.append('file', signatureData);
-        sigFormData.append('upload_preset', 'maintenance-uploads');
-        sigFormData.append('folder', `zelimmaintenance/SWIFT/signatures/${unit?.serial_number}/${dd}-${mm}-${yyyy}`);
-        const sigRes = await fetch('https://api.cloudinary.com/v1_1/zelimmaintenanceportal/image/upload', {
-          method: 'POST',
-          body: sigFormData,
-        });
-        if (sigRes.ok) {
-          const sigData = await sigRes.json();
-          signatureUrl = sigData.secure_url;
-        } else {
-          console.warn('Signature Cloudinary upload failed:', sigRes.status);
-        }
-      } catch (sigErr) {
-        console.warn('Signature upload error:', sigErr);
-      }
-    }
+    // Signature (base64 data URL) is uploaded server-side so record_ref can be used as filename
 
     setSubmitting(true);
     hasSubmittedRef.current = true; // Block all future auto-saves
@@ -531,7 +506,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       checklist_template_id: template?.id,
       serial_number: unit?.serial_number,
       declaration_text: template?.declarationText || "",
-      signature: signatureUrl,
+      signature: signatureData,
       answers: (template?.questionsData || []).map((_, i) => {
         const questionKey = `q${i + 1}`;
         return {
@@ -883,7 +858,8 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                     </div>
                   )}
 
-                  <label className="checklist-label">Signature</label>
+                  <div className="signature-field-wrapper">
+                  <label className="checklist-label" style={{ marginTop: "20px" }}>Signature</label>
                   <div style={{ marginTop: "8px" }}>
                     <SignaturePad
                       ref={signatureRef}
@@ -893,6 +869,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                       }}
                       hasError={fieldErrors.signature}
                     />
+                  </div>
                   </div>
 
                 {errorMsg && <p className="error-message">{errorMsg}</p>}

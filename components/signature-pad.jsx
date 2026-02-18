@@ -62,15 +62,14 @@ const SignaturePad = forwardRef(function SignaturePad({ onChange, hasError }, re
       padRef.current = pad;
       setIsReady(true);
 
-      const MIN_POINTS = 20;
-
       pad.addEventListener('beginStroke', () => {
         setIsEmpty(false);
       });
 
       pad.addEventListener('endStroke', () => {
-        const totalPoints = pad.toData().reduce((sum, g) => sum + g.points.length, 0);
-        if (totalPoints < MIN_POINTS) {
+        const data = pad.toData();
+        // Only auto-clear a single accidental tap (< 8 points). Never clear mid-signature.
+        if (data.length === 1 && data[0].points.length < 8) {
           pad.clear();
           setIsEmpty(true);
           if (onChange) onChange(null);
@@ -119,7 +118,7 @@ const SignaturePad = forwardRef(function SignaturePad({ onChange, hasError }, re
         {isEmpty && isReady && (
           <div className="signature-placeholder" aria-hidden="true">
             <PenLine size={22} strokeWidth={1.5} />
-            <span>Sign here</span>
+            <span>Please sign here</span>
           </div>
         )}
 
