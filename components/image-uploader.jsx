@@ -179,9 +179,15 @@ export default function ImageUploader({
       // For videos, rewrite URL to serve as MP4 via Cloudinary transcoding.
       // This fixes .mov and other non-browser-friendly formats (e.g. from iPhones).
       // q_auto:best preserves quality instead of Cloudinary's heavy default compression.
-      const fileUrl = isVideo
-        ? data.secure_url.replace('/upload/', '/upload/f_mp4,q_auto:best/').replace(/\.[^/.]+$/, '.mp4')
-        : data.secure_url;
+      // For PDFs, f_pdf forces application/pdf content-type; fl_inline ensures browser opens inline.
+      let fileUrl;
+      if (isVideo) {
+        fileUrl = data.secure_url.replace('/upload/', '/upload/f_mp4,q_auto:best/').replace(/\.[^/.]+$/, '.mp4');
+      } else if (isPDF) {
+        fileUrl = data.secure_url.replace('/upload/', '/upload/f_pdf,fl_inline/');
+      } else {
+        fileUrl = data.secure_url;
+      }
 
       return {
         url: fileUrl,
