@@ -758,9 +758,9 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
               </div>
             </div>
 
+            <form onSubmit={handleSubmit} autoComplete="off" noValidate>
             {/* CARD 2: QUESTIONS */}
             <div className="checklist-form-card" style={{ marginTop: "20px" }}>
-              <form onSubmit={handleSubmit} autoComplete="off" noValidate>
                 <h3 className="checklist-section-title">Unscheduled maintenance</h3>
                 <p className="checklist-section-subtitle">
                   All unscheduled maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual.
@@ -845,8 +845,10 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                     </span>
                   </div>
                 )}
+            </div>
 
-                <div style={{ marginTop: "28px" }}>
+            {/* CARD 3: SIGNATURE */}
+            <div className="checklist-form-card" style={{ marginTop: "20px" }}>
                   <label className="checklist-label" style={{ marginTop: 0 }}>Signature</label>
                   <div style={{ marginTop: "8px" }}>
                     <SignaturePad
@@ -858,14 +860,13 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                       hasError={fieldErrors.signature}
                     />
                   </div>
-                </div>
 
                 {errorMsg && <p className="error-message">{errorMsg}</p>}
                 <button type="submit" className="checklist-submit" disabled={submitting}>
                   {submitting ? "Submitting..." : "Submit maintenance"}
                 </button>
-              </form>
             </div>
+            </form>
           </div>
         </div>
 
