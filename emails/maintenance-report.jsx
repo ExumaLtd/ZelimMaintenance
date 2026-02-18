@@ -351,21 +351,25 @@ export const MaintenanceReportEmail = ({
                         
                         {images.length > 0 && (
                           <Section style={{...imageGallery, marginTop: shouldSkipNotAnswered ? '8px' : '12px'}} className="image-gallery-mobile">
-                            {images.map((imageUrl, imgIndex) => (
-                              <Link 
-                                key={imgIndex} 
-                                href={imageUrl}
-                                target="_blank"
-                                style={imageLink}
-                                className="image-link"
-                              >
-                                <Img
-                                  src={imageUrl}
-                                  alt={`${question} - Image ${imgIndex + 1}`}
-                                  style={imageThumbnail}
-                                />
-                              </Link>
-                            ))}
+                            {images.map((item, imgIndex) => {
+                              const imgUrl = typeof item === 'string' ? item : item.url;
+                              const imgSrc = typeof item === 'string' ? item : (item.thumbnail || item.url);
+                              return (
+                                <Link
+                                  key={imgIndex}
+                                  href={imgUrl}
+                                  target="_blank"
+                                  style={imageLink}
+                                  className="image-link"
+                                >
+                                  <Img
+                                    src={imgSrc}
+                                    alt={`${question} - Image ${imgIndex + 1}`}
+                                    style={imageThumbnail}
+                                  />
+                                </Link>
+                              );
+                            })}
                           </Section>
                         )}
                       </div>
@@ -605,6 +609,19 @@ const imageLink = {
   display: 'inline-block',
   textDecoration: 'none',
   padding: '0 5px 10px 5px',
+};
+
+const docLinkStyle = {
+  display: 'inline-block',
+  padding: '8px 14px',
+  margin: '5px 5px 5px 0',
+  backgroundColor: '#f3f6f5',
+  borderRadius: '6px',
+  fontSize: '14px',
+  fontWeight: '600',
+  color: '#152a31',
+  textDecoration: 'none',
+  border: '1px solid #dde8e6',
 };
 
 const imageThumbnail = {

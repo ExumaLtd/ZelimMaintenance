@@ -605,7 +605,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       if (furtherComments || commentImages.length > 0) {
         answersForEmail["Further comments"] = {
           text: furtherComments || "",
-          images: commentImages.map(img => img.url || img)
+          images: commentImages.map(img => ({ url: img.url, thumbnail: img.thumbnail, fileType: img.fileType || 'image' }))
         };
       }
 

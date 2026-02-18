@@ -176,7 +176,9 @@ export default async function handler(req, res) {
         });
         if (sigRes.ok) {
           const sigData = await sigRes.json();
-          signatureAttachment = [{ url: sigData.secure_url }];
+          // Add a dark background so the light signature ink is visible on white backgrounds (e.g. Airtable previews)
+          const signatureUrl = sigData.secure_url.replace('/upload/', '/upload/b_rgb:1e3a42/');
+          signatureAttachment = [{ url: signatureUrl }];
         } else {
           console.warn('Signature upload failed:', await sigRes.text());
         }

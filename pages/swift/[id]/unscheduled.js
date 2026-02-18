@@ -19,7 +19,7 @@ const unscheduledSchema = z.object({
   engineerName: z.string().min(1, 'Please select or enter an engineer name.'),
   engineerEmail: z.string().email('Please provide a valid engineer email.'),
   engineerPhone: z.string().min(1, 'Please provide an engineer phone number.'),
-  declaration: z.literal(true, { errorMap: () => ({ message: 'Please confirm the declaration before submitting.' }) }),
+  declaration: z.boolean().refine(val => val === true, { message: 'Please accept the declaration before submitting.' }),
   signature: z.string().min(1, 'Please sign before submitting.'),
 });
 
@@ -489,7 +489,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       
       emailFriendlyAnswers[q.title] = {
         text: textAnswer,
-        images: images.map(img => img.url)
+        images: images.map(img => ({ url: img.url, thumbnail: img.thumbnail, fileType: img.fileType || 'image' }))
       };
     });
 

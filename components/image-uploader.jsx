@@ -166,8 +166,8 @@ export default function ImageUploader({
       // Create thumbnail based on file type
       let thumbnail;
       if (isPDF) {
-        // For PDFs, use first page as thumbnail
-        thumbnail = data.secure_url.replace('/upload/', '/upload/w_150,h_150,c_fill,pg_1,f_jpg/');
+        // For PDFs, use first page as thumbnail - replace extension so browser treats as JPEG
+        thumbnail = data.secure_url.replace('/upload/', '/upload/w_150,h_150,c_fill,pg_1,f_jpg/').replace(/\.pdf$/i, '.jpg');
       } else if (isVideo) {
         // For videos, use first frame as thumbnail
         thumbnail = data.secure_url.replace('/upload/', '/upload/w_150,h_150,c_fill,so_0/').replace(/\.\w+$/, '.jpg');
@@ -178,8 +178,9 @@ export default function ImageUploader({
 
       // For videos, rewrite URL to serve as MP4 via Cloudinary transcoding.
       // This fixes .mov and other non-browser-friendly formats (e.g. from iPhones).
+      // q_auto:best preserves quality instead of Cloudinary's heavy default compression.
       const fileUrl = isVideo
-        ? data.secure_url.replace('/upload/', '/upload/f_mp4/').replace(/\.[^/.]+$/, '.mp4')
+        ? data.secure_url.replace('/upload/', '/upload/f_mp4,q_auto:best/').replace(/\.[^/.]+$/, '.mp4')
         : data.secure_url;
 
       return {
@@ -322,7 +323,14 @@ export default function ImageUploader({
         <div className="image-thumbnails">
           {images.map((img, index) => (
             <div key={`${img.publicId}-${index}`} className="thumbnail-item">
-              <img src={img.thumbnail} alt={`Upload ${index + 1}`} />
+              {img.fileType === 'pdf' ? (
+                <div className="thumbnail-pdf">
+                  <FileText size={24} strokeWidth={1.5} />
+                  <span className="thumbnail-pdf-name">{img.filename ? img.filename.replace(/\.pdf$/i, '') : 'Document'}</span>
+                </div>
+              ) : (
+                <img src={img.thumbnail} alt={`Upload ${index + 1}`} />
+              )}
               <button
                 type="button"
                 className="thumbnail-remove"
@@ -348,6 +356,31 @@ export default function ImageUploader({
           to {
             transform: rotate(360deg);
           }
+        }
+
+        .thumbnail-pdf {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          background-color: #1e3a42;
+          color: #00FFF6;
+          padding: 4px;
+          box-sizing: border-box;
+        }
+
+        .thumbnail-pdf-name {
+          font-size: 9px;
+          font-family: 'Montserrat', sans-serif;
+          color: #a8bfc3;
+          text-align: center;
+          word-break: break-all;
+          line-height: 1.2;
+          max-height: 28px;
+          overflow: hidden;
         }
 
         .thumbnail-remove {

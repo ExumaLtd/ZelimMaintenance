@@ -865,7 +865,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       
       emailFriendlyAnswers[q.title] = {
         text: textAnswer,
-        images: images.map(img => img.url)
+        images: images.map(img => ({ url: img.url, thumbnail: img.thumbnail, fileType: img.fileType || 'image' }))
       };
     });
 
