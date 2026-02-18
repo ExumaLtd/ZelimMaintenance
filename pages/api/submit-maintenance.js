@@ -49,6 +49,22 @@ async function generateRecordRef(serialNumber, maintenanceType, apiKey, baseId) 
   }
 }
 
+async function uploadSignatureToCloudinary(dataUrl, serialNumber, dateStr) {
+  const uploadUrl = 'https://api.cloudinary.com/v1_1/zelimmaintenanceportal/image/upload';
+  const folder = `zelimmaintenance/SWIFT/signatures/${serialNumber}/${dateStr}`;
+
+  const formData = new FormData();
+  formData.append('file', dataUrl);
+  formData.append('upload_preset', 'maintenance-uploads');
+  formData.append('folder', folder);
+  formData.append('format', 'png');
+
+  const res = await fetch(uploadUrl, { method: 'POST', body: formData });
+  if (!res.ok) throw new Error(`Cloudinary signature upload failed: ${res.status}`);
+  const data = await res.json();
+  return data.secure_url;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -77,6 +93,7 @@ export default async function handler(req, res) {
     serial_number,
     checklist_template_id,
     declaration_text,
+    signature,
   } = req.body;
 
   const apiKey = process.env.AIRTABLE_API_KEY;
@@ -148,6 +165,18 @@ export default async function handler(req, res) {
     const dateStr = `${dd}-${mm}-${yyyy}`;
     const cloudinaryFolder = `zelimmaintenance/SWIFT/${maintenance_type.toLowerCase()}/${serial_number}/${dateStr}`;
 
+    // Upload signature to Cloudinary (if present), get back a URL for Airtable attachment
+    let signatureAttachment = null;
+    if (signature) {
+      try {
+        const signatureUrl = await uploadSignatureToCloudinary(signature, serial_number, dateStr);
+        signatureAttachment = [{ url: signatureUrl }];
+      } catch (sigErr) {
+        // Non-fatal — log and continue without the attachment
+        console.warn('⚠️ Signature upload failed, proceeding without it:', sigErr.message);
+      }
+    }
+
     const formattedAnswers = answers.reduce((acc, item) => {
       acc[item.question] = {
         text: item.answer,
@@ -173,6 +202,8 @@ export default async function handler(req, res) {
       "declaration_text": declaration_text || "",
     };
 
+    if (signatureAttachment) logFields["technician_signature"] = signatureAttachment;
+
     if (maintenance_checklist) {
       logFields["maintenance_checklist"] = maintenance_checklist;
     }
@@ -197,6 +228,8 @@ export default async function handler(req, res) {
       "declaration_accepted": true,
       "declaration_text": declaration_text || "",
     };
+
+    if (signatureAttachment) checkFields["technician_signature"] = signatureAttachment;
 
     if (maintenance_checklist) {
       checkFields["maintenance_checklist"] = maintenance_checklist;
