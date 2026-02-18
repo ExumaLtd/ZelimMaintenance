@@ -184,7 +184,7 @@ export default function ImageUploader({
       if (isVideo) {
         fileUrl = data.secure_url.replace('/upload/', '/upload/f_mp4,q_auto:best/').replace(/\.[^/.]+$/, '.mp4');
       } else if (isPDF) {
-        fileUrl = data.secure_url.replace('/upload/', '/upload/f_pdf,fl_inline/');
+        fileUrl = data.secure_url;
       } else {
         fileUrl = data.secure_url;
       }
