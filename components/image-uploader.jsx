@@ -323,14 +323,7 @@ export default function ImageUploader({
         <div className="image-thumbnails">
           {images.map((img, index) => (
             <div key={`${img.publicId}-${index}`} className="thumbnail-item">
-              {img.fileType === 'pdf' ? (
-                <div className="thumbnail-pdf">
-                  <FileText size={24} strokeWidth={1.5} />
-                  <span className="thumbnail-pdf-name">{img.filename ? img.filename.replace(/\.pdf$/i, '') : 'Document'}</span>
-                </div>
-              ) : (
-                <img src={img.thumbnail} alt={`Upload ${index + 1}`} />
-              )}
+              <img src={img.thumbnail} alt={`Upload ${index + 1}`} />
               <button
                 type="button"
                 className="thumbnail-remove"
