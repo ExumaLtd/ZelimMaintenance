@@ -519,12 +519,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
         async (pos) => {
           try {
             const res = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14&accept-language=en-GB`,
-              {
-                headers: {
-                  'User-Agent': 'SWIFT Maintenance App'
-                }
-              }
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14&accept-language=en-GB`
             );
 
             if (!res.ok) {

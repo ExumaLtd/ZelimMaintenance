@@ -93,7 +93,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
   const [locationDisplay, setLocationDisplay] = useState("");
   const [locationCountry, setLocationCountry] = useState("");
-  const [locationHint, setLocationHint] = useState("");
   const [selectedCompany, setSelectedCompany] = useState("");
   const [engName, setEngName] = useState("");
   const [engEmail, setEngEmail] = useState("");
@@ -349,12 +348,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
         async (pos) => {
           try {
             const res = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14&accept-language=en-GB`,
-              {
-                headers: {
-                  'User-Agent': 'SWIFT Maintenance App'
-                }
-              }
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=14&accept-language=en-GB`
             );
 
             if (!res.ok) return;
@@ -372,15 +366,10 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
               setLocationCountry(formalCountry);
             }
           } catch (err) {
-            setLocationHint("Location could not be detected. Please enter it manually.");
           }
         },
         (error) => {
-          let hint = "Location could not be detected. Please enter it manually.";
-          if (error.code === error.PERMISSION_DENIED) {
-            hint = "Location access was denied. Please enter your location manually.";
-          }
-          setLocationHint(hint);
+          console.log("Location error:", error.code);
         },
         options
       );
@@ -729,13 +718,9 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                       setLocationDisplay(e.target.value);
                       if (e.target.value.trim()) {
                         setFieldErrors(prev => ({ ...prev, location: false }));
-                        setLocationHint("");
                       }
                     }}
                   />
-                  {locationHint && !locationDisplay.trim() && (
-                    <p className="field-hint">{locationHint}</p>
-                  )}
                 </div>
 
                 <div className="checklist-field">
