@@ -177,8 +177,14 @@ export default function ImageUploader({
         thumbnail = data.secure_url.replace('/upload/', '/upload/w_150,h_150,c_fill/');
       }
 
+      // For videos, rewrite URL to serve as MP4 via Cloudinary transcoding.
+      // This fixes .mov and other non-browser-friendly formats (e.g. from iPhones).
+      const fileUrl = isVideo
+        ? data.secure_url.replace('/upload/', '/upload/f_mp4/').replace(/\.[^/.]+$/, '.mp4')
+        : data.secure_url;
+
       return {
-        url: data.secure_url,
+        url: fileUrl,
         publicId: data.public_id,
         thumbnail: thumbnail,
         filename: file.name,
