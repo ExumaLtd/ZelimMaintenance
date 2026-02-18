@@ -5,6 +5,8 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Image from "next/image";
+import { z } from "zod";
+import clsx from "clsx";
 import { getCompanyLogoUrl } from '../../../utils/get-company-logo';
 import ImageUploader from '../../../components/image-uploader';
 import VoiceInput from '../../../components/voice-input';
@@ -13,6 +15,14 @@ import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
 import { useAutoSave } from '../../../hooks/use-auto-save';
 import { fetchFormData } from '@/lib/data-fetching';
 import { getClientSession } from '../../../lib/session';
+
+const annualAdminSchema = z.object({
+  company: z.string().min(1, 'Please select a maintenance company.'),
+  location: z.string().min(1, 'Please provide a location.'),
+  engineerName: z.string().min(1, 'Please select or enter an engineer name.'),
+  engineerEmail: z.string().email('Please provide a valid engineer email.'),
+  engineerPhone: z.string().min(1, 'Please provide an engineer phone number.'),
+});
 
 const autoGrow = (e) => {
   const el = e.target || e;
@@ -223,37 +233,42 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
 
     // Only validate admin fields on step 1
     if (currentStep === 1) {
-      if (!selectedCompany || selectedCompany === "Please select") {
-        errors.push('company');
-        newFieldErrors.company = true;
-      }
+      const adminResult = annualAdminSchema.safeParse({
+        company: selectedCompany || "",
+        location: locationDisplay?.trim() || "",
+        engineerName: (engName && engName !== "Please select") ? engName.trim() : "",
+        engineerEmail: engEmail?.trim() || "",
+        engineerPhone: engPhone?.trim() || "",
+      });
 
-      if (!locationDisplay || !locationDisplay.trim()) {
-        errors.push('location');
-        newFieldErrors.location = true;
-        const locationInput = document.querySelector('[name="location_display"]');
-        if (locationInput) locationInput.classList.add('has-error');
-      }
-
-      if (!engName || engName === "Please select" || !engName.trim()) {
-        errors.push('engineer');
-        newFieldErrors.engineerName = true;
-        const engineerInput = document.querySelector('[name="engineer_name"]');
-        if (engineerInput) engineerInput.classList.add('has-error');
-      }
-
-      if (!engEmail || !engEmail.trim()) {
-        errors.push('email');
-        newFieldErrors.engineerEmail = true;
-        const emailInput = document.querySelector('[name="engineer_email"]');
-        if (emailInput) emailInput.classList.add('has-error');
-      }
-
-      if (!engPhone || !engPhone.trim()) {
-        errors.push('phone');
-        newFieldErrors.engineerPhone = true;
-        const phoneInput = document.querySelector('[name="engineer_phone"]');
-        if (phoneInput) phoneInput.classList.add('has-error');
+      if (!adminResult.success) {
+        adminResult.error.issues.forEach(issue => {
+          const field = issue.path[0];
+          if (field === 'company') {
+            errors.push('company');
+            newFieldErrors.company = true;
+          } else if (field === 'location') {
+            errors.push('location');
+            newFieldErrors.location = true;
+            const locationInput = document.querySelector('[name="location_display"]');
+            if (locationInput) locationInput.classList.add('has-error');
+          } else if (field === 'engineerName') {
+            errors.push('engineer');
+            newFieldErrors.engineerName = true;
+            const engineerInput = document.querySelector('[name="engineer_name"]');
+            if (engineerInput) engineerInput.classList.add('has-error');
+          } else if (field === 'engineerEmail') {
+            errors.push('email');
+            newFieldErrors.engineerEmail = true;
+            const emailInput = document.querySelector('[name="engineer_email"]');
+            if (emailInput) emailInput.classList.add('has-error');
+          } else if (field === 'engineerPhone') {
+            errors.push('phone');
+            newFieldErrors.engineerPhone = true;
+            const phoneInput = document.querySelector('[name="engineer_phone"]');
+            if (phoneInput) phoneInput.classList.add('has-error');
+          }
+        });
       }
       
       const photographQuestion = currentQuestions.find(q => q.id === 1);
@@ -771,9 +786,12 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
                     <div className="field-icon-wrapper">
                       <input
                         readOnly
-                        className={`checklist-input ${selectedCompany ? "is-active" : "is-placeholder"} ${
-                          showCompanyDropdown ? "is-focused" : ""
-                        } ${fieldErrors.company ? "has-error" : ""}`}
+                        className={clsx(
+                          "checklist-input",
+                          selectedCompany ? "is-active" : "is-placeholder",
+                          showCompanyDropdown && "is-focused",
+                          fieldErrors.company && "has-error"
+                        )}
                         value={selectedCompany || "Please select"}
                         onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
                         style={{ cursor: "pointer", paddingRight: "40px" }}
@@ -783,7 +801,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
                       </div>
                     </div>
                     {showCompanyDropdown && (
-                      <ul className={`custom-dropdown-list ${fieldErrors.company ? "has-error" : ""}`}>
+                      <ul className={clsx("custom-dropdown-list", fieldErrors.company && "has-error")}>
                         {companies.sort().map((c, i) => (
                           <li
                             key={i}
@@ -801,7 +819,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
                 <div className="checklist-field" ref={locationFieldRef}>
                   <label className="checklist-label">Location</label>
                   <input
-                    className={`checklist-input ${fieldErrors.location ? "has-error" : ""}`}
+                    className={clsx("checklist-input", fieldErrors.location && "has-error")}
                     name="location_display"
                     required
                     value={locationDisplay}
@@ -831,9 +849,12 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
                   <div className="custom-dropdown-container" ref={engineerDropdownRef}>
                     <div className="field-icon-wrapper">
                       <input
-                        className={`checklist-input ${
-                          engName === "Please select" || !engName ? "is-placeholder" : "is-active"
-                        } ${shouldShowEngDropdown ? "is-focused" : ""} ${fieldErrors.engineerName ? "has-error" : ""}`}
+                        className={clsx(
+                          "checklist-input",
+                          engName === "Please select" || !engName ? "is-placeholder" : "is-active",
+                          shouldShowEngDropdown && "is-focused",
+                          fieldErrors.engineerName && "has-error"
+                        )}
                         name="engineer_name"
                         required
                         value={engName}
@@ -859,7 +880,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
                       )}
                     </div>
                     {shouldShowEngDropdown && (
-                      <ul className={`custom-dropdown-list ${fieldErrors.engineerName ? "has-error" : ""}`}>
+                      <ul className={clsx("custom-dropdown-list", fieldErrors.engineerName && "has-error")}>
                         {hasClearEng && (
                           <li className="custom-dropdown-item" onClick={clearEngineer}>
                             Clear details
@@ -879,7 +900,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
                   <label className="checklist-label">Engineer email</label>
                   <input
                     type="email"
-                    className={`checklist-input ${fieldErrors.engineerEmail ? "has-error" : ""}`}
+                    className={clsx("checklist-input", fieldErrors.engineerEmail && "has-error")}
                     name="engineer_email"
                     required
                     value={engEmail}
@@ -897,7 +918,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
                   <label className="checklist-label">Engineer phone</label>
                   <input
                     type="tel"
-                    className={`checklist-input ${fieldErrors.engineerPhone ? "has-error" : ""}`}
+                    className={clsx("checklist-input", fieldErrors.engineerPhone && "has-error")}
                     name="engineer_phone"
                     required
                     value={engPhone}
@@ -1005,7 +1026,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
                 ) : (
                   <>
                     {template?.declarationText && (
-                      <div className={`declaration-checkbox ${fieldErrors.declaration ? 'has-error' : ''}`}>
+                      <div className={clsx("declaration-checkbox", fieldErrors.declaration && "has-error")}>
                         <input
                           type="checkbox"
                           id="declaration-check"

@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Image from "next/image";
+import { z } from "zod";
+import clsx from "clsx";
 import { getCompanyLogoUrl } from '../../../utils/get-company-logo';
 import ImageUploader from '../../../components/image-uploader';
 import VoiceInput from '../../../components/voice-input';
@@ -9,6 +11,15 @@ import DatePicker from '../../../components/date-picker';
 import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
 import { useAutoSave } from '../../../hooks/use-auto-save';
 import { getClientSession } from '../../../lib/session';
+
+const faultReportingSchema = z.object({
+  company: z.string().min(1, 'Please select a maintenance company.'),
+  location: z.string().min(1, 'Please provide a location.'),
+  engineerName: z.string().min(1, 'Please select or enter an engineer name.'),
+  engineerEmail: z.string().email('Please provide a valid engineer email.'),
+  engineerPhone: z.string().min(1, 'Please provide an engineer phone number.'),
+  declaration: z.literal(true, { errorMap: () => ({ message: 'Please confirm the declaration before submitting.' }) }),
+});
 
 const autoGrow = (e) => {
   const el = e.target || e;
@@ -371,8 +382,6 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
 
     hasSubmittedRef.current = true;
 
-    const errors = [];
-    let firstErrorField = null;
     const newFieldErrors = {
       company: false,
       location: false,
@@ -384,32 +393,39 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
 
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
 
-    if (!selectedCompany || selectedCompany === "Please select") {
-      errors.push({ field: 'company', message: 'Please select a maintenance company.' });
-      newFieldErrors.company = true;
-      if (!firstErrorField) firstErrorField = companyFieldRef;
-    }
+    const result = faultReportingSchema.safeParse({
+      company: selectedCompany || "",
+      location: locationDisplay?.trim() || "",
+      engineerName: (engName && engName !== "Please select") ? engName.trim() : "",
+      engineerEmail: engEmail?.trim() || "",
+      engineerPhone: engPhone?.trim() || "",
+      declaration: declarationChecked,
+    });
 
-    if (!locationDisplay || !locationDisplay.trim()) {
-      errors.push({ field: 'location', message: 'Please provide a location.' });
-      newFieldErrors.location = true;
-      if (!firstErrorField) firstErrorField = locationFieldRef;
-    }
+    const errors = [];
+    let firstErrorField = null;
 
-    if (!engName || engName === "Please select" || !engName.trim()) {
-      errors.push({ field: 'engineer', message: 'Please select or enter an engineer name.' });
-      newFieldErrors.engineerName = true;
-      if (!firstErrorField) firstErrorField = engineerFieldRef;
-    }
-
-    if (!engEmail || !engEmail.trim()) {
-      errors.push({ field: 'email', message: 'Please provide an engineer email.' });
-      newFieldErrors.engineerEmail = true;
-    }
-
-    if (!engPhone || !engPhone.trim()) {
-      errors.push({ field: 'phone', message: 'Please provide an engineer phone number.' });
-      newFieldErrors.engineerPhone = true;
+    if (!result.success) {
+      result.error.issues.forEach(issue => {
+        const field = issue.path[0];
+        errors.push({ field, message: issue.message });
+        if (field === 'company') {
+          newFieldErrors.company = true;
+          if (!firstErrorField) firstErrorField = companyFieldRef;
+        } else if (field === 'location') {
+          newFieldErrors.location = true;
+          if (!firstErrorField) firstErrorField = locationFieldRef;
+        } else if (field === 'engineerName') {
+          newFieldErrors.engineerName = true;
+          if (!firstErrorField) firstErrorField = engineerFieldRef;
+        } else if (field === 'engineerEmail') {
+          newFieldErrors.engineerEmail = true;
+        } else if (field === 'engineerPhone') {
+          newFieldErrors.engineerPhone = true;
+        } else if (field === 'declaration') {
+          newFieldErrors.declaration = true;
+        }
+      });
     }
 
     const requiredQuestions = (template?.questionsData || []).filter(q => q.required);
@@ -417,7 +433,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
       const q = requiredQuestions[i];
       const questionIndex = (template?.questionsData || []).indexOf(q) + 1;
       const answer = answers[`q${questionIndex}`];
-      
+
       if (!answer || !answer.trim()) {
         errors.push({ field: `q${questionIndex}`, message: `Please answer: ${q.title}.` });
         const questionElement = document.querySelector(`[name="q${questionIndex}"]`);
@@ -426,12 +442,6 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
           if (!firstErrorField) firstErrorField = { current: questionElement };
         }
       }
-    }
-
-    // Declaration must be checked
-    if (!declarationChecked) {
-      errors.push({ field: 'declaration', message: 'Please confirm the declaration before submitting.' });
-      newFieldErrors.declaration = true;
     }
 
     setFieldErrors(newFieldErrors);
@@ -596,9 +606,12 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
                     <div className="field-icon-wrapper">
                       <input
                         readOnly
-                        className={`checklist-input ${selectedCompany ? "is-active" : "is-placeholder"} ${
-                          showCompanyDropdown ? "is-focused" : ""
-                        } ${fieldErrors.company ? "has-error" : ""}`}
+                        className={clsx(
+                          "checklist-input",
+                          selectedCompany ? "is-active" : "is-placeholder",
+                          showCompanyDropdown && "is-focused",
+                          fieldErrors.company && "has-error"
+                        )}
                         value={selectedCompany || "Please select"}
                         onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
                         style={{ cursor: "pointer", paddingRight: "40px" }}
@@ -608,7 +621,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
                       </div>
                     </div>
                     {showCompanyDropdown && (
-                      <ul className={`custom-dropdown-list ${fieldErrors.company ? "has-error" : ""}`}>
+                      <ul className={clsx("custom-dropdown-list", fieldErrors.company && "has-error")}>
                         {allCompanies.sort().map((c, i) => (
                           <li
                             key={i}
@@ -626,7 +639,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
                 <div className="checklist-field" ref={locationFieldRef}>
                   <label className="checklist-label">Location</label>
                   <input
-                    className={`checklist-input ${fieldErrors.location ? "has-error" : ""}`}
+                    className={clsx("checklist-input", fieldErrors.location && "has-error")}
                     name="location_display"
                     required
                     value={locationDisplay}
@@ -655,9 +668,12 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
                   <div className="custom-dropdown-container" ref={engineerDropdownRef}>
                     <div className="field-icon-wrapper">
                       <input
-                        className={`checklist-input ${
-                          engName === "Please select" || !engName ? "is-placeholder" : "is-active"
-                        } ${shouldShowEngDropdown ? "is-focused" : ""} ${fieldErrors.engineerName ? "has-error" : ""}`}
+                        className={clsx(
+                          "checklist-input",
+                          engName === "Please select" || !engName ? "is-placeholder" : "is-active",
+                          shouldShowEngDropdown && "is-focused",
+                          fieldErrors.engineerName && "has-error"
+                        )}
                         name="engineer_name"
                         required
                         value={engName}
@@ -683,7 +699,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
                       )}
                     </div>
                     {shouldShowEngDropdown && (
-                      <ul className={`custom-dropdown-list ${fieldErrors.engineerName ? "has-error" : ""}`}>
+                      <ul className={clsx("custom-dropdown-list", fieldErrors.engineerName && "has-error")}>
                         {hasClearEng && (
                           <li className="custom-dropdown-item" onClick={clearEngineer}>
                             Clear details
@@ -703,7 +719,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
                   <label className="checklist-label">Engineer email</label>
                   <input
                     type="email"
-                    className={`checklist-input ${fieldErrors.engineerEmail ? "has-error" : ""}`}
+                    className={clsx("checklist-input", fieldErrors.engineerEmail && "has-error")}
                     name="engineer_email"
                     required
                     value={engEmail}
@@ -720,7 +736,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
                   <label className="checklist-label">Engineer phone</label>
                   <input
                     type="tel"
-                    className={`checklist-input ${fieldErrors.engineerPhone ? "has-error" : ""}`}
+                    className={clsx("checklist-input", fieldErrors.engineerPhone && "has-error")}
                     name="engineer_phone"
                     required
                     value={engPhone}
@@ -803,7 +819,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
                 ))}
 
                 {template?.declarationText && (
-                  <div className={`declaration-checkbox ${fieldErrors.declaration ? 'has-error' : ''}`}>
+                  <div className={clsx("declaration-checkbox", fieldErrors.declaration && "has-error")}>
                     <input
                       type="checkbox"
                       id="declaration-check"
