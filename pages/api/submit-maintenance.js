@@ -193,6 +193,12 @@ export default async function handler(req, res) {
       return acc;
     }, {});
 
+    // Split uploaded files into photos / videos / documents for Airtable attachment fields
+    const allFiles = answers.flatMap(item => item.images || []);
+    const photoAttachments = allFiles.filter(f => f.fileType === 'image').map(f => ({ url: f.url }));
+    const videoAttachments = allFiles.filter(f => f.fileType === 'video').map(f => ({ url: f.url }));
+    const docAttachments   = allFiles.filter(f => f.fileType === 'pdf').map(f => ({ url: f.url }));
+
     // OPTIMIZATION 3: Submit to BOTH tables in PARALLEL
     const logFields = {
       "unit_link": [unit_record_id],
@@ -211,6 +217,9 @@ export default async function handler(req, res) {
     };
 
     if (signatureAttachment) logFields["technician_signature"] = signatureAttachment;
+    if (photoAttachments.length > 0) logFields["photos"] = photoAttachments;
+    if (videoAttachments.length > 0) logFields["videos"] = videoAttachments;
+    if (docAttachments.length > 0)   logFields["documents"] = docAttachments;
 
     if (maintenance_checklist) {
       logFields["maintenance_checklist"] = maintenance_checklist;
@@ -238,6 +247,9 @@ export default async function handler(req, res) {
     };
 
     if (signatureAttachment) checkFields["technician_signature"] = signatureAttachment;
+    if (photoAttachments.length > 0) checkFields["photos"] = photoAttachments;
+    if (videoAttachments.length > 0) checkFields["videos"] = videoAttachments;
+    if (docAttachments.length > 0)   checkFields["documents"] = docAttachments;
 
     if (maintenance_checklist) {
       checkFields["maintenance_checklist"] = maintenance_checklist;
