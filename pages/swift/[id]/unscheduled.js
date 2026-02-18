@@ -8,7 +8,7 @@ import { getCompanyLogoUrl } from '../../../utils/get-company-logo';
 import ImageUploader from '../../../components/image-uploader';
 import VoiceInput from '../../../components/voice-input';
 import DatePicker from '../../../components/date-picker';
-import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import SignaturePad from '../../../components/signature-pad';
 import { useAutoSave } from '../../../hooks/use-auto-save';
 import { getClientSession } from '../../../lib/session';
@@ -501,7 +501,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       serial_number: unit?.serial_number,
       declaration_text: template?.declarationText || "",
       signature: signatureData,
-      answers: (template?.questionsData || []).map((q, i) => {
+      answers: (template?.questionsData || []).map((_, i) => {
         const questionKey = `q${i + 1}`;
         return {
           question: questionKey,
@@ -847,7 +847,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                 )}
 
                 <div style={{ marginTop: "28px" }}>
-                  <label className="checklist-label" style={{ marginTop: 0 }}>Technician signature</label>
+                  <label className="checklist-label" style={{ marginTop: 0 }}>Signature</label>
                   <div style={{ marginTop: "8px" }}>
                     <SignaturePad
                       ref={signatureRef}

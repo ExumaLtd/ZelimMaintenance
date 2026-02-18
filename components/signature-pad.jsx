@@ -149,12 +149,12 @@ const SignaturePad = forwardRef(function SignaturePad({ onChange, hasError }, re
         .signature-canvas-area {
           position: relative;
           width: 100%;
-          height: 160px;
+          height: 110px;
         }
 
-        @media (min-width: 768px) {
+        @media (min-width: 992px) {
           .signature-canvas-area {
-            height: 180px;
+            height: 140px;
           }
         }
 
@@ -164,18 +164,6 @@ const SignaturePad = forwardRef(function SignaturePad({ onChange, hasError }, re
           height: 100%;
           touch-action: none;
           cursor: crosshair;
-        }
-
-        /* Baseline guide line */
-        .signature-canvas-area::after {
-          content: '';
-          position: absolute;
-          bottom: 38px;
-          left: 24px;
-          right: 24px;
-          height: 1px;
-          background: rgba(255, 255, 255, 0.08);
-          pointer-events: none;
         }
 
         /* Placeholder */
@@ -189,9 +177,9 @@ const SignaturePad = forwardRef(function SignaturePad({ onChange, hasError }, re
           gap: 8px;
           pointer-events: none;
           color: #7d8f93;
-          font-size: 14px;
+          font-size: 16px;
           font-family: 'Montserrat', sans-serif;
-          font-weight: 500;
+          font-weight: 400;
           user-select: none;
         }
 
@@ -211,11 +199,11 @@ const SignaturePad = forwardRef(function SignaturePad({ onChange, hasError }, re
           gap: 5px;
           padding: 5px 10px;
           background: rgba(21, 42, 49, 0.8);
-          border: 1px solid rgba(255, 255, 255, 0.12);
+          border: 1px solid rgba(21, 42, 49, 0.8);
           border-radius: 6px;
           color: #a0acaf;
           font-size: 12px;
-          font-weight: 500;
+          font-weight: 400;
           font-family: 'Montserrat', sans-serif;
           cursor: pointer;
           transition: background 0.15s, color 0.15s;
@@ -223,7 +211,7 @@ const SignaturePad = forwardRef(function SignaturePad({ onChange, hasError }, re
         }
 
         .signature-clear-btn:hover {
-          background: rgba(21, 42, 49, 0.95);
+          background: rgba(0, 255, 246, 0.05);
           color: #F7F7F7;
         }
 
