@@ -9,6 +9,7 @@ import ImageUploader from '../../../components/image-uploader';
 import VoiceInput from '../../../components/voice-input';
 import DatePicker from '../../../components/date-picker';
 import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
+import SignaturePad from '../../../components/signature-pad';
 import { useAutoSave } from '../../../hooks/use-auto-save';
 import { getClientSession } from '../../../lib/session';
 
@@ -18,7 +19,8 @@ const faultReportingSchema = z.object({
   engineerName: z.string().min(1, 'Please select or enter an engineer name.'),
   engineerEmail: z.string().email('Please provide a valid engineer email.'),
   engineerPhone: z.string().min(1, 'Please provide an engineer phone number.'),
-  declaration: z.literal(true, { errorMap: () => ({ message: 'Please confirm the declaration before submitting.' }) }),
+  declaration: z.boolean().refine(val => val === true, { message: 'Please accept the declaration before submitting.' }),
+  signature: z.string().min(1, 'Please sign before submitting.'),
 });
 
 const autoGrow = (e) => {
@@ -60,6 +62,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
   const companyFieldRef = useRef(null);
   const locationFieldRef = useRef(null);
   const engineerFieldRef = useRef(null);
+  const signatureRef = useRef(null);
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
   const hasLoadedDraftRef = useRef(false);
@@ -70,6 +73,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
   const [today, setToday] = useState("");
   const [maintenanceDate, setMaintenanceDate] = useState(new Date().toISOString().split("T")[0]);
   const [declarationChecked, setDeclarationChecked] = useState(false);
+  const [signatureData, setSignatureData] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({
     company: false,
     location: false,
@@ -77,6 +81,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
     engineerEmail: false,
     engineerPhone: false,
     declaration: false,
+    signature: false,
   });
 
   const [answers, setAnswers] = useState({});
@@ -393,6 +398,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
       engineerEmail: false,
       engineerPhone: false,
       declaration: false,
+      signature: false,
     };
 
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
@@ -404,6 +410,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
       engineerEmail: engEmail?.trim() || "",
       engineerPhone: engPhone?.trim() || "",
       declaration: declarationChecked,
+      signature: signatureData || "",
     });
 
     const errors = [];
@@ -428,6 +435,8 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
           newFieldErrors.engineerPhone = true;
         } else if (field === 'declaration') {
           newFieldErrors.declaration = true;
+        } else if (field === 'signature') {
+          newFieldErrors.signature = true;
         }
       });
     }
@@ -498,12 +507,13 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
       checklist_template_id: template?.id,
       serial_number: unit?.serial_number,
       declaration_text: template?.declarationText || "",
-      answers: (template?.questionsData || []).map((q, i) => {
+      signature: signatureData,
+      answers: (template?.questionsData || []).map((_, i) => {
         const questionKey = `q${i + 1}`;
         return {
           question: questionKey,
           answer: answers[questionKey] || "",
-          images: (questionImages[questionKey] || []).map(img => img.url)
+          images: (questionImages[questionKey] || []).map(img => ({ url: img.url, fileType: img.fileType }))
         };
       }),
     };
@@ -755,14 +765,14 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
               </div>
             </div>
 
+            <form onSubmit={handleSubmit} autoComplete="off" noValidate style={{ width: "100%", display: "block", margin: 0, padding: 0 }}>
             {/* CARD 2: QUESTIONS */}
             <div className="checklist-form-card" style={{ marginTop: "20px" }}>
-              <form onSubmit={handleSubmit} autoComplete="off" noValidate>
                 <h3 className="checklist-section-title">Fault report</h3>
                 <p className="checklist-section-subtitle">
                   Report damage, defects, or wear on the SWIFT. Describe what is affected and when it was noticed, then attach clear photos where possible.
                 </p>
-                
+
                 {(template?.questionsData || []).map((q, i) => (
                   <div key={i} style={{ marginTop: i === 0 ? "0" : "24px" }}>
                     <label className="checklist-label unscheduled-question-label">
@@ -771,7 +781,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
                     {q.instruction && (
                       <p className="question-instruction unscheduled-question-instruction">{q.instruction}</p>
                     )}
-                    
+
                     <div className="question-with-upload">
                       <div className="textarea-wrapper">
                         <textarea
@@ -807,7 +817,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
                           onError={(errorMsg) => setErrorMsg(errorMsg)}
                         />
                       </div>
-                      
+
                       {q.allow_uploads && (
                         <ImageUploader
                           questionKey={`q${i + 1}`}
@@ -821,6 +831,11 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
                     </div>
                   </div>
                 ))}
+            </div>
+
+            {/* CARD 3: DECLARATION & SIGNATURE */}
+            <div className="checklist-form-card" style={{ marginTop: "20px" }}>
+                <h3 className="checklist-section-title">Declaration</h3>
 
                 {template?.declarationText && (
                   <div className={clsx("declaration-checkbox", fieldErrors.declaration && "has-error")}>
@@ -843,12 +858,26 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
                   </div>
                 )}
 
+                <div style={{ marginTop: "20px" }}>
+                  <label className="checklist-label">Signature</label>
+                  <div style={{ marginTop: "8px" }}>
+                    <SignaturePad
+                      ref={signatureRef}
+                      onChange={(data) => {
+                        setSignatureData(data);
+                        if (data) setFieldErrors(prev => ({ ...prev, signature: false }));
+                      }}
+                      hasError={fieldErrors.signature}
+                    />
+                  </div>
+                </div>
+
                 {errorMsg && <p className="error-message">{errorMsg}</p>}
                 <button type="submit" className="checklist-submit" disabled={submitting}>
                   {submitting ? "Submitting..." : "Submit fault"}
                 </button>
-              </form>
             </div>
+            </form>
           </div>
         </div>
 

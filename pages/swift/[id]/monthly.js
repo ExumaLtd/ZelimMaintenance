@@ -9,6 +9,7 @@ import ImageUploader from '../../../components/image-uploader';
 import VoiceInput from '../../../components/voice-input';
 import DatePicker from '../../../components/date-picker';
 import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
+import SignaturePad from '../../../components/signature-pad';
 import { useAutoSave } from '../../../hooks/use-auto-save';
 import { fetchFormData } from '@/lib/data-fetching';
 import { getClientSession } from '../../../lib/session';
@@ -19,7 +20,8 @@ const monthlySchema = z.object({
   engineerName: z.string().min(1, 'Please select or enter an engineer name.'),
   engineerEmail: z.string().email('Please provide a valid engineer email.'),
   engineerPhone: z.string().min(1, 'Please provide an engineer phone number.'),
-  declaration: z.literal(true, { errorMap: () => ({ message: 'Please confirm the declaration before submitting.' }) }),
+  declaration: z.boolean().refine(val => val === true, { message: 'Please accept the declaration before submitting.' }),
+  signature: z.string().min(1, 'Please sign before submitting.'),
 });
 
 const autoGrow = (e) => {
@@ -61,6 +63,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   const companyFieldRef = useRef(null);
   const locationFieldRef = useRef(null);
   const engineerFieldRef = useRef(null);
+  const signatureRef = useRef(null);
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
   const hasLoadedDraftRef = useRef(false);
@@ -70,6 +73,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   const [errorMsg, setErrorMsg] = useState("");
   const [today, setToday] = useState("");
   const [declarationChecked, setDeclarationChecked] = useState(false);
+  const [signatureData, setSignatureData] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({
     company: false,
     location: false,
@@ -77,6 +81,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     engineerEmail: false,
     engineerPhone: false,
     declaration: false,
+    signature: false,
   });
 
   // Checklist data - initialize from template (grouped structure)
@@ -431,6 +436,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       engineerEmail: false,
       engineerPhone: false,
       declaration: false,
+      signature: false,
     };
 
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
@@ -442,6 +448,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       engineerEmail: engEmail?.trim() || "",
       engineerPhone: engPhone?.trim() || "",
       declaration: declarationChecked,
+      signature: signatureData || "",
     });
 
     const errors = [];
@@ -466,6 +473,8 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           newFieldErrors.engineerPhone = true;
         } else if (field === 'declaration') {
           newFieldErrors.declaration = true;
+        } else if (field === 'signature') {
+          newFieldErrors.signature = true;
         }
       });
     }
@@ -534,7 +543,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       answers.push({
         question: "Further comments",
         answer: furtherComments || "",
-        images: commentImages.map(img => img.url || img)
+        images: commentImages.map(img => ({ url: img.url, fileType: img.fileType }))
       });
     }
 
@@ -551,6 +560,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       checklist_template_id: template?.id,
       serial_number: unit?.serial_number,
       declaration_text: template?.declarationText || "",
+      signature: signatureData,
       maintenance_checklist: JSON.stringify(
         checklistData.map(group => ({
           id: group.id,
@@ -827,14 +837,14 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
               </div>
             </div>
 
+            <form onSubmit={handleSubmit} autoComplete="off" noValidate style={{ width: "100%", display: "block", margin: 0, padding: 0 }}>
             {/* CARD 2: CHECKLIST + COMMENTS */}
             <div className="checklist-form-card" style={{ marginTop: "20px" }}>
-              <form onSubmit={handleSubmit} autoComplete="off" noValidate>
                 <h3 className="checklist-section-title">Monthly inspection checklist</h3>
                 <p className="checklist-section-subtitle">
                   All monthly maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual.
                 </p>
-                
+
                 {checklistData.map((group, groupIndex) => (
                   <div key={group.id} className="equipment-table" style={{ marginBottom: groupIndex < checklistData.length - 1 ? '24px' : '0' }}>
                     <div className="equipment-header equipment-header-monthly" style={{ gridTemplateColumns: '1fr 120px' }}>
@@ -923,6 +933,12 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                   </div>
                 </div>
 
+            </div>
+
+            {/* CARD 3: DECLARATION & SIGNATURE */}
+            <div className="checklist-form-card" style={{ marginTop: "20px" }}>
+                <h3 className="checklist-section-title">Declaration</h3>
+
                 {template?.declarationText && (
                   <div className={clsx("declaration-checkbox", fieldErrors.declaration && "has-error")}>
                     <input
@@ -944,12 +960,26 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                   </div>
                 )}
 
+                <div style={{ marginTop: "20px" }}>
+                  <label className="checklist-label">Signature</label>
+                  <div style={{ marginTop: "8px" }}>
+                    <SignaturePad
+                      ref={signatureRef}
+                      onChange={(data) => {
+                        setSignatureData(data);
+                        if (data) setFieldErrors(prev => ({ ...prev, signature: false }));
+                      }}
+                      hasError={fieldErrors.signature}
+                    />
+                  </div>
+                </div>
+
                 {errorMsg && <p className="error-message">{errorMsg}</p>}
                 <button type="submit" className="checklist-submit" disabled={submitting}>
                   {submitting ? "Submitting..." : "Submit maintenance"}
                 </button>
-              </form>
             </div>
+            </form>
           </div>
         </div>
 

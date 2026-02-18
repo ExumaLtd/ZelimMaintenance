@@ -12,6 +12,7 @@ import ImageUploader from '../../../components/image-uploader';
 import VoiceInput from '../../../components/voice-input';
 import DatePicker from '../../../components/date-picker';
 import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
+import SignaturePad from '../../../components/signature-pad';
 import { useAutoSave } from '../../../hooks/use-auto-save';
 import { fetchFormData } from '@/lib/data-fetching';
 import { getClientSession } from '../../../lib/session';
@@ -77,6 +78,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
   const engineerFieldRef = useRef(null);
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
+  const signatureRef = useRef(null);
   const card2Ref = useRef(null);
   const hasLoadedDraftRef = useRef(false);
   const hasSubmittedRef = useRef(false);
@@ -86,6 +88,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
   const [today, setToday] = useState("");
   const [maintenanceDate, setMaintenanceDate] = useState(new Date().toISOString().split("T")[0]);
   const [declarationChecked, setDeclarationChecked] = useState(false);
+  const [signatureData, setSignatureData] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({
     company: false,
     location: false,
@@ -94,6 +97,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
     engineerPhone: false,
     photographImages: false,
     declaration: false,
+    signature: false,
   });
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -605,8 +609,15 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
 
     // Declaration must be checked
     if (!declarationChecked) {
-      setErrorMsg("Please confirm the declaration before submitting.");
+      setErrorMsg("Please accept the declaration before submitting.");
       setFieldErrors(prev => ({ ...prev, declaration: true }));
+      return;
+    }
+
+    // Signature must be provided
+    if (!signatureData) {
+      setErrorMsg("Please sign before submitting.");
+      setFieldErrors(prev => ({ ...prev, signature: true }));
       return;
     }
 
@@ -677,12 +688,13 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
       checklist_template_id: template?.id,
       serial_number: unit?.serial_number,
       declaration_text: template?.declarationText || "",
-      answers: (template?.questionsData || []).map((q, i) => {
+      signature: signatureData,
+      answers: (template?.questionsData || []).map((_, i) => {
         const questionKey = `q${i + 1}`;
         return {
           question: questionKey,
           answer: answers[questionKey] || "",
-          images: (questionImages[questionKey] || []).map(img => img.url)
+          images: (questionImages[questionKey] || []).map(img => ({ url: img.url, fileType: img.fileType }))
         };
       }),
     };
@@ -938,9 +950,9 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
               </div>
             </div>
 
+            <form onSubmit={handleSubmit} autoComplete="off" noValidate style={{ width: "100%", display: "block", margin: 0, padding: 0 }}>
             {/* CARD 2: QUESTIONS (Multi-step) */}
             <div ref={card2Ref} className="checklist-form-card" style={{ marginTop: "20px" }}>
-              <form onSubmit={handleSubmit} autoComplete="off" noValidate>
                 {currentStep === 1 && (
                   <>
                     <h3 className="checklist-section-title">Annual maintenance</h3>
@@ -1017,45 +1029,66 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
                   );
                 })}
 
-                {errorMsg && <p className="error-message">{errorMsg}</p>}
-                
-                {currentStep < sections.length ? (
-                  <button 
+                {currentStep < sections.length && errorMsg && <p className="error-message">{errorMsg}</p>}
+
+                {currentStep < sections.length && (
+                  <button
                     type="button"
                     className="checklist-submit"
                     onClick={handleContinueToNextStep}
                   >
                     Continue
                   </button>
-                ) : (
-                  <>
-                    {template?.declarationText && (
-                      <div className={clsx("declaration-checkbox", fieldErrors.declaration && "has-error")}>
-                        <input
-                          type="checkbox"
-                          id="declaration-check"
-                          checked={declarationChecked}
-                          onChange={(e) => {
-                            setDeclarationChecked(e.target.checked);
-                            if (e.target.checked) {
-                              setFieldErrors(prev => ({ ...prev, declaration: false }));
-                              setErrorMsg("");
-                            }
-                          }}
-                        />
-                        <label htmlFor="declaration-check" className="declaration-checkmark" />
-                        <span className="declaration-text">
-                          {template.declarationText}
-                        </span>
-                      </div>
-                    )}
-                    <button type="submit" className="checklist-submit" disabled={submitting}>
-                      {submitting ? "Submitting..." : "Submit maintenance"}
-                    </button>
-                  </>
                 )}
-              </form>
             </div>
+
+            {/* CARD 3: DECLARATION & SIGNATURE */}
+            {currentStep === sections.length && (
+              <div className="checklist-form-card" style={{ marginTop: "20px" }}>
+                <h3 className="checklist-section-title">Declaration</h3>
+
+                {template?.declarationText && (
+                  <div className={clsx("declaration-checkbox", fieldErrors.declaration && "has-error")}>
+                    <input
+                      type="checkbox"
+                      id="declaration-check"
+                      checked={declarationChecked}
+                      onChange={(e) => {
+                        setDeclarationChecked(e.target.checked);
+                        if (e.target.checked) {
+                          setFieldErrors(prev => ({ ...prev, declaration: false }));
+                          setErrorMsg("");
+                        }
+                      }}
+                    />
+                    <label htmlFor="declaration-check" className="declaration-checkmark" />
+                    <span className="declaration-text">
+                      {template.declarationText}
+                    </span>
+                  </div>
+                )}
+
+                <div style={{ marginTop: "20px" }}>
+                  <label className="checklist-label">Signature</label>
+                  <div style={{ marginTop: "8px" }}>
+                    <SignaturePad
+                      ref={signatureRef}
+                      onChange={(data) => {
+                        setSignatureData(data);
+                        if (data) setFieldErrors(prev => ({ ...prev, signature: false }));
+                      }}
+                      hasError={fieldErrors.signature}
+                    />
+                  </div>
+                </div>
+
+                {errorMsg && <p className="error-message">{errorMsg}</p>}
+                <button type="submit" className="checklist-submit" disabled={submitting}>
+                  {submitting ? "Submitting..." : "Submit maintenance"}
+                </button>
+              </div>
+            )}
+            </form>
           </div>
         </div>
 

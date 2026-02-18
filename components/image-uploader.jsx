@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Camera, Loader2, AlertCircle, X } from 'lucide-react';
+import { Camera, Loader2, AlertCircle, X, FileText } from 'lucide-react';
 
 /**
  * ImageUploader Component
@@ -142,13 +142,12 @@ export default function ImageUploader({
     // Determine resource type based on file
     const isPDF = file.type === 'application/pdf';
     const isVideo = file.type.startsWith('video/');
-    
+
     let uploadUrl;
-    if (isPDF) {
-      uploadUrl = 'https://api.cloudinary.com/v1_1/zelimmaintenanceportal/raw/upload';
-    } else if (isVideo) {
+    if (isVideo) {
       uploadUrl = 'https://api.cloudinary.com/v1_1/zelimmaintenanceportal/video/upload';
     } else {
+      // Both images and PDFs use the image endpoint — PDFs support pg_1 thumbnail transformation
       uploadUrl = 'https://api.cloudinary.com/v1_1/zelimmaintenanceportal/image/upload';
     }
 
