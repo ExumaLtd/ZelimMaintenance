@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Camera, Loader2, AlertCircle, X, FileText } from 'lucide-react';
+import { Camera, Loader2, AlertCircle, X } from 'lucide-react';
 
 /**
  * ImageUploader Component
@@ -355,31 +355,6 @@ export default function ImageUploader({
           to {
             transform: rotate(360deg);
           }
-        }
-
-        .thumbnail-pdf {
-          width: 100%;
-          height: 100%;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 4px;
-          background-color: #1e3a42;
-          color: #00FFF6;
-          padding: 4px;
-          box-sizing: border-box;
-        }
-
-        .thumbnail-pdf-name {
-          font-size: 9px;
-          font-family: 'Montserrat', sans-serif;
-          color: #a8bfc3;
-          text-align: center;
-          word-break: break-all;
-          line-height: 1.2;
-          max-height: 28px;
-          overflow: hidden;
         }
 
         .thumbnail-remove {

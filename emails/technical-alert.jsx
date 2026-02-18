@@ -607,19 +607,6 @@ const imageLink = {
   padding: '0 5px 10px 5px',
 };
 
-const docLinkStyle = {
-  display: 'inline-block',
-  padding: '8px 14px',
-  margin: '5px 5px 5px 0',
-  backgroundColor: '#f3f6f5',
-  borderRadius: '6px',
-  fontSize: '14px',
-  fontWeight: '600',
-  color: '#152a31',
-  textDecoration: 'none',
-  border: '1px solid #dde8e6',
-};
-
 const imageThumbnail = {
   width: '100%',
   borderRadius: '8px',

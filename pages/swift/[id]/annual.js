@@ -11,7 +11,7 @@ import { getCompanyLogoUrl } from '../../../utils/get-company-logo';
 import ImageUploader from '../../../components/image-uploader';
 import VoiceInput from '../../../components/voice-input';
 import DatePicker from '../../../components/date-picker';
-import { ChevronDown, ChevronUp, Calendar } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import SignaturePad from '../../../components/signature-pad';
 import { useAutoSave } from '../../../hooks/use-auto-save';
 import { fetchFormData } from '@/lib/data-fetching';
@@ -509,8 +509,8 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
     if (isDraft) return;
 
     const options = {
-      enableHighAccuracy: true,
-      timeout: 15000,
+      enableHighAccuracy: false,
+      timeout: 8000,
       maximumAge: 0
     };
 

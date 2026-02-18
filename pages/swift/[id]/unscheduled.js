@@ -290,8 +290,8 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
     if (isDraft) return;
 
     const options = {
-      enableHighAccuracy: true,
-      timeout: 15000,
+      enableHighAccuracy: false,
+      timeout: 8000,
       maximumAge: 0
     };
 
