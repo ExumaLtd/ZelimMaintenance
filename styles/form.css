@@ -523,13 +523,6 @@
   margin-top: 8px;
 }
 
-/* Signature field: constrain to 2/3 width on desktop (matching textarea-wrapper width) */
-@media (min-width: 992px) {
-  .form-scope .signature-field-wrapper {
-    max-width: 66.67%;
-  }
-}
-
 /* Desktop: Side-by-side layout for textarea + uploader */
 @media (min-width: 992px) {
   .form-scope .question-with-upload {
@@ -1851,4 +1844,10 @@
 
 .form-scope .declaration-checkbox.has-error .declaration-checkmark {
   border-color: rgb(255, 77, 77) !important;
+}
+
+@media (max-width: 767px) {
+  .form-scope .declaration-checkbox {
+    margin-top: 20px;
+  }
 }

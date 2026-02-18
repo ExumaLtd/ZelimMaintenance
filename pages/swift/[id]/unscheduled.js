@@ -858,18 +858,18 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                     </div>
                   )}
 
-                  <div className="signature-field-wrapper">
-                  <label className="checklist-label" style={{ marginTop: "20px" }}>Signature</label>
-                  <div style={{ marginTop: "8px" }}>
-                    <SignaturePad
-                      ref={signatureRef}
-                      onChange={(data) => {
-                        setSignatureData(data);
-                        if (data) setFieldErrors(prev => ({ ...prev, signature: false }));
-                      }}
-                      hasError={fieldErrors.signature}
-                    />
-                  </div>
+                  <div style={{ marginTop: "20px" }}>
+                    <label className="checklist-label">Signature</label>
+                    <div style={{ marginTop: "8px" }}>
+                      <SignaturePad
+                        ref={signatureRef}
+                        onChange={(data) => {
+                          setSignatureData(data);
+                          if (data) setFieldErrors(prev => ({ ...prev, signature: false }));
+                        }}
+                        hasError={fieldErrors.signature}
+                      />
+                    </div>
                   </div>
 
                 {errorMsg && <p className="error-message">{errorMsg}</p>}

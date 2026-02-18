@@ -157,7 +157,7 @@ const SignaturePad = forwardRef(function SignaturePad({ onChange, hasError }, re
         .signature-canvas-area {
           position: relative;
           width: 100%;
-          height: 132px;
+          height: 158px;
         }
 
         @media (min-width: 992px) {
