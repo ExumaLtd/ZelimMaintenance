@@ -65,45 +65,55 @@ export default function Home() {
 
   const resolveAndNavigate = async (code) => {
     abortControllerRef.current = new AbortController();
-    
+    let timedOut = false;
+    const timeoutId = setTimeout(() => {
+      timedOut = true;
+      abortControllerRef.current.abort();
+    }, 8000);
+
     try {
       const res = await fetch(`/api/swift-resolve-pin?pin=${encodeURIComponent(code)}`, {
         signal: abortControllerRef.current.signal
       });
-      
+      clearTimeout(timeoutId);
+
       if (res.status === 429) {
         const data = await res.json();
         setRateLimitCountdown(data.retryAfter ?? 300);
         return { rateLimited: true };
       }
 
-      if (!res.ok) return null;
+      if (!res.ok) return { serverError: true };
 
       const data = await res.json();
-      
+
       if (data?.publicToken && data?.accessType) {
         // Create session
         const sessionRes = await fetch('/api/create-session', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    publicToken: data.publicToken,
-    accessType: data.accessType,
-    accessPin: code
-  }),
-  signal: abortControllerRef.current.signal
-});
-        
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            publicToken: data.publicToken,
+            accessType: data.accessType,
+            accessPin: code
+          }),
+          signal: abortControllerRef.current.signal
+        });
+
         if (sessionRes.ok) {
           return { success: true };
         }
       }
-      
+
       return null;
     } catch (err) {
-      if (err.name === 'AbortError') return null;
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        if (timedOut) return { serverError: true };
+        return null;
+      }
       console.error('PIN resolution error:', err);
-      return null;
+      return { serverError: true };
     }
   };
 
@@ -128,6 +138,9 @@ export default function Home() {
     if (data?.success) {
       window.location.href = '/portal/swift';
     } else if (data?.rateLimited) {
+      setIsSubmitting(false);
+    } else if (data?.serverError) {
+      setError('Service unavailable. Please contact Zelim.');
       setIsSubmitting(false);
     } else if (isManualSubmit) {
       setError('Invalid access code.');
