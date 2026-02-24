@@ -13,34 +13,39 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  // Generate a random session ID
-  const sessionId = generateSessionId();
+  try {
+    // Generate a random session ID
+    const sessionId = generateSessionId();
 
-  // Store session data in cookie (encrypted)
-  const sessionData = {
-    id: sessionId,
-    token: publicToken,
-    access: accessType,
-    pin: accessPin, // NEW - stores the actual PIN used (e.g., "SWI005" or "CREW005")
-    created: Date.now(),
-    expires: Date.now() + (8 * 60 * 60 * 1000) // 8 hours
-  };
+    // Store session data in cookie (encrypted)
+    const sessionData = {
+      id: sessionId,
+      token: publicToken,
+      access: accessType,
+      pin: accessPin,
+      created: Date.now(),
+      expires: Date.now() + (8 * 60 * 60 * 1000) // 8 hours
+    };
 
-  // Encode and sign session data
-  const encodedSession = encodeSession(sessionData);
+    // Encode and sign session data
+    const encodedSession = encodeSession(sessionData);
 
-  // Set HTTP-only cookie
-  const cookie = serialize('portal_session', encodedSession, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 8, // 8 hours
-    path: '/'
-  });
+    // Set HTTP-only cookie
+    const cookie = serialize('portal_session', encodedSession, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 8, // 8 hours
+      path: '/'
+    });
 
-  res.setHeader('Set-Cookie', cookie);
-  
-  return res.status(200).json({ success: true });
+    res.setHeader('Set-Cookie', cookie);
+
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    console.error('Session creation error:', err);
+    return res.status(500).json({ error: 'Failed to create session' });
+  }
 }
 
 function generateSessionId() {

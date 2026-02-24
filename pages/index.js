@@ -3,7 +3,6 @@ import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useRouter } from 'next/router';
 
 export default function Home() {
   const [accessCode, setAccessCode] = useState('');
@@ -28,7 +27,6 @@ export default function Home() {
     return `${s} second${s !== 1 ? 's' : ''}`;
   };
 
-  const router = useRouter();
   const scannerRef = useRef(null);
   const hasNavigatedRef = useRef(false);
   const abortControllerRef = useRef(null);
@@ -164,25 +162,16 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
   setShowScanner(false);
 
   // Extract code from any format (URL or plain code)
-  let code;
-  if (decodedText.startsWith('http://') || decodedText.startsWith('https://')) {
-    // Extract code from URL path
-    code = decodedText.split('/').filter(Boolean).pop();
-  } else if (decodedText.includes('/')) {
-    // Handle path-like strings
-    code = decodedText.split('/').filter(Boolean).pop();
-  } else {
-    // Plain code
-    code = decodedText;
-  }
+  const code = decodedText.includes('/') ? decodedText.split('/').filter(Boolean).pop() : decodedText;
 
   // Use resolveAndNavigate to properly create session
   const data = await resolveAndNavigate(code);
   
   if (data?.success) {
     window.location.href = '/portal/swift';
+  } else if (data?.serverError) {
+    setError('Service unavailable. Please contact Zelim.');
   } else {
-    // Show error if QR code was invalid
     setError('Invalid QR code.');
   }
 };
@@ -217,7 +206,7 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
 
       } catch (err) {
         console.error("Scanner start error:", err);
-        alert(`Camera access error: ${err.message || 'Unable to access camera'}`);
+        setError(`Camera access error: ${err.message || 'Unable to access camera'}`);
         setShowScanner(false);
       }
     }, 50);
@@ -348,7 +337,6 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
             <div className="scanner-main">
               <div id="reader" />
             </div>
-
             <footer className="scanner-footer">
               <div className="logo-link">
                 <Image 
