@@ -448,6 +448,7 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }) 
 
         if (audioBlob.size === 0) {
           console.error('❌ Audio blob is empty');
+          if (onError) onError('No audio captured. Please try again.');
           audioChunksRef.current = [];
           transcriptRef.current = '';
           cleanupStreams();

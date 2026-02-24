@@ -134,10 +134,21 @@ export default function ImageUploader({
   };
 
   const uploadToCloudinary = async (file) => {
+    // Get server-signed upload parameters — keeps API secret off the client
+    const signRes = await fetch('/api/cloudinary-sign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ folder: getFolderPath() }),
+    });
+    if (!signRes.ok) throw new Error('Failed to get upload signature');
+    const { signature, timestamp, apiKey, folder } = await signRes.json();
+
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', 'maintenance-uploads');
-    formData.append('folder', getFolderPath());
+    formData.append('api_key', apiKey);
+    formData.append('timestamp', timestamp);
+    formData.append('signature', signature);
+    formData.append('folder', folder);
 
     // Determine resource type based on file
     const isPDF = file.type === 'application/pdf';
