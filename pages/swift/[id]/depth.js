@@ -4,7 +4,8 @@ import Head from "next/head";
 import Image from "next/image";
 import { z } from "zod";
 import clsx from "clsx";
-import { getCompanyLogoUrl } from '../../../utils/get-company-logo';
+import { getCompanyLogoUrl, getClientLogo } from '../../../utils/get-company-logo';
+import { autoGrow } from '../../../utils/form-utils';
 import ImageUploader from '../../../components/image-uploader';
 import VoiceInput from '../../../components/voice-input';
 import DatePicker from '../../../components/date-picker';
@@ -22,38 +23,6 @@ const depthAdminSchema = z.object({
   engineerPhone: z.string().min(1, 'Please provide an engineer phone number.'),
 });
 
-const autoGrow = (e) => {
-  const el = e.target || e;
-  el.style.height = "78px";
-  el.style.height = el.scrollHeight + "px";
-};
-
-const getClientLogo = (companyName, serialNumber) => {
-  const logoMap = {
-    changi: {
-      serials: ["SWI001", "SWI002"],
-      nameMatch: "Changi",
-      src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg",
-    },
-    milford: {
-      serials: ["SWI003"],
-      nameMatch: "Milford Haven",
-      src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven_Logo(White).svg",
-    },
-    hatloy: {
-      serials: ["SWI010", "SWI011"],
-      nameMatch: "Hatloy",
-      src: "/client_logos/hatloy_maritime/HatloyMaritime_Logo(White).svg",
-    },
-  };
-
-  for (const client of Object.values(logoMap)) {
-    if (client.serials.includes(serialNumber) || companyName?.includes(client.nameMatch)) {
-      return { src: client.src, alt: `${companyName} Logo` };
-    }
-  }
-  return null;
-};
 
 // Define sections for multi-step flow
 const sections = [
@@ -1394,39 +1363,33 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 }
 
 export async function getServerSideProps({ params }) {
-  console.time('⏱️ TOTAL getServerSideProps');
   const token = params.id;
-  
+
   try {
-    console.time('⏱️ fetchFormData call');
     const data = await fetchFormData(token, '30-month depth');
-    console.timeEnd('⏱️ fetchFormData call');
-    
+
     if (data.notFound) {
       return { redirect: { destination: '/', permanent: false } };
     }
-    
-    console.time('⏱️ Building props');
+
     const equipment_checklist = data.template?.rawData?.equipment_checklist || [];
     const questions = data.template?.rawData?.questions || [];
-    
-    const props = {
-      unit: data.unit,
-      template: {
-        id: data.template?.id,
-        type: data.template?.type,
-        declarationText: data.template?.declarationText || "",
-        maintenanceChecklist: equipment_checklist,
-        questionsData: questions,
-        questions: questions.map(q => q.title),
+
+    return {
+      props: {
+        unit: data.unit,
+        template: {
+          id: data.template?.id,
+          type: data.template?.type,
+          declarationText: data.template?.declarationText || "",
+          maintenanceChecklist: equipment_checklist,
+          questionsData: questions,
+          questions: questions.map(q => q.title),
+        },
+        allCompanies: data.companies,
+        allEngineers: data.engineers,
       },
-      allCompanies: data.companies,
-      allEngineers: data.engineers,
     };
-    console.timeEnd('⏱️ Building props');
-    console.timeEnd('⏱️ TOTAL getServerSideProps');
-    
-    return { props };
   } catch (error) {
     console.error('Error loading depth form:', error);
     return { redirect: { destination: '/', permanent: false } };

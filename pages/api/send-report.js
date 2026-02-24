@@ -48,14 +48,6 @@ export default async function handler(req, res) {
       recordRef
     } = req.body;
 
-    // DEBUG: Log company data
-    console.log('=== COMPANY DEBUG ===');
-    console.log('company from req.body:', company);
-    console.log('technicalData:', JSON.stringify(technicalData, null, 2));
-    console.log('technicalData?.company:', technicalData?.company);
-    console.log('technicalData?.company_name:', technicalData?.company_name);
-    console.log('===================');
-
     // Helper function to find company name from various possible sources
     const getCompanyName = () => {
       const getValue = (val) => {
@@ -74,7 +66,6 @@ export default async function handler(req, res) {
     };
 
     const companyName = getCompanyName();
-    console.log('Final companyName:', companyName);
 
     // 2. Define constants and brand colors
     const ZELIM_GREEN = "#172F36"; 
@@ -92,7 +83,7 @@ export default async function handler(req, res) {
     }
 
     // 4. NOW create preview URLs using the initialized variables
-    const baseUrl = "https://maintenance.exuma.co.uk";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://maintenance.exuma.co.uk';
     const engineerPreviewUrl = `${baseUrl}/api/emails/preview-maintenance-report?engineerName=${encodeURIComponent(engineerName)}&serialNumber=${encodeURIComponent(serialNumber)}`;
     const internalPreviewUrl = `${baseUrl}/api/emails/preview-technical-alert?serialNumber=${encodeURIComponent(serialNumber)}&displayType=${encodeURIComponent(displayType)}`;
 
@@ -163,8 +154,6 @@ export default async function handler(req, res) {
       }
     ]);
 
-    // Success log for the terminal
-    console.log("RESEND BATCH SUCCESS:", data);
     return res.status(200).json(data);
 
   } catch (error) {

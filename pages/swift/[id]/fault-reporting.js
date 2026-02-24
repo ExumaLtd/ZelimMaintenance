@@ -4,7 +4,8 @@ import Head from "next/head";
 import Image from "next/image";
 import { z } from "zod";
 import clsx from "clsx";
-import { getCompanyLogoUrl } from '../../../utils/get-company-logo';
+import { getCompanyLogoUrl, getClientLogo } from '../../../utils/get-company-logo';
+import { autoGrow } from '../../../utils/form-utils';
 import ImageUploader from '../../../components/image-uploader';
 import VoiceInput from '../../../components/voice-input';
 import DatePicker from '../../../components/date-picker';
@@ -12,6 +13,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import SignaturePad from '../../../components/signature-pad';
 import { useAutoSave } from '../../../hooks/use-auto-save';
 import { getClientSession } from '../../../lib/session';
+import { fetchFormData } from '@/lib/data-fetching';
 
 const faultReportingSchema = z.object({
   company: z.string().min(1, 'Please select a maintenance company.'),
@@ -23,38 +25,6 @@ const faultReportingSchema = z.object({
   signature: z.string().min(1, 'Please sign before submitting.'),
 });
 
-const autoGrow = (e) => {
-  const el = e.target || e;
-  el.style.height = "78px";
-  el.style.height = el.scrollHeight + "px";
-};
-
-const getClientLogo = (companyName, serialNumber) => {
-  const logoMap = {
-    changi: {
-      serials: ["SWI001", "SWI002"],
-      nameMatch: "Changi",
-      src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg",
-    },
-    milford: {
-      serials: ["SWI003"],
-      nameMatch: "Milford Haven",
-      src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven_Logo(White).svg",
-    },
-    hatloy: {
-      serials: ["SWI010", "SWI011"],
-      nameMatch: "Hatloy",
-      src: "/client_logos/hatloy_maritime/HatloyMaritime_Logo(White).svg",
-    },
-  };
-
-  for (const client of Object.values(logoMap)) {
-    if (client.serials.includes(serialNumber) || companyName?.includes(client.nameMatch)) {
-      return { src: client.src, alt: `${companyName} Logo` };
-    }
-  }
-  return null;
-};
 
 export default function FaultReporting({ unit, template, allCompanies = [], allEngineers = [] }) {
   const router = useRouter();
@@ -889,78 +859,22 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
 export async function getServerSideProps({ params }) {
   const token = params.id;
   try {
-    const apiKey = process.env.AIRTABLE_API_KEY;
-    const baseId = process.env.AIRTABLE_BASE_ID;
-    const tableName = process.env.AIRTABLE_SWIFT_TABLE || "swift_units";
+    const data = await fetchFormData(token, 'Fault report');
 
-    if (!apiKey || !baseId) throw new Error("Missing Airtable Env");
-
-    const headers = { Authorization: `Bearer ${apiKey}` };
-    const unitFormula = encodeURIComponent(`{public_token}='${token}'`);
-    const templateFormula = encodeURIComponent(`{template_name}='Fault report'`);
-
-    const urls = [
-      `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=${unitFormula}`,
-      `https://api.airtable.com/v0/${baseId}/checklist_templates?filterByFormula=${templateFormula}`,
-      `https://api.airtable.com/v0/${baseId}/maintenance_companies`,
-      `https://api.airtable.com/v0/${baseId}/engineers`,
-    ];
-
-    const responses = await Promise.all(urls.map((url) => fetch(url, { headers })));
-    const results = await Promise.all(responses.map((res) => res.json()));
-    const [unitData, templateData, companyData, engineerData] = results;
-
-    if (!unitData.records || unitData.records.length === 0) return { notFound: true };
-
-    const unitRecord = unitData.records[0];
-    const companyLookup = {};
-    if (companyData.records) {
-      companyData.records.forEach((r) => {
-        if (r.fields.company_name) companyLookup[r.id] = r.fields.company_name;
-      });
+    if (data.notFound) {
+      return { redirect: { destination: '/', permanent: false } };
     }
-
-    let parsedJson = {};
-    try {
-      if (templateData.records?.[0]?.fields.questions_json) {
-        parsedJson = JSON.parse(templateData.records[0].fields.questions_json);
-      }
-    } catch (e) {
-      console.error("Failed to parse questions_json:", e);
-    }
-
-    // Extract declaration_text from template record
-    const declarationText = templateData.records?.[0]?.fields.declaration_text || "";
 
     return {
       props: {
-        unit: {
-          serial_number: unitRecord.fields.unit_name || unitRecord.fields.serial_number || "Unit",
-          company: unitRecord.fields.company || "",
-          record_id: unitRecord.id,
-          public_token: unitRecord.fields.public_token || token,
-        },
-        template: {
-          id: templateData.records?.[0]?.id || "",
-          declarationText,
-          questionsData: Array.isArray(parsedJson) ? parsedJson : (parsedJson.questions || []),
-          questions: Array.isArray(parsedJson) ? parsedJson.map(q => q.title) : (parsedJson.questions?.map(q => q.title) || []),
-        },
-        allCompanies: Object.values(companyLookup).filter(Boolean),
-        allEngineers:
-          engineerData.records
-            ?.map((r) => ({
-              name: r.fields.engineer_name,
-              email: r.fields.email || "",
-              phone: r.fields.phone || "",
-              companyName:
-                r.fields["company"] && r.fields["company"][0] ? companyLookup[r.fields["company"][0]] : "",
-            }))
-            .filter((e) => e.name) || [],
+        unit: data.unit,
+        template: data.template,
+        allCompanies: data.companies,
+        allEngineers: data.engineers,
       },
     };
   } catch (err) {
-    console.error("getServerSideProps error:", err);
-    return { notFound: true };
+    console.error('Error loading fault report form:', err);
+    return { redirect: { destination: '/', permanent: false } };
   }
 }

@@ -42,6 +42,40 @@ export const getCompanyLogoUrl = (companyName, serialNumber) => {
 };
 
 /**
+ * Get the client logo for the form UI (white SVG version, for display on dark backgrounds)
+ *
+ * @param {string} companyName - The company name from Airtable
+ * @param {string} serialNumber - The unit serial number (e.g., "SWI001")
+ * @returns {{ src: string, alt: string }|null}
+ */
+export const getClientLogo = (companyName, serialNumber) => {
+  const logoMap = {
+    changi: {
+      serials: ["SWI001", "SWI002"],
+      nameMatch: "Changi",
+      src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg",
+    },
+    milford: {
+      serials: ["SWI003"],
+      nameMatch: "Milford Haven",
+      src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven_Logo(White).svg",
+    },
+    hatloy: {
+      serials: ["SWI010", "SWI011"],
+      nameMatch: "Hatloy",
+      src: "/client_logos/hatloy_maritime/HatloyMaritime_Logo(White).svg",
+    },
+  };
+
+  for (const client of Object.values(logoMap)) {
+    if (client.serials.includes(serialNumber) || companyName?.includes(client.nameMatch)) {
+      return { src: client.src, alt: `${companyName} Logo` };
+    }
+  }
+  return null;
+};
+
+/**
  * Alternative: Get just the path (if you're already constructing the base URL elsewhere)
  */
 export const getCompanyLogoPath = (companyName, serialNumber) => {

@@ -4,7 +4,8 @@ import Head from "next/head";
 import Image from "next/image";
 import { z } from "zod";
 import clsx from "clsx";
-import { getCompanyLogoUrl } from '../../../utils/get-company-logo';
+import { getCompanyLogoUrl, getClientLogo } from '../../../utils/get-company-logo';
+import { autoGrow } from '../../../utils/form-utils';
 import ImageUploader from '../../../components/image-uploader';
 import VoiceInput from '../../../components/voice-input';
 import DatePicker from '../../../components/date-picker';
@@ -24,38 +25,6 @@ const monthlySchema = z.object({
   signature: z.string().min(1, 'Please sign before submitting.'),
 });
 
-const autoGrow = (e) => {
-  const el = e.target || e;
-  el.style.height = "78px";
-  el.style.height = el.scrollHeight + "px";
-};
-
-const getClientLogo = (companyName, serialNumber) => {
-  const logoMap = {
-    changi: {
-      serials: ["SWI001", "SWI002"],
-      nameMatch: "Changi",
-      src: "/client_logos/changi_airport/ChangiAirport_Logo(White).svg",
-    },
-    milford: {
-      serials: ["SWI003"],
-      nameMatch: "Milford Haven",
-      src: "/client_logos/port_of_milford_haven/PortOfMilfordHaven_Logo(White).svg",
-    },
-    hatloy: {
-      serials: ["SWI010", "SWI011"],
-      nameMatch: "Hatloy",
-      src: "/client_logos/hatloy_maritime/HatloyMaritime_Logo(White).svg",
-    },
-  };
-
-  for (const client of Object.values(logoMap)) {
-    if (client.serials.includes(serialNumber) || companyName?.includes(client.nameMatch)) {
-      return { src: client.src, alt: `${companyName} Logo` };
-    }
-  }
-  return null;
-};
 
 export default function Monthly({ unit, template, allCompanies = [], allEngineers = [] }) {
   const router = useRouter();

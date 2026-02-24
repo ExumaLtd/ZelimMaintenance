@@ -1,8 +1,21 @@
 // pages/api/save-draft.js
 import Airtable from 'airtable';
 import { getSession } from '../../lib/session';
+import { Redis } from '@upstash/redis';
+import { Ratelimit } from '@upstash/ratelimit';
+import { esc } from '../../utils/api-utils';
 
-const esc = (str) => String(str ?? '').replace(/'/g, "''");
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
+
+// 120 saves per hour per IP — supports frequent auto-saves
+const ratelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(120, '1 h'),
+  prefix: 'rl:draft-save',
+});
 
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
   process.env.AIRTABLE_BASE_ID
@@ -14,6 +27,10 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ?? '127.0.0.1';
+  const { success } = await ratelimit.limit(ip);
+  if (!success) return res.status(429).json({ error: 'Too many requests. Please try again later.' });
 
   try {
     // Get session to extract PIN
@@ -59,10 +76,6 @@ export default async function handler(req, res) {
       // Update the most recent draft for this unit + PIN
       const draft = existingDrafts[0];
       const draftId = draft.id;
-      const currentEmail = draft.get('engineer_email');
-      console.log('Updating existing draft:', draftId);
-      console.log('Current email:', currentEmail);
-      
       const updateFields = {
         draft_data: draftDataString,
         last_updated: new Date().toISOString(),

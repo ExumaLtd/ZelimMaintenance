@@ -1,6 +1,7 @@
 import { getSession } from '../../lib/session';
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
+import { esc } from '../../utils/api-utils';
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
@@ -21,9 +22,6 @@ export const config = {
     },
   },
 };
-
-// Escape single quotes in values interpolated into Airtable filterByFormula strings
-const esc = (str) => String(str ?? '').replace(/'/g, "''");
 
 // Generate a human-readable record reference
 // Format: RI/SWI005/A/060226/1

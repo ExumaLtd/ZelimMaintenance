@@ -1,8 +1,20 @@
 // pages/api/get-draft.js
 import Airtable from 'airtable';
 import { getSession } from '../../lib/session';
+import { Redis } from '@upstash/redis';
+import { Ratelimit } from '@upstash/ratelimit';
+import { esc } from '../../utils/api-utils';
 
-const esc = (str) => String(str ?? '').replace(/'/g, "''");
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
+
+const ratelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(60, '1 h'),
+  prefix: 'rl:draft-read',
+});
 
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
   process.env.AIRTABLE_BASE_ID
@@ -12,6 +24,10 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ?? '127.0.0.1';
+  const { success } = await ratelimit.limit(ip);
+  if (!success) return res.status(429).json({ error: 'Too many requests. Please try again later.' });
 
   try {
     // Get session to extract PIN

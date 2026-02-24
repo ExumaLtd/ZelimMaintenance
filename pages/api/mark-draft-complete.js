@@ -1,7 +1,20 @@
 import Airtable from 'airtable';
 import { getSession } from '../../lib/session';
+import { Redis } from '@upstash/redis';
+import { Ratelimit } from '@upstash/ratelimit';
+import { esc } from '../../utils/api-utils';
 
-const esc = (str) => String(str ?? '').replace(/'/g, "''");
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
+
+// 30 completions per hour per IP
+const ratelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(30, '1 h'),
+  prefix: 'rl:draft-complete',
+});
 
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
   process.env.AIRTABLE_BASE_ID
@@ -11,6 +24,10 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ?? '127.0.0.1';
+  const { success } = await ratelimit.limit(ip);
+  if (!success) return res.status(429).json({ error: 'Too many requests. Please try again later.' });
 
   try {
     // Get session to extract PIN
@@ -23,19 +40,11 @@ export default async function handler(req, res) {
 
     const { unitId, maintenanceType, engineerEmail } = req.body;
 
-    console.log('=== MARK DRAFT COMPLETE DEBUG ===');
-    console.log('unitId:', unitId);
-    console.log('maintenanceType:', maintenanceType);
-    console.log('engineerEmail:', engineerEmail);
-    console.log('accessPin:', accessPin);
-
     if (!unitId || !maintenanceType) {
-      console.log('❌ Missing required fields');
       return res.status(400).json({ error: 'Missing required parameters' });
     }
 
     // Find the draft for this unit + maintenance type + access PIN
-    console.log('Searching for draft to mark complete...');
     const allDrafts = await base('maintenance_drafts')
       .select({
         filterByFormula: `AND(
@@ -48,33 +57,25 @@ export default async function handler(req, res) {
       })
       .all();
 
-    console.log(`Found ${allDrafts.length} active drafts for ${maintenanceType} + PIN ${accessPin}`);
-
     // Filter in JavaScript to match unit_id (Link field returns array)
     const matchingDrafts = allDrafts.filter(d => {
       const linkedRecords = d.get('unit_id');
       return linkedRecords && linkedRecords.includes(unitId);
     });
 
-    console.log(`Matching drafts for unit ${unitId} + PIN ${accessPin}: ${matchingDrafts.length}`);
-
     if (matchingDrafts.length === 0) {
-      console.log('No draft found to mark complete for this access PIN');
       return res.status(404).json({ error: 'No draft found' });
     }
 
     // Mark the most recent draft as completed
     const draftToComplete = matchingDrafts[0];
     const draftId = draftToComplete.id;
-    
-    console.log(`Marking draft ${draftId} as complete...`);
-    
+
     await base('maintenance_drafts').update(draftId, {
       completed: true,
     });
 
-    console.log('✅ Draft marked as complete');
-    return res.status(200).json({ 
+    return res.status(200).json({
       success: true, 
       draftId: draftId 
     });
