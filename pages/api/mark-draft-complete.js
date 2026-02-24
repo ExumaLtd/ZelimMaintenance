@@ -1,6 +1,8 @@
 import Airtable from 'airtable';
 import { getSession } from '../../lib/session';
 
+const esc = (str) => String(str ?? '').replace(/'/g, "''");
+
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
   process.env.AIRTABLE_BASE_ID
 );
@@ -37,7 +39,7 @@ export default async function handler(req, res) {
     const allDrafts = await base('maintenance_drafts')
       .select({
         filterByFormula: `AND(
-          {maintenance_type} = '${maintenanceType}',
+          {maintenance_type} = '${esc(maintenanceType)}',
           {access_pin_used} = '${accessPin}',
           NOT({completed})
         )`,

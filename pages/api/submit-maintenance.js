@@ -1,4 +1,18 @@
 import { getSession } from '../../lib/session';
+import { Redis } from '@upstash/redis';
+import { Ratelimit } from '@upstash/ratelimit';
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
+
+// 20 submissions per hour per IP
+const ratelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(20, '1 h'),
+  prefix: 'rl:submit',
+});
 
 export const config = {
   api: {
@@ -7,6 +21,9 @@ export const config = {
     },
   },
 };
+
+// Escape single quotes in values interpolated into Airtable filterByFormula strings
+const esc = (str) => String(str ?? '').replace(/'/g, "''");
 
 // Generate a human-readable record reference
 // Format: RI/SWI005/A/060226/1
@@ -34,7 +51,7 @@ async function generateRecordRef(serialNumber, maintenanceType, apiKey, baseId) 
   
   try {
     const formula = encodeURIComponent(
-      `AND({serial_number (from unit)}='${serialNumber}', {maintenance_type}='${maintenanceType}', DATESTR({date_of_maintenance})='${todayISO}')`
+      `AND({serial_number (from unit)}='${esc(serialNumber)}', {maintenance_type}='${esc(maintenanceType)}', DATESTR({date_of_maintenance})='${todayISO}')`
     );
     
     const countRes = await fetch(
@@ -60,6 +77,10 @@ async function generateRecordRef(serialNumber, maintenanceType, apiKey, baseId) 
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ?? '127.0.0.1';
+  const { success } = await ratelimit.limit(ip);
+  if (!success) return res.status(429).json({ error: 'Too many requests. Please try again later.' });
 
   // Get session to extract PIN
   const session = getSession(req);
@@ -98,10 +119,10 @@ export default async function handler(req, res) {
 
     // OPTIMIZATION 1: Run company and engineer lookups IN PARALLEL
     const [compRes, engRes] = await Promise.all([
-      fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies?filterByFormula={company_name}='${maintained_by}'&maxRecords=1`, {
+      fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies?filterByFormula={company_name}='${esc(maintained_by)}'&maxRecords=1`, {
         headers: { Authorization: `Bearer ${apiKey}` }
       }),
-      fetch(`https://api.airtable.com/v0/${baseId}/engineers?filterByFormula=${encodeURIComponent(`{engineer_name}="${engineer_name}"`)}&maxRecords=1`, {
+      fetch(`https://api.airtable.com/v0/${baseId}/engineers?filterByFormula=${encodeURIComponent(`{engineer_name}='${esc(engineer_name)}'`)}&maxRecords=1`, {
         headers: { Authorization: `Bearer ${apiKey}` }
       })
     ]);

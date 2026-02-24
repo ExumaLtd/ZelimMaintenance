@@ -1,6 +1,20 @@
 import { Resend } from 'resend';
 import { MaintenanceReportEmail } from '../../emails/maintenance-report';
 import { TechnicalAlertEmail } from '../../emails/technical-alert';
+import { Redis } from '@upstash/redis';
+import { Ratelimit } from '@upstash/ratelimit';
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
+
+// 10 email sends per hour per IP
+const ratelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(10, '1 h'),
+  prefix: 'rl:email',
+});
 
 // Cleans any quotation marks from your .env.local file automatically
 const apiKey = process.env.RESEND_API_KEY?.replace(/['"]+/g, '');
@@ -13,6 +27,10 @@ const addSpacesToCamelCase = (str) => {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
+
+  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ?? '127.0.0.1';
+  const { success } = await ratelimit.limit(ip);
+  if (!success) return res.status(429).json({ error: 'Too many requests. Please try again later.' });
 
   try {
     // 1. Extract variables FIRST
