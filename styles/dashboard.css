@@ -180,10 +180,12 @@
 .dashboard-scope .downloads-card h3,
 .dashboard-scope .maintenance-card h3 {
   color: #f7f7f7;
-  font-size: 20px;
-  font-weight: 600;
-  line-height: 26px;
   margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 26px;
+  font-family: var(--font-roboto-mono), 'Roboto Mono', monospace;
+  letter-spacing: 0.1em;
 }
 
 .dashboard-scope .description {
@@ -202,6 +204,7 @@
 .dashboard-scope .maintenance-card .start-btn,
 .dashboard-scope .maintenance-card .primary-btn {
   display: inline-flex;
+  align-self: flex-start;
   align-items: center;
   gap: 0.75rem;
   font-size: 0.875rem;
