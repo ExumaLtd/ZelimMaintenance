@@ -300,7 +300,7 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
               </p>
             </div>
 
-            <form onSubmit={handleFormSubmit}>
+            <form onSubmit={handleFormSubmit} className="landing-form">
               <div className="form-area">
                 <div className="form-stack">
                   <div className={`input-wrapper ${error || rateLimitCountdown > 0 ? 'has-error' : ''}`}>
@@ -317,7 +317,10 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
                   </div>
 
                   <button type="submit" className="arrowLink" disabled={isSubmitting}>
-                    <span className="left">{isSubmitting ? 'Verifying' : 'Enter portal'}</span>
+                    <span className="left">
+                      <span aria-hidden="true" className="left-sizer">Enter portal</span>
+                      {isSubmitting ? 'Verifying' : 'Enter portal'}
+                    </span>
                     <span className="right">
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
                         <path d="M10.1458 7.5L0 7.5L0 5.83333L10.1458 5.83333L5.47917 1.16667L6.66667 0L13.3333 6.66667L6.66667 13.3333L5.47917 12.1667L10.1458 7.5Z" fill="#172F36"/>

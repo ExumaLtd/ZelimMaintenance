@@ -162,6 +162,11 @@
    FORM
 ========================================= */
 
+.landing-scope .landing-form {
+  width: 100%;
+  max-width: 380px;
+}
+
 .landing-scope .form-stack {
   width: 100%;
   display: flex;
@@ -209,7 +214,6 @@
 .landing-scope .form-area {
   position: relative;
   width: 100%;
-  max-width: 380px;
 }
 
 .landing-scope .error-text {
@@ -241,6 +245,22 @@
   transition: background-color 0.5s, color 0.5s;
   background-color: transparent;
   cursor: pointer;
+}
+
+.landing-scope .arrowLink span.left {
+  position: relative;
+  display: inline-grid;
+}
+
+.landing-scope .arrowLink span.left-sizer {
+  visibility: hidden;
+  height: 0;
+  overflow: hidden;
+  grid-area: 1 / 1;
+}
+
+.landing-scope .arrowLink span.left > :not(.left-sizer) {
+  grid-area: 1 / 1;
 }
 
 .landing-scope .arrowLink:hover:not(:disabled) {
