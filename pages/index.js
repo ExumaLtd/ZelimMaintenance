@@ -296,7 +296,7 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
                 <span>portal</span>
               </h1>
               <p className="landing-subtitle">
-                For authorised persons carrying out official inspections and scheduled servicing.
+                For authorised persons carrying out official inspections and maintenance.
               </p>
             </div>
 
