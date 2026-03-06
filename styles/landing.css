@@ -248,7 +248,7 @@
 }
 
 .landing-scope .arrowLink span.left {
-  position: relative;
+  flex: 1;
   display: inline-grid;
 }
 
