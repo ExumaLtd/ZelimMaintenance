@@ -72,6 +72,14 @@
   height: auto;
   pointer-events: none;
   opacity: 1;
+  z-index: 0;
+  transform: scaleX(-1);
+}
+
+.landing-scope .landing-main,
+.landing-scope .landing-footer {
+  position: relative;
+  z-index: 1;
 }
 
 .landing-scope .landing-main {

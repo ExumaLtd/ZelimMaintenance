@@ -265,7 +265,7 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
         <div className="landing-hero">
           <div className="landing-hero-inner">
             <video
-              src="https://www.zelim.com/wp-content/uploads/2026/03/Zelim-MOB-detection-system.mp4"
+              src="/videos/zelim-hero.mp4"
               autoPlay
               muted
               loop
@@ -277,7 +277,7 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
 
         <div className="landing-content">
           <img
-            src="https://www.zelim.com/wp-content/themes/zelim/assets/svgs/interface/simple-title-text-right-pattern.svg"
+            src="/svgs/pattern-right.svg"
             alt=""
             aria-hidden="true"
             className="landing-pattern"
