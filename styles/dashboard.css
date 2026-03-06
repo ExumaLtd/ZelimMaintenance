@@ -336,6 +336,16 @@
    TABLET & MOBILE
 ========================================= */
 
+@media (max-width: 1200px) {
+  .dashboard-scope .maintenance-group-wrapper {
+    flex-direction: column !important;
+  }
+
+  .dashboard-scope .maintenance-card {
+    width: 100% !important;
+  }
+}
+
 @media (max-width: 900px) {
   .dashboard-scope .swift-main-layout-wrapper {
     padding: 0;
