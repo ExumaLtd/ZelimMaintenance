@@ -64,11 +64,11 @@
   overflow: hidden;
 }
 
-.landing-scope .landing-pattern {
+.landing-scope img.landing-pattern {
   position: absolute;
   top: 0.8125rem;
   right: 0;
-  width: clamp(6rem, 11vw, 13rem);
+  width: clamp(10rem, 18vw, 22rem);
   height: auto;
   pointer-events: none;
   opacity: 1;
@@ -135,7 +135,7 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 16px;
+  gap: 20px;
 }
 
 .landing-scope .input-wrapper {
