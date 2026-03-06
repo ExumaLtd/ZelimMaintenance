@@ -180,7 +180,7 @@
 .dashboard-scope .downloads-card h3,
 .dashboard-scope .maintenance-card h3 {
   color: #f7f7f7;
-  margin: 0 0 8px;
+  margin: 0 0 12px;
   font-size: 20px;
   font-weight: 400;
   line-height: 26px;
@@ -206,6 +206,7 @@
   display: inline-flex;
   align-self: flex-start;
   align-items: center;
+  max-width: 100%;
   gap: 0.75rem;
   font-size: 0.875rem;
   font-weight: 400;
@@ -241,7 +242,9 @@
 
 .dashboard-scope .maintenance-card .start-btn .left,
 .dashboard-scope .maintenance-card .primary-btn .left {
-  flex: none;
+  flex: 1;
+  min-width: 0;
+  white-space: normal;
 }
 
 .dashboard-scope .maintenance-card .start-btn .right,
