@@ -306,10 +306,6 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
                     }}
                     disabled={isSubmitting}
                   />
-                  {rateLimitCountdown > 0
-                    ? <p className="error-text">Too many failed attempts. Try again in {formatCountdown(rateLimitCountdown)}.</p>
-                    : error && <p className="error-text">{error}</p>
-                  }
                 </div>
 
                 <button type="submit" className="arrowLink" disabled={isSubmitting}>
@@ -321,6 +317,11 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
                   </span>
                 </button>
               </div>
+
+              {rateLimitCountdown > 0
+                ? <p className="error-text">Too many failed attempts. Try again in {formatCountdown(rateLimitCountdown)}.</p>
+                : error && <p className="error-text">{error}</p>
+              }
 
               <div className="qr-login-container">
                 <button type="button" className="qr-button" onClick={startScanner}>
