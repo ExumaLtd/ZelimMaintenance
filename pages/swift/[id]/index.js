@@ -325,7 +325,7 @@ export default function SwiftUnitPage({
                     >
                       <span className="left">
                         {maintenance.hasDraft
-                          ? (maintenance.title.includes("Report a fault") ? 'Continue fault reporting' : 'Continue maintenance')
+                          ? (maintenance.title.includes("Report a fault") ? 'Continue fault reporting' : 'Continue')
                           : (maintenance.title.includes("Report a fault") ? 'Report a fault' : 'Start maintenance')
                         }
                       </span>
