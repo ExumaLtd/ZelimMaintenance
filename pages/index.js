@@ -119,7 +119,7 @@ export default function Home() {
     if (e) e.preventDefault();
     if (isSubmitting) return;
 
-    const code = codeOverride || accessCode.trim();
+    const code = (codeOverride || accessCode.trim()).toUpperCase();
     if (!code) {
       setError('Please enter your access code.');
       return;

@@ -315,18 +315,25 @@ export default function SwiftUnitPage({
                       ))}
                     </h3>
                     <p className="description">{maintenance.description}</p>
-                    <Link 
+                    <Link
                       href={
-                        maintenance.hasDraft 
+                        maintenance.hasDraft
                           ? `${maintenance.href}?draft=true`
                           : maintenance.href
-                      } 
+                      }
                       className="start-btn"
                     >
-                      {maintenance.hasDraft 
-                        ? (maintenance.title.includes("Report a fault") ? 'Continue fault reporting' : 'Continue maintenance')
-                        : (maintenance.title.includes("Report a fault") ? 'Report a fault' : 'Start maintenance')
-                      }
+                      <span className="left">
+                        {maintenance.hasDraft
+                          ? (maintenance.title.includes("Report a fault") ? 'Continue fault reporting' : 'Continue maintenance')
+                          : (maintenance.title.includes("Report a fault") ? 'Report a fault' : 'Start maintenance')
+                        }
+                      </span>
+                      <span className="right">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                          <path d="M10.1458 7.5L0 7.5L0 5.83333L10.1458 5.83333L5.47917 1.16667L6.66667 0L13.3333 6.66667L6.66667 13.3333L5.47917 12.1667L10.1458 7.5Z" fill="#172F36"/>
+                        </svg>
+                      </span>
                     </Link>
                   </div>
                 ))}
