@@ -265,7 +265,7 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
         <div className="landing-hero">
           <div className="landing-hero-inner">
             <video
-              src="/videos/zelim-hero.mp4"
+              src="/videos/zelim-hero-small.mp4"
               autoPlay
               muted
               loop

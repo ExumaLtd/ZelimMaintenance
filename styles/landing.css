@@ -68,7 +68,7 @@
   position: absolute;
   top: 0.8125rem;
   right: 0;
-  width: clamp(12.5rem, 21.7708vw, 26.125rem);
+  width: clamp(6rem, 11vw, 13rem);
   height: auto;
   pointer-events: none;
   opacity: 1;
