@@ -71,6 +71,7 @@ export default async function handler(req, res) {
     const ZELIM_GREEN = "#172F36";
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://maintenance.exuma.co.uk';
     const logoUrl = companyLogoUrl || `${baseUrl}/logo/zelim-logo-dark.png`;
+    const zelimLogoUrl = `${baseUrl}/logo/zelim-logo-dark.png`;
 
     // 3. Define displayType BEFORE it is used in preview URLs
     let displayType = reportType || 'Maintenance';
@@ -124,6 +125,7 @@ export default async function handler(req, res) {
           maintenanceChecklist: maintenance_checklist,
           brandColor: ZELIM_GREEN,
           logoUrl: logoUrl,
+          zelimLogoUrl: zelimLogoUrl,
           previewUrl: engineerPreviewUrl,
           recordRef: recordRef || null
         }),
@@ -148,6 +150,7 @@ export default async function handler(req, res) {
           maintenanceChecklist: maintenance_checklist,
           brandColor: ZELIM_GREEN,
           logoUrl: logoUrl,
+          zelimLogoUrl: zelimLogoUrl,
           previewUrl: internalPreviewUrl,
           recordRef: recordRef || null
         }),

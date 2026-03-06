@@ -25,6 +25,7 @@ export const TechnicalAlertEmail = ({
   maintenanceChecklist = null,
   brandColor = '#152a31',
   logoUrl = '/logo/zelim-logo-dark.png',
+  zelimLogoUrl = '/logo/zelim-logo-dark.png',
   previewUrl = null,
   recordRef = null
 }) => {
@@ -73,9 +74,12 @@ export const TechnicalAlertEmail = ({
     return locationStr;
   };
 
-  const absoluteLogoUrl = logoUrl?.startsWith('http') 
-    ? logoUrl 
+  const absoluteLogoUrl = logoUrl?.startsWith('http')
+    ? logoUrl
     : `https://maintenance.exuma.co.uk${logoUrl?.startsWith('/') ? logoUrl : `/${logoUrl}`}`;
+  const absoluteZelimLogoUrl = zelimLogoUrl?.startsWith('http')
+    ? zelimLogoUrl
+    : `https://maintenance.exuma.co.uk${zelimLogoUrl?.startsWith('/') ? zelimLogoUrl : `/${zelimLogoUrl}`}`;
 
   return (
     <Html>
@@ -386,7 +390,7 @@ export const TechnicalAlertEmail = ({
           <Section style={footerSection}>
             <Link href="https://www.zelim.com" style={footerLink}>
               <Img
-                src={absoluteLogoUrl}
+                src={absoluteZelimLogoUrl}
                 width="120"
                 height="40"
                 alt="Zelim logo"
