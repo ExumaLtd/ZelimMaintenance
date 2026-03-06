@@ -68,7 +68,7 @@
   position: absolute;
   top: 0.8125rem;
   right: 0;
-  width: clamp(10rem, 18vw, 22rem) !important;
+  width: max(10rem, 22vw) !important;
   height: auto;
   pointer-events: none;
   opacity: 1;
@@ -133,12 +133,13 @@
   width: 100%;
   max-width: 380px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: stretch;
-  gap: 20px;
+  gap: 16px;
 }
 
 .landing-scope .input-wrapper {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -146,11 +147,12 @@
 
 .landing-scope .input-field {
   width: 100%;
+  height: 100%;
   padding: 12px 20px;
   border-radius: 8px;
   border: 1px solid #27454b;
   background: #27454b;
-  font-family: Montserrat;
+  font-family: var(--font-roboto-mono), "Roboto Mono", monospace;
   font-size: 16px;
   line-height: 24px;
   font-weight: 400;
@@ -184,7 +186,7 @@
 .landing-scope .arrowLink {
   display: inline-flex;
   align-items: center;
-  align-self: center;
+  align-self: stretch;
   gap: 0.75rem;
   font-size: 0.875rem;
   font-weight: 400;
