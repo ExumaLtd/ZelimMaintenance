@@ -64,11 +64,18 @@
 
 .form-scope .complete-text {
     color: #a0acaf;
+    margin: 0 0 24px;
+    font-family: "Montserrat", sans-serif;
     font-size: 14px;
     line-height: 20px;
-    margin: 0 0 20px;
-    font-family: "Montserrat", sans-serif;
     display: block;
+    letter-spacing: 0.05em;
+}
+
+@media (min-width: 769px) {
+    .form-scope .complete-page-wrapper .complete-card {
+        min-width: 500px;
+    }
 }
 
 .form-scope .return-dashboard-btn {

@@ -68,22 +68,22 @@ export default async function handler(req, res) {
     const companyName = getCompanyName();
 
     // 2. Define constants and brand colors
-    const ZELIM_GREEN = "#172F36"; 
-    const logoUrl = companyLogoUrl || "https://maintenance.exuma.co.uk/logo/zelim-logo-dark.png";
+    const ZELIM_GREEN = "#172F36";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://maintenance.exuma.co.uk';
+    const logoUrl = companyLogoUrl || `${baseUrl}/logo/zelim-logo-dark.png`;
 
     // 3. Define displayType BEFORE it is used in preview URLs
     let displayType = reportType || 'Maintenance';
-    
+
     // Add spaces to camelCase (e.g., "FaultReporting" → "Fault Reporting")
     displayType = addSpacesToCamelCase(displayType);
-    
+
     // Add "Maintenance" suffix if not present (except for "Fault Reporting")
     if (!displayType.toLowerCase().includes('maintenance') && !displayType.toLowerCase().includes('fault')) {
       displayType = `${displayType} Maintenance`;
     }
 
     // 4. NOW create preview URLs using the initialized variables
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://maintenance.exuma.co.uk';
     const engineerPreviewUrl = `${baseUrl}/api/emails/preview-maintenance-report?engineerName=${encodeURIComponent(engineerName)}&serialNumber=${encodeURIComponent(serialNumber)}`;
     const internalPreviewUrl = `${baseUrl}/api/emails/preview-technical-alert?serialNumber=${encodeURIComponent(serialNumber)}&displayType=${encodeURIComponent(displayType)}`;
 

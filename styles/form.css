@@ -1356,12 +1356,14 @@
 }
 
 .checklist-section-subtitle {
-  font-size: 14px;
-  line-height: 20px;
   color: #a0acaf;
   margin: 0 0 30px;
-  padding: 0 !important;
   font-family: "Montserrat", sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  padding: 0 !important;
+  letter-spacing: 0.05em;
+  font-weight: 300;
 }
 
 /* Submit Button (duplicate selector - margin override only) */
@@ -1882,11 +1884,12 @@
 }
 
 .form-scope .declaration-text {
-  font-size: 13px;
-  line-height: 19px;
   color: #a0acaf;
-  font-weight: 400;
   font-family: "Montserrat", sans-serif;
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 19px;
+  letter-spacing: 0.05em;
 }
 
 .form-scope .declaration-checkbox.has-error .declaration-checkmark {

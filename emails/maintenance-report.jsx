@@ -390,7 +390,7 @@ export const MaintenanceReportEmail = ({
           <Section style={footerSection}>
             <a href="https://www.zelim.com" style={footerLink}>
               <Img
-                src="https://maintenance.exuma.co.uk/logo/zelim-logo-dark.png"
+                src={absoluteLogoUrl}
                 width="120"
                 height="40"
                 alt="Zelim logo"
