@@ -264,13 +264,13 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
       <div className="landing-root">
         <div className="landing-hero">
           <div className="landing-hero-inner">
-            <Image
-              src="/images/swiftmaintenanceportal-hero.webp"
-              alt="Hero"
-              fill
-              priority
-              sizes="50vw"
-              style={{ objectFit: 'cover' }}
+            <video
+              src="https://www.zelim.com/wp-content/uploads/2026/03/Zelim-MOB-detection-system.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
             />
           </div>
         </div>
