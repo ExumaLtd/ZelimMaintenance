@@ -68,7 +68,7 @@
   position: absolute;
   top: 0.8125rem;
   right: 0;
-  width: clamp(10rem, 18vw, 22rem);
+  width: clamp(10rem, 18vw, 22rem) !important;
   height: auto;
   pointer-events: none;
   opacity: 1;
@@ -120,9 +120,9 @@
   text-align: center;
   color: #a0acaf;
   font-family: Montserrat;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
+  font-size: 15px;
+  font-weight: 300;
+  line-height: 22px;
 }
 
 /* =========================================
