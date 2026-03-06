@@ -97,15 +97,15 @@
 }
 
 .landing-scope img.landing-pattern {
-  position: absolute;
-  top: 0.8125rem;
-  right: 0;
-  width: max(10rem, 22vw) !important;
-  height: auto;
   pointer-events: none;
   opacity: 1;
   z-index: 0;
+  height: auto;
+  position: absolute;
+  top: 0.8125rem;
+  right: 0;
   transform: scaleX(-1);
+  width: max(10rem, 20vw) !important;
 }
 
 .landing-scope .landing-main,
@@ -149,13 +149,13 @@
 
 .landing-scope .landing-subtitle {
   text-align: center;
-  color: #ffffff;
+  color: #fff;
+  letter-spacing: 0.05em;
   margin: 24px 0 0;
   font-family: Montserrat;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 300;
-  line-height: 24px;
-  letter-spacing: 0.05em;
+  line-height: 22px;
 }
 
 /* =========================================
