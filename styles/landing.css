@@ -103,7 +103,7 @@
   height: auto;
   position: absolute;
   top: 0.8125rem;
-  right: 0;
+  right: -20px;
   transform: scaleX(-1);
   width: max(10rem, 20vw) !important;
 }
@@ -164,7 +164,6 @@
 
 .landing-scope .form-stack {
   width: 100%;
-  max-width: 380px;
   display: flex;
   flex-direction: row;
   align-items: stretch;
@@ -207,7 +206,16 @@
   border-color: #ff4d4d;
 }
 
+.landing-scope .form-area {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+}
+
 .landing-scope .error-text {
+  position: absolute;
+  top: 100%;
+  left: 0;
   margin: 8px 0 0;
   font-size: 14px;
   line-height: 20px;
@@ -287,16 +295,16 @@
 .landing-scope .qr-button {
   background: none;
   border: none;
-  color: #a0acaf;
+  color: #fff;
   font-family: Montserrat;
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 300;
+  line-height: 22px;
+  letter-spacing: 0.05em;
   cursor: pointer;
   padding: 8px;
 }
 
-.landing-scope .qr-button:hover {
-  color: #f7f7f7;
-}
 
 /* =========================================
    FOOTER
@@ -435,12 +443,12 @@
 
   .landing-scope .form-stack {
     flex-direction: column;
-    align-items: stretch;
+    align-items: center;
+    width: fit-content;
   }
 
-  .landing-scope .arrowLink {
-    align-self: stretch;
-    justify-content: center;
+  .landing-scope .input-wrapper {
+    width: 100%;
   }
 }
 
