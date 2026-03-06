@@ -298,7 +298,7 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
                 <div className={`input-wrapper ${error || rateLimitCountdown > 0 ? 'has-error' : ''}`}>
                   <input
                     className="input-field"
-                    placeholder="Enter your access code"
+                    placeholder="Access code"
                     value={accessCode}
                     onChange={(e) => {
                       setAccessCode(e.target.value);
