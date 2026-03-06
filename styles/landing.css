@@ -49,8 +49,8 @@
   z-index: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 2rem 2.5rem;
+  justify-content: left;
+  padding: 2rem 4rem;
 }
 
 .landing-scope .heading {
@@ -61,7 +61,7 @@
 }
 
 .landing-scope .heading--one {
-  font-size: clamp(2.5rem, 6.25vw, 7.5rem);
+  font-size: clamp(2.5rem, 4.5vw, 7.5rem);
   letter-spacing: 0.28em;
 }
 
@@ -430,6 +430,16 @@
 
   .landing-scope .qr-login-container {
     display: block;
+  }
+
+  .landing-scope .form-stack {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .landing-scope .arrowLink {
+    align-self: stretch;
+    justify-content: center;
   }
 }
 
