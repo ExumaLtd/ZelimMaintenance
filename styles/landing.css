@@ -60,6 +60,18 @@
   align-items: center;
   justify-content: space-between;
   padding: 32px 56px 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-scope .landing-pattern {
+  position: absolute;
+  top: 0.8125rem;
+  right: 0;
+  width: clamp(12.5rem, 21.7708vw, 26.125rem);
+  height: auto;
+  pointer-events: none;
+  opacity: 0.15;
 }
 
 .landing-scope .landing-main {

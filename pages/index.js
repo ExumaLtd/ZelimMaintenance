@@ -276,6 +276,12 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
         </div>
 
         <div className="landing-content">
+          <img
+            src="https://www.zelim.com/wp-content/themes/zelim/assets/svgs/interface/simple-title-text-right-pattern.svg"
+            alt=""
+            aria-hidden="true"
+            className="landing-pattern"
+          />
           <div className="landing-main">
             <div className="landing-header">
               <h1 className="landing-title">
