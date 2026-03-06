@@ -6,7 +6,7 @@ import "../styles/form-complete.css";
 import "../styles/voice-input.css";
 
 import Head from "next/head";
-import { Montserrat } from "next/font/google";
+import { Montserrat, Roboto_Mono } from "next/font/google";
 import { useEffect } from "react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
@@ -15,6 +15,13 @@ const montserrat = Montserrat({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
+});
+
+const robotoMono = Roboto_Mono({
+  subsets: ["latin"],
+  weight: ["400"],
+  display: "swap",
+  variable: "--font-roboto-mono",
 });
 
 export default function MyApp({ Component, pageProps }) {
@@ -28,7 +35,7 @@ export default function MyApp({ Component, pageProps }) {
   }, []);
 
   return (
-    <div className={montserrat.className}>
+    <div className={`${montserrat.className} ${robotoMono.variable}`}>
       <Head>
         <link rel="icon" href="/favicon/ZelimFavicon_192x192.png" />
         <link rel="manifest" href="/manifest.json" />

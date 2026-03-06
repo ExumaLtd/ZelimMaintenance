@@ -305,8 +305,13 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
                 }
               </div>
 
-              <button type="submit" className="primary-btn" disabled={isSubmitting}>
-                {isSubmitting ? 'Verifying…' : 'Enter portal'}
+              <button type="submit" className="arrowLink" disabled={isSubmitting}>
+                <span className="left">{isSubmitting ? 'Verifying…' : 'Enter portal'}</span>
+                <span className="right">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M10.1458 7.5L0 7.5L0 5.83333L10.1458 5.83333L5.47917 1.16667L6.66667 0L13.3333 6.66667L6.66667 13.3333L5.47917 12.1667L10.1458 7.5Z" fill="#172F36"/>
+                  </svg>
+                </span>
               </button>
 
               <div className="qr-login-container">
