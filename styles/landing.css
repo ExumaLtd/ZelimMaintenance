@@ -39,8 +39,40 @@
   content: '';
   position: absolute;
   inset: 0;
-  background-color: rgba(23, 47, 54, 0.6);
+  background-color: rgba(0, 0, 0, 0.6);
   pointer-events: none;
+}
+
+.landing-scope .hero-tagline {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 2.5rem;
+}
+
+.landing-scope .heading {
+  font-family: Montserrat, sans-serif;
+  font-weight: 300;
+  line-height: normal;
+  text-transform: uppercase;
+}
+
+.landing-scope .heading--one {
+  font-size: clamp(2.5rem, 6.25vw, 7.5rem);
+  letter-spacing: 0.28em;
+}
+
+.landing-scope .heading--beacon {
+  color: rgb(246, 246, 94);
+}
+
+.landing-scope .heroBanner__title {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .landing-scope .landing-hero-inner img {
@@ -134,17 +166,17 @@
   max-width: 380px;
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: stretch;
   gap: 16px;
 }
 
 .landing-scope .input-wrapper {
   flex: 1;
+  display: flex;
 }
 
 .landing-scope .input-field {
   width: 100%;
-  height: 2.75rem;
   padding: 0.4375rem 20px;
   border-radius: 0.5rem;
   border: 1px solid #27454b;
@@ -185,7 +217,7 @@
 .landing-scope .arrowLink {
   display: inline-flex;
   align-items: center;
-  align-self: center;
+  align-self: flex-start;
   gap: 0.75rem;
   font-size: 0.875rem;
   font-weight: 400;

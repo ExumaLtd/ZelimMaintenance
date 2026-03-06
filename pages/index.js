@@ -272,6 +272,13 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
               playsInline
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
             />
+            <div className="hero-tagline">
+              <h2 className="heading heading--one heading--beacon heroBanner__title">
+                <span>Find</span>
+                <span>Recover</span>
+                <span>Protect</span>
+              </h2>
+            </div>
           </div>
         </div>
 
