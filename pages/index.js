@@ -284,7 +284,7 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
 
         <div className="landing-content">
           <img
-            src="/svgs/pattern-right.svg"
+            src="/svgs/pattern-left.svg"
             alt=""
             aria-hidden="true"
             className="landing-pattern"

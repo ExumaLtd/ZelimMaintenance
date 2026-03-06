@@ -259,6 +259,12 @@ export default function SwiftUnitPage({
       </Head>
 
       <div className="swift-main-layout-wrapper">
+        <img
+          src="/svgs/pattern-right.svg"
+          alt=""
+          aria-hidden="true"
+          className="dashboard-pattern"
+        />
         <div className="page-wrapper">
           <div className="swift-dashboard-container">
             
