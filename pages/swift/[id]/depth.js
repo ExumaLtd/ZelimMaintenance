@@ -125,6 +125,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   const [engName, setEngName] = useState("");
   const [engEmail, setEngEmail] = useState("");
   const [engPhone, setEngPhone] = useState("");
+  const [engId, setEngId] = useState("");
   const [answers, setAnswers] = useState({});
   const [questionImages, setQuestionImages] = useState({});
   const [checklistImages, setChecklistImages] = useState({});
@@ -223,6 +224,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     setEngName(engineer.name);
     setEngEmail(engineer.email || "");
     setEngPhone(engineer.phone || "");
+    setEngId(engineer.id || "");
     setShowEngineerDropdown(false);
     setFieldErrors(prev => ({
       ...prev,
@@ -246,6 +248,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     setEngName("");
     setEngEmail("");
     setEngPhone("");
+    setEngId("");
     setShowEngineerDropdown(false);
   }, []);
 
@@ -744,6 +747,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       engineer_name: engName,
       engineer_email: engEmail,
       engineer_phone: engPhone,
+      engineer_record_id: engId,
       checklist_data: checklistData,
       ...answers,
     };

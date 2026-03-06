@@ -76,6 +76,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
   const [engName, setEngName] = useState("");
   const [engEmail, setEngEmail] = useState("");
   const [engPhone, setEngPhone] = useState("");
+  const [engId, setEngId] = useState("");
   const [answers, setAnswers] = useState({});
   const [questionImages, setQuestionImages] = useState({});
 
@@ -141,6 +142,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
     setEngName(engineer.name);
     setEngEmail(engineer.email || "");
     setEngPhone(engineer.phone || "");
+    setEngId(engineer.id || "");
     setShowEngineerDropdown(false);
     setFieldErrors(prev => ({
       ...prev,
@@ -164,6 +166,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
     setEngName("");
     setEngEmail("");
     setEngPhone("");
+    setEngId("");
     setShowEngineerDropdown(false);
   }, []);
 
@@ -561,6 +564,7 @@ export default function Annual({ unit, template, companies = [], engineers = [] 
       engineer_name: engName,
       engineer_email: engEmail,
       engineer_phone: engPhone,
+      engineer_record_id: engId,
       ...answers,
     };
     localStorage.setItem(storageKey, JSON.stringify(draftData));

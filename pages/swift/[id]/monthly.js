@@ -66,6 +66,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   const [engName, setEngName] = useState("");
   const [engEmail, setEngEmail] = useState("");
   const [engPhone, setEngPhone] = useState("");
+  const [engId, setEngId] = useState("");
   const [maintenanceDate, setMaintenanceDate] = useState(new Date().toISOString().split("T")[0]);
 
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
@@ -152,6 +153,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     setEngName(engineer.name);
     setEngEmail(engineer.email || "");
     setEngPhone(engineer.phone || "");
+    setEngId(engineer.id || "");
     setShowEngineerDropdown(false);
     setFieldErrors(prev => ({
       ...prev,
@@ -175,6 +177,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     setEngName("");
     setEngEmail("");
     setEngPhone("");
+    setEngId("");
     setShowEngineerDropdown(false);
   }, []);
 
@@ -374,6 +377,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       engineer_name: engName,
       engineer_email: engEmail,
       engineer_phone: engPhone,
+      engineer_record_id: engId,
       checklist_data: checklistData,
       further_comments: furtherComments,
     };

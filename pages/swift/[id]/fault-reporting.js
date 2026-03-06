@@ -63,6 +63,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
   const [engName, setEngName] = useState("");
   const [engEmail, setEngEmail] = useState("");
   const [engPhone, setEngPhone] = useState("");
+  const [engId, setEngId] = useState("");
 
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
@@ -125,6 +126,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
     setEngName(engineer.name);
     setEngEmail(engineer.email || "");
     setEngPhone(engineer.phone || "");
+    setEngId(engineer.id || "");
     setShowEngineerDropdown(false);
     setFieldErrors(prev => ({
       ...prev,
@@ -148,6 +150,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
     setEngName("");
     setEngEmail("");
     setEngPhone("");
+    setEngId("");
     setShowEngineerDropdown(false);
   }, []);
 
@@ -344,6 +347,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
       engineer_name: engName,
       engineer_email: engEmail,
       engineer_phone: engPhone,
+      engineer_record_id: engId,
       ...answers,
     };
     localStorage.setItem(storageKey, JSON.stringify(draftData));

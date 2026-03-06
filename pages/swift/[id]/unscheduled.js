@@ -63,6 +63,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
   const [engName, setEngName] = useState("");
   const [engEmail, setEngEmail] = useState("");
   const [engPhone, setEngPhone] = useState("");
+  const [engId, setEngId] = useState("");
 
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
@@ -125,6 +126,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
     setEngName(engineer.name);
     setEngEmail(engineer.email || "");
     setEngPhone(engineer.phone || "");
+    setEngId(engineer.id || "");
     setShowEngineerDropdown(false);
     setFieldErrors(prev => ({
       ...prev,
@@ -148,6 +150,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
     setEngName("");
     setEngEmail("");
     setEngPhone("");
+    setEngId("");
     setShowEngineerDropdown(false);
   }, []);
 
@@ -467,6 +470,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       engineer_name: engName,
       engineer_email: engEmail,
       engineer_phone: engPhone,
+      engineer_record_id: engId,
       unit_record_id: unit?.record_id,
       checklist_template_id: template?.id,
       serial_number: unit?.serial_number,

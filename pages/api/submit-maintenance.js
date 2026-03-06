@@ -89,10 +89,11 @@ export default async function handler(req, res) {
   const accessPin = session.pin;
   const userType = session.access === 'maintenance' ? 'Engineer' : 'Crew';
 
-  const { 
-    unit_record_id, 
-    maintained_by, 
-    engineer_name, 
+  const {
+    unit_record_id,
+    maintained_by,
+    engineer_name,
+    engineer_record_id,
     engineer_email,
     engineer_phone,
     date_of_maintenance, 
@@ -115,41 +116,42 @@ export default async function handler(req, res) {
     // Generate record reference
     const recordRef = await generateRecordRef(serial_number, maintenance_type, apiKey, baseId);
 
-    // OPTIMIZATION 1: Run company and engineer lookups IN PARALLEL
+    // Fetch company; only do engineer name lookup if no record ID was provided
     const [compRes, engRes] = await Promise.all([
       fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies?filterByFormula={company_name}='${esc(maintained_by)}'&maxRecords=1`, {
         headers: { Authorization: `Bearer ${apiKey}` }
       }),
-      fetch(`https://api.airtable.com/v0/${baseId}/engineers?filterByFormula=${encodeURIComponent(`{engineer_name}='${esc(engineer_name)}'`)}&maxRecords=1`, {
-        headers: { Authorization: `Bearer ${apiKey}` }
-      })
+      engineer_record_id
+        ? Promise.resolve(null)
+        : fetch(`https://api.airtable.com/v0/${baseId}/engineers?filterByFormula=${encodeURIComponent(`{engineer_name}='${esc(engineer_name)}'`)}&maxRecords=1`, {
+            headers: { Authorization: `Bearer ${apiKey}` }
+          })
     ]);
 
-    const [compData, engData] = await Promise.all([
-      compRes.json(),
-      engRes.json()
-    ]);
+    const compData = await compRes.json();
+    const engData = engRes ? await engRes.json() : null;
 
     const companyRecordId = compData.records?.[0]?.id;
 
-    // OPTIMIZATION 2: Only create/update engineer if needed
     let engineerRecordId;
     const engineerFields = {
-      "engineer_name": engineer_name, 
-      "email": engineer_email,        
-      "phone": engineer_phone,        
+      "engineer_name": engineer_name,
+      "email": engineer_email,
+      "phone": engineer_phone,
       "company": companyRecordId ? [companyRecordId] : []
     };
 
-    if (engData.records?.length > 0) {
+    if (engineer_record_id) {
+      // Known existing engineer — use record ID directly
+      engineerRecordId = engineer_record_id;
+    } else if (engData?.records?.length > 0) {
+      // Fallback: matched by name lookup — update if details changed
       engineerRecordId = engData.records[0].id;
       const existing = engData.records[0].fields;
-      
-      const needsUpdate = 
+      const needsUpdate =
         existing.email !== engineer_email ||
         existing.phone !== engineer_phone ||
         JSON.stringify(existing.company || []) !== JSON.stringify(engineerFields.company);
-      
       if (needsUpdate) {
         await fetch(`https://api.airtable.com/v0/${baseId}/engineers/${engineerRecordId}`, {
           method: 'PATCH',
@@ -158,6 +160,7 @@ export default async function handler(req, res) {
         });
       }
     } else {
+      // New engineer — create
       const newEng = await fetch(`https://api.airtable.com/v0/${baseId}/engineers`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
