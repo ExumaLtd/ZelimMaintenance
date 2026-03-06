@@ -70,8 +70,8 @@ export default async function handler(req, res) {
     // 2. Define constants and brand colors
     const ZELIM_GREEN = "#172F36";
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://maintenance.exuma.co.uk';
-    const logoUrl = companyLogoUrl || `${baseUrl}/logo/zelim-logo-dark.png`;
-    const zelimLogoUrl = `${baseUrl}/logo/zelim-logo-dark.png`;
+    const logoUrl = companyLogoUrl || `${baseUrl}/logo/zelim-logo.png`;
+    const zelimLogoUrl = `${baseUrl}/logo/zelim-logo.png`;
 
     // 3. Define displayType BEFORE it is used in preview URLs
     let displayType = reportType || 'Maintenance';
