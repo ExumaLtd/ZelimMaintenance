@@ -77,7 +77,7 @@ export async function getServerSideProps(context) {
   }
 
   const accessPin = session.pin; // e.g., "SWI005" or "CREW005"
-  const accessType = session.access; // "maintenance" or "crew"
+  const accessType = session.access; // "maintenance" or "operator"
 
   const maintenanceManualPath = "/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf";
   const installationGuidePath = "/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf";
@@ -212,7 +212,7 @@ export default function SwiftUnitPage({
     },
     {
       title: "Unscheduled\nmaintenance",
-      description: accessType === "crew"
+      description: accessType === "operator"
         ? "To be completed in accordance with Section 5.2 – Unscheduled maintenance of the SWIFT Survivor Recovery System Operators Maintenance Manual."
         : "To be completed in accordance with Section 6.3 – Unscheduled maintenance of the SWIFT Survivor Recovery System Maintenance Manual.",
       href: `/portal/swift/unscheduled`,
@@ -236,7 +236,7 @@ export default function SwiftUnitPage({
     };
   });
 
-  const maintenanceTypes = accessType === "crew"
+  const maintenanceTypes = accessType === "operator"
     ? maintenanceTypesWithDrafts.filter(type =>
         type.title.includes("Monthly") || type.title.includes("Unscheduled") || type.title.includes("Report a fault")
       )
@@ -244,7 +244,7 @@ export default function SwiftUnitPage({
         !type.title.includes("Monthly") && !type.title.includes("Report a fault")
       );
 
-  const downloads = accessType === "crew"
+  const downloads = accessType === "operator"
     ? [
         {
           href: "/downloads/SwiftSurvivorRecoverySystem_OperatorsMaintenanceManual_v1point0(Draft).pdf#page=1",
@@ -356,9 +356,9 @@ export default function SwiftUnitPage({
               <div className="downloads-card">
                 <h3>Downloads</h3>
                 <p className="description">
-                  {accessType === "crew"
-                    ? "Operator maintenance documents for the SWIFT system."
-                    : "Maintenance and installation documents for the SWIFT system."
+                  {accessType === "operator"
+                    ? "Operator maintenance documents for the SWIFT Survivor Recovery System."
+                    : "Maintenance and installation documents for the SWIFT Survivor Recovery System."
                   }
                 </p>
 

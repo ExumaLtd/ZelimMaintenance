@@ -63,7 +63,7 @@ export default async function handler(req, res) {
     const operatorPin = record.get("operator_pin");
 
     // Determine access type based on which PIN was entered
-    const accessType = pin === accessPin ? "maintenance" : "crew";
+    const accessType = pin === accessPin ? "maintenance" : "operator";
 
     return res.status(200).json({ 
       publicToken,

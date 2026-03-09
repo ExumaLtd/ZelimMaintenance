@@ -12,7 +12,7 @@ import DatePicker from '../../../components/date-picker';
 import { ChevronDown, ChevronUp } from "lucide-react";
 import SignaturePad from '../../../components/signature-pad';
 import { useAutoSave } from '../../../hooks/use-auto-save';
-import { getClientSession } from '../../../lib/session';
+import { getClientSession, getSession } from '../../../lib/session';
 import { fetchFormData } from '@/lib/data-fetching';
 
 const faultReportingSchema = z.object({
@@ -26,7 +26,7 @@ const faultReportingSchema = z.object({
 });
 
 
-export default function FaultReporting({ unit, template, allCompanies = [], allEngineers = [] }) {
+export default function FaultReporting({ unit, template, allCompanies = [], allEngineers = [], accessType = 'maintenance' }) {
   const router = useRouter();
 
   const companyFieldRef = useRef(null);
@@ -59,7 +59,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
 
   const [locationDisplay, setLocationDisplay] = useState("");
   const [locationCountry, setLocationCountry] = useState("");
-  const [selectedCompany, setSelectedCompany] = useState("");
+  const [selectedCompany, setSelectedCompany] = useState(accessType === 'operator' ? unit?.company || "" : "");
   const [engName, setEngName] = useState("");
   const [engEmail, setEngEmail] = useState("");
   const [engPhone, setEngPhone] = useState("");
@@ -584,39 +584,47 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
             <div className="checklist-form-card">
               <div className="checklist-inline-group">
                 <div className="checklist-field" ref={companyFieldRef}>
-                  <label className="checklist-label">Maintenance company</label>
-                  <div className="custom-dropdown-container" ref={companyDropdownRef}>
-                    <div className="field-icon-wrapper">
-                      <input
-                        readOnly
-                        className={clsx(
-                          "checklist-input",
-                          selectedCompany ? "is-active" : "is-placeholder",
-                          showCompanyDropdown && "is-focused",
-                          fieldErrors.company && "has-error"
-                        )}
-                        value={selectedCompany || "Please select"}
-                        onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
-                        style={{ cursor: "pointer", paddingRight: "40px" }}
-                      />
-                      <div className="field-icon-inside">
-                        {showCompanyDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
+                  <label className="checklist-label">{accessType === 'operator' ? 'Operator' : 'Maintenance company'}</label>
+                  {accessType === 'operator' ? (
+                    <input
+                      readOnly
+                      className="checklist-input is-active"
+                      value={selectedCompany}
+                    />
+                  ) : (
+                    <div className="custom-dropdown-container" ref={companyDropdownRef}>
+                      <div className="field-icon-wrapper">
+                        <input
+                          readOnly
+                          className={clsx(
+                            "checklist-input",
+                            selectedCompany ? "is-active" : "is-placeholder",
+                            showCompanyDropdown && "is-focused",
+                            fieldErrors.company && "has-error"
+                          )}
+                          value={selectedCompany || "Please select"}
+                          onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
+                          style={{ cursor: "pointer", paddingRight: "40px" }}
+                        />
+                        <div className="field-icon-inside">
+                          {showCompanyDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
+                        </div>
                       </div>
+                      {showCompanyDropdown && (
+                        <ul className={clsx("custom-dropdown-list", fieldErrors.company && "has-error")}>
+                          {allCompanies.sort().map((c, i) => (
+                            <li
+                              key={i}
+                              className={`custom-dropdown-item ${selectedCompany === c ? "active" : ""}`}
+                              onClick={() => selectCompany(c)}
+                            >
+                              {c}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
-                    {showCompanyDropdown && (
-                      <ul className={clsx("custom-dropdown-list", fieldErrors.company && "has-error")}>
-                        {allCompanies.sort().map((c, i) => (
-                          <li
-                            key={i}
-                            className={`custom-dropdown-item ${selectedCompany === c ? "active" : ""}`}
-                            onClick={() => selectCompany(c)}
-                          >
-                            {c}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
+                  )}
                 </div>
 
                 <div className="checklist-field" ref={locationFieldRef}>
@@ -647,7 +655,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
 
               <div className="checklist-inline-group" style={{ marginTop: "24px" }}>
                 <div className="checklist-field" ref={engineerFieldRef}>
-                  <label className="checklist-label">Engineer name</label>
+                  <label className="checklist-label">{accessType === 'operator' ? 'Operators name' : 'Engineer name'}</label>
                   <div className="custom-dropdown-container" ref={engineerDropdownRef}>
                     <div className="field-icon-wrapper">
                       <input
@@ -699,7 +707,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
                 </div>
 
                 <div className="checklist-field">
-                  <label className="checklist-label">Engineer email</label>
+                  <label className="checklist-label">{accessType === 'operator' ? 'Operators email' : 'Engineer email'}</label>
                   <input
                     type="email"
                     className={clsx("checklist-input", fieldErrors.engineerEmail && "has-error")}
@@ -716,7 +724,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
                 </div>
 
                 <div className="checklist-field">
-                  <label className="checklist-label">Engineer phone</label>
+                  <label className="checklist-label">{accessType === 'operator' ? 'Operators phone' : 'Engineer phone'}</label>
                   <input
                     type="tel"
                     className={clsx("checklist-input", fieldErrors.engineerPhone && "has-error")}
@@ -865,8 +873,11 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
   );
 }
 
-export async function getServerSideProps({ params }) {
+export async function getServerSideProps({ params, req }) {
   const token = params.id;
+  const session = getSession(req);
+  const accessType = session?.access || 'maintenance';
+
   try {
     const data = await fetchFormData(token, 'Fault report');
 
@@ -880,6 +891,7 @@ export async function getServerSideProps({ params }) {
         template: data.template,
         allCompanies: data.companies,
         allEngineers: data.engineers,
+        accessType,
       },
     };
   } catch (err) {
