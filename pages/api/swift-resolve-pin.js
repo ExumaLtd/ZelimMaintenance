@@ -44,12 +44,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Invalid pin format" });
     }
 
-    // Lookup using either access_pin OR crew_pin
+    // Lookup using either access_pin OR operator_pin
     const records = await base(TABLE_NAME)
       .select({
         maxRecords: 1,
-        filterByFormula: `OR({access_pin} = "${pin}", {crew_pin} = "${pin}")`,
-        fields: ["public_token", "access_pin", "crew_pin"],
+        filterByFormula: `OR({access_pin} = "${pin}", {operator_pin} = "${pin}")`,
+        fields: ["public_token", "access_pin", "operator_pin"],
       })
       .firstPage();
 
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
     const record = records[0];
     const publicToken = record.get("public_token");
     const accessPin = record.get("access_pin");
-    const crewPin = record.get("crew_pin");
+    const operatorPin = record.get("operator_pin");
 
     // Determine access type based on which PIN was entered
     const accessType = pin === accessPin ? "maintenance" : "crew";
