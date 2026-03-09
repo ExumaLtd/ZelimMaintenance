@@ -81,10 +81,12 @@ export async function getServerSideProps(context) {
 
   const maintenanceManualPath = "/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf";
   const installationGuidePath = "/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf";
+  const operatorsManualPath = "/downloads/SwiftSurvivorRecoverySystem_OperatorsMaintenanceManual_v1point0(Draft).pdf";
 
   const fileSizes = {
     maintenanceManualSize: getFileSize(maintenanceManualPath),
     installationGuideSize: getFileSize(installationGuidePath),
+    operatorsManualSize: getFileSize(operatorsManualPath),
   };
 
   try {
@@ -182,6 +184,7 @@ export default function SwiftUnitPage({
   accessType = "maintenance",
   maintenanceManualSize,
   installationGuideSize,
+  operatorsManualSize,
 }) {
   const router = useRouter();
 
@@ -241,18 +244,26 @@ export default function SwiftUnitPage({
         !type.title.includes("Monthly") && !type.title.includes("Report a fault")
       );
 
-  const downloads = [
-    {
-      href: "/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf",
-      name: "SWIFT maintenance manual.pdf",
-      size: maintenanceManualSize,
-    },
-    {
-      href: "/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf",
-      name: "SWIFT installation guide.pdf",
-      size: installationGuideSize,
-    },
-  ];
+  const downloads = accessType === "crew"
+    ? [
+        {
+          href: "/downloads/SwiftSurvivorRecoverySystem_OperatorsMaintenanceManual_v1point0(Draft).pdf",
+          name: "SWIFT operators maintenance manual.pdf",
+          size: operatorsManualSize,
+        },
+      ]
+    : [
+        {
+          href: "/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf",
+          name: "SWIFT maintenance manual.pdf",
+          size: maintenanceManualSize,
+        },
+        {
+          href: "/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf",
+          name: "SWIFT installation guide.pdf",
+          size: installationGuideSize,
+        },
+      ];
 
   return (
     <div className="dashboard-scope">
@@ -345,7 +356,10 @@ export default function SwiftUnitPage({
               <div className="downloads-card">
                 <h3>Downloads</h3>
                 <p className="description">
-                  To be used in accordance with both annual and 30-month depth maintenance.
+                  {accessType === "crew"
+                    ? "Operator maintenance documents for the SWIFT system."
+                    : "Maintenance and installation documents for the SWIFT system."
+                  }
                 </p>
 
                 <div className="download-list">
