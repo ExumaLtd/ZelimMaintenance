@@ -247,19 +247,19 @@ export default function SwiftUnitPage({
   const downloads = accessType === "crew"
     ? [
         {
-          href: "/downloads/SwiftSurvivorRecoverySystem_OperatorsMaintenanceManual_v1point0(Draft).pdf",
+          href: "/downloads/SwiftSurvivorRecoverySystem_OperatorsMaintenanceManual_v1point0(Draft).pdf#page=1",
           name: "SWIFT operators maintenance manual.pdf",
           size: operatorsManualSize,
         },
       ]
     : [
         {
-          href: "/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf",
+          href: "/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf#page=1",
           name: "SWIFT maintenance manual.pdf",
           size: maintenanceManualSize,
         },
         {
-          href: "/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf",
+          href: "/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf#page=1",
           name: "SWIFT installation guide.pdf",
           size: installationGuideSize,
         },
