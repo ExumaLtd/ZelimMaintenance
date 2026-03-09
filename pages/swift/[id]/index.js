@@ -232,11 +232,11 @@ export default function SwiftUnitPage({
   });
 
   const maintenanceTypes = accessType === "crew"
-    ? maintenanceTypesWithDrafts.filter(type => 
+    ? maintenanceTypesWithDrafts.filter(type =>
         type.title.includes("Monthly") || type.title.includes("Unscheduled") || type.title.includes("Report a fault")
       )
-    : maintenanceTypesWithDrafts.filter(type => 
-        !type.title.includes("Report a fault")
+    : maintenanceTypesWithDrafts.filter(type =>
+        !type.title.includes("Monthly") && !type.title.includes("Report a fault")
       );
 
   const downloads = [

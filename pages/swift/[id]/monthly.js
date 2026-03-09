@@ -13,7 +13,15 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import SignaturePad from '../../../components/signature-pad';
 import { useAutoSave } from '../../../hooks/use-auto-save';
 import { fetchFormData } from '@/lib/data-fetching';
-import { getClientSession } from '../../../lib/session';
+import { getClientSession, getSession } from '../../../lib/session';
+
+const monthlyAdminSchema = z.object({
+  company: z.string().min(1, 'Please select a maintenance company.'),
+  location: z.string().min(1, 'Please provide a location.'),
+  engineerName: z.string().min(1, 'Please select or enter an engineer name.'),
+  engineerEmail: z.string().email('Please provide a valid engineer email.'),
+  engineerPhone: z.string().min(1, 'Please provide an engineer phone number.'),
+});
 
 const monthlySchema = z.object({
   company: z.string().min(1, 'Please select a maintenance company.'),
@@ -35,6 +43,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   const signatureRef = useRef(null);
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
+  const card2Ref = useRef(null);
   const hasLoadedDraftRef = useRef(false);
   const hasSubmittedRef = useRef(false);
 
@@ -43,12 +52,15 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   const [today, setToday] = useState("");
   const [declarationChecked, setDeclarationChecked] = useState(false);
   const [signatureData, setSignatureData] = useState(null);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [photographImages, setPhotographImages] = useState([]);
   const [fieldErrors, setFieldErrors] = useState({
     company: false,
     location: false,
     engineerName: false,
     engineerEmail: false,
     engineerPhone: false,
+    photographImages: false,
     declaration: false,
     signature: false,
   });
@@ -84,9 +96,11 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     maintenanceType: 'Monthly',
     engineerEmail: engEmail,
     draftData: {
+      currentStep,
       checklistData,
       furtherComments,
       commentImages,
+      photographImages,
       selectedCompany,
       locationDisplay,
       locationCountry,
@@ -94,15 +108,16 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       engEmail,
       engPhone,
     }
-  }, 
-    !submitting && 
+  },
+    !submitting &&
     !hasSubmittedRef.current &&
     (
-      (checklistData && checklistData.length > 0 && checklistData.some(group => 
+      (checklistData && checklistData.length > 0 && checklistData.some(group =>
         group.questions.some(q => q.answer !== null)
       )) ||
       furtherComments?.trim() ||
       (commentImages && commentImages.length > 0) ||
+      (photographImages && photographImages.length > 0) ||
       (selectedCompany && selectedCompany !== '') ||
       (engName && engName !== '' && engName !== 'Please select') ||
       (engEmail && engEmail !== '') ||
@@ -207,6 +222,96 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     setCommentImages(images);
   };
 
+  // Handle continue from step 1 to step 2
+  const handleContinueToStep2 = () => {
+    const errors = [];
+    const newFieldErrors = {
+      company: false,
+      location: false,
+      engineerName: false,
+      engineerEmail: false,
+      engineerPhone: false,
+      photographImages: false,
+      declaration: false,
+      signature: false,
+    };
+
+    document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+
+    const adminResult = monthlyAdminSchema.safeParse({
+      company: selectedCompany || "",
+      location: locationDisplay?.trim() || "",
+      engineerName: (engName && engName !== "Please select") ? engName.trim() : "",
+      engineerEmail: engEmail?.trim() || "",
+      engineerPhone: engPhone?.trim() || "",
+    });
+
+    if (!adminResult.success) {
+      adminResult.error.issues.forEach(issue => {
+        const field = issue.path[0];
+        if (field === 'company') { newFieldErrors.company = true; errors.push('company'); }
+        else if (field === 'location') { newFieldErrors.location = true; errors.push('location'); }
+        else if (field === 'engineerName') { newFieldErrors.engineerName = true; errors.push('engineer'); }
+        else if (field === 'engineerEmail') { newFieldErrors.engineerEmail = true; errors.push('email'); }
+        else if (field === 'engineerPhone') { newFieldErrors.engineerPhone = true; errors.push('phone'); }
+      });
+    }
+
+    if (photographImages.length === 0) {
+      newFieldErrors.photographImages = true;
+      errors.push('photograph_images');
+    }
+
+    setFieldErrors(newFieldErrors);
+
+    if (errors.length > 0) {
+      if (errors.includes('photograph_images') && errors.length === 1) {
+        setErrorMsg("Please upload at least one photo of the SWIFT.");
+      } else if (errors.length === 1) {
+        if (errors.includes('company')) setErrorMsg("Please select a maintenance company.");
+        else if (errors.includes('location')) setErrorMsg("Please provide a location.");
+        else if (errors.includes('engineer')) setErrorMsg("Please select or enter an engineer name.");
+        else if (errors.includes('email')) setErrorMsg("Please provide an engineer email.");
+        else if (errors.includes('phone')) setErrorMsg("Please provide an engineer phone number.");
+      } else {
+        setErrorMsg("Please check for multiple errors.");
+      }
+      return;
+    }
+
+    setErrorMsg("");
+    setCurrentStep(2);
+    window.history.pushState({ step: 2 }, '', window.location.href);
+
+    setTimeout(() => {
+      if (card2Ref.current) {
+        const elementPosition = card2Ref.current.getBoundingClientRect().top + window.pageYOffset;
+        const isMobile = window.innerWidth <= 768;
+        const offset = isMobile ? 50 : 58;
+        window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' });
+      }
+    }, 100);
+  };
+
+  // Handle browser back button
+  useEffect(() => {
+    const handlePopState = () => {
+      if (currentStep > 1) {
+        setCurrentStep(currentStep - 1);
+        setTimeout(() => {
+          if (card2Ref.current) {
+            const elementPosition = card2Ref.current.getBoundingClientRect().top + window.pageYOffset;
+            const isMobile = window.innerWidth <= 768;
+            const offset = isMobile ? 50 : 58;
+            window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' });
+          }
+        }, 100);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [currentStep]);
+
   // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -243,9 +348,11 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           if (data.draft) {
             console.log('📦 Draft found in Airtable');
             
+            if (data.draft.currentStep) setCurrentStep(data.draft.currentStep);
             if (data.draft.checklistData) setChecklistData(data.draft.checklistData);
             if (data.draft.furtherComments) setFurtherComments(data.draft.furtherComments);
             if (data.draft.commentImages) setCommentImages(data.draft.commentImages);
+            if (data.draft.photographImages) setPhotographImages(data.draft.photographImages);
             if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
             if (data.draft.locationDisplay) setLocationDisplay(data.draft.locationDisplay);
             if (data.draft.locationCountry) setLocationCountry(data.draft.locationCountry);
@@ -501,6 +608,13 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     setSubmitting(true);
 
     const answers = [];
+    if (photographImages.length > 0) {
+      answers.push({
+        question: "Photograph SWIFT",
+        answer: "",
+        images: photographImages.map(img => ({ url: img.url, fileType: img.fileType }))
+      });
+    }
     if (furtherComments || commentImages.length > 0) {
       answers.push({
         question: "Further comments",
@@ -564,6 +678,12 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
 
       const answersForEmail = {};
+      if (photographImages.length > 0) {
+        answersForEmail["Photograph SWIFT"] = {
+          text: "",
+          images: photographImages.map(img => ({ url: img.url, thumbnail: img.thumbnail, fileType: img.fileType || 'image' }))
+        };
+      }
       if (furtherComments || commentImages.length > 0) {
         answersForEmail["Further comments"] = {
           text: furtherComments || "",
@@ -796,12 +916,53 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
             </div>
 
             <form onSubmit={handleSubmit} autoComplete="off" noValidate style={{ width: "100%", display: "block", margin: 0, padding: 0 }}>
-            {/* CARD 2: CHECKLIST + COMMENTS */}
-            <div className="checklist-form-card" style={{ marginTop: "20px" }}>
-                <h3 className="checklist-section-title">Monthly inspection checklist</h3>
-                <p className="checklist-section-subtitle">
-                  All monthly maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual.
-                </p>
+            {/* CARD 2: MULTI-STEP */}
+            <div ref={card2Ref} className="checklist-form-card" style={{ marginTop: "20px" }}>
+
+                {/* STEP 1: Photograph SWIFT */}
+                {currentStep === 1 && (
+                  <>
+                    <h3 className="checklist-section-title">Monthly maintenance</h3>
+                    <p className="checklist-section-subtitle">
+                      All monthly maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Operators Maintenance Manual.
+                    </p>
+
+                    <div style={{ marginTop: "24px" }}>
+                      <label className="checklist-label">Photograph SWIFT</label>
+                      <p className="question-instruction">Take clear photos of the SWIFT in situ and the surrounding installation area.</p>
+                      <ImageUploader
+                        questionKey="photograph_swift"
+                        questionText="Photograph SWIFT"
+                        serialNumber={unit?.serial_number}
+                        maintenanceType="monthly"
+                        initialImages={photographImages || []}
+                        onImagesChange={(images) => {
+                          setPhotographImages(images);
+                          if (images.length > 0) {
+                            setFieldErrors(prev => ({ ...prev, photographImages: false }));
+                            setErrorMsg("");
+                          }
+                        }}
+                        hasError={fieldErrors.photographImages}
+                      />
+                    </div>
+
+                    {errorMsg && <p className="error-message">{errorMsg}</p>}
+                    <button type="button" className="checklist-submit" onClick={handleContinueToStep2}>
+                      <span className="left">Continue</span>
+                      <span className="right">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                          <path d="M10.1458 7.5L0 7.5L0 5.83333L10.1458 5.83333L5.47917 1.16667L6.66667 0L13.3333 6.66667L6.66667 13.3333L5.47917 12.1667L10.1458 7.5Z" fill="#172F36"/>
+                        </svg>
+                      </span>
+                    </button>
+                  </>
+                )}
+
+                {/* STEP 2: Inspection checklist + further comments */}
+                {currentStep === 2 && (
+                  <>
+                    <h3 className="checklist-section-title">Monthly inspection checklist</h3>
 
                 {checklistData.map((group, groupIndex) => (
                   <div key={group.id} className="equipment-table" style={{ marginBottom: groupIndex < checklistData.length - 1 ? '24px' : '0' }}>
@@ -891,9 +1052,13 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                   </div>
                 </div>
 
+                  </>
+                )}
+
             </div>
 
             {/* CARD 3: DECLARATION & SIGNATURE */}
+            {currentStep === 2 && (
             <div className="checklist-form-card" style={{ marginTop: "20px" }}>
                 <h3 className="checklist-section-title">Declaration</h3>
 
@@ -942,6 +1107,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                   </span>
                 </button>
             </div>
+            )}
             </form>
           </div>
         </div>
@@ -956,9 +1122,14 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   );
 }
 
-export async function getServerSideProps({ params }) {
+export async function getServerSideProps({ params, req }) {
   const token = params.id;
-  
+
+  const session = getSession(req);
+  if (!session || session.access !== 'crew') {
+    return { redirect: { destination: '/', permanent: false } };
+  }
+
   try {
     const data = await fetchFormData(token, 'Monthly');
     
