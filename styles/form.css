@@ -252,6 +252,19 @@
 }
 
 /* Input and Textarea base styles - PREVENTS MOBILE ZOOM */
+.form-scope .checklist-input::selection,
+.form-scope .checklist-textarea::selection {
+  background-color: #152a31;
+  color: #F7F7F7;
+}
+
+.form-scope .checklist-input::-moz-selection,
+.form-scope .checklist-textarea::-moz-selection {
+  background-color: #152a31;
+  color: #F7F7F7;
+}
+
+/* Input and Textarea base styles - PREVENTS MOBILE ZOOM */
 .form-scope .checklist-input,
 .form-scope .checklist-textarea {
   width: 100%;
