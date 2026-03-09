@@ -54,6 +54,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   const [signatureData, setSignatureData] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [photographImages, setPhotographImages] = useState([]);
+  const [photographComments, setPhotographComments] = useState("");
   const [fieldErrors, setFieldErrors] = useState({
     company: false,
     location: false,
@@ -101,6 +102,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       furtherComments,
       commentImages,
       photographImages,
+      photographComments,
       selectedCompany,
       locationDisplay,
       locationCountry,
@@ -353,6 +355,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
             if (data.draft.furtherComments) setFurtherComments(data.draft.furtherComments);
             if (data.draft.commentImages) setCommentImages(data.draft.commentImages);
             if (data.draft.photographImages) setPhotographImages(data.draft.photographImages);
+            if (data.draft.photographComments) setPhotographComments(data.draft.photographComments);
             if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
             if (data.draft.locationDisplay) setLocationDisplay(data.draft.locationDisplay);
             if (data.draft.locationCountry) setLocationCountry(data.draft.locationCountry);
@@ -608,10 +611,10 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     setSubmitting(true);
 
     const answers = [];
-    if (photographImages.length > 0) {
+    if (photographImages.length > 0 || photographComments) {
       answers.push({
         question: "Photograph SWIFT",
-        answer: "",
+        answer: photographComments || "",
         images: photographImages.map(img => ({ url: img.url, fileType: img.fileType }))
       });
     }
@@ -678,9 +681,9 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
 
       const answersForEmail = {};
-      if (photographImages.length > 0) {
+      if (photographImages.length > 0 || photographComments) {
         answersForEmail["Photograph SWIFT"] = {
-          text: "",
+          text: photographComments || "",
           images: photographImages.map(img => ({ url: img.url, thumbnail: img.thumbnail, fileType: img.fileType || 'image' }))
         };
       }
@@ -938,21 +941,48 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                     <div style={{ marginTop: "24px" }}>
                       <label className="checklist-label">Photograph SWIFT</label>
                       <p className="question-instruction">Take clear photos of the SWIFT in situ and the surrounding installation area.</p>
-                      <ImageUploader
-                        questionKey="photograph_swift"
-                        questionText="Photograph SWIFT"
-                        serialNumber={unit?.serial_number}
-                        maintenanceType="monthly"
-                        initialImages={photographImages || []}
-                        onImagesChange={(images) => {
-                          setPhotographImages(images);
-                          if (images.length > 0) {
-                            setFieldErrors(prev => ({ ...prev, photographImages: false }));
-                            setErrorMsg("");
-                          }
-                        }}
-                        hasError={fieldErrors.photographImages}
-                      />
+                      <div className="question-with-upload">
+                        <div className="textarea-wrapper">
+                          <textarea
+                            name="photograph_comments"
+                            className="checklist-textarea"
+                            value={photographComments}
+                            onChange={(e) => {
+                              setPhotographComments(e.target.value);
+                              autoGrow(e);
+                            }}
+                            onInput={autoGrow}
+                            placeholder=""
+                          />
+                          <VoiceInput
+                            onTranscript={(text) => {
+                              setPhotographComments((prev) => (prev || '') + text);
+                              requestAnimationFrame(() => {
+                                requestAnimationFrame(() => {
+                                  const textarea = document.querySelector('[name="photograph_comments"]');
+                                  if (textarea) autoGrow(textarea);
+                                });
+                              });
+                            }}
+                            onError={(errorMsg) => setErrorMsg(errorMsg)}
+                          />
+                        </div>
+                        <ImageUploader
+                          questionKey="photograph_swift"
+                          questionText="Photograph SWIFT"
+                          serialNumber={unit?.serial_number}
+                          maintenanceType="monthly"
+                          initialImages={photographImages || []}
+                          onImagesChange={(images) => {
+                            setPhotographImages(images);
+                            if (images.length > 0) {
+                              setFieldErrors(prev => ({ ...prev, photographImages: false }));
+                              setErrorMsg("");
+                            }
+                          }}
+                          hasError={fieldErrors.photographImages}
+                        />
+                      </div>
                     </div>
 
                     {errorMsg && <p className="error-message">{errorMsg}</p>}
@@ -970,7 +1000,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                 {/* STEP 2: Inspection checklist + further comments */}
                 {currentStep === 2 && (
                   <>
-                    <h3 className="checklist-section-title">Monthly inspection checklist</h3>
+                    <h3 className="checklist-section-title" style={{ margin: "0 0 22px" }}>Monthly inspection checklist</h3>
 
                 {checklistData.map((group, groupIndex) => (
                   <div key={group.id} className="equipment-table" style={{ marginBottom: groupIndex < checklistData.length - 1 ? '24px' : '0' }}>
