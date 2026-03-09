@@ -350,7 +350,12 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           if (data.draft) {
             console.log('📦 Draft found in Airtable');
             
-            if (data.draft.currentStep) setCurrentStep(data.draft.currentStep);
+            if (data.draft.currentStep) {
+              setCurrentStep(data.draft.currentStep);
+              for (let s = 2; s <= data.draft.currentStep; s++) {
+                window.history.pushState({ step: s }, '', window.location.href);
+              }
+            }
             if (data.draft.checklistData) setChecklistData(data.draft.checklistData);
             if (data.draft.furtherComments) setFurtherComments(data.draft.furtherComments);
             if (data.draft.commentImages) setCommentImages(data.draft.commentImages);

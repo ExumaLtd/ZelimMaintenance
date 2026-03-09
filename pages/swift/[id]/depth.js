@@ -639,6 +639,9 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
           if (data.draft.currentStep) {
             setTimeout(() => {
               setCurrentStep(data.draft.currentStep);
+              for (let s = 2; s <= data.draft.currentStep; s++) {
+                window.history.pushState({ step: s }, '', window.location.href);
+              }
               console.log(`✅ Draft loaded - restored to step ${data.draft.currentStep}`);
             }, 0);
           } else {

@@ -399,10 +399,11 @@ export default function Annual({ unit, template, companies = [], engineers = [],
           if (data.draft) {
             console.log('📦 Draft found in Airtable');
             
-            // CRITICAL FIX: Set currentStep WITHOUT pushing history to prevent auto-submit
             if (data.draft.currentStep) {
               setCurrentStep(data.draft.currentStep);
-              // DON'T push history states - it was causing form auto-submit on Step 8
+              for (let s = 2; s <= data.draft.currentStep; s++) {
+                window.history.pushState({ step: s }, '', window.location.href);
+              }
             }
             
             if (data.draft.answers) setAnswers(data.draft.answers);
