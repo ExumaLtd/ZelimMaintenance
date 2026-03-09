@@ -284,6 +284,7 @@
 
 .dashboard-scope .download-link {
   flex: 1;
+  max-width: calc(50% - 7.5px);
   display: flex;
   padding: 12px;
   flex-direction: row;
