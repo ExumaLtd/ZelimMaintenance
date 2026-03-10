@@ -103,7 +103,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   useAutoSave({
     unitId: unit?.record_id,
     maintenanceType: 'Monthly',
-    engineerEmail: engEmail,
+    engineerEmail: accessType === 'operator' ? operatorEmail : engEmail,
     draftData: {
       currentStep,
       checklistData,
@@ -290,9 +290,11 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     const adminResult = monthlyAdminSchema.safeParse({
       company: selectedCompany || "",
       location: locationDisplay?.trim() || "",
-      engineerName: (engName && engName !== "Please select") ? engName.trim() : "",
-      engineerEmail: engEmail?.trim() || "",
-      engineerPhone: engPhone?.trim() || "",
+      engineerName: accessType === 'operator'
+        ? (operatorName && operatorName !== "Please select") ? operatorName.trim() : ""
+        : (engName && engName !== "Please select") ? engName.trim() : "",
+      engineerEmail: accessType === 'operator' ? operatorEmail?.trim() || "" : engEmail?.trim() || "",
+      engineerPhone: accessType === 'operator' ? operatorPhone?.trim() || "" : engPhone?.trim() || "",
     });
 
     if (!adminResult.success) {
@@ -576,9 +578,11 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     const result = monthlySchema.safeParse({
       company: selectedCompany || "",
       location: locationDisplay?.trim() || "",
-      engineerName: (engName && engName !== "Please select") ? engName.trim() : "",
-      engineerEmail: engEmail?.trim() || "",
-      engineerPhone: engPhone?.trim() || "",
+      engineerName: accessType === 'operator'
+        ? (operatorName && operatorName !== "Please select") ? operatorName.trim() : ""
+        : (engName && engName !== "Please select") ? engName.trim() : "",
+      engineerEmail: accessType === 'operator' ? operatorEmail?.trim() || "" : engEmail?.trim() || "",
+      engineerPhone: accessType === 'operator' ? operatorPhone?.trim() || "" : engPhone?.trim() || "",
       declaration: declarationChecked,
       signature: signatureData || "",
     });

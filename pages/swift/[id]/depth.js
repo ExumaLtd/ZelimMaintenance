@@ -160,7 +160,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   useAutoSave({
     unitId: unit?.record_id,
     maintenanceType: '30-month depth',
-    engineerEmail: engEmail,
+    engineerEmail: accessType === 'operator' ? operatorEmail : engEmail,
     draftData: {
       checklistData,
       currentStep,
@@ -403,9 +403,11 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       const adminResult = depthAdminSchema.safeParse({
         company: selectedCompany || "",
         location: locationDisplay?.trim() || "",
-        engineerName: (engName && engName !== "Please select") ? engName.trim() : "",
-        engineerEmail: engEmail?.trim() || "",
-        engineerPhone: engPhone?.trim() || "",
+        engineerName: accessType === 'operator'
+          ? (operatorName && operatorName !== "Please select") ? operatorName.trim() : ""
+          : (engName && engName !== "Please select") ? engName.trim() : "",
+        engineerEmail: accessType === 'operator' ? operatorEmail?.trim() || "" : engEmail?.trim() || "",
+        engineerPhone: accessType === 'operator' ? operatorPhone?.trim() || "" : engPhone?.trim() || "",
       });
 
       if (!adminResult.success) {

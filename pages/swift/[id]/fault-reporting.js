@@ -85,7 +85,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
   useAutoSave({
     unitId: unit?.record_id,
     maintenanceType: 'Fault report',
-    engineerEmail: engEmail,
+    engineerEmail: accessType === 'operator' ? operatorEmail : engEmail,
     draftData: {
       answers,
       questionImages,
@@ -429,9 +429,11 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
     const result = faultReportingSchema.safeParse({
       company: selectedCompany || "",
       location: locationDisplay?.trim() || "",
-      engineerName: (engName && engName !== "Please select") ? engName.trim() : "",
-      engineerEmail: engEmail?.trim() || "",
-      engineerPhone: engPhone?.trim() || "",
+      engineerName: accessType === 'operator'
+        ? (operatorName && operatorName !== "Please select") ? operatorName.trim() : ""
+        : (engName && engName !== "Please select") ? engName.trim() : "",
+      engineerEmail: accessType === 'operator' ? operatorEmail?.trim() || "" : engEmail?.trim() || "",
+      engineerPhone: accessType === 'operator' ? operatorPhone?.trim() || "" : engPhone?.trim() || "",
       declaration: declarationChecked,
       signature: signatureData || "",
     });
