@@ -39,8 +39,8 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'No valid session found' });
     }
 
-    const accessPin = session.pin; // e.g., "SWI005" or "CREW005"
-    const userType = session.access === 'maintenance' ? 'Engineer' : 'Crew';
+    const accessPin = session.pin;
+    const userType = session.access === 'operator' ? 'Operator' : 'Engineer';
 
     const { unitId, maintenanceType, engineerEmail, draftData } = req.body;
 
