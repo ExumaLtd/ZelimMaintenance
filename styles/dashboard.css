@@ -515,6 +515,7 @@
 
   .dashboard-scope .download-link {
     width: 100%;
+    max-width: none;
     text-align: left;
   }
 }
