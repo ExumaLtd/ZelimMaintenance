@@ -102,6 +102,7 @@ export default async function handler(req, res) {
     operator_name,
     operator_email,
     operator_phone,
+    operating_company_id,
     date_of_maintenance,
     maintenance_type,
     location_display,
@@ -127,8 +128,47 @@ export default async function handler(req, res) {
     let operatorRecordId = null;
 
     if (isOperator) {
-      // Operator path — use provided record ID directly
-      operatorRecordId = operator_record_id;
+      if (operator_record_id) {
+        // Existing operator selected from dropdown
+        operatorRecordId = operator_record_id;
+      } else if (operator_name) {
+        // New operator typed manually — look up or create
+        const opRes = await fetch(
+          `https://api.airtable.com/v0/${baseId}/operators?filterByFormula=${encodeURIComponent(`{operator_name}='${esc(operator_name)}'`)}&maxRecords=1`,
+          { headers: { Authorization: `Bearer ${apiKey}` } }
+        );
+        const opData = await opRes.json();
+
+        const operatorFields = {
+          "operator_name": operator_name,
+          "email": operator_email,
+          "phone": operator_phone,
+          "operating_company": operating_company_id ? [operating_company_id] : [],
+        };
+
+        if (opData?.records?.length > 0) {
+          // Operator exists — reuse, update if details changed
+          operatorRecordId = opData.records[0].id;
+          const existing = opData.records[0].fields;
+          const needsUpdate = existing.email !== operator_email || existing.phone !== operator_phone;
+          if (needsUpdate) {
+            await fetch(`https://api.airtable.com/v0/${baseId}/operators/${operatorRecordId}`, {
+              method: 'PATCH',
+              headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ fields: operatorFields }),
+            });
+          }
+        } else {
+          // Create new operator record
+          const newOp = await fetch(`https://api.airtable.com/v0/${baseId}/operators`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fields: operatorFields }),
+          });
+          const newOpData = await newOp.json();
+          operatorRecordId = newOpData.id;
+        }
+      }
     } else {
       // Engineer path — resolve maintenance company and engineer record
       const [compRes, engRes] = await Promise.all([
@@ -236,6 +276,7 @@ export default async function handler(req, res) {
 
     // Split uploaded files into photos / videos / documents for Airtable attachment fields
     const allFiles = answers.flatMap(item => item.images || []);
+    console.log(`📎 [${userType}] answers=${answers.length} allFiles=${allFiles.length} fileTypes=${JSON.stringify(allFiles.map(f => f.fileType))}`);
     const photoAttachments = allFiles.filter(f => f.fileType === 'image').map(f => ({ url: f.url }));
     const videoAttachments = allFiles.filter(f => f.fileType === 'video').map(f => ({ url: f.url }));
     const docAttachments   = allFiles.filter(f => f.fileType === 'pdf').map(f => ({ url: f.url }));

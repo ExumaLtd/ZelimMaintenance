@@ -912,6 +912,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       operator_email: operatorEmail,
       operator_phone: operatorPhone,
       operator_record_id: operatorId,
+      operating_company_id: unit?.operating_company_id,
       unit_record_id: unit?.record_id,
       checklist_template_id: template?.id,
       serial_number: unit?.serial_number,
