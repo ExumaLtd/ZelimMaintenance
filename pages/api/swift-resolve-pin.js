@@ -48,8 +48,8 @@ export default async function handler(req, res) {
     const records = await base(TABLE_NAME)
       .select({
         maxRecords: 1,
-        filterByFormula: `OR({access_pin} = "${pin}", {operator_pin} = "${pin}")`,
-        fields: ["public_token", "access_pin", "operator_pin"],
+        filterByFormula: `OR({engineer_pin} = "${pin}", {operator_pin} = "${pin}")`,
+        fields: ["public_token", "engineer_pin", "operator_pin"],
       })
       .firstPage();
 
@@ -59,7 +59,7 @@ export default async function handler(req, res) {
 
     const record = records[0];
     const publicToken = record.get("public_token");
-    const accessPin = record.get("access_pin");
+    const accessPin = record.get("engineer_pin");
     const operatorPin = record.get("operator_pin");
 
     // Determine access type based on which PIN was entered

@@ -98,7 +98,7 @@ export async function getServerSideProps(context) {
       .select({
         maxRecords: 1,
         filterByFormula: `{public_token} = "${publicToken}"`,
-        fields: ["serial_number", "company", "annual_maintenance_due", "depth_maintenance_due"],
+        fields: ["serial_number", "operating_company", "annual_maintenance_due", "depth_maintenance_due"],
       })
       .firstPage();
 
@@ -114,7 +114,7 @@ export async function getServerSideProps(context) {
     const unitDetails = {
       record_id: unitRecordId,
       serial_number: record.get("serial_number") || "N/A",
-      company: record.get("company") || "Client Unit",
+      company: record.get("operating_company") || "Client Unit",
       annualDue: record.get("annual_maintenance_due")
         ? new Date(record.get("annual_maintenance_due")).toLocaleDateString("en-GB")
         : "N/A",
