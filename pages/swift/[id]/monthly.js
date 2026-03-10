@@ -652,10 +652,14 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     setFieldErrors(newFieldErrors);
 
     if (errors.length > 0) {
-      if (errors.length === 1) {
-        setErrorMsg(errors[0].message);
-      } else {
+      // 'comments' error is shown inline below the textarea — exclude it from the global errorMsg
+      const nonInlineErrors = errors.filter(e => e.field !== 'comments');
+      if (nonInlineErrors.length === 1) {
+        setErrorMsg(nonInlineErrors[0].message);
+      } else if (nonInlineErrors.length > 1) {
         setErrorMsg("Please check for multiple errors.");
+      } else {
+        setErrorMsg("");
       }
       
       if (firstErrorField) {
@@ -1213,10 +1217,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                 <div style={{ marginTop: "32px" }}>
                   <label className="checklist-label" style={{ marginTop: 0 }}>Further comments</label>
                   <p className="question-instruction">Record any additional observations, defects, or actions.</p>
-                  
-                  {fieldErrors.furtherComments && (
-                    <p className="error-message">Please explain any item marked &ldquo;No&rdquo; before submitting.</p>
-                  )}
 
                   <div className="question-with-upload">
                     <div className="textarea-wrapper">
@@ -1258,6 +1258,9 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                       onImagesChange={handleCommentImagesChange}
                     />
                   </div>
+                  {fieldErrors.furtherComments && (
+                    <p className="error-message">Please explain any item marked &ldquo;No&rdquo; before submitting.</p>
+                  )}
                 </div>
 
                   </>
