@@ -138,7 +138,7 @@ export default async function handler(req, res) {
       "engineer_name": engineer_name,
       "email": engineer_email,
       "phone": engineer_phone,
-      "company": companyRecordId ? [companyRecordId] : []
+      "maintenance_company": companyRecordId ? [companyRecordId] : []
     };
 
     if (engineer_record_id) {
@@ -151,7 +151,7 @@ export default async function handler(req, res) {
       const needsUpdate =
         existing.email !== engineer_email ||
         existing.phone !== engineer_phone ||
-        JSON.stringify(existing.company || []) !== JSON.stringify(engineerFields.company);
+        JSON.stringify(existing.maintenance_company || []) !== JSON.stringify(engineerFields.maintenance_company);
       if (needsUpdate) {
         await fetch(`https://api.airtable.com/v0/${baseId}/engineers/${engineerRecordId}`, {
           method: 'PATCH',
