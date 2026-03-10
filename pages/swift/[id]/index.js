@@ -108,13 +108,25 @@ export async function getServerSideProps(context) {
 
     const record = records[0];
     const unitRecordId = record.id;
-    
+
     console.log('unitRecordId:', unitRecordId);
+
+    // operating_company is now a linked record field — resolve the name
+    let companyName = "Client Unit";
+    const operatingCompanyIds = record.get("operating_company");
+    if (operatingCompanyIds && operatingCompanyIds.length > 0) {
+      try {
+        const companyRecord = await base('operating_companies').find(operatingCompanyIds[0]);
+        companyName = companyRecord.get('company_name') || "Client Unit";
+      } catch (e) {
+        console.warn('Could not resolve operating company name:', e.message);
+      }
+    }
 
     const unitDetails = {
       record_id: unitRecordId,
       serial_number: record.get("serial_number") || "N/A",
-      company: record.get("operating_company") || "Client Unit",
+      company: companyName,
       annualDue: record.get("annual_maintenance_due")
         ? new Date(record.get("annual_maintenance_due")).toLocaleDateString("en-GB")
         : "N/A",
