@@ -16,9 +16,10 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 
-export const TechnicalAlertEmail = ({ 
+export const TechnicalAlertEmail = ({
   serialNumber = 'N/A',
   displayType = 'Maintenance',
+  isOperator = false,
   technicalData = {},
   answers = {},
   equipmentChecklist = null,
@@ -27,7 +28,7 @@ export const TechnicalAlertEmail = ({
   logoUrl = '/logo/zelim-logo-dark.png',
   zelimLogoUrl = '/logo/zelim-logo-dark.png',
   previewUrl = null,
-  recordRef = null
+  recordRef = null,
 }) => {
   const submissionDate = new Date();
   const formattedDate = submissionDate.toLocaleDateString('en-GB', {
@@ -204,7 +205,7 @@ export const TechnicalAlertEmail = ({
                   <Text style={value} className="status-value">{serialNumber}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
-                  <Text style={label}>Company</Text>
+                  <Text style={label}>{isOperator ? 'Operator' : 'Company'}</Text>
                   <Text style={value} className="status-value">{technicalData?.company_name || 'N/A'}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
@@ -218,7 +219,7 @@ export const TechnicalAlertEmail = ({
                   <Text style={value} className="status-value">{technicalData?.maintenance_company || 'N/A'}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
-                  <Text style={label}>Engineer</Text>
+                  <Text style={label}>{isOperator ? 'Operator name' : 'Engineer'}</Text>
                   <Text style={value} className="status-value">{technicalData?.engineer_name || 'N/A'}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">

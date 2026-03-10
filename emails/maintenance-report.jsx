@@ -15,8 +15,8 @@ import {
 } from '@react-email/components';
 import * as React from 'react';
 
-export const MaintenanceReportEmail = ({ 
-  engineerName = 'Engineer', 
+export const MaintenanceReportEmail = ({
+  engineerName = 'Engineer',
   serialNumber = 'N/A',
   reportType = 'Maintenance',
   maintenanceCompany = 'N/A',
@@ -29,7 +29,8 @@ export const MaintenanceReportEmail = ({
   logoUrl = '/logo/zelim-logo-dark.png',
   zelimLogoUrl = '/logo/zelim-logo-dark.png',
   previewUrl = null,
-  recordRef = null
+  recordRef = null,
+  isOperator = false,
 }) => {
   const now = new Date();
   const today = now.toLocaleDateString('en-GB', {
@@ -209,7 +210,7 @@ export const MaintenanceReportEmail = ({
                   <Text style={value} className="status-value">{serialNumber}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
-                  <Text style={label}>Company</Text>
+                  <Text style={label}>{isOperator ? 'Operator' : 'Company'}</Text>
                   <Text style={value} className="status-value">{companyName}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
@@ -223,7 +224,7 @@ export const MaintenanceReportEmail = ({
                   <Text style={value} className="status-value">{maintenanceCompany}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
-                  <Text style={label}>Engineer</Text>
+                  <Text style={label}>{isOperator ? 'Operator name' : 'Engineer'}</Text>
                   <Text style={value} className="status-value">{engineerName}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">

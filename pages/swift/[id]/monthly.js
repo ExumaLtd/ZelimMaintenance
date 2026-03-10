@@ -768,8 +768,8 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          engineerEmail: engEmail,
-          engineerName: engName,
+          engineerEmail: accessType === 'operator' ? operatorEmail : engEmail,
+          engineerName: accessType === 'operator' ? operatorName : engName,
           serialNumber: unit?.serial_number,
           company: unit?.company,
           maintenance_checklist: checklistData.map(group => ({
@@ -785,11 +785,12 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           reportType: "Monthly",
           companyLogoUrl: companyLogoUrl,
           recordRef: submitResult.recordRef,
+          isOperator: accessType === 'operator',
           technicalData: {
             unit_record_id: unit?.record_id,
             checklist_template_id: template?.id,
-            maintenance_company: selectedCompany,
-            engineer_name: engName,
+            maintenance_company: accessType === 'operator' ? unit?.company : selectedCompany,
+            engineer_name: accessType === 'operator' ? operatorName : engName,
             location_display: locationDisplay,
             date_of_maintenance: new Date().toISOString().split('T')[0],
             time_of_maintenance: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),

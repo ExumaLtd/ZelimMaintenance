@@ -34,18 +34,19 @@ export default async function handler(req, res) {
 
   try {
     // 1. Extract variables FIRST
-    const { 
-      engineerEmail, 
-      engineerName, 
-      serialNumber, 
+    const {
+      engineerEmail,
+      engineerName,
+      serialNumber,
       company,
       answers,
       equipment_checklist,
       maintenance_checklist,
-      reportType, 
+      reportType,
       technicalData,
       companyLogoUrl,
-      recordRef
+      recordRef,
+      isOperator,
     } = req.body;
 
     // Helper function to find company name from various possible sources
@@ -113,8 +114,8 @@ export default async function handler(req, res) {
         from: `${senderName} <maintenance@exuma.co.uk>`,
         to: [engineerEmail],
         subject: emailSubject,
-        react: MaintenanceReportEmail({ 
-          engineerName, 
+        react: MaintenanceReportEmail({
+          engineerName,
           serialNumber,
           reportType: displayType,
           maintenanceCompany: technicalData?.maintenance_company || 'N/A',
@@ -127,7 +128,8 @@ export default async function handler(req, res) {
           logoUrl: logoUrl,
           zelimLogoUrl: zelimLogoUrl,
           previewUrl: engineerPreviewUrl,
-          recordRef: recordRef || null
+          recordRef: recordRef || null,
+          isOperator: !!isOperator,
         }),
       },
       {
@@ -135,9 +137,10 @@ export default async function handler(req, res) {
         from: `${senderName} <maintenance@exuma.co.uk>`,
         to: ['maintenance@exuma.co.uk'], 
         subject: emailSubject,
-        react: TechnicalAlertEmail({ 
-          serialNumber, 
-          displayType, 
+        react: TechnicalAlertEmail({
+          serialNumber,
+          displayType,
+          isOperator: !!isOperator,
           technicalData: {
             unit_record_id: technicalData?.unit_record_id,
             company_name: companyName,
@@ -152,7 +155,7 @@ export default async function handler(req, res) {
           logoUrl: logoUrl,
           zelimLogoUrl: zelimLogoUrl,
           previewUrl: internalPreviewUrl,
-          recordRef: recordRef || null
+          recordRef: recordRef || null,
         }),
       }
     ]);
