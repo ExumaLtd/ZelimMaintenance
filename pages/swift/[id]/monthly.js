@@ -679,14 +679,14 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       answers.push({
         question: "Photograph SWIFT",
         answer: photographComments || "",
-        images: photographImages.map(img => ({ url: img.url, fileType: img.fileType }))
+        images: photographImages.map(img => ({ url: img.url, fileType: img.fileType || 'image' }))
       });
     }
     if (furtherComments || commentImages.length > 0) {
       answers.push({
         question: "Further comments",
         answer: furtherComments || "",
-        images: commentImages.map(img => ({ url: img.url, fileType: img.fileType }))
+        images: commentImages.map(img => ({ url: img.url, fileType: img.fileType || 'image' }))
       });
     }
 

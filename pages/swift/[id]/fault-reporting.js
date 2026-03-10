@@ -544,7 +544,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
         return {
           question: questionKey,
           answer: answers[questionKey] || "",
-          images: (questionImages[questionKey] || []).map(img => ({ url: img.url, fileType: img.fileType }))
+          images: (questionImages[questionKey] || []).map(img => ({ url: img.url, fileType: img.fileType || 'image' }))
         };
       }),
     };

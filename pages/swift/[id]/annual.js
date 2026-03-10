@@ -726,7 +726,7 @@ export default function Annual({ unit, template, companies = [], engineers = [],
         return {
           question: questionKey,
           answer: answers[questionKey] || "",
-          images: (questionImages[questionKey] || []).map(img => ({ url: img.url, fileType: img.fileType }))
+          images: (questionImages[questionKey] || []).map(img => ({ url: img.url, fileType: img.fileType || 'image' }))
         };
       }),
     };

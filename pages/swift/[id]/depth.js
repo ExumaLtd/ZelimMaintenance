@@ -935,7 +935,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
           return {
             question: questionKey,
             answer: answers[questionKey] || "",
-            images: (questionImages[questionKey] || []).map(img => ({ url: img.url, fileType: img.fileType }))
+            images: (questionImages[questionKey] || []).map(img => ({ url: img.url, fileType: img.fileType || 'image' }))
           };
         }),
     };
