@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { getSession } from '../../lib/session';
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
@@ -198,10 +199,16 @@ export default async function handler(req, res) {
         const buffer = Buffer.from(base64Data, 'base64');
         const blob = new Blob([buffer], { type: 'image/png' });
         const safeRef = recordRef.replace(/\//g, '_'); // e.g. RI_SWI005_U_180226_5
+        const sigPublicId = `${cloudinaryFolder}/${safeRef}_signature`;
+        const sigTimestamp = Math.round(Date.now() / 1000);
+        const sigParamStr = `public_id=${sigPublicId}&timestamp=${sigTimestamp}${process.env.CLOUDINARY_API_SECRET}`;
+        const sigSignature = crypto.createHash('sha1').update(sigParamStr).digest('hex');
         const sigFormData = new FormData();
         sigFormData.append('file', blob, `${safeRef}_signature.png`);
-        sigFormData.append('upload_preset', 'maintenance-uploads');
-        sigFormData.append('public_id', `${cloudinaryFolder}/${safeRef}_signature`);
+        sigFormData.append('api_key', process.env.CLOUDINARY_API_KEY);
+        sigFormData.append('timestamp', sigTimestamp);
+        sigFormData.append('signature', sigSignature);
+        sigFormData.append('public_id', sigPublicId);
         const sigRes = await fetch('https://api.cloudinary.com/v1_1/zelimmaintenanceportal/image/upload', {
           method: 'POST',
           body: sigFormData,
