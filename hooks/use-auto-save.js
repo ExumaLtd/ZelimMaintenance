@@ -14,11 +14,10 @@ export function useAutoSave(config, shouldSave) {
   const configRef = useRef(config);
   const shouldSaveRef = useRef(shouldSave);
 
-  // Update refs without triggering effects
-  useEffect(() => {
-    configRef.current = config;
-    shouldSaveRef.current = shouldSave;
-  });
+  // Update refs synchronously during render so beforeunload/pagehide always
+  // sees the current value without waiting for a useEffect flush
+  configRef.current = config;
+  shouldSaveRef.current = shouldSave;
 
   // Save function using refs
   const saveDraft = async (force = false) => {

@@ -40,6 +40,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   const companyFieldRef = useRef(null);
   const locationFieldRef = useRef(null);
   const engineerFieldRef = useRef(null);
+  const furtherCommentsRef = useRef(null);
   const signatureRef = useRef(null);
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
@@ -63,6 +64,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     engineerEmail: false,
     engineerPhone: false,
     photographImages: false,
+    furtherComments: false,
     declaration: false,
     signature: false,
   });
@@ -569,6 +571,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       engineerName: false,
       engineerEmail: false,
       engineerPhone: false,
+      furtherComments: false,
       declaration: false,
       signature: false,
     };
@@ -641,12 +644,9 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     }
     
     if (hasNoAnswers && (!furtherComments || !furtherComments.trim())) {
-      errors.push({ field: 'comments', message: 'Further comments are required when any question is answered "No".' });
-      const textarea = document.querySelector('.checklist-textarea');
-      if (textarea) {
-        textarea.classList.add('has-error');
-        textarea.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
+      errors.push({ field: 'comments', message: 'Please explain any item marked "No" before submitting.' });
+      newFieldErrors.furtherComments = true;
+      if (!firstErrorField) firstErrorField = furtherCommentsRef;
     }
 
     setFieldErrors(newFieldErrors);
@@ -1214,16 +1214,21 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                   <label className="checklist-label" style={{ marginTop: 0 }}>Further comments</label>
                   <p className="question-instruction">Record any additional observations, defects, or actions.</p>
                   
+                  {fieldErrors.furtherComments && (
+                    <p className="error-message">Please explain any item marked &ldquo;No&rdquo; before submitting.</p>
+                  )}
+
                   <div className="question-with-upload">
                     <div className="textarea-wrapper">
                       <textarea
-                        className="checklist-textarea"
+                        ref={furtherCommentsRef}
+                        className={clsx("checklist-textarea", fieldErrors.furtherComments && "has-error")}
                         value={furtherComments}
                         onChange={(e) => {
                           setFurtherComments(e.target.value);
                           autoGrow(e);
                           if (e.target.value.trim()) {
-                            e.target.classList.remove('has-error');
+                            setFieldErrors(prev => ({ ...prev, furtherComments: false }));
                           }
                         }}
                         onInput={autoGrow}

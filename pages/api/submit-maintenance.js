@@ -276,7 +276,6 @@ export default async function handler(req, res) {
 
     // Split uploaded files into photos / videos / documents for Airtable attachment fields
     const allFiles = answers.flatMap(item => item.images || []);
-    console.log(`📎 [${userType}] answers=${answers.length} allFiles=${allFiles.length} fileTypes=${JSON.stringify(allFiles.map(f => f.fileType))}`);
     const photoAttachments = allFiles.filter(f => f.fileType === 'image').map(f => ({ url: f.url }));
     const videoAttachments = allFiles.filter(f => f.fileType === 'video').map(f => ({ url: f.url }));
     const docAttachments   = allFiles.filter(f => f.fileType === 'pdf').map(f => ({ url: f.url }));
