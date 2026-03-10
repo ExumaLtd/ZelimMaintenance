@@ -253,7 +253,7 @@ export default async function handler(req, res) {
     const checkFields = {
       "unit": [unit_record_id],
       "maintained_by": companyRecordId ? [companyRecordId] : [],
-      "engineer_name": [engineerRecordId],
+      "engineer": [engineerRecordId],
       "date_of_maintenance": trimmedDate, 
       "maintenance_type": maintenance_type,
       "location_display": location_display || "",
