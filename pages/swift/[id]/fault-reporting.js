@@ -26,7 +26,7 @@ const faultReportingSchema = z.object({
 });
 
 
-export default function FaultReporting({ unit, template, allCompanies = [], allEngineers = [], accessType = 'maintenance' }) {
+export default function FaultReporting({ unit, template, allCompanies = [], allEngineers = [], allOperators = [], accessType = 'maintenance' }) {
   const router = useRouter();
 
   const companyFieldRef = useRef(null);
@@ -35,6 +35,7 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
   const signatureRef = useRef(null);
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
+  const operatorDropdownRef = useRef(null);
   const hasLoadedDraftRef = useRef(false);
   const hasSubmittedRef = useRef(false);
 
@@ -65,6 +66,12 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
   const [engPhone, setEngPhone] = useState("");
   const [engId, setEngId] = useState("");
 
+  const [operatorName, setOperatorName] = useState("");
+  const [operatorEmail, setOperatorEmail] = useState("");
+  const [operatorPhone, setOperatorPhone] = useState("");
+  const [operatorId, setOperatorId] = useState("");
+  const [showOperatorDropdown, setShowOperatorDropdown] = useState(false);
+
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
 
@@ -88,9 +95,14 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
       engName,
       engEmail,
       engPhone,
+      engId,
+      operatorName,
+      operatorEmail,
+      operatorPhone,
+      operatorId,
     }
-  }, 
-    !submitting && 
+  },
+    !submitting &&
     !hasSubmittedRef.current &&
     (
       Object.keys(answers).some(key => answers[key]?.trim()) ||
@@ -113,11 +125,23 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
     return list;
   }, [selectedCompany, engName, allEngineers]);
 
+  const filteredOperators = useMemo(() => {
+    const opId = unit?.operating_company_id;
+    if (!opId) return allOperators;
+    let list = allOperators.filter(o => o.operating_company_id === opId && o.name !== operatorName);
+    if (operatorName && operatorName !== "Please select" && operatorName.trim()) {
+      const search = operatorName.toLowerCase();
+      return list.filter(o => o.name.toLowerCase().includes(search));
+    }
+    return list;
+  }, [unit?.operating_company_id, operatorName, allOperators]);
+
   const selectCompany = useCallback((company) => {
     setSelectedCompany(company);
     setEngName("Please select");
     setEngEmail("");
     setEngPhone("");
+    setEngId("");
     setShowCompanyDropdown(false);
     setFieldErrors(prev => ({ ...prev, company: false }));
   }, []);
@@ -154,6 +178,28 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
     setShowEngineerDropdown(false);
   }, []);
 
+  const selectOperator = useCallback((operator) => {
+    setOperatorName(operator.name);
+    setOperatorEmail(operator.email || "");
+    setOperatorPhone(operator.phone || "");
+    setOperatorId(operator.id || "");
+    setShowOperatorDropdown(false);
+    setFieldErrors(prev => ({
+      ...prev,
+      engineerName: false,
+      engineerEmail: operator.email ? false : prev.engineerEmail,
+      engineerPhone: operator.phone ? false : prev.engineerPhone,
+    }));
+  }, []);
+
+  const clearOperator = useCallback(() => {
+    setOperatorName("");
+    setOperatorEmail("");
+    setOperatorPhone("");
+    setOperatorId("");
+    setShowOperatorDropdown(false);
+  }, []);
+
   const handleImagesChange = (questionKey, images) => {
     setQuestionImages(prev => ({
       ...prev,
@@ -168,6 +214,9 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
       }
       if (engineerDropdownRef.current && !engineerDropdownRef.current.contains(event.target)) {
         setShowEngineerDropdown(false);
+      }
+      if (operatorDropdownRef.current && !operatorDropdownRef.current.contains(event.target)) {
+        setShowOperatorDropdown(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -205,10 +254,15 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
             if (data.draft.engName) setEngName(data.draft.engName);
             if (data.draft.engEmail) setEngEmail(data.draft.engEmail);
             if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
-            
+            if (data.draft.engId) setEngId(data.draft.engId);
+            if (data.draft.operatorName) setOperatorName(data.draft.operatorName);
+            if (data.draft.operatorEmail) setOperatorEmail(data.draft.operatorEmail);
+            if (data.draft.operatorPhone) setOperatorPhone(data.draft.operatorPhone);
+            if (data.draft.operatorId) setOperatorId(data.draft.operatorId);
+
             // Clear stale localStorage
             localStorage.removeItem(storageKey);
-            
+
             hasLoadedDraftRef.current = true;
             console.log('✅ Draft loaded from Airtable:', new Date(data.lastUpdated).toLocaleString());
             return; // STOP
@@ -472,6 +526,12 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
       engineer_name: engName,
       engineer_email: engEmail,
       engineer_phone: engPhone,
+      engineer_record_id: engId,
+      // Operator fields (operator logins)
+      operator_name: operatorName,
+      operator_email: operatorEmail,
+      operator_phone: operatorPhone,
+      operator_record_id: operatorId,
       unit_record_id: unit?.record_id,
       checklist_template_id: template?.id,
       serial_number: unit?.serial_number,
@@ -559,6 +619,9 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
   const hasEngineerResults = filteredEngineers.length > 0;
   const hasClearEng = engName && engName !== "Please select" && engName !== "";
   const shouldShowEngDropdown = showEngineerDropdown && (hasEngineerResults || hasClearEng);
+  const hasOperatorResults = filteredOperators.length > 0;
+  const hasClearOp = operatorName && operatorName !== "Please select" && operatorName !== "";
+  const shouldShowOpDropdown = showOperatorDropdown && (hasOperatorResults || hasClearOp);
 
   return (
     <div className="form-scope">
@@ -653,93 +716,183 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
                 </div>
               </div>
 
-              <div className="checklist-inline-group" style={{ marginTop: "24px" }}>
-                <div className="checklist-field" ref={engineerFieldRef}>
-                  <label className="checklist-label">{accessType === 'operator' ? 'Operators name' : 'Engineer name'}</label>
-                  <div className="custom-dropdown-container" ref={engineerDropdownRef}>
-                    <div className="field-icon-wrapper">
-                      <input
-                        className={clsx(
-                          "checklist-input",
-                          engName === "Please select" || !engName ? "is-placeholder" : "is-active",
-                          shouldShowEngDropdown && "is-focused",
-                          fieldErrors.engineerName && "has-error"
+              {accessType === 'operator' ? (
+                <div className="checklist-inline-group" style={{ marginTop: "24px" }}>
+                  <div className="checklist-field" ref={engineerFieldRef}>
+                    <label className="checklist-label">Operator name</label>
+                    <div className="custom-dropdown-container" ref={operatorDropdownRef}>
+                      <div className="field-icon-wrapper">
+                        <input
+                          className={clsx(
+                            "checklist-input",
+                            operatorName === "Please select" || !operatorName ? "is-placeholder" : "is-active",
+                            shouldShowOpDropdown && "is-focused",
+                            fieldErrors.engineerName && "has-error"
+                          )}
+                          name="operator_name"
+                          required
+                          value={operatorName}
+                          autoComplete="off"
+                          onFocus={() => setShowOperatorDropdown(true)}
+                          onChange={(e) => {
+                            setOperatorName(e.target.value);
+                            setOperatorId("");
+                            setShowOperatorDropdown(true);
+                            if (e.target.value.trim() && e.target.value !== "Please select") {
+                              setFieldErrors(prev => ({ ...prev, engineerName: false }));
+                            }
+                          }}
+                          style={{
+                            paddingRight: (hasOperatorResults || hasClearOp) ? "40px" : "16px",
+                          }}
+                        />
+                        {(hasOperatorResults || hasClearOp) && (
+                          <div className="field-icon-inside">
+                            {showOperatorDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
+                          </div>
                         )}
-                        name="engineer_name"
-                        required
-                        value={engName}
-                        autoComplete="off"
-                        onFocus={() => {
-                          if (selectedCompany) setShowEngineerDropdown(true);
-                        }}
-                        onChange={(e) => {
-                          setEngName(e.target.value);
-                          if (selectedCompany) setShowEngineerDropdown(true);
-                          if (e.target.value.trim() && e.target.value !== "Please select") {
-                            setFieldErrors(prev => ({ ...prev, engineerName: false }));
-                          }
-                        }}
-                        style={{
-                          paddingRight: selectedCompany && (hasEngineerResults || hasClearEng) ? "40px" : "16px",
-                        }}
-                      />
-                      {selectedCompany && (hasEngineerResults || hasClearEng) && (
-                        <div className="field-icon-inside">
-                          {showEngineerDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
-                        </div>
+                      </div>
+                      {shouldShowOpDropdown && (
+                        <ul className={clsx("custom-dropdown-list", fieldErrors.engineerName && "has-error")}>
+                          {hasClearOp && (
+                            <li className="custom-dropdown-item" onClick={clearOperator}>
+                              Clear details
+                            </li>
+                          )}
+                          {filteredOperators.map((op, i) => (
+                            <li key={i} className="custom-dropdown-item" onClick={() => selectOperator(op)}>
+                              {op.name}
+                            </li>
+                          ))}
+                        </ul>
                       )}
                     </div>
-                    {shouldShowEngDropdown && (
-                      <ul className={clsx("custom-dropdown-list", fieldErrors.engineerName && "has-error")}>
-                        {hasClearEng && (
-                          <li className="custom-dropdown-item" onClick={clearEngineer}>
-                            Clear details
-                          </li>
-                        )}
-                        {filteredEngineers.map((eng, i) => (
-                          <li key={i} className="custom-dropdown-item" onClick={() => selectEngineer(eng)}>
-                            {eng.name}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                  </div>
+
+                  <div className="checklist-field">
+                    <label className="checklist-label">Operator email</label>
+                    <input
+                      type="email"
+                      className={clsx("checklist-input", fieldErrors.engineerEmail && "has-error")}
+                      name="operator_email"
+                      required
+                      value={operatorEmail}
+                      onChange={(e) => {
+                        setOperatorEmail(e.target.value);
+                        if (e.target.value.trim()) {
+                          setFieldErrors(prev => ({ ...prev, engineerEmail: false }));
+                        }
+                      }}
+                    />
+                  </div>
+
+                  <div className="checklist-field">
+                    <label className="checklist-label">Operator phone</label>
+                    <input
+                      type="tel"
+                      className={clsx("checklist-input", fieldErrors.engineerPhone && "has-error")}
+                      name="operator_phone"
+                      required
+                      value={operatorPhone}
+                      onChange={(e) => {
+                        setOperatorPhone(e.target.value);
+                        if (e.target.value.trim()) {
+                          setFieldErrors(prev => ({ ...prev, engineerPhone: false }));
+                        }
+                      }}
+                    />
                   </div>
                 </div>
+              ) : (
+                <div className="checklist-inline-group" style={{ marginTop: "24px" }}>
+                  <div className="checklist-field" ref={engineerFieldRef}>
+                    <label className="checklist-label">Engineer name</label>
+                    <div className="custom-dropdown-container" ref={engineerDropdownRef}>
+                      <div className="field-icon-wrapper">
+                        <input
+                          className={clsx(
+                            "checklist-input",
+                            engName === "Please select" || !engName ? "is-placeholder" : "is-active",
+                            shouldShowEngDropdown && "is-focused",
+                            fieldErrors.engineerName && "has-error"
+                          )}
+                          name="engineer_name"
+                          required
+                          value={engName}
+                          autoComplete="off"
+                          onFocus={() => {
+                            if (selectedCompany) setShowEngineerDropdown(true);
+                          }}
+                          onChange={(e) => {
+                            setEngName(e.target.value);
+                            setEngId("");
+                            if (selectedCompany) setShowEngineerDropdown(true);
+                            if (e.target.value.trim() && e.target.value !== "Please select") {
+                              setFieldErrors(prev => ({ ...prev, engineerName: false }));
+                            }
+                          }}
+                          style={{
+                            paddingRight: selectedCompany && (hasEngineerResults || hasClearEng) ? "40px" : "16px",
+                          }}
+                        />
+                        {selectedCompany && (hasEngineerResults || hasClearEng) && (
+                          <div className="field-icon-inside">
+                            {showEngineerDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
+                          </div>
+                        )}
+                      </div>
+                      {shouldShowEngDropdown && (
+                        <ul className={clsx("custom-dropdown-list", fieldErrors.engineerName && "has-error")}>
+                          {hasClearEng && (
+                            <li className="custom-dropdown-item" onClick={clearEngineer}>
+                              Clear details
+                            </li>
+                          )}
+                          {filteredEngineers.map((eng, i) => (
+                            <li key={i} className="custom-dropdown-item" onClick={() => selectEngineer(eng)}>
+                              {eng.name}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
 
-                <div className="checklist-field">
-                  <label className="checklist-label">{accessType === 'operator' ? 'Operators email' : 'Engineer email'}</label>
-                  <input
-                    type="email"
-                    className={clsx("checklist-input", fieldErrors.engineerEmail && "has-error")}
-                    name="engineer_email"
-                    required
-                    value={engEmail}
-                    onChange={(e) => {
-                      setEngEmail(e.target.value);
-                      if (e.target.value.trim()) {
-                        setFieldErrors(prev => ({ ...prev, engineerEmail: false }));
-                      }
-                    }}
-                  />
-                </div>
+                  <div className="checklist-field">
+                    <label className="checklist-label">Engineer email</label>
+                    <input
+                      type="email"
+                      className={clsx("checklist-input", fieldErrors.engineerEmail && "has-error")}
+                      name="engineer_email"
+                      required
+                      value={engEmail}
+                      onChange={(e) => {
+                        setEngEmail(e.target.value);
+                        if (e.target.value.trim()) {
+                          setFieldErrors(prev => ({ ...prev, engineerEmail: false }));
+                        }
+                      }}
+                    />
+                  </div>
 
-                <div className="checklist-field">
-                  <label className="checklist-label">{accessType === 'operator' ? 'Operators phone' : 'Engineer phone'}</label>
-                  <input
-                    type="tel"
-                    className={clsx("checklist-input", fieldErrors.engineerPhone && "has-error")}
-                    name="engineer_phone"
-                    required
-                    value={engPhone}
-                    onChange={(e) => {
-                      setEngPhone(e.target.value);
-                      if (e.target.value.trim()) {
-                        setFieldErrors(prev => ({ ...prev, engineerPhone: false }));
-                      }
-                    }}
-                  />
+                  <div className="checklist-field">
+                    <label className="checklist-label">Engineer phone</label>
+                    <input
+                      type="tel"
+                      className={clsx("checklist-input", fieldErrors.engineerPhone && "has-error")}
+                      name="engineer_phone"
+                      required
+                      value={engPhone}
+                      onChange={(e) => {
+                        setEngPhone(e.target.value);
+                        if (e.target.value.trim()) {
+                          setFieldErrors(prev => ({ ...prev, engineerPhone: false }));
+                        }
+                      }}
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             <form onSubmit={handleSubmit} autoComplete="off" noValidate style={{ width: "100%", display: "block", margin: 0, padding: 0 }}>
@@ -891,6 +1044,7 @@ export async function getServerSideProps({ params, req }) {
         template: data.template,
         allCompanies: data.companies,
         allEngineers: data.engineers,
+        allOperators: data.operators,
         accessType,
       },
     };

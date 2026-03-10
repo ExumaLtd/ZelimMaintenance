@@ -87,7 +87,8 @@ export default async function handler(req, res) {
   }
 
   const accessPin = session.pin;
-  const userType = session.access === 'maintenance' ? 'Engineer' : 'Crew';
+  const isOperator = session.access === 'operator';
+  const userType = isOperator ? 'Operator' : 'Engineer';
 
   const {
     unit_record_id,
@@ -96,7 +97,11 @@ export default async function handler(req, res) {
     engineer_record_id,
     engineer_email,
     engineer_phone,
-    date_of_maintenance, 
+    operator_record_id,
+    operator_name,
+    operator_email,
+    operator_phone,
+    date_of_maintenance,
     maintenance_type,
     location_display,
     location_town,
@@ -116,58 +121,63 @@ export default async function handler(req, res) {
     // Generate record reference
     const recordRef = await generateRecordRef(serial_number, maintenance_type, apiKey, baseId);
 
-    // Fetch company; only do engineer name lookup if no record ID was provided
-    const [compRes, engRes] = await Promise.all([
-      fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies?filterByFormula={company_name}='${esc(maintained_by)}'&maxRecords=1`, {
-        headers: { Authorization: `Bearer ${apiKey}` }
-      }),
-      engineer_record_id
-        ? Promise.resolve(null)
-        : fetch(`https://api.airtable.com/v0/${baseId}/engineers?filterByFormula=${encodeURIComponent(`{engineer_name}='${esc(engineer_name)}'`)}&maxRecords=1`, {
-            headers: { Authorization: `Bearer ${apiKey}` }
-          })
-    ]);
+    let companyRecordId = null;
+    let engineerRecordId = null;
+    let operatorRecordId = null;
 
-    const compData = await compRes.json();
-    const engData = engRes ? await engRes.json() : null;
+    if (isOperator) {
+      // Operator path — use provided record ID directly
+      operatorRecordId = operator_record_id;
+    } else {
+      // Engineer path — resolve maintenance company and engineer record
+      const [compRes, engRes] = await Promise.all([
+        fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies?filterByFormula={company_name}='${esc(maintained_by)}'&maxRecords=1`, {
+          headers: { Authorization: `Bearer ${apiKey}` }
+        }),
+        engineer_record_id
+          ? Promise.resolve(null)
+          : fetch(`https://api.airtable.com/v0/${baseId}/engineers?filterByFormula=${encodeURIComponent(`{engineer_name}='${esc(engineer_name)}'`)}&maxRecords=1`, {
+              headers: { Authorization: `Bearer ${apiKey}` }
+            })
+      ]);
 
-    const companyRecordId = compData.records?.[0]?.id;
+      const compData = await compRes.json();
+      const engData = engRes ? await engRes.json() : null;
 
-    let engineerRecordId;
-    const engineerFields = {
-      "engineer_name": engineer_name,
-      "email": engineer_email,
-      "phone": engineer_phone,
-      "maintenance_company": companyRecordId ? [companyRecordId] : []
-    };
+      companyRecordId = compData.records?.[0]?.id;
 
-    if (engineer_record_id) {
-      // Known existing engineer — use record ID directly
-      engineerRecordId = engineer_record_id;
-    } else if (engData?.records?.length > 0) {
-      // Fallback: matched by name lookup — update if details changed
-      engineerRecordId = engData.records[0].id;
-      const existing = engData.records[0].fields;
-      const needsUpdate =
-        existing.email !== engineer_email ||
-        existing.phone !== engineer_phone ||
-        JSON.stringify(existing.maintenance_company || []) !== JSON.stringify(engineerFields.maintenance_company);
-      if (needsUpdate) {
-        await fetch(`https://api.airtable.com/v0/${baseId}/engineers/${engineerRecordId}`, {
-          method: 'PATCH',
+      const engineerFields = {
+        "engineer_name": engineer_name,
+        "email": engineer_email,
+        "phone": engineer_phone,
+        "maintenance_company": companyRecordId ? [companyRecordId] : []
+      };
+
+      if (engineer_record_id) {
+        engineerRecordId = engineer_record_id;
+      } else if (engData?.records?.length > 0) {
+        engineerRecordId = engData.records[0].id;
+        const existing = engData.records[0].fields;
+        const needsUpdate =
+          existing.email !== engineer_email ||
+          existing.phone !== engineer_phone ||
+          JSON.stringify(existing.maintenance_company || []) !== JSON.stringify(engineerFields.maintenance_company);
+        if (needsUpdate) {
+          await fetch(`https://api.airtable.com/v0/${baseId}/engineers/${engineerRecordId}`, {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fields: engineerFields })
+          });
+        }
+      } else {
+        const newEng = await fetch(`https://api.airtable.com/v0/${baseId}/engineers`, {
+          method: 'POST',
           headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ fields: engineerFields })
         });
+        const newEngData = await newEng.json();
+        engineerRecordId = newEngData.id;
       }
-    } else {
-      // New engineer — create
-      const newEng = await fetch(`https://api.airtable.com/v0/${baseId}/engineers`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fields: engineerFields })
-      });
-      const newEngData = await newEng.json();
-      engineerRecordId = newEngData.id;
     }
 
     // Prepare shared data
@@ -224,12 +234,15 @@ export default async function handler(req, res) {
     const docAttachments   = allFiles.filter(f => f.fileType === 'pdf').map(f => ({ url: f.url }));
 
     // OPTIMIZATION 3: Submit to BOTH tables in PARALLEL
+    const submitterName = isOperator ? operator_name : engineer_name;
+    const submitterEmail = isOperator ? operator_email : engineer_email;
+
     const logFields = {
       "unit_link": [unit_record_id],
       "date_of_maintenance": trimmedDate,
       "maintenance_type": maintenance_type,
-      "engineer_name": engineer_name,
-      "engineer_email": engineer_email,
+      "engineer_name": submitterName,
+      "engineer_email": submitterEmail,
       "location_display": location_display || "",
       "checklist_json": JSON.stringify(formattedAnswers),
       "cloudinary_folder": cloudinaryFolder,
@@ -252,9 +265,7 @@ export default async function handler(req, res) {
     const finalTown = location_town || location_display || "";
     const checkFields = {
       "unit": [unit_record_id],
-      "maintained_by": companyRecordId ? [companyRecordId] : [],
-      "engineer": [engineerRecordId],
-      "date_of_maintenance": trimmedDate, 
+      "date_of_maintenance": trimmedDate,
       "maintenance_type": maintenance_type,
       "location_display": location_display || "",
       "location_town": finalTown,
@@ -269,6 +280,13 @@ export default async function handler(req, res) {
       "declaration_accepted": true,
       "declaration_text": declaration_text || "",
     };
+
+    if (isOperator) {
+      if (operatorRecordId) checkFields["operator"] = [operatorRecordId];
+    } else {
+      if (companyRecordId) checkFields["maintained_by"] = [companyRecordId];
+      if (engineerRecordId) checkFields["engineer"] = [engineerRecordId];
+    }
 
     if (signatureAttachment) checkFields["technician_signature"] = signatureAttachment;
     if (photoAttachments.length > 0) checkFields["photos"] = photoAttachments;
@@ -315,7 +333,7 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           unitId: unit_record_id,
           maintenanceType: maintenance_type,
-          engineerEmail: engineer_email
+          engineerEmail: submitterEmail
         })
       });
       
