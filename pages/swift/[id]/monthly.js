@@ -1005,7 +1005,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                 {/* STEP 2: Inspection checklist + further comments */}
                 {currentStep === 2 && (
                   <>
-                    <h3 className="checklist-section-title" style={{ margin: "0 0 22px" }}>Monthly inspection checklist</h3>
+                    <h3 className="checklist-section-title">Monthly inspection checklist</h3>
 
                 {checklistData.map((group, groupIndex) => (
                   <div key={group.id} className="equipment-table" style={{ marginBottom: groupIndex < checklistData.length - 1 ? '24px' : '0' }}>
