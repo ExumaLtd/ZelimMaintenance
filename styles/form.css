@@ -576,7 +576,7 @@
   .form-scope .question-with-upload {
     display: flex;
     gap: 20px;
-    align-items: center;
+    align-items: flex-start;
   }
   
   .form-scope .question-with-upload .textarea-wrapper {
@@ -1553,6 +1553,28 @@
     grid-template-columns: 1fr 120px;
     gap: 24px;
     padding: 0px 18px 10px 0px;
+  }
+
+  .equipment-header-monthly .header-item {
+    display: none;
+  }
+}
+
+/* Monthly header on mobile: show "Completed?" instead of group title */
+@media (max-width: 768px) {
+  .equipment-header-monthly .header-item {
+    display: none !important;
+  }
+
+  .equipment-header-monthly .header-returned {
+    display: block !important;
+    font-size: 15px;
+    font-weight: 500;
+    color: #fff;
+    text-align: left;
+    margin-bottom: 8px;
+    text-transform: none;
+    letter-spacing: 0 !important;
   }
 }
 /* =========================================================================

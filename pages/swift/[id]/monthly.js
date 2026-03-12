@@ -353,24 +353,30 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     }, 100);
   };
 
-  // Handle browser back button
+  // Set initial history state so forward navigation has a target
   useEffect(() => {
-    const handlePopState = () => {
-      if (currentStep > 1) {
-        setCurrentStep(currentStep - 1);
-        setTimeout(() => {
-          if (card2Ref.current) {
-            const elementPosition = card2Ref.current.getBoundingClientRect().top + window.pageYOffset;
-            const isMobile = window.innerWidth <= 768;
-            const offset = isMobile ? 50 : 58;
-            window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' });
-          }
-        }, 100);
-      }
+    if (!window.history.state?.step) {
+      window.history.replaceState({ step: 1 }, '');
+    }
+  }, []);
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = (event) => {
+      const targetStep = event.state?.step ?? 1;
+      setCurrentStep(targetStep);
+      setTimeout(() => {
+        if (card2Ref.current) {
+          const elementPosition = card2Ref.current.getBoundingClientRect().top + window.pageYOffset;
+          const isMobile = window.innerWidth <= 768;
+          const offset = isMobile ? 50 : 58;
+          window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' });
+        }
+      }, 100);
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [currentStep]);
+  }, []);
 
   // Close dropdowns on outside click
   useEffect(() => {
