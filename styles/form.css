@@ -1576,6 +1576,11 @@
     text-transform: none;
     letter-spacing: 0 !important;
   }
+
+  /* Override "Returned?" label with "Completed?" for monthly rows */
+  .monthly-question-row .toggle-group:not(.condition-group)::before {
+    content: "Completed?" !important;
+  }
 }
 /* =========================================================================
    UNSCHEDULED MAINTENANCE - Hide question labels

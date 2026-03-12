@@ -292,32 +292,28 @@ export const MaintenanceReportEmail = ({
             {parsedMaintenanceChecklist && parsedMaintenanceChecklist.length > 0 && (
               <>
                 <Heading as="h2" style={h2}>Monthly inspection checklist</Heading>
-                
+
                 <Section>
                   {parsedMaintenanceChecklist.map((group, groupIndex) => (
-                    <div key={groupIndex} style={monthlyGroupBlock}>
+                    <div key={groupIndex} style={{ marginBottom: groupIndex < parsedMaintenanceChecklist.length - 1 ? '32px' : '0' }}>
                       <Text style={monthlyGroupTitle}>{group.title}</Text>
-                      
+                      <Text style={monthlyGroupDescription}>Please report equipment condition before starting maintenance.</Text>
+
                       {group.questions && group.questions.map((question, qIndex) => (
-                        <Row 
-                          key={qIndex} 
-                          style={{
-                            ...monthlyQuestionRow,
-                            marginBottom: qIndex === group.questions.length - 1 ? '0' : '8px'
-                          }}
-                        >
-                          <Column style={{ width: '70%' }}>
-                            <Text style={monthlyQuestionText}>{question.text}</Text>
-                          </Column>
-                          <Column style={{ width: '30%', textAlign: 'right' }}>
-                            <Text style={{
-                              ...monthlyAnswerText,
-                              color: question.answer === 'Yes' ? '#10B981' : question.answer === 'No' ? '#EF4444' : '#94A3B8'
-                            }}>
-                              {question.answer === 'Yes' ? '✓ Yes' : question.answer === 'No' ? '✗ No' : 'Not answered'}
-                            </Text>
-                          </Column>
-                        </Row>
+                        <div key={qIndex} style={{ ...checklistItemBlock, marginBottom: qIndex === group.questions.length - 1 ? '0' : '8px' }}>
+                          <Text style={checklistItemName}>{question.text}</Text>
+                          <Row>
+                            <Column>
+                              <Text style={checklistLabel}>Completed</Text>
+                              <Text style={{
+                                ...checklistValue,
+                                color: question.answer === 'Yes' ? '#10B981' : question.answer === 'No' ? '#EF4444' : '#94A3B8'
+                              }}>
+                                {question.answer === 'Yes' ? '✓ Yes' : question.answer === 'No' ? '✗ No' : 'Not answered'}
+                              </Text>
+                            </Column>
+                          </Row>
+                        </div>
                       ))}
                     </div>
                   ))}
@@ -558,8 +554,15 @@ const monthlyGroupTitle = {
   fontSize: '15px',
   fontWeight: '600',
   color: '#152a31',
-  margin: '0 0 8px 0',
+  margin: '0 0 4px 0',
   lineHeight: '21px',
+};
+
+const monthlyGroupDescription = {
+  fontSize: '13px',
+  color: '#6b7f83',
+  margin: '0 0 12px 0',
+  lineHeight: '19px',
 };
 
 const monthlyQuestionRow = {

@@ -1231,6 +1231,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                 {currentStep > 1 && currentGroup && (
                   <>
                     <h3 className="checklist-section-title">{currentGroup.title}</h3>
+                    <p className="checklist-section-subtitle">Please report equipment condition before starting maintenance.</p>
 
                     <div className="equipment-table">
                       <div className="equipment-header equipment-header-monthly" style={{ gridTemplateColumns: '1fr 120px' }}>
@@ -1238,38 +1239,36 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                         <div className="header-returned">Completed?</div>
                       </div>
 
-                      <div className="equipment-questions-wrapper">
-                        {currentGroup.questions.map((question, questionIndex) => (
-                          <div
-                            key={question.id}
-                            className="equipment-row-wrapper"
-                            data-group={currentStep - 2}
-                            data-question={questionIndex}
-                          >
-                            <div className="item-name-mobile">{question.text}</div>
-                            <div className="equipment-row" style={{ gridTemplateColumns: '1fr 120px' }}>
-                              <div className="item-name">{question.text}</div>
+                      {currentGroup.questions.map((question, questionIndex) => (
+                        <div
+                          key={question.id}
+                          className="equipment-row-wrapper monthly-question-row"
+                          data-group={currentStep - 2}
+                          data-question={questionIndex}
+                        >
+                          <div className="item-name-mobile">{question.text}</div>
+                          <div className="equipment-row" style={{ gridTemplateColumns: '1fr 120px' }}>
+                            <div className="item-name">{question.text}</div>
 
-                              <div className="toggle-group">
-                                <button
-                                  type="button"
-                                  className={`toggle-btn ${question.answer === true ? 'active' : ''}`}
-                                  onClick={() => updateChecklist(currentStep - 2, questionIndex, true)}
-                                >
-                                  Yes
-                                </button>
-                                <button
-                                  type="button"
-                                  className={`toggle-btn ${question.answer === false ? 'active' : ''}`}
-                                  onClick={() => updateChecklist(currentStep - 2, questionIndex, false)}
-                                >
-                                  No
-                                </button>
-                              </div>
+                            <div className="toggle-group">
+                              <button
+                                type="button"
+                                className={`toggle-btn ${question.answer === true ? 'active' : ''}`}
+                                onClick={() => updateChecklist(currentStep - 2, questionIndex, true)}
+                              >
+                                Yes
+                              </button>
+                              <button
+                                type="button"
+                                className={`toggle-btn ${question.answer === false ? 'active' : ''}`}
+                                onClick={() => updateChecklist(currentStep - 2, questionIndex, false)}
+                              >
+                                No
+                              </button>
                             </div>
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </div>
 
                     {/* Further comments - shown on every checklist step */}
