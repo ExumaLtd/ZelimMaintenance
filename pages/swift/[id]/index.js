@@ -79,7 +79,7 @@ export async function getServerSideProps(context) {
   const accessPin = session.pin; // e.g., "SWI005" or "CREW005"
   const accessType = session.access; // "maintenance" or "operator"
 
-  const maintenanceManualPath = "/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf";
+  const maintenanceManualPath = "/downloads/Zelim_SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0.pdf";
   const installationGuidePath = "/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf";
   const operatorsManualPath = "/downloads/SwiftSurvivorRecoverySystem_OperatorsMaintenanceManual_v1point0(Draft).pdf";
 
@@ -266,7 +266,7 @@ export default function SwiftUnitPage({
       ]
     : [
         {
-          href: "/downloads/SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0(Draft).pdf#page=1",
+          href: "/downloads/Zelim_SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0.pdf#page=1",
           name: "SWIFT maintenance manual.pdf",
           size: maintenanceManualSize,
         },
