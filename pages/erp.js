@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import { useState } from "react";
 import { Check, X, Minus } from "lucide-react";
+import "../styles/erp.css";
 
 // ── ZELIM MAINTENANCE DESIGN SYSTEM ──────────────────────────
 const Z = {
@@ -222,8 +223,31 @@ function SectionLabel({ children }) {
   );
 }
 
-function PrimaryBtn({ children, onClick, fullWidth }) {
+function ArrowBox({ hovered, flip }) {
+  return (
+    <div style={{
+      display: "flex", justifyContent: "center", alignItems: "center",
+      width: "1.875rem", height: "1.875rem",
+      borderRadius: "0.1875rem",
+      backgroundColor: hovered ? "#172F36" : "rgb(246,246,94)",
+      flexShrink: 0,
+      transition: "background-color 0.5s",
+    }}>
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
+        style={{ transform: flip ? "scaleX(-1)" : undefined }}>
+        <path d="M2 7H12M12 7L7.5 2.5M12 7L7.5 11.5"
+          stroke={hovered ? "rgb(246,246,94)" : "#172F36"}
+          strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    </div>
+  );
+}
+
+function PrimaryBtn({ children, onClick, fullWidth, back }) {
   const [hovered, setHovered] = useState(false);
+  const padding = back
+    ? "0.4375rem 1.5rem 0.4375rem 0.75rem"
+    : "0.4375rem 0.75rem 0.4375rem 1.5rem";
   return (
     <button
       onClick={onClick}
@@ -236,7 +260,7 @@ function PrimaryBtn({ children, onClick, fullWidth }) {
         fontFamily: "'Roboto Mono', monospace",
         textTransform: "uppercase", letterSpacing: "0.1em",
         color: hovered ? "#172F36" : "#ffffff",
-        padding: "0.4375rem 0.75rem 0.4375rem 1.5rem",
+        padding,
         border: "1px solid rgb(246,246,94)",
         borderRadius: "0.5rem",
         backgroundColor: hovered ? "rgb(246,246,94)" : "transparent",
@@ -244,19 +268,9 @@ function PrimaryBtn({ children, onClick, fullWidth }) {
         transition: "background-color 0.5s, color 0.5s",
       }}
     >
-      <span>{children}</span>
-      <div style={{
-        display: "flex", justifyContent: "center", alignItems: "center",
-        width: "1.875rem", height: "1.875rem",
-        borderRadius: "0.1875rem",
-        backgroundColor: hovered ? "#172F36" : "rgb(246,246,94)",
-        flexShrink: 0,
-        transition: "background-color 0.5s",
-      }}>
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M2 7H12M12 7L7.5 2.5M12 7L7.5 11.5" stroke={hovered ? "rgb(246,246,94)" : "#172F36"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </div>
+      {back && <ArrowBox hovered={hovered} flip />}
+      <span style={fullWidth ? { flex: 1, textAlign: "center" } : undefined}>{children}</span>
+      {!back && <ArrowBox hovered={hovered} />}
     </button>
   );
 }
@@ -283,6 +297,7 @@ export default function ErpPage() {
           src="/patterns/pattern-left.svg"
           alt=""
           aria-hidden="true"
+          className="erp-pattern"
           style={{
             position: "absolute",
             top: "0.8125rem",
@@ -299,7 +314,7 @@ export default function ErpPage() {
         <div style={{ maxWidth: 1280, margin: "0 auto", position: "relative", zIndex: 1 }}>
 
           {/* ── HEADER ── */}
-          <div style={{ background: "#172F36", padding: "60px 40px 20px", position: "relative", overflow: "hidden" }}>
+          <div className="erp-header" style={{ background: "#172F36", padding: "60px 40px 20px", position: "relative", overflow: "hidden" }}>
 
             <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 40 }}>
               <Logo height={22} />
@@ -309,7 +324,7 @@ export default function ErpPage() {
               </span>
             </div>
 
-            <h1 style={{ margin: "0 0 4px", fontSize: 30, fontWeight: 600, color: Z.text, letterSpacing: "0.5px", fontFamily: font }}>
+            <h1 className="erp-h1" style={{ margin: "0 0 4px", fontSize: 30, fontWeight: 600, color: Z.text, letterSpacing: "0.5px", fontFamily: font }}>
               ERP platform comparison
             </h1>
             <p style={{ margin: "0 0 20px", color: Z.text, fontSize: 15, fontWeight: 400, fontFamily: font }}>
@@ -317,7 +332,7 @@ export default function ErpPage() {
             </p>
 
             {/* Controls */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+            <div className="erp-controls" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
               <div style={{ display: "flex", background: Z.inputBg, border: `1px solid rgb(246,246,94)`, borderRadius: "0.6rem", padding: 3, gap: 3 }}>
                 {[["cards","Overview"],["grid","Capability Grid"]].map(([id, lbl]) => (
                   <button key={id} onClick={() => { setView(id); setSel(null); }} style={{
@@ -351,7 +366,7 @@ export default function ErpPage() {
           </div>
 
           {/* API banner */}
-          <div style={{ padding: "8px 40px", fontFamily: font, fontSize: 14, fontWeight: 400, color: Z.text, display: "flex", gap: 10, alignItems: "center" }}>
+          <div className="erp-api-banner" style={{ padding: "8px 40px", fontFamily: font, fontSize: 14, fontWeight: 400, color: Z.text, display: "flex", gap: 10, alignItems: "center" }}>
             <span style={{ letterSpacing: "0.4px", fontSize: 12, fontWeight: 600 }}>{api ? "API integration mode" : "Standalone mode"}</span>
             <span style={{ opacity: 0.4 }}>|</span>
             <span style={{ fontWeight: 400, opacity: 0.85 }}>
@@ -361,14 +376,14 @@ export default function ErpPage() {
             </span>
           </div>
 
-          <div style={{ padding: "24px 40px 60px" }}>
+          <div className="erp-content" style={{ padding: "24px 40px 60px" }}>
 
             {/* ══ CARDS VIEW ══ */}
             {view === "cards" && !sel && (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14 }}>
                 {platforms.map(pl => (
                   <div key={pl.id} style={{ background: Z.cardBg, border: "none", borderRadius: 20, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-                    <div style={{ padding: "24px 30px", flex: 1 }}>
+                    <div className="erp-card-inner" style={{ padding: "24px 30px", flex: 1 }}>
                       <Tag label={pl.tag} accent={pl.accent} accentText={pl.accentText} />
                       <div style={{ fontSize: 20, fontWeight: 600, color: Z.text, marginTop: 10, letterSpacing: "0.3px", fontFamily: font }}>{pl.name}</div>
                       <div style={{ fontSize: 14, color: Z.text, fontWeight: 400, marginTop: 2, fontFamily: font }}>{pl.subtitle}</div>
@@ -400,7 +415,7 @@ export default function ErpPage() {
                         {pl.verdict.split(".")[0]}.
                       </div>
                     </div>
-                    <div style={{ padding: "0 30px 24px" }}>
+                    <div className="erp-card-footer" style={{ padding: "0 30px 24px" }}>
                       <PrimaryBtn onClick={() => setSel(pl.id)} fullWidth>Learn more</PrimaryBtn>
                     </div>
                   </div>
@@ -412,15 +427,15 @@ export default function ErpPage() {
             {view === "cards" && sel && p && (
               <div>
                 <div style={{ marginBottom: 18 }}>
-                  <PrimaryBtn onClick={() => setSel(null)}>← Back</PrimaryBtn>
+                  <PrimaryBtn onClick={() => setSel(null)} back>Back</PrimaryBtn>
                 </div>
                 <div style={{ background: Z.cardBg, borderRadius: 20, overflow: "hidden" }}>
-                  <div style={{ padding: "24px 30px", position: "relative", overflow: "hidden", background: "#172F36" }}>
+                  <div className="erp-section-pad" style={{ padding: "24px 30px", position: "relative", overflow: "hidden", background: Z.cardBg }}>
                     <Tag label={p.tag} accent={p.accent} accentText={p.accentText} />
                     <div style={{ fontSize: 28, fontWeight: 600, color: Z.text, marginTop: 8, fontFamily: font }}>{p.name}</div>
                     <div style={{ fontSize: 15, color: Z.text, fontWeight: 400, marginTop: 3, fontFamily: font }}>{p.subtitle}</div>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
+                  <div className="erp-detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
                     {[
                       { heading: "Scores", content: (
                         Object.entries(scoreLabels).map(([k, lbl]) => (
@@ -447,15 +462,15 @@ export default function ErpPage() {
                         ))
                       )},
                     ].map(({ heading, content }) => (
-                      <div key={heading} style={{ padding: "24px 30px" }}>
+                      <div key={heading} className="erp-section-pad" style={{ padding: "24px 30px" }}>
                         <SectionLabel>{heading}</SectionLabel>
                         {content}
                       </div>
                     ))}
                   </div>
-                  <div style={{ padding: "24px 30px" }}>
+                  <div className="erp-section-pad" style={{ padding: "24px 30px" }}>
                     <SectionLabel>Capability Checklist</SectionLabel>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px 16px" }}>
+                    <div className="erp-capability-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px 16px" }}>
                       {p.capabilities.map((cap, i) => (
                         <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 9 }}>
                           <Icon has={cap.has} />
@@ -467,7 +482,7 @@ export default function ErpPage() {
                       ))}
                     </div>
                   </div>
-                  <div style={{ padding: "24px 30px" }}>
+                  <div className="erp-section-pad" style={{ padding: "24px 30px" }}>
                     <SectionLabel>Assessment</SectionLabel>
                     <div style={{ borderLeft: `3px solid ${p.accent}`, paddingLeft: 14, fontSize: 14, color: Z.text, fontWeight: 400, lineHeight: 1.75, fontFamily: font }}>{p.verdict}</div>
                   </div>

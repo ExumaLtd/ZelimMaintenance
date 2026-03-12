@@ -1,0 +1,67 @@
+/* =========================================================================
+   ERP PAGE — MOBILE OVERRIDES (erp.css)
+   Desktop layout is handled via inline styles; this file handles mobile.
+========================================================================= */
+
+@media (max-width: 768px) {
+  .erp-header {
+    padding: 40px 20px 16px !important;
+  }
+  .erp-api-banner {
+    padding: 8px 20px !important;
+    flex-wrap: wrap !important;
+  }
+  .erp-content {
+    padding: 16px 20px 40px !important;
+  }
+  .erp-controls {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .erp-header {
+    padding: 30px 16px 14px !important;
+  }
+  .erp-h1 {
+    font-size: 22px !important;
+    line-height: 1.3 !important;
+  }
+  .erp-api-banner {
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+  }
+  .erp-content {
+    padding: 14px 16px 40px !important;
+  }
+  .erp-controls {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+  /* Detail view: Scores / Strengths / Risks stack to single column */
+  .erp-detail-grid {
+    grid-template-columns: 1fr !important;
+  }
+  /* Capability checklist: 2 cols on mobile */
+  .erp-capability-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px 12px !important;
+  }
+  /* Card padding */
+  .erp-card-inner {
+    padding: 20px 20px !important;
+  }
+  .erp-card-footer {
+    padding: 0 20px 20px !important;
+  }
+  /* Detail card sections */
+  .erp-section-pad {
+    padding: 20px 20px !important;
+  }
+  /* Pattern: hide on mobile to avoid layout issues */
+  .erp-pattern {
+    display: none !important;
+  }
+}
