@@ -47,7 +47,8 @@ const platforms = [
     tag: "LEAD RECOMMENDATION", accent: Z.cyan, accentText: Z.cyanText,
     withApi:    { license: "~£37–45 / user / month", annual10: "~£4,500–5,400 / yr", impl: "£8,000–20,000", year1: "£13,000–25,000", note: "Custom plan required for portal API access" },
     withoutApi: { license: "~£25–30 / user / month", annual10: "~£3,000–3,600 / yr", impl: "£4,000–12,000", year1: "£7,000–16,000", note: "Standard plan — no external API access" },
-    scores: { fieldService: 5, api: 5, traceability: 5, crm: 5, manufacturing: 5, accounting: 5, scalability: 5, cost: 4, ease: 3 },
+    scoresWithoutApi: { manufacturing: 5, traceability: 5, crm: 5, accounting: 5, scalability: 5, api: 5, cost: 4, fieldService: 5, ease: 3 },
+    scoresWithApi:    { manufacturing: 5, traceability: 5, crm: 5, accounting: 5, scalability: 5, api: 5, cost: 3, fieldService: 5, ease: 3 },
     capabilities: [
       { label: "Product / Item Master Data",        has: true },
       { label: "Bills of Materials (BOMs)",          has: true },
@@ -61,19 +62,20 @@ const platforms = [
       { label: "Field Service / Maintenance Module", has: true },
       { label: "CRM",                                has: true },
       { label: "Accounting Module",                  has: true },
-      { label: "Self-implementation Friendly",       has: "partial", note: "Possible but complex" },
+      { label: "Self-implementation Friendly",       has: "partial", note: "Achievable — best with a phased plan" },
       { label: "Maritime / Compliance Specific",     has: false },
     ],
-    pros: ["Only platform covering field service, CRM, accounting and manufacturing in one system","Mature REST API — direct integration with the Zelim maintenance portal","Field service module built in — engineer dispatch, job tracking, parts usage","Full CRM for client and contract management","Native accounting removes the need for a separate finance tool","Modular — activate only what Zelim needs, add more as you grow"],
-    cons: ["Broadest scope — highest risk of scope creep without a disciplined rollout","API requires the more expensive Custom plan","More complex to self-implement than alternatives","Partner implementation costs can be significant","Needs a tightly scoped Phase 1 to stay lean and on budget"],
-    verdict: "Best overall fit for Zelim. The only shortlisted platform that scores strongly across field service, CRM, accounting, and manufacturing — covering Zelim's full operational picture rather than just the workshop floor. Requires a disciplined Phase 1 scope to avoid overreach.",
+    pros: ["Full product and BOM management — the right foundation for Zelim's parts and equipment","Strong procurement and supplier management built in from day one","Best-in-class serial number and lot traceability across the shortlist","Full CRM for client and contract management","Native accounting removes the need for a separate finance tool","REST API available when Zelim is ready to connect the maintenance portal — no platform switch needed"],
+    cons: ["Broadest scope — highest risk of scope creep without a disciplined rollout","API requires the more expensive Custom plan — relevant for Phase 2","More complex to self-implement than alternatives","Partner implementation costs can be significant","Needs a tightly scoped Phase 1 to stay lean and on budget"],
+    verdict: "Best overall fit for Zelim. Start with products, BOMs, procurement and traceability to build the operational foundation. The maintenance portal connects directly via REST API — creating a single source of truth across the whole business. No platform switch needed at any stage.",
   },
   {
     id: "mrpeasy", name: "MRPeasy", subtitle: "Enterprise Plan (API) / Starter",
     tag: "STRONG ALTERNATIVE", accent: "#579BA2", accentText: Z.text,
     withApi:    { license: "$149 / user / month (Enterprise)", annual10: "~£14,000 / yr", impl: "£1,500–4,000", year1: "£16,000–18,000", note: "API only on top tier — cost advantage disappears" },
     withoutApi: { license: "$49 / user / month (Starter)",     annual10: "~£4,700 / yr",  impl: "£1,500–3,000", year1: "£6,000–8,000",   note: "Starter plan — no API access to portal" },
-    scores: { fieldService: 1, api: 2, traceability: 5, crm: 2, manufacturing: 5, accounting: 2, scalability: 3, cost: 3, ease: 5 },
+    scoresWithoutApi: { manufacturing: 5, traceability: 5, crm: 2, accounting: 2, scalability: 3, api: 2, cost: 3, fieldService: 1, ease: 5 },
+    scoresWithApi:    { manufacturing: 5, traceability: 5, crm: 2, accounting: 2, scalability: 3, api: 2, cost: 1, fieldService: 1, ease: 3 },
     capabilities: [
       { label: "Product / Item Master Data",        has: true },
       { label: "Bills of Materials (BOMs)",          has: true },
@@ -99,7 +101,8 @@ const platforms = [
     tag: "WORTH EVALUATING", accent: "#579BA2", accentText: Z.text,
     withApi:    { license: "~£35–50 / user / month", annual10: "~£4,200–6,000 / yr", impl: "£3,000–8,000", year1: "£7,000–14,000", note: "API included at standard tiers — no premium uplift" },
     withoutApi: { license: "~£35–50 / user / month", annual10: "~£4,200–6,000 / yr", impl: "£2,000–5,000", year1: "£6,000–11,000", note: "Same licensing — implementation simpler without integration" },
-    scores: { fieldService: 1, api: 4, traceability: 4, crm: 2, manufacturing: 4, accounting: 2, scalability: 4, cost: 4, ease: 4 },
+    scoresWithoutApi: { manufacturing: 4, traceability: 4, crm: 2, accounting: 2, scalability: 4, api: 4, cost: 4, fieldService: 1, ease: 4 },
+    scoresWithApi:    { manufacturing: 4, traceability: 4, crm: 2, accounting: 2, scalability: 4, api: 4, cost: 4, fieldService: 1, ease: 4 },
     capabilities: [
       { label: "Product / Item Master Data",        has: true },
       { label: "Bills of Materials (BOMs)",          has: true },
@@ -125,7 +128,8 @@ const platforms = [
     tag: "LOWER PRIORITY", accent: "#579BA2", accentText: Z.text,
     withApi:    { license: "£0 open source / £20–40 hosted", annual10: "£0–4,800 / yr", impl: "£8,000–15,000", year1: "£8,000–15,000", note: "Low licence cost offset by high implementation effort" },
     withoutApi: { license: "£0 open source / £20–40 hosted", annual10: "£0–4,800 / yr", impl: "£6,000–12,000", year1: "£6,000–12,000", note: "Lower scope without portal integration work" },
-    scores: { fieldService: 4, api: 4, traceability: 4, crm: 4, manufacturing: 4, accounting: 5, scalability: 4, cost: 5, ease: 2 },
+    scoresWithoutApi: { manufacturing: 4, traceability: 4, crm: 4, accounting: 5, scalability: 4, api: 4, cost: 5, fieldService: 4, ease: 2 },
+    scoresWithApi:    { manufacturing: 4, traceability: 4, crm: 4, accounting: 5, scalability: 4, api: 4, cost: 5, fieldService: 4, ease: 2 },
     capabilities: [
       { label: "Product / Item Master Data",        has: true },
       { label: "Bills of Materials (BOMs)",          has: true },
@@ -149,14 +153,14 @@ const platforms = [
 ];
 
 const scoreLabels = {
-  fieldService:  "Field service",
-  api:           "API / Integration",
+  manufacturing: "Manufacturing",
   traceability:  "Traceability",
   crm:           "CRM & clients",
-  manufacturing: "Manufacturing",
   accounting:    "Accounting",
   scalability:   "Scalability",
+  api:           "API / Integration",
   cost:          "Cost efficiency",
+  fieldService:  "Field service",
   ease:          "Ease of setup",
 };
 
@@ -285,7 +289,8 @@ export default function ErpPage() {
   const [api,  setApi]  = useState(false);
 
   const p  = sel ? platforms.find(x => x.id === sel) : null;
-  const pr = (pl) => api ? pl.withApi : pl.withoutApi;
+  const pr = (pl) => api ? pl.withApi    : pl.withoutApi;
+  const sc = (pl) => api ? pl.scoresWithApi : pl.scoresWithoutApi;
 
   return (
     <>
@@ -373,8 +378,8 @@ export default function ErpPage() {
             <span style={{ opacity: 0.4 }}>|</span>
             <span style={{ fontWeight: 400, opacity: 0.85 }}>
               {api
-                ? "Costs shown include ERP ↔ Zelim portal REST API. This is the recommended architecture."
-                : "Costs shown for standalone ERP only. Portal integration not included. Not the recommended approach."}
+                ? "Connecting the Zelim maintenance portal to the ERP creates a single source of truth — recommended long-term architecture."
+                : "Standalone ERP costs only. Portal integration adds significant value and is the recommended end state."}
             </span>
           </div>
 
@@ -393,7 +398,7 @@ export default function ErpPage() {
                       {Object.entries(scoreLabels).map(([k, lbl]) => (
                         <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>
                           <span style={{ fontSize: 14, color: Z.text, fontWeight: 400, fontFamily: font }}>{lbl}</span>
-                          <Dots score={pl.scores[k]} />
+                          <Dots score={sc(pl)[k]} />
                         </div>
                       ))}
                       <div style={{ marginTop: 14, paddingTop: 12 }}>
@@ -443,7 +448,7 @@ export default function ErpPage() {
                         Object.entries(scoreLabels).map(([k, lbl]) => (
                           <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                             <span style={{ fontSize: 14, color: Z.text, fontWeight: 400, fontFamily: font }}>{lbl}</span>
-                            <Dots score={p.scores[k]} />
+                            <Dots score={sc(p)[k]} />
                           </div>
                         ))
                       )},
@@ -502,7 +507,7 @@ export default function ErpPage() {
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><X size={13} color={Z.error} strokeWidth={2.5} /> Not supported</span>
                 </div>
                 <div style={{ overflowX: "auto" }}>
-                  <table className="erp-grid-table" style={{ width: "100%", borderCollapse: "collapse", background: Z.cardBg, borderRadius: 8, overflow: "hidden" }}>
+                  <table className="erp-grid-table" style={{ width: "100%", minWidth: 680, borderCollapse: "collapse", background: Z.cardBg, borderRadius: 8 }}>
                     <thead>
                       <tr style={{ background: "#172F36" }}>
                         <th style={{ padding: "13px 18px", textAlign: "left", color: Z.text, fontWeight: 600, fontSize: 12, letterSpacing: "0.4px", width: "28%", fontFamily: font, position: "sticky", left: 0, background: "#172F36", zIndex: 2 }}>Capability</th>
@@ -524,10 +529,10 @@ export default function ErpPage() {
                             const cap = pl.capabilities.find(c => c.label === lbl);
                             return (
                               <td key={pl.id} style={{ padding: "11px 14px", textAlign: "center" }}>
-                                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                                  <Icon has={cap ? cap.has : false} />
-                                  {cap?.note && <div style={{ fontSize: 13, color: Z.text, maxWidth: 110, textAlign: "center", lineHeight: 1.3, fontFamily: font }}>{cap.note}</div>}
-                                </div>
+                                {cap?.note
+                                  ? <div style={{ fontSize: 13, color: Z.textMid, maxWidth: 110, textAlign: "center", lineHeight: 1.3, fontFamily: font, margin: "0 auto" }}>{cap.note}</div>
+                                  : <Icon has={cap ? cap.has : false} />
+                                }
                               </td>
                             );
                           })}
