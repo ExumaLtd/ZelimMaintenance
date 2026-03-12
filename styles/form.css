@@ -576,7 +576,7 @@
   .form-scope .question-with-upload {
     display: flex;
     gap: 20px;
-    align-items: flex-start;
+    align-items: center;
   }
   
   .form-scope .question-with-upload .textarea-wrapper {

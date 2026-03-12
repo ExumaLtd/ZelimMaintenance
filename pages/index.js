@@ -345,7 +345,7 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
           </div>
 
           <footer className="landing-footer">
-            <Link href="https://www.zelim.com" target="_blank" className="logo-link">
+            <Link href="/erp" className="logo-link">
               <Image 
                 src="/logo/zelim-logo.svg" 
                 alt="Zelim Logo" 
