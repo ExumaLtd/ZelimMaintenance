@@ -1556,7 +1556,7 @@
   }
 
   .equipment-header-monthly .header-item {
-    display: none;
+    visibility: hidden;
   }
 }
 

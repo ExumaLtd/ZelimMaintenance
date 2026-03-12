@@ -40,7 +40,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   const companyFieldRef = useRef(null);
   const locationFieldRef = useRef(null);
   const engineerFieldRef = useRef(null);
-  const furtherCommentsRef = useRef(null);
+
   const signatureRef = useRef(null);
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
@@ -64,7 +64,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     engineerEmail: false,
     engineerPhone: false,
     photographImages: false,
-    furtherComments: false,
+    stepComments: {},
     declaration: false,
     signature: false,
   });
@@ -72,9 +72,9 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   // Checklist data - initialize from template (grouped structure)
   const [checklistData, setChecklistData] = useState([]);
   
-  // Further comments
-  const [furtherComments, setFurtherComments] = useState("");
-  const [commentImages, setCommentImages] = useState([]);
+  // Further comments — one per checklist group, keyed by groupIndex
+  const [stepComments, setStepComments] = useState({});
+  const [stepCommentImages, setStepCommentImages] = useState({});
 
   const [locationDisplay, setLocationDisplay] = useState("");
   const [locationCountry, setLocationCountry] = useState("");
@@ -109,8 +109,8 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     draftData: {
       currentStep,
       checklistData,
-      furtherComments,
-      commentImages,
+      stepComments,
+      stepCommentImages,
       photographImages,
       photographComments,
       selectedCompany,
@@ -132,8 +132,8 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       (checklistData && checklistData.length > 0 && checklistData.some(group =>
         group.questions.some(q => q.answer !== null)
       )) ||
-      furtherComments?.trim() ||
-      (commentImages && commentImages.length > 0) ||
+      Object.values(stepComments).some(c => c?.trim()) ||
+      Object.values(stepCommentImages).some(imgs => imgs?.length > 0) ||
       (photographImages && photographImages.length > 0) ||
       (selectedCompany && selectedCompany !== '') ||
       (engName && engName !== '' && engName !== 'Please select') ||
@@ -270,9 +270,9 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     });
   };
 
-  // Handle comment images
-  const handleCommentImagesChange = (images) => {
-    setCommentImages(images);
+  // Handle comment images per step
+  const handleStepCommentImagesChange = (groupIndex, images) => {
+    setStepCommentImages(prev => ({ ...prev, [groupIndex]: images }));
   };
 
   // Handle continue from step 1 to step 2
@@ -337,6 +337,20 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       }
 
       setErrorMsg("");
+    }
+
+    // On checklist steps (2+), if any question is "No", require a comment before continuing
+    if (currentStep > 1 && !isLastStep) {
+      const groupIndex = currentStep - 2;
+      const group = checklistData[groupIndex];
+      if (group) {
+        const hasNo = group.questions.some(q => q.answer === false);
+        if (hasNo && !stepComments[groupIndex]?.trim()) {
+          setFieldErrors(prev => ({ ...prev, stepComments: { ...prev.stepComments, [groupIndex]: true } }));
+          setErrorMsg('Please explain any item marked "No" before continuing.');
+          return;
+        }
+      }
     }
 
     const nextStep = currentStep + 1;
@@ -424,8 +438,8 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
               }
             }
             if (data.draft.checklistData) setChecklistData(data.draft.checklistData);
-            if (data.draft.furtherComments) setFurtherComments(data.draft.furtherComments);
-            if (data.draft.commentImages) setCommentImages(data.draft.commentImages);
+            if (data.draft.stepComments) setStepComments(data.draft.stepComments);
+            if (data.draft.stepCommentImages) setStepCommentImages(data.draft.stepCommentImages);
             if (data.draft.photographImages) setPhotographImages(data.draft.photographImages);
             if (data.draft.photographComments) setPhotographComments(data.draft.photographComments);
             if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
@@ -468,7 +482,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           if (data.engineer_name) setEngName(data.engineer_name);
           if (data.engineer_email) setEngEmail(data.engineer_email);
           if (data.engineer_phone) setEngPhone(data.engineer_phone);
-          if (data.further_comments) setFurtherComments(data.further_comments);
+          if (data.further_comments) setStepComments({ [checklistData.length - 1]: data.further_comments });
           
           if (data.checklist_data && Array.isArray(data.checklist_data)) {
             setChecklistData(data.checklist_data);
@@ -566,10 +580,10 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       engineer_phone: engPhone,
       engineer_record_id: engId,
       checklist_data: checklistData,
-      further_comments: furtherComments,
+      step_comments: stepComments,
     };
     localStorage.setItem(storageKey, JSON.stringify(draftData));
-  }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, checklistData, furtherComments, storageKey]);
+  }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, checklistData, stepComments, storageKey]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -584,7 +598,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       engineerName: false,
       engineerEmail: false,
       engineerPhone: false,
-      furtherComments: false,
+      stepComments: {},
       declaration: false,
       signature: false,
     };
@@ -632,17 +646,18 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     }
 
     const incompleteItems = [];
-    let hasNoAnswers = false;
-    
+    const groupsNeedingComments = [];
+
     checklistData.forEach((group, groupIndex) => {
       group.questions.forEach((question, questionIndex) => {
         if (question.answer === null) {
           incompleteItems.push({ groupIndex, questionIndex, text: question.text });
         }
-        if (question.answer === false) {
-          hasNoAnswers = true;
-        }
       });
+      const hasNo = group.questions.some(q => q.answer === false);
+      if (hasNo && !stepComments[groupIndex]?.trim()) {
+        groupsNeedingComments.push(groupIndex);
+      }
     });
 
     if (incompleteItems.length > 0) {
@@ -670,10 +685,17 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       }, 200);
     }
     
-    if (hasNoAnswers && (!furtherComments || !furtherComments.trim())) {
+    if (groupsNeedingComments.length > 0) {
       errors.push({ field: 'comments', message: 'Please explain any item marked "No" before submitting.' });
-      newFieldErrors.furtherComments = true;
-      if (!firstErrorField) firstErrorField = furtherCommentsRef;
+      const newStepCommentErrors = {};
+      groupsNeedingComments.forEach(gi => { newStepCommentErrors[gi] = true; });
+      newFieldErrors.stepComments = newStepCommentErrors;
+      // Navigate to the earliest step missing a comment (if not already on incomplete step)
+      if (incompleteItems.length === 0) {
+        const targetStep = groupsNeedingComments[0] + 2;
+        setCurrentStep(targetStep);
+        window.history.pushState({ step: targetStep }, '', window.location.href);
+      }
     }
 
     setFieldErrors(newFieldErrors);
@@ -713,13 +735,17 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
         images: photographImages.map(img => ({ url: img.url, fileType: img.fileType || 'image' }))
       });
     }
-    if (furtherComments || commentImages.length > 0) {
-      answers.push({
-        question: "Further comments",
-        answer: furtherComments || "",
-        images: commentImages.map(img => ({ url: img.url, fileType: img.fileType || 'image' }))
-      });
-    }
+    checklistData.forEach((group, groupIndex) => {
+      const comment = stepComments[groupIndex];
+      const images = stepCommentImages[groupIndex] || [];
+      if (comment || images.length > 0) {
+        answers.push({
+          question: `Further comments (${group.title})`,
+          answer: comment || "",
+          images: images.map(img => ({ url: img.url, fileType: img.fileType || 'image' }))
+        });
+      }
+    });
 
     const payload = {
       maintained_by: selectedCompany,
@@ -789,12 +815,16 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           images: photographImages.map(img => ({ url: img.url, thumbnail: img.thumbnail, fileType: img.fileType || 'image' }))
         };
       }
-      if (furtherComments || commentImages.length > 0) {
-        answersForEmail["Further comments"] = {
-          text: furtherComments || "",
-          images: commentImages.map(img => ({ url: img.url, thumbnail: img.thumbnail, fileType: img.fileType || 'image' }))
-        };
-      }
+      checklistData.forEach((group, groupIndex) => {
+        const comment = stepComments[groupIndex];
+        const images = stepCommentImages[groupIndex] || [];
+        if (comment || images.length > 0) {
+          answersForEmail[`Further comments (${group.title})`] = {
+            text: comment || "",
+            images: images.map(img => ({ url: img.url, thumbnail: img.thumbnail, fileType: img.fileType || 'image' }))
+          };
+        }
+      });
 
       await fetch("/api/send-report", {
         method: "POST",
@@ -1242,57 +1272,62 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                       </div>
                     </div>
 
-                    {/* Further comments - last step only */}
-                    {isLastStep && (
-                      <div style={{ marginTop: "32px" }}>
-                        <label className="checklist-label" style={{ marginTop: 0 }}>Further comments</label>
-                        <p className="question-instruction">Record any additional observations, defects, or actions.</p>
+                    {/* Further comments - shown on every checklist step */}
+                    {(() => {
+                      const groupIndex = currentStep - 2;
+                      const hasError = fieldErrors.stepComments?.[groupIndex];
+                      return (
+                        <div style={{ marginTop: "32px" }}>
+                          <label className="checklist-label" style={{ marginTop: 0 }}>Further comments</label>
+                          <p className="question-instruction">Record any additional observations, defects, or actions.</p>
 
-                        <div className="question-with-upload">
-                          <div className="textarea-wrapper">
-                            <textarea
-                              ref={furtherCommentsRef}
-                              className={clsx("checklist-textarea", fieldErrors.furtherComments && "has-error")}
-                              value={furtherComments}
-                              onChange={(e) => {
-                                setFurtherComments(e.target.value);
-                                autoGrow(e);
-                                if (e.target.value.trim()) {
-                                  setFieldErrors(prev => ({ ...prev, furtherComments: false }));
-                                }
-                              }}
-                              onInput={autoGrow}
-                              placeholder=""
-                            />
+                          <div className="question-with-upload">
+                            <div className="textarea-wrapper">
+                              <textarea
+                                className={clsx("checklist-textarea", hasError && "has-error")}
+                                value={stepComments[groupIndex] || ""}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setStepComments(prev => ({ ...prev, [groupIndex]: val }));
+                                  autoGrow(e);
+                                  if (val.trim()) {
+                                    setFieldErrors(prev => ({ ...prev, stepComments: { ...prev.stepComments, [groupIndex]: false } }));
+                                    setErrorMsg("");
+                                  }
+                                }}
+                                onInput={autoGrow}
+                                placeholder=""
+                              />
 
-                            <VoiceInput
-                              onTranscript={(text) => {
-                                setFurtherComments((prev) => (prev || '') + text);
-                                requestAnimationFrame(() => {
+                              <VoiceInput
+                                onTranscript={(text) => {
+                                  setStepComments(prev => ({ ...prev, [groupIndex]: (prev[groupIndex] || '') + text }));
                                   requestAnimationFrame(() => {
-                                    const textarea = document.querySelector('.checklist-textarea');
-                                    if (textarea) autoGrow(textarea);
+                                    requestAnimationFrame(() => {
+                                      const textarea = document.querySelector(`[data-step-comments="${groupIndex}"]`);
+                                      if (textarea) autoGrow(textarea);
+                                    });
                                   });
-                                });
-                              }}
-                              onError={(errorMsg) => setErrorMsg(errorMsg)}
+                                }}
+                                onError={(msg) => setErrorMsg(msg)}
+                              />
+                            </div>
+
+                            <ImageUploader
+                              questionKey={`further_comments_${groupIndex}`}
+                              questionText="Further comments"
+                              serialNumber={unit?.serial_number}
+                              maintenanceType="monthly"
+                              initialImages={stepCommentImages[groupIndex] || []}
+                              onImagesChange={(images) => handleStepCommentImagesChange(groupIndex, images)}
                             />
                           </div>
-
-                          <ImageUploader
-                            questionKey="further_comments"
-                            questionText="Further comments"
-                            serialNumber={unit?.serial_number}
-                            maintenanceType="monthly"
-                            initialImages={commentImages || []}
-                            onImagesChange={handleCommentImagesChange}
-                          />
+                          {hasError && (
+                            <p className="error-message">Please explain any item marked &ldquo;No&rdquo; before continuing.</p>
+                          )}
                         </div>
-                        {fieldErrors.furtherComments && (
-                          <p className="error-message">Please explain any item marked &ldquo;No&rdquo; before submitting.</p>
-                        )}
-                      </div>
-                    )}
+                      );
+                    })()}
 
                     {/* Continue button - non-last steps only */}
                     {!isLastStep && (
