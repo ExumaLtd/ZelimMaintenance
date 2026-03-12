@@ -230,7 +230,7 @@ function PrimaryBtn({ children, onClick }) {
       onMouseLeave={() => setHovered(false)}
       style={{
         display: "inline-flex", alignItems: "center", gap: "0.75rem",
-        fontSize: "0.875rem", fontWeight: 400,
+        fontSize: "0.7rem", fontWeight: 400,
         fontFamily: "'Roboto Mono', monospace",
         textTransform: "uppercase", letterSpacing: "0.1em",
         color: hovered ? "#172F36" : "#ffffff",
@@ -259,14 +259,43 @@ function PrimaryBtn({ children, onClick }) {
   );
 }
 
+// ── ODOO MODULES (Zelim-relevant only) ───────────────────────
+const odooModules = [
+  { id: "inventory",    label: "Inventory",         essential: true,  note: "Stock movements, procurement" },
+  { id: "mrp",          label: "Manufacturing",      essential: true,  note: "BOMs, production orders, serialisation" },
+  { id: "purchase",     label: "Purchase",           essential: true,  note: "Supplier management, POs" },
+  { id: "crm",          label: "CRM",                essential: false, note: "Sales pipeline, customer records" },
+  { id: "accounting",   label: "Accounting",         essential: false, note: "Invoicing, P&L, financial reports" },
+  { id: "fieldservice", label: "Field Service",      essential: false, note: "Engineer scheduling, on-site tasks" },
+  { id: "helpdesk",     label: "Helpdesk",           essential: false, note: "Customer support ticketing" },
+  { id: "documents",    label: "Documents",          essential: false, note: "File management and approvals" },
+  { id: "sign",         label: "Sign",               essential: false, note: "Digital signatures" },
+  { id: "hr",           label: "HR / Recruitment",   essential: false, note: "Employee records, recruitment" },
+];
+
+// Odoo pricing (GBP estimates, early 2026)
+const ODOO_STANDARD = 27;   // £/user/month  — all apps, no API
+const ODOO_CUSTOM   = 41;   // £/user/month  — all apps + API + enterprise features
+const ODOO_IMPL_LOW = 4000;
+const ODOO_IMPL_HIGH = 12000;
+
 // ── MAIN ─────────────────────────────────────────────────────
 export default function ErpPage() {
   const [view, setView] = useState("cards");
   const [sel,  setSel]  = useState(null);
-  const [api,  setApi]  = useState(true);
+  const [api,  setApi]  = useState(false);
+  const [odooUsers,   setOdooUsers]   = useState(10);
+  const [odooPlan,    setOdooPlan]    = useState("standard");
 
   const p  = sel ? platforms.find(x => x.id === sel) : null;
   const pr = (pl) => api ? pl.withApi : pl.withoutApi;
+
+  const odooRate      = odooPlan === "custom" ? ODOO_CUSTOM : ODOO_STANDARD;
+  const odooMonthly   = odooUsers * odooRate;
+  const odooAnnual    = odooMonthly * 12;
+  const odooYear1Low  = odooAnnual + ODOO_IMPL_LOW;
+  const odooYear1High = odooAnnual + ODOO_IMPL_HIGH;
+  const fmt = (n) => `£${n.toLocaleString("en-GB")}`;
 
   return (
     <>
@@ -275,52 +304,13 @@ export default function ErpPage() {
       </Head>
       <div style={{ background: "#172F36", minHeight: "100vh", color: Z.text, fontFamily: font, position: "relative" }}>
 
-        {/* Zelim pattern — absolute top-right */}
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 418 887"
-          fill="none"
-          style={{
-            position: "absolute",
-            top: "0.8125rem",
-            right: -20,
-            transform: "scaleX(-1)",
-            width: "max(10rem, 20vw)",
-            height: "auto",
-            zIndex: 0,
-            pointerEvents: "none",
-          }}
-        >
-          <g opacity="0.5">
-            <path d="M85.9195 886.289L83.9849 885.257L315.824 509.257H3.69834C3.28724 509.257 2.9245 509.055 2.73103 508.741C2.53757 508.427 2.53757 508.023 2.73103 507.709L81.2522 381.5C81.4457 381.186 81.8084 380.984 82.2196 380.984H237.303L160.088 256.862H3.69834C3.28724 256.862 2.9245 256.66 2.73103 256.346C2.53757 256.032 2.53757 255.628 2.73103 255.314L159.749 2.91925C160.136 2.26845 161.273 2.26845 161.684 2.91925L239.867 128.589H396.256V129.621L397.223 130.138L318.702 256.324C318.702 256.324 318.702 256.369 318.678 256.369L241.172 380.961H396.256C396.667 380.961 397.03 381.163 397.223 381.478L554.242 633.872C554.435 634.186 554.435 634.59 554.242 634.905C554.048 635.219 553.685 635.421 553.274 635.421H396.256C395.845 635.421 395.482 635.219 395.289 634.905L317.735 510.267L85.8953 886.267L85.9195 886.289ZM398.191 633.378H551.34L474.753 510.289L398.166 633.378H398.191ZM319.694 509.257L396.28 632.346L472.867 509.257H319.718H319.694ZM319.694 507.192H472.843L396.256 384.103L319.669 507.192H319.694ZM162.651 507.192H315.8L239.214 384.103L162.627 507.192H162.651ZM5.63296 507.192H158.782L82.1954 384.103L5.63296 507.192ZM241.172 383.048L317.759 506.138L394.346 383.048H241.197H241.172ZM84.1542 383.048L160.741 506.138L237.327 383.048H84.1784H84.1542ZM162.651 256.862L239.238 379.952L315.824 256.862H162.675H162.651ZM162.651 254.798H315.8L239.214 131.708L162.627 254.798H162.651ZM5.63296 254.798H158.782L82.1954 131.708L5.63296 254.798ZM241.172 130.654L317.759 253.743L394.346 130.654H241.197H241.172ZM84.1542 130.654L160.741 253.743L237.327 130.654H84.1784H84.1542ZM84.1542 128.589H237.303L160.717 5.49997L84.13 128.589H84.1542Z" fill="url(#patternGrad)"/>
-            <circle cx="160.719" cy="3.43348" r="3.43348" fill="#00FFF2"/>
-            <circle cx="396.259" cy="129.621" r="3.43348" fill="#00FFF2"/>
-            <circle cx="239.747" cy="129.621" r="3.43348" fill="#00FFF2"/>
-            <circle cx="82.1492" cy="129.621" r="3.43348" fill="#00FFF2"/>
-            <circle cx="3.69995" cy="255.827" r="3.43348" fill="#00FFF2"/>
-            <circle cx="160.719" cy="255.827" r="3.43348" fill="#00FFF2"/>
-            <circle cx="317.762" cy="255.827" r="3.43348" fill="#00FFF2"/>
-            <circle cx="239.747" cy="381.362" r="3.43348" fill="#00FFF2"/>
-            <circle cx="82.7273" cy="381.362" r="3.43348" fill="#00FFF2"/>
-            <circle cx="396.79" cy="381.362" r="3.43348" fill="#00FFF2"/>
-            <circle cx="161.251" cy="507.572" r="3.43348" fill="#00FFF2"/>
-            <circle cx="4.20776" cy="507.572" r="3.43348" fill="#00FFF2"/>
-            <circle cx="318.27" cy="507.572" r="3.43348" fill="#00FFF2"/>
-            <circle cx="396.259" cy="634.408" r="3.43348" fill="#00FFF2"/>
-          </g>
-          <defs>
-            <linearGradient id="patternGrad" x1="2.58594" y1="444.357" x2="554.411" y2="444.357" gradientUnits="userSpaceOnUse">
-              <stop offset="0.21" stopColor="#005268"/>
-              <stop offset="0.32" stopColor="#00566B"/>
-              <stop offset="0.44" stopColor="#016476"/>
-              <stop offset="0.57" stopColor="#027A89"/>
-              <stop offset="0.7" stopColor="#049AA3"/>
-              <stop offset="0.84" stopColor="#06C3C4"/>
-              <stop offset="0.98" stopColor="#09F4EC"/>
-              <stop offset="1" stopColor="#0AFDF4"/>
-            </linearGradient>
-          </defs>
-        </svg>
+        {/* Zelim pattern — same as login page */}
+        <img
+          src="/patterns/pattern-left.svg"
+          alt=""
+          aria-hidden="true"
+          className="landing-pattern"
+        />
 
         <div style={{ maxWidth: 1280, margin: "0 auto", position: "relative", zIndex: 1 }}>
 
@@ -336,9 +326,9 @@ export default function ErpPage() {
             </div>
 
             <h1 style={{ margin: "0 0 4px", fontSize: 30, fontWeight: 600, color: Z.text, letterSpacing: "0.5px", fontFamily: font }}>
-              Platform Comparison
+              ERP platform comparison
             </h1>
-            <p style={{ margin: "0 0 20px", color: Z.text, fontSize: 16, fontWeight: 400, fontFamily: font }}>
+            <p style={{ margin: "0 0 20px", color: Z.text, fontSize: 15, fontWeight: 400, fontFamily: font }}>
               Four shortlisted systems evaluated against Zelim&apos;s operational requirements
             </p>
 
@@ -347,7 +337,7 @@ export default function ErpPage() {
               <div style={{ display: "flex", background: Z.inputBg, border: `1px solid rgb(246,246,94)`, borderRadius: "0.6rem", padding: 3, gap: 3 }}>
                 {[["cards","Overview"],["grid","Capability Grid"],["pricing","Pricing"]].map(([id, lbl]) => (
                   <button key={id} onClick={() => { setView(id); setSel(null); }} style={{
-                    fontFamily: "'Roboto Mono', monospace", fontSize: "0.875rem", fontWeight: 400,
+                    fontFamily: "'Roboto Mono', monospace", fontSize: "0.7rem", fontWeight: 400,
                     textTransform: "uppercase", letterSpacing: "0.1em",
                     cursor: "pointer", borderRadius: "0.4rem",
                     padding: "0.4375rem 0.9rem",
@@ -362,7 +352,7 @@ export default function ErpPage() {
               <div style={{ display: "flex", background: Z.inputBg, border: `1px solid rgb(246,246,94)`, borderRadius: "0.6rem", padding: 3, gap: 3 }}>
                 {[[true,"With Portal API"],[false,"Without Portal API"]].map(([val, lbl]) => (
                   <button key={String(val)} onClick={() => setApi(val)} style={{
-                    fontFamily: "'Roboto Mono', monospace", fontSize: "0.875rem", fontWeight: 400,
+                    fontFamily: "'Roboto Mono', monospace", fontSize: "0.7rem", fontWeight: 400,
                     textTransform: "uppercase", letterSpacing: "0.1em",
                     cursor: "pointer", borderRadius: "0.4rem",
                     padding: "0.4375rem 0.9rem",
@@ -404,7 +394,7 @@ export default function ErpPage() {
                           <Dots score={pl.scores[k]} accent={pl.accent} />
                         </div>
                       ))}
-                      <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${Z.border}` }}>
+                      <div style={{ marginTop: 14, paddingTop: 12 }}>
                         <div style={{ fontSize: 12, color: Z.text, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600, marginBottom: 4, fontFamily: font }}>
                           Year 1 Est. {api ? "(With API)" : "(Without API)"}
                         </div>
@@ -429,10 +419,10 @@ export default function ErpPage() {
                   <PrimaryBtn onClick={() => setSel(null)}>← Back</PrimaryBtn>
                 </div>
                 <div style={{ background: Z.cardBg, borderTop: `3px solid ${p.accent}`, borderRadius: 20, overflow: "hidden" }}>
-                  <div style={{ padding: "24px 30px", borderBottom: `1px solid ${Z.border}`, position: "relative", overflow: "hidden", background: "#172F36" }}>
+                  <div style={{ padding: "24px 30px", position: "relative", overflow: "hidden", background: "#172F36" }}>
                     <Tag label={p.tag} accent={p.accent} accentText={p.accentText} />
                     <div style={{ fontSize: 28, fontWeight: 600, color: Z.text, marginTop: 8, fontFamily: font }}>{p.name}</div>
-                    <div style={{ fontSize: 16, color: Z.text, fontWeight: 400, marginTop: 3, fontFamily: font }}>{p.subtitle}</div>
+                    <div style={{ fontSize: 15, color: Z.text, fontWeight: 400, marginTop: 3, fontFamily: font }}>{p.subtitle}</div>
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
                     {[
@@ -482,7 +472,7 @@ export default function ErpPage() {
                       {[["Licensing",pr(p).license],["Annual (10 users)",pr(p).annual10],["Implementation",pr(p).impl],["Year 1 Total",pr(p).year1]].map(([lbl,val]) => (
                         <div key={lbl}>
                           <div style={{ fontSize: 12, color: Z.text, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600, marginBottom: 5, fontFamily: font }}>{lbl}</div>
-                          <div style={{ fontSize: 16, fontWeight: 400, color: Z.text, lineHeight: 1.4, fontFamily: font }}>{val}</div>
+                          <div style={{ fontSize: 15, fontWeight: 400, color: Z.text, lineHeight: 1.4, fontFamily: font }}>{val}</div>
                         </div>
                       ))}
                     </div>
@@ -506,6 +496,90 @@ export default function ErpPage() {
                     <SectionLabel>Assessment</SectionLabel>
                     <div style={{ borderLeft: `3px solid ${p.accent}`, paddingLeft: 14, fontSize: 14, color: Z.text, fontWeight: 400, lineHeight: 1.75, fontFamily: font }}>{p.verdict}</div>
                   </div>
+
+                  {/* ── ODOO COST CALCULATOR ── */}
+                  {p.id === "odoo" && (
+                    <div style={{ padding: "24px 30px", background: "#172F36" }}>
+                      <SectionLabel>Cost calculator</SectionLabel>
+
+                      {/* Plan toggle */}
+                      <div style={{ marginBottom: 20 }}>
+                        <div style={{ fontSize: 12, color: Z.textMid, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600, marginBottom: 8, fontFamily: font }}>Plan</div>
+                        <div style={{ display: "inline-flex", background: Z.inputBg, border: `1px solid ${Z.border}`, borderRadius: "0.5rem", padding: 3, gap: 3 }}>
+                          {[["standard", "Standard — all apps"], ["custom", "Custom — all apps + API"]].map(([val, lbl]) => (
+                            <button key={val} onClick={() => setOdooPlan(val)} style={{
+                              fontFamily: "'Roboto Mono', monospace", fontSize: "0.7rem", fontWeight: 400,
+                              textTransform: "uppercase", letterSpacing: "0.1em",
+                              cursor: "pointer", borderRadius: "0.4rem",
+                              padding: "0.4375rem 0.9rem",
+                              border: "none",
+                              background: odooPlan === val ? Z.cyan : "transparent",
+                              color: odooPlan === val ? Z.cyanText : Z.text,
+                              transition: "all 0.15s",
+                            }}>{lbl}</button>
+                          ))}
+                        </div>
+                        <div style={{ marginTop: 8, fontSize: 13, color: Z.textMid, fontFamily: font }}>
+                          {odooPlan === "standard"
+                            ? "Standard includes all apps but no REST API access. Portal integration not possible on this plan."
+                            : "Custom adds REST API, advanced customisation, and enterprise support. Required for Zelim portal integration."}
+                        </div>
+                      </div>
+
+                      {/* User count */}
+                      <div style={{ marginBottom: 24 }}>
+                        <div style={{ fontSize: 12, color: Z.textMid, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600, marginBottom: 10, fontFamily: font }}>Number of users</div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                          <button
+                            onClick={() => setOdooUsers(u => Math.max(1, u - 1))}
+                            style={{ width: 36, height: 36, borderRadius: 6, border: `1px solid ${Z.border}`, background: Z.cardBg, color: Z.text, fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: font }}
+                          >−</button>
+                          <span style={{ fontSize: 22, fontWeight: 600, color: Z.text, minWidth: 40, textAlign: "center", fontFamily: font }}>{odooUsers}</span>
+                          <button
+                            onClick={() => setOdooUsers(u => Math.min(200, u + 1))}
+                            style={{ width: 36, height: 36, borderRadius: 6, border: `1px solid ${Z.border}`, background: Z.cardBg, color: Z.text, fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: font }}
+                          >+</button>
+                          <span style={{ fontSize: 13, color: Z.textMid, fontFamily: font }}>{fmt(odooRate)} / user / month</span>
+                        </div>
+                      </div>
+
+                      {/* Results */}
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 20 }}>
+                        {[
+                          ["Monthly licence", fmt(odooMonthly)],
+                          ["Annual licence", fmt(odooAnnual)],
+                          ["Year 1 (incl. impl.)", `${fmt(odooYear1Low)} – ${fmt(odooYear1High)}`],
+                        ].map(([lbl, val]) => (
+                          <div key={lbl} style={{ background: Z.cardBg, borderRadius: 12, padding: "16px 20px" }}>
+                            <div style={{ fontSize: 12, color: Z.textMid, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600, marginBottom: 6, fontFamily: font }}>{lbl}</div>
+                            <div style={{ fontSize: 18, fontWeight: 600, color: odooPlan === "custom" ? Z.cyan : Z.text, fontFamily: font }}>{val}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Module list — what's included */}
+                      <div>
+                        <div style={{ fontSize: 12, color: Z.textMid, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600, marginBottom: 10, fontFamily: font }}>
+                          Included apps — all plans
+                        </div>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "6px 14px" }}>
+                          {odooModules.map(m => (
+                            <div key={m.id} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "6px 0" }}>
+                              <span style={{ color: m.essential ? Z.cyan : Z.textMid, fontSize: 13, fontWeight: 800, marginTop: 1, flexShrink: 0 }}>✓</span>
+                              <div>
+                                <span style={{ fontSize: 14, color: Z.text, fontWeight: m.essential ? 600 : 400, fontFamily: font }}>{m.label}</span>
+                                {m.essential && <span style={{ marginLeft: 6, fontSize: 10, color: Z.cyan, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 700 }}>core</span>}
+                                <div style={{ fontSize: 12, color: Z.textDim, fontFamily: font }}>{m.note}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ marginTop: 14, fontSize: 13, color: Z.textMid, fontFamily: font, lineHeight: 1.6 }}>
+                          All apps are included in both Standard and Custom plans. You are not charged per module — the plan price covers everything. The difference is API access and enterprise features (Custom only).
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -567,10 +641,10 @@ export default function ErpPage() {
                         {[["Licensing",pr(pl).license],["Annual (10 users)",pr(pl).annual10],["Implementation",pr(pl).impl]].map(([lbl,val]) => (
                           <div key={lbl} style={{ marginBottom: 14 }}>
                             <div style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "1px", color: Z.text, fontWeight: 600, marginBottom: 4, fontFamily: font }}>{lbl}</div>
-                            <div style={{ fontSize: 16, fontWeight: 400, color: Z.text, lineHeight: 1.45, fontFamily: font }}>{val}</div>
+                            <div style={{ fontSize: 15, fontWeight: 400, color: Z.text, lineHeight: 1.45, fontFamily: font }}>{val}</div>
                           </div>
                         ))}
-                        <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${Z.border}` }}>
+                        <div style={{ marginTop: 14, paddingTop: 12 }}>
                           <div style={{ fontSize: 12, color: Z.text, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600, marginBottom: 4, fontFamily: font }}>Year 1 Total</div>
                           <div style={{ fontSize: 20, fontWeight: 600, color: pl.accent, fontFamily: font }}>{pr(pl).year1}</div>
                         </div>
