@@ -40,7 +40,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   const companyFieldRef = useRef(null);
   const locationFieldRef = useRef(null);
   const engineerFieldRef = useRef(null);
-
+  const card1Ref = useRef(null);
   const signatureRef = useRef(null);
   const companyDropdownRef = useRef(null);
   const engineerDropdownRef = useRef(null);
@@ -332,6 +332,9 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           else if (errors.includes('phone')) setErrorMsg("Please provide an engineer phone number.");
         } else {
           setErrorMsg("Please check for multiple errors.");
+        }
+        if (card1Ref.current) {
+          card1Ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
         return;
       }
@@ -694,6 +697,14 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
         const targetStep = groupsNeedingComments[0] + 2;
         setCurrentStep(targetStep);
         window.history.pushState({ step: targetStep }, '', window.location.href);
+        setTimeout(() => {
+          if (card2Ref.current) {
+            const elementPosition = card2Ref.current.getBoundingClientRect().top + window.pageYOffset;
+            const isMobile = window.innerWidth <= 768;
+            const offset = isMobile ? 50 : 58;
+            window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' });
+          }
+        }, 200);
       }
     }
 
@@ -904,7 +915,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
             </h1>
 
             {/* CARD 1: ADMIN FIELDS */}
-            <div className="checklist-form-card">
+            <div ref={card1Ref} className="checklist-form-card">
               <div className="checklist-inline-group">
                 <div className="checklist-field" ref={companyFieldRef}>
                   <label className="checklist-label">{accessType === 'operator' ? 'Operator' : 'Maintenance company'}</label>
