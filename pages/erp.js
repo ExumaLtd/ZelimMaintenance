@@ -12,7 +12,7 @@ const Z = {
   cyan:      "#00FFF6",
   cyanText:  "#0D3037",
   text:      "#F7F7F7",
-  textMid:   "#A0ACAF",
+  textMid:   "#F7F7F7",
   textDim:   "#7D8F93",
   link:      "#579BA2",
   error:     "#FF4D4D",
@@ -295,7 +295,7 @@ export default function ErpPage() {
   return (
     <>
       <Head>
-        <title>ERP / MRP Evaluation — Zelim</title>
+        <title>ERP Evaluation — Zelim</title>
       </Head>
       <div style={{ background: "#172F36", minHeight: "100vh", color: Z.text, fontFamily: font, position: "relative" }}>
 
@@ -327,7 +327,7 @@ export default function ErpPage() {
               <Logo height={22} />
               <div style={{ width: 1, height: 20, background: Z.border }} />
               <span style={{ color: Z.text, fontSize: 9, letterSpacing: "3px", fontFamily: font, fontWeight: 600, textTransform: "uppercase" }}>
-                ERP / MRP Evaluation
+                ERP Evaluation
               </span>
             </div>
 
