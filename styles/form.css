@@ -1558,6 +1558,10 @@
   .equipment-header-monthly .header-item {
     visibility: hidden;
   }
+
+  .monthly-equipment-row {
+    grid-template-columns: 1fr 120px;
+  }
 }
 
 /* Monthly header on mobile: show "Completed?" instead of group title */

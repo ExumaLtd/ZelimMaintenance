@@ -1246,7 +1246,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                           data-question={questionIndex}
                         >
                           <div className="item-name-mobile">{question.text}</div>
-                          <div className="equipment-row" style={{ gridTemplateColumns: '1fr 120px' }}>
+                          <div className="equipment-row monthly-equipment-row">
                             <div className="item-name">{question.text}</div>
 
                             <div className="toggle-group">
