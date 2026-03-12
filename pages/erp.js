@@ -499,10 +499,10 @@ export default function ErpPage() {
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><X size={13} color={Z.error} strokeWidth={2.5} /> Not supported</span>
                 </div>
                 <div style={{ overflowX: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", background: Z.cardBg, borderRadius: 8, overflow: "hidden" }}>
+                  <table className="erp-grid-table" style={{ width: "100%", borderCollapse: "collapse", background: Z.cardBg, borderRadius: 8, overflow: "hidden" }}>
                     <thead>
                       <tr style={{ background: "#172F36" }}>
-                        <th style={{ padding: "13px 18px", textAlign: "left", color: Z.text, fontWeight: 600, fontSize: 12, letterSpacing: "0.4px", width: "28%", fontFamily: font }}>Capability</th>
+                        <th style={{ padding: "13px 18px", textAlign: "left", color: Z.text, fontWeight: 600, fontSize: 12, letterSpacing: "0.4px", width: "28%", fontFamily: font, position: "sticky", left: 0, background: "#172F36", zIndex: 2 }}>Capability</th>
                         {platforms.map(pl => (
                           <th key={pl.id} style={{ padding: "13px 14px", textAlign: "center", color: Z.text, fontWeight: 600, fontSize: 14, borderTop: `3px solid ${pl.accent}`, fontFamily: font }}>
                             {pl.name}
@@ -512,9 +512,11 @@ export default function ErpPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {allCaps.map((lbl, i) => (
-                        <tr key={i} style={{ background: i % 2 === 0 ? Z.cardBg : "#172F36" }}>
-                          <td style={{ padding: "11px 18px", color: Z.text, fontWeight: 400, fontSize: 14, fontFamily: font }}>{lbl}</td>
+                      {allCaps.map((lbl, i) => {
+                        const rowBg = i % 2 === 0 ? Z.cardBg : "#172F36";
+                        return (
+                        <tr key={i} style={{ background: rowBg }}>
+                          <td style={{ padding: "11px 18px", color: Z.text, fontWeight: 400, fontSize: 14, fontFamily: font, position: "sticky", left: 0, background: rowBg, zIndex: 1 }}>{lbl}</td>
                           {platforms.map(pl => {
                             const cap = pl.capabilities.find(c => c.label === lbl);
                             return (
@@ -527,7 +529,8 @@ export default function ErpPage() {
                             );
                           })}
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

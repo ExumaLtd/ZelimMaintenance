@@ -3,6 +3,15 @@
    Desktop layout is handled via inline styles; this file handles mobile.
 ========================================================================= */
 
+/* Sticky first column in capability grid table */
+.erp-grid-table th:first-child,
+.erp-grid-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.25);
+}
+
 @media (max-width: 768px) {
   .erp-header {
     padding: 40px 20px 16px !important;
