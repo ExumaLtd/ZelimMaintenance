@@ -394,7 +394,7 @@ export default function ErpPage() {
                       <Tag label={pl.tag} accent={pl.accent} accentText={pl.accentText} />
                       <div style={{ fontSize: 20, fontWeight: 600, color: Z.text, marginTop: 10, letterSpacing: "0.3px", fontFamily: font }}>{pl.name}</div>
                       <div style={{ fontSize: 14, color: Z.text, fontWeight: 400, marginTop: 2, fontFamily: font }}>{pl.subtitle}</div>
-                      <div style={{ fontSize: 13, color: pl.accent, fontWeight: 600, marginTop: 4, marginBottom: 16, fontFamily: font }}>{pr(pl).license}</div>
+                      <div style={{ fontSize: 14, color: pl.accent, fontWeight: 600, marginTop: 4, marginBottom: 16, fontFamily: font }}>{pr(pl).license}</div>
                       {Object.entries(scoreLabels).map(([k, lbl]) => (
                         <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>
                           <span style={{ fontSize: 14, color: Z.text, fontWeight: 400, fontFamily: font }}>{lbl}</span>
@@ -407,7 +407,7 @@ export default function ErpPage() {
                         {pl.pros.slice(0, 3).map((pro, i) => (
                           <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6, alignItems: "flex-start" }}>
                             <Check size={13} color={pl.accent} strokeWidth={2.5} style={{ marginTop: 2, flexShrink: 0 }} />
-                            <span style={{ fontSize: 13, color: Z.text, fontWeight: 400, lineHeight: 1.5, fontFamily: font }}>{pro}</span>
+                            <span style={{ fontSize: 14, color: Z.text, fontWeight: 400, lineHeight: 1.5, fontFamily: font }}>{pro}</span>
                           </div>
                         ))}
                         </div>
