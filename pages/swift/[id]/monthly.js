@@ -150,13 +150,15 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     
     if (template?.maintenanceChecklist && template.maintenanceChecklist.length > 0 && !hasLoadedDraftRef.current) {
       setChecklistData(
-        template.maintenanceChecklist.map(group => ({
-          ...group,
-          questions: group.questions.map(q => ({
-            ...q,
-            answer: null
+        template.maintenanceChecklist
+          .filter(item => item.questions && item.questions.length > 0)
+          .map(group => ({
+            ...group,
+            questions: group.questions.map(q => ({
+              ...q,
+              answer: null
+            }))
           }))
-        }))
       );
     }
   }, [template]);
@@ -274,67 +276,72 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   };
 
   // Handle continue from step 1 to step 2
-  const handleContinueToStep2 = () => {
-    const errors = [];
-    const newFieldErrors = {
-      company: false,
-      location: false,
-      engineerName: false,
-      engineerEmail: false,
-      engineerPhone: false,
-      photographImages: false,
-      declaration: false,
-      signature: false,
-    };
+  const handleContinue = () => {
+    // On step 1 (admin + photo), validate both before advancing
+    if (currentStep === 1) {
+      const errors = [];
+      const newFieldErrors = {
+        company: false,
+        location: false,
+        engineerName: false,
+        engineerEmail: false,
+        engineerPhone: false,
+        photographImages: false,
+        declaration: false,
+        signature: false,
+      };
 
-    document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+      document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
 
-    const adminResult = monthlyAdminSchema.safeParse({
-      company: selectedCompany || "",
-      location: locationDisplay?.trim() || "",
-      engineerName: accessType === 'operator'
-        ? (operatorName && operatorName !== "Please select") ? operatorName.trim() : ""
-        : (engName && engName !== "Please select") ? engName.trim() : "",
-      engineerEmail: accessType === 'operator' ? operatorEmail?.trim() || "" : engEmail?.trim() || "",
-      engineerPhone: accessType === 'operator' ? operatorPhone?.trim() || "" : engPhone?.trim() || "",
-    });
-
-    if (!adminResult.success) {
-      adminResult.error.issues.forEach(issue => {
-        const field = issue.path[0];
-        if (field === 'company') { newFieldErrors.company = true; errors.push('company'); }
-        else if (field === 'location') { newFieldErrors.location = true; errors.push('location'); }
-        else if (field === 'engineerName') { newFieldErrors.engineerName = true; errors.push('engineer'); }
-        else if (field === 'engineerEmail') { newFieldErrors.engineerEmail = true; errors.push('email'); }
-        else if (field === 'engineerPhone') { newFieldErrors.engineerPhone = true; errors.push('phone'); }
+      const adminResult = monthlyAdminSchema.safeParse({
+        company: selectedCompany || "",
+        location: locationDisplay?.trim() || "",
+        engineerName: accessType === 'operator'
+          ? (operatorName && operatorName !== "Please select") ? operatorName.trim() : ""
+          : (engName && engName !== "Please select") ? engName.trim() : "",
+        engineerEmail: accessType === 'operator' ? operatorEmail?.trim() || "" : engEmail?.trim() || "",
+        engineerPhone: accessType === 'operator' ? operatorPhone?.trim() || "" : engPhone?.trim() || "",
       });
-    }
 
-    if (photographImages.length === 0) {
-      newFieldErrors.photographImages = true;
-      errors.push('photograph_images');
-    }
-
-    setFieldErrors(newFieldErrors);
-
-    if (errors.length > 0) {
-      if (errors.includes('photograph_images') && errors.length === 1) {
-        setErrorMsg("Please upload at least one photo of the SWIFT.");
-      } else if (errors.length === 1) {
-        if (errors.includes('company')) setErrorMsg("Please select a maintenance company.");
-        else if (errors.includes('location')) setErrorMsg("Please provide a location.");
-        else if (errors.includes('engineer')) setErrorMsg("Please select or enter an engineer name.");
-        else if (errors.includes('email')) setErrorMsg("Please provide an engineer email.");
-        else if (errors.includes('phone')) setErrorMsg("Please provide an engineer phone number.");
-      } else {
-        setErrorMsg("Please check for multiple errors.");
+      if (!adminResult.success) {
+        adminResult.error.issues.forEach(issue => {
+          const field = issue.path[0];
+          if (field === 'company') { newFieldErrors.company = true; errors.push('company'); }
+          else if (field === 'location') { newFieldErrors.location = true; errors.push('location'); }
+          else if (field === 'engineerName') { newFieldErrors.engineerName = true; errors.push('engineer'); }
+          else if (field === 'engineerEmail') { newFieldErrors.engineerEmail = true; errors.push('email'); }
+          else if (field === 'engineerPhone') { newFieldErrors.engineerPhone = true; errors.push('phone'); }
+        });
       }
-      return;
+
+      if (photographImages.length === 0) {
+        newFieldErrors.photographImages = true;
+        errors.push('photograph_images');
+      }
+
+      setFieldErrors(newFieldErrors);
+
+      if (errors.length > 0) {
+        if (errors.includes('photograph_images') && errors.length === 1) {
+          setErrorMsg("Please upload at least one photo of the SWIFT.");
+        } else if (errors.length === 1) {
+          if (errors.includes('company')) setErrorMsg("Please select a maintenance company.");
+          else if (errors.includes('location')) setErrorMsg("Please provide a location.");
+          else if (errors.includes('engineer')) setErrorMsg("Please select or enter an engineer name.");
+          else if (errors.includes('email')) setErrorMsg("Please provide an engineer email.");
+          else if (errors.includes('phone')) setErrorMsg("Please provide an engineer phone number.");
+        } else {
+          setErrorMsg("Please check for multiple errors.");
+        }
+        return;
+      }
+
+      setErrorMsg("");
     }
 
-    setErrorMsg("");
-    setCurrentStep(2);
-    window.history.pushState({ step: 2 }, '', window.location.href);
+    const nextStep = currentStep + 1;
+    setCurrentStep(nextStep);
+    window.history.pushState({ step: nextStep }, '', window.location.href);
 
     setTimeout(() => {
       if (card2Ref.current) {
@@ -634,13 +641,27 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
     if (incompleteItems.length > 0) {
       errors.push({ field: 'checklist', message: 'Please complete all checklist questions.' });
-      incompleteItems.forEach(incomplete => {
-        const row = document.querySelector(`[data-group="${incomplete.groupIndex}"][data-question="${incomplete.questionIndex}"]`);
-        if (row) {
-          const buttons = row.querySelectorAll('.toggle-btn');
-          buttons.forEach(btn => btn.classList.add('has-error'));
+      const firstIncompleteGroupIndex = incompleteItems[0].groupIndex;
+      const targetStep = firstIncompleteGroupIndex + 2;
+      setCurrentStep(targetStep);
+      window.history.pushState({ step: targetStep }, '', window.location.href);
+      setTimeout(() => {
+        incompleteItems.forEach(incomplete => {
+          if (incomplete.groupIndex === firstIncompleteGroupIndex) {
+            const row = document.querySelector(`[data-group="${incomplete.groupIndex}"][data-question="${incomplete.questionIndex}"]`);
+            if (row) {
+              const buttons = row.querySelectorAll('.toggle-btn');
+              buttons.forEach(btn => btn.classList.add('has-error'));
+            }
+          }
+        });
+        if (card2Ref.current) {
+          const elementPosition = card2Ref.current.getBoundingClientRect().top + window.pageYOffset;
+          const isMobile = window.innerWidth <= 768;
+          const offset = isMobile ? 50 : 58;
+          window.scrollTo({ top: elementPosition - offset, behavior: 'smooth' });
         }
-      });
+      }, 200);
     }
     
     if (hasNoAnswers && (!furtherComments || !furtherComments.trim())) {
@@ -822,6 +843,10 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   const hasOperatorResults = filteredOperators.length > 0;
   const hasClearOp = operatorName && operatorName !== "Please select" && operatorName !== "";
   const shouldShowOpDropdown = showOperatorDropdown && (hasOperatorResults || hasClearOp);
+
+  const totalSteps = template?.maintenanceChecklist?.length || 4;
+  const isLastStep = currentStep === totalSteps;
+  const currentGroup = currentStep > 1 ? checklistData[currentStep - 2] : null;
 
   return (
     <div className="form-scope">
@@ -1155,7 +1180,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                     </div>
 
                     {errorMsg && <p className="error-message">{errorMsg}</p>}
-                    <button type="button" className="checklist-submit" onClick={handleContinueToStep2}>
+                    <button type="button" className="checklist-submit" onClick={handleContinue}>
                       <span className="left">Continue</span>
                       <span className="right">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -1166,110 +1191,124 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                   </>
                 )}
 
-                {/* STEP 2: Inspection checklist + further comments */}
-                {currentStep === 2 && (
+                {/* STEPS 2+: Individual checklist group */}
+                {currentStep > 1 && currentGroup && (
                   <>
-                    <h3 className="checklist-section-title">Monthly inspection checklist</h3>
+                    <h3 className="checklist-section-title">{currentGroup.title}</h3>
 
-                {checklistData.map((group, groupIndex) => (
-                  <div key={group.id} className="equipment-table" style={{ marginBottom: groupIndex < checklistData.length - 1 ? '24px' : '0' }}>
-                    <div className="equipment-header equipment-header-monthly" style={{ gridTemplateColumns: '1fr 120px' }}>
-                      <div className="header-item" style={{ textAlign: 'left' }}>{group.title}</div>
-                      <div className="header-returned">Completed?</div>
-                    </div>
-                    
-                    <div className="equipment-questions-wrapper">
-                      {group.questions.map((question, questionIndex) => (
-                        <div 
-                          key={question.id} 
-                          className="equipment-row-wrapper"
-                          data-group={groupIndex}
-                          data-question={questionIndex}
-                        >
-                          <div className="item-name-mobile">{question.text}</div>
-                          <div className="equipment-row" style={{ gridTemplateColumns: '1fr 120px' }}>
-                            <div className="item-name">{question.text}</div>
-                            
-                            <div className="toggle-group">
-                              <button 
-                                type="button"
-                                className={`toggle-btn ${question.answer === true ? 'active' : ''}`}
-                                onClick={() => updateChecklist(groupIndex, questionIndex, true)}
-                              >
-                                Yes
-                              </button>
-                              <button 
-                                type="button"
-                                className={`toggle-btn ${question.answer === false ? 'active' : ''}`}
-                                onClick={() => updateChecklist(groupIndex, questionIndex, false)}
-                              >
-                                No
-                              </button>
+                    <div className="equipment-table">
+                      <div className="equipment-header equipment-header-monthly" style={{ gridTemplateColumns: '1fr 120px' }}>
+                        <div className="header-item" style={{ textAlign: 'left' }}>{currentGroup.title}</div>
+                        <div className="header-returned">Completed?</div>
+                      </div>
+
+                      <div className="equipment-questions-wrapper">
+                        {currentGroup.questions.map((question, questionIndex) => (
+                          <div
+                            key={question.id}
+                            className="equipment-row-wrapper"
+                            data-group={currentStep - 2}
+                            data-question={questionIndex}
+                          >
+                            <div className="item-name-mobile">{question.text}</div>
+                            <div className="equipment-row" style={{ gridTemplateColumns: '1fr 120px' }}>
+                              <div className="item-name">{question.text}</div>
+
+                              <div className="toggle-group">
+                                <button
+                                  type="button"
+                                  className={`toggle-btn ${question.answer === true ? 'active' : ''}`}
+                                  onClick={() => updateChecklist(currentStep - 2, questionIndex, true)}
+                                >
+                                  Yes
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`toggle-btn ${question.answer === false ? 'active' : ''}`}
+                                  onClick={() => updateChecklist(currentStep - 2, questionIndex, false)}
+                                >
+                                  No
+                                </button>
+                              </div>
                             </div>
                           </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Further comments - last step only */}
+                    {isLastStep && (
+                      <div style={{ marginTop: "32px" }}>
+                        <label className="checklist-label" style={{ marginTop: 0 }}>Further comments</label>
+                        <p className="question-instruction">Record any additional observations, defects, or actions.</p>
+
+                        <div className="question-with-upload">
+                          <div className="textarea-wrapper">
+                            <textarea
+                              ref={furtherCommentsRef}
+                              className={clsx("checklist-textarea", fieldErrors.furtherComments && "has-error")}
+                              value={furtherComments}
+                              onChange={(e) => {
+                                setFurtherComments(e.target.value);
+                                autoGrow(e);
+                                if (e.target.value.trim()) {
+                                  setFieldErrors(prev => ({ ...prev, furtherComments: false }));
+                                }
+                              }}
+                              onInput={autoGrow}
+                              placeholder=""
+                            />
+
+                            <VoiceInput
+                              onTranscript={(text) => {
+                                setFurtherComments((prev) => (prev || '') + text);
+                                requestAnimationFrame(() => {
+                                  requestAnimationFrame(() => {
+                                    const textarea = document.querySelector('.checklist-textarea');
+                                    if (textarea) autoGrow(textarea);
+                                  });
+                                });
+                              }}
+                              onError={(errorMsg) => setErrorMsg(errorMsg)}
+                            />
+                          </div>
+
+                          <ImageUploader
+                            questionKey="further_comments"
+                            questionText="Further comments"
+                            serialNumber={unit?.serial_number}
+                            maintenanceType="monthly"
+                            initialImages={commentImages || []}
+                            onImagesChange={handleCommentImagesChange}
+                          />
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                        {fieldErrors.furtherComments && (
+                          <p className="error-message">Please explain any item marked &ldquo;No&rdquo; before submitting.</p>
+                        )}
+                      </div>
+                    )}
 
-                {/* FURTHER COMMENTS SECTION */}
-                <div style={{ marginTop: "32px" }}>
-                  <label className="checklist-label" style={{ marginTop: 0 }}>Further comments</label>
-                  <p className="question-instruction">Record any additional observations, defects, or actions.</p>
-
-                  <div className="question-with-upload">
-                    <div className="textarea-wrapper">
-                      <textarea
-                        ref={furtherCommentsRef}
-                        className={clsx("checklist-textarea", fieldErrors.furtherComments && "has-error")}
-                        value={furtherComments}
-                        onChange={(e) => {
-                          setFurtherComments(e.target.value);
-                          autoGrow(e);
-                          if (e.target.value.trim()) {
-                            setFieldErrors(prev => ({ ...prev, furtherComments: false }));
-                          }
-                        }}
-                        onInput={autoGrow}
-                        placeholder=""
-                      />
-
-                      <VoiceInput
-                        onTranscript={(text) => {
-                          setFurtherComments((prev) => (prev || '') + text);
-                          requestAnimationFrame(() => {
-                            requestAnimationFrame(() => {
-                              const textarea = document.querySelector('.checklist-textarea');
-                              if (textarea) autoGrow(textarea);
-                            });
-                          });
-                        }}
-                        onError={(errorMsg) => setErrorMsg(errorMsg)}
-                      />
-                    </div>
-                    
-                    <ImageUploader
-                      questionKey="further_comments"
-                      questionText="Further comments"
-                      serialNumber={unit?.serial_number}
-                      maintenanceType="monthly"
-                      initialImages={commentImages || []}
-                      onImagesChange={handleCommentImagesChange}
-                    />
-                  </div>
-                  {fieldErrors.furtherComments && (
-                    <p className="error-message">Please explain any item marked &ldquo;No&rdquo; before submitting.</p>
-                  )}
-                </div>
-
+                    {/* Continue button - non-last steps only */}
+                    {!isLastStep && (
+                      <>
+                        {errorMsg && <p className="error-message">{errorMsg}</p>}
+                        <button type="button" className="checklist-submit" onClick={handleContinue}>
+                          <span className="left">Continue</span>
+                          <span className="right">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                              <path d="M10.1458 7.5L0 7.5L0 5.83333L10.1458 5.83333L5.47917 1.16667L6.66667 0L13.3333 6.66667L6.66667 13.3333L5.47917 12.1667L10.1458 7.5Z" fill="#172F36"/>
+                            </svg>
+                          </span>
+                        </button>
+                      </>
+                    )}
                   </>
                 )}
 
             </div>
 
             {/* CARD 3: DECLARATION & SIGNATURE */}
-            {currentStep === 2 && (
+            {isLastStep && (
             <div className="checklist-form-card" style={{ marginTop: "20px" }}>
                 <h3 className="checklist-section-title">Declaration</h3>
 
