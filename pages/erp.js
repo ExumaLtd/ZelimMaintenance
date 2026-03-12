@@ -259,18 +259,18 @@ function PrimaryBtn({ children, onClick }) {
   );
 }
 
-// ── ODOO MODULES (Zelim-relevant only) ───────────────────────
+// ── ODOO MODULES — equivalent standalone tool costs ($/user/mo unless flat) ──
 const odooModules = [
-  { id: "inventory",    label: "Inventory",         essential: true,  note: "Stock movements, procurement" },
-  { id: "mrp",          label: "Manufacturing",      essential: true,  note: "BOMs, production orders, serialisation" },
-  { id: "purchase",     label: "Purchase",           essential: true,  note: "Supplier management, POs" },
-  { id: "crm",          label: "CRM",                essential: false, note: "Sales pipeline, customer records" },
-  { id: "accounting",   label: "Accounting",         essential: false, note: "Invoicing, P&L, financial reports" },
-  { id: "fieldservice", label: "Field Service",      essential: false, note: "Engineer scheduling, on-site tasks" },
-  { id: "helpdesk",     label: "Helpdesk",           essential: false, note: "Customer support ticketing" },
-  { id: "documents",    label: "Documents",          essential: false, note: "File management and approvals" },
-  { id: "sign",         label: "Sign",               essential: false, note: "Digital signatures" },
-  { id: "hr",           label: "HR / Recruitment",   essential: false, note: "Employee records, recruitment" },
+  { id: "mrp",          label: "Manufacturing / MRP",  essential: true,  equiv: "Katana MRP",   costPerUser: 12,  flatCost: null  },
+  { id: "inventory",    label: "Inventory",             essential: true,  equiv: "inFlow",       costPerUser: 10,  flatCost: null  },
+  { id: "purchase",     label: "Purchase",              essential: true,  equiv: "Coupa",        costPerUser: 20,  flatCost: null  },
+  { id: "crm",          label: "CRM",                   essential: false, equiv: "Salesforce",   costPerUser: 20,  flatCost: null  },
+  { id: "accounting",   label: "Accounting",            essential: false, equiv: "QuickBooks",   costPerUser: 20,  flatCost: null  },
+  { id: "helpdesk",     label: "Helpdesk",              essential: false, equiv: "Zendesk",      costPerUser: 20,  flatCost: null  },
+  { id: "documents",    label: "Documents",             essential: false, equiv: "SharePoint",   costPerUser: 10,  flatCost: null  },
+  { id: "sign",         label: "Digital Sign",          essential: false, equiv: "DocuSign",     costPerUser: 38,  flatCost: null  },
+  { id: "hr",           label: "HR",                    essential: false, equiv: "BambooHR",     costPerUser: 40,  flatCost: null  },
+  { id: "project",      label: "Project",               essential: false, equiv: "Asana",        costPerUser: null, flatCost: 0    },
 ];
 
 // Odoo pricing (GBP estimates, early 2026)
@@ -284,18 +284,38 @@ export default function ErpPage() {
   const [view, setView] = useState("cards");
   const [sel,  setSel]  = useState(null);
   const [api,  setApi]  = useState(false);
-  const [odooUsers,   setOdooUsers]   = useState(10);
-  const [odooPlan,    setOdooPlan]    = useState("standard");
+  const [odooUsers,    setOdooUsers]   = useState(10);
+  const [odooPlan,     setOdooPlan]    = useState("standard");
+  const [odooSelected, setOdooSelected] = useState(
+    odooModules.filter(m => m.essential).map(m => m.id)
+  );
 
   const p  = sel ? platforms.find(x => x.id === sel) : null;
   const pr = (pl) => api ? pl.withApi : pl.withoutApi;
 
-  const odooRate      = odooPlan === "custom" ? ODOO_CUSTOM : ODOO_STANDARD;
-  const odooMonthly   = odooUsers * odooRate;
-  const odooAnnual    = odooMonthly * 12;
-  const odooYear1Low  = odooAnnual + ODOO_IMPL_LOW;
-  const odooYear1High = odooAnnual + ODOO_IMPL_HIGH;
-  const fmt = (n) => `£${n.toLocaleString("en-GB")}`;
+  const odooRate       = odooPlan === "custom" ? ODOO_CUSTOM : ODOO_STANDARD;
+  const odooMonthly    = odooUsers * odooRate;
+  const odooAnnual     = odooMonthly * 12;
+  const odooYear1Low   = odooAnnual + ODOO_IMPL_LOW;
+  const odooYear1High  = odooAnnual + ODOO_IMPL_HIGH;
+
+  // Standalone cost for selected modules
+  const standaloneMonthly = odooModules
+    .filter(m => odooSelected.includes(m.id))
+    .reduce((sum, m) => {
+      if (m.flatCost !== null) return sum + m.flatCost;
+      return sum + (m.costPerUser || 0) * odooUsers;
+    }, 0);
+  const standaloneAnnual = standaloneMonthly * 12;
+  const saving = standaloneAnnual - odooAnnual;
+
+  const fmt  = (n) => `£${Math.round(n).toLocaleString("en-GB")}`;
+  const fmtU = (n) => `$${n}/user/mo`;
+
+  const toggleModule = (id) =>
+    setOdooSelected(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
 
   return (
     <>
@@ -304,12 +324,22 @@ export default function ErpPage() {
       </Head>
       <div style={{ background: "#172F36", minHeight: "100vh", color: Z.text, fontFamily: font, position: "relative" }}>
 
-        {/* Zelim pattern — same as login page */}
+        {/* Zelim pattern */}
         <img
           src="/patterns/pattern-left.svg"
           alt=""
           aria-hidden="true"
-          className="landing-pattern"
+          style={{
+            position: "absolute",
+            top: "0.8125rem",
+            right: -20,
+            transform: "scaleX(-1)",
+            width: "max(10rem, 20vw)",
+            height: "auto",
+            zIndex: 0,
+            pointerEvents: "none",
+            opacity: 1,
+          }}
         />
 
         <div style={{ maxWidth: 1280, margin: "0 auto", position: "relative", zIndex: 1 }}>
@@ -383,11 +413,12 @@ export default function ErpPage() {
             {view === "cards" && !sel && (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14 }}>
                 {platforms.map(pl => (
-                  <div key={pl.id} style={{ background: Z.cardBg, border: "none", borderTop: `2px solid ${pl.accent}`, borderRadius: 20, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                  <div key={pl.id} style={{ background: Z.cardBg, border: "none", borderRadius: 20, overflow: "hidden", display: "flex", flexDirection: "column" }}>
                     <div style={{ padding: "24px 30px", flex: 1 }}>
                       <Tag label={pl.tag} accent={pl.accent} accentText={pl.accentText} />
                       <div style={{ fontSize: 20, fontWeight: 600, color: Z.text, marginTop: 10, letterSpacing: "0.3px", fontFamily: font }}>{pl.name}</div>
-                      <div style={{ fontSize: 14, color: Z.text, fontWeight: 400, marginTop: 2, marginBottom: 16, fontFamily: font }}>{pl.subtitle}</div>
+                      <div style={{ fontSize: 14, color: Z.text, fontWeight: 400, marginTop: 2, fontFamily: font }}>{pl.subtitle}</div>
+                      <div style={{ fontSize: 13, color: pl.accent, fontWeight: 600, marginTop: 4, marginBottom: 16, fontFamily: font }}>{pr(pl).license}</div>
                       {Object.entries(scoreLabels).map(([k, lbl]) => (
                         <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>
                           <span style={{ fontSize: 14, color: Z.text, fontWeight: 400, fontFamily: font }}>{lbl}</span>
@@ -395,7 +426,18 @@ export default function ErpPage() {
                         </div>
                       ))}
                       <div style={{ marginTop: 14, paddingTop: 12 }}>
-                        <div style={{ fontSize: 12, color: Z.text, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600, marginBottom: 4, fontFamily: font }}>
+                        <div style={{ fontSize: 12, color: Z.textMid, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600, marginBottom: 8, fontFamily: font }}>
+                          Key strengths
+                        </div>
+                        {pl.pros.slice(0, 3).map((pro, i) => (
+                          <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6, alignItems: "flex-start" }}>
+                            <span style={{ color: pl.accent, fontSize: 12, fontWeight: 900, marginTop: 2, flexShrink: 0 }}>✓</span>
+                            <span style={{ fontSize: 13, color: Z.text, fontWeight: 400, lineHeight: 1.5, fontFamily: font }}>{pro}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ marginTop: 14, paddingTop: 12 }}>
+                        <div style={{ fontSize: 12, color: Z.textMid, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600, marginBottom: 4, fontFamily: font }}>
                           Year 1 Est. {api ? "(With API)" : "(Without API)"}
                         </div>
                         <div style={{ fontSize: 20, fontWeight: 600, color: pl.accent, fontFamily: font }}>{pr(pl).year1}</div>
@@ -418,7 +460,7 @@ export default function ErpPage() {
                 <div style={{ marginBottom: 18 }}>
                   <PrimaryBtn onClick={() => setSel(null)}>← Back</PrimaryBtn>
                 </div>
-                <div style={{ background: Z.cardBg, borderTop: `3px solid ${p.accent}`, borderRadius: 20, overflow: "hidden" }}>
+                <div style={{ background: Z.cardBg, borderRadius: 20, overflow: "hidden" }}>
                   <div style={{ padding: "24px 30px", position: "relative", overflow: "hidden", background: "#172F36" }}>
                     <Tag label={p.tag} accent={p.accent} accentText={p.accentText} />
                     <div style={{ fontSize: 28, fontWeight: 600, color: Z.text, marginTop: 8, fontFamily: font }}>{p.name}</div>
@@ -500,82 +542,142 @@ export default function ErpPage() {
                   {/* ── ODOO COST CALCULATOR ── */}
                   {p.id === "odoo" && (
                     <div style={{ padding: "24px 30px", background: "#172F36" }}>
-                      <SectionLabel>Cost calculator</SectionLabel>
+                      <SectionLabel>Cost comparison calculator</SectionLabel>
+                      <p style={{ margin: "0 0 20px", fontSize: 13, color: Z.textMid, fontFamily: font, lineHeight: 1.6 }}>
+                        Select the tools Zelim would need. See what you&apos;d pay buying them separately — then compare to Odoo&apos;s flat per-user rate where everything is included.
+                      </p>
 
-                      {/* Plan toggle */}
-                      <div style={{ marginBottom: 20 }}>
-                        <div style={{ fontSize: 12, color: Z.textMid, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600, marginBottom: 8, fontFamily: font }}>Plan</div>
-                        <div style={{ display: "inline-flex", background: Z.inputBg, border: `1px solid ${Z.border}`, borderRadius: "0.5rem", padding: 3, gap: 3 }}>
-                          {[["standard", "Standard — all apps"], ["custom", "Custom — all apps + API"]].map(([val, lbl]) => (
-                            <button key={val} onClick={() => setOdooPlan(val)} style={{
-                              fontFamily: "'Roboto Mono', monospace", fontSize: "0.7rem", fontWeight: 400,
-                              textTransform: "uppercase", letterSpacing: "0.1em",
-                              cursor: "pointer", borderRadius: "0.4rem",
-                              padding: "0.4375rem 0.9rem",
-                              border: "none",
-                              background: odooPlan === val ? Z.cyan : "transparent",
-                              color: odooPlan === val ? Z.cyanText : Z.text,
-                              transition: "all 0.15s",
-                            }}>{lbl}</button>
-                          ))}
-                        </div>
-                        <div style={{ marginTop: 8, fontSize: 13, color: Z.textMid, fontFamily: font }}>
-                          {odooPlan === "standard"
-                            ? "Standard includes all apps but no REST API access. Portal integration not possible on this plan."
-                            : "Custom adds REST API, advanced customisation, and enterprise support. Required for Zelim portal integration."}
-                        </div>
-                      </div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
 
-                      {/* User count */}
-                      <div style={{ marginBottom: 24 }}>
-                        <div style={{ fontSize: 12, color: Z.textMid, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600, marginBottom: 10, fontFamily: font }}>Number of users</div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                          <button
-                            onClick={() => setOdooUsers(u => Math.max(1, u - 1))}
-                            style={{ width: 36, height: 36, borderRadius: 6, border: `1px solid ${Z.border}`, background: Z.cardBg, color: Z.text, fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: font }}
-                          >−</button>
-                          <span style={{ fontSize: 22, fontWeight: 600, color: Z.text, minWidth: 40, textAlign: "center", fontFamily: font }}>{odooUsers}</span>
-                          <button
-                            onClick={() => setOdooUsers(u => Math.min(200, u + 1))}
-                            style={{ width: 36, height: 36, borderRadius: 6, border: `1px solid ${Z.border}`, background: Z.cardBg, color: Z.text, fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: font }}
-                          >+</button>
-                          <span style={{ fontSize: 13, color: Z.textMid, fontFamily: font }}>{fmt(odooRate)} / user / month</span>
-                        </div>
-                      </div>
-
-                      {/* Results */}
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 20 }}>
-                        {[
-                          ["Monthly licence", fmt(odooMonthly)],
-                          ["Annual licence", fmt(odooAnnual)],
-                          ["Year 1 (incl. impl.)", `${fmt(odooYear1Low)} – ${fmt(odooYear1High)}`],
-                        ].map(([lbl, val]) => (
-                          <div key={lbl} style={{ background: Z.cardBg, borderRadius: 12, padding: "16px 20px" }}>
-                            <div style={{ fontSize: 12, color: Z.textMid, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600, marginBottom: 6, fontFamily: font }}>{lbl}</div>
-                            <div style={{ fontSize: 18, fontWeight: 600, color: odooPlan === "custom" ? Z.cyan : Z.text, fontFamily: font }}>{val}</div>
+                        {/* LEFT: module selector + user count */}
+                        <div>
+                          <div style={{ fontSize: 12, color: Z.textMid, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600, marginBottom: 12, fontFamily: font }}>Select tools needed</div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 20 }}>
+                            {odooModules.map(m => {
+                              const selected = odooSelected.includes(m.id);
+                              const monthCost = m.flatCost !== null ? m.flatCost : (m.costPerUser || 0) * odooUsers;
+                              return (
+                                <div
+                                  key={m.id}
+                                  onClick={() => toggleModule(m.id)}
+                                  style={{
+                                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                                    padding: "10px 14px",
+                                    borderRadius: 8,
+                                    background: selected ? `${Z.cyan}12` : Z.cardBg,
+                                    border: `1px solid ${selected ? Z.cyan : Z.border}`,
+                                    cursor: "pointer",
+                                    transition: "all 0.15s",
+                                  }}
+                                >
+                                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                    <div style={{
+                                      width: 16, height: 16, borderRadius: 4, flexShrink: 0,
+                                      border: `2px solid ${selected ? Z.cyan : Z.border}`,
+                                      background: selected ? Z.cyan : "transparent",
+                                      display: "flex", alignItems: "center", justifyContent: "center",
+                                    }}>
+                                      {selected && <span style={{ color: Z.cyanText, fontSize: 10, fontWeight: 900, lineHeight: 1 }}>✓</span>}
+                                    </div>
+                                    <div>
+                                      <span style={{ fontSize: 14, color: Z.text, fontWeight: selected ? 600 : 400, fontFamily: font }}>{m.label}</span>
+                                      {m.essential && <span style={{ marginLeft: 6, fontSize: 9, color: Z.cyan, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 700 }}>core</span>}
+                                    </div>
+                                  </div>
+                                  <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 12 }}>
+                                    <div style={{ fontSize: 12, color: selected ? Z.text : Z.textDim, fontFamily: font, fontWeight: selected ? 600 : 400 }}>
+                                      {m.equiv}
+                                    </div>
+                                    <div style={{ fontSize: 11, color: Z.textDim, fontFamily: font }}>
+                                      {m.flatCost !== null ? "included" : fmtU(m.costPerUser)}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
-                        ))}
-                      </div>
 
-                      {/* Module list — what's included */}
-                      <div>
-                        <div style={{ fontSize: 12, color: Z.textMid, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600, marginBottom: 10, fontFamily: font }}>
-                          Included apps — all plans
+                          {/* User count */}
+                          <div style={{ fontSize: 12, color: Z.textMid, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600, marginBottom: 8, fontFamily: font }}>Number of users</div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                            <button onClick={() => setOdooUsers(u => Math.max(1, u - 1))} style={{ width: 34, height: 34, borderRadius: 6, border: `1px solid ${Z.border}`, background: Z.cardBg, color: Z.text, fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>−</button>
+                            <span style={{ fontSize: 20, fontWeight: 600, color: Z.text, minWidth: 36, textAlign: "center", fontFamily: font }}>{odooUsers}</span>
+                            <button onClick={() => setOdooUsers(u => Math.min(200, u + 1))} style={{ width: 34, height: 34, borderRadius: 6, border: `1px solid ${Z.border}`, background: Z.cardBg, color: Z.text, fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
+                          </div>
                         </div>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "6px 14px" }}>
-                          {odooModules.map(m => (
-                            <div key={m.id} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "6px 0" }}>
-                              <span style={{ color: m.essential ? Z.cyan : Z.textMid, fontSize: 13, fontWeight: 800, marginTop: 1, flexShrink: 0 }}>✓</span>
-                              <div>
-                                <span style={{ fontSize: 14, color: Z.text, fontWeight: m.essential ? 600 : 400, fontFamily: font }}>{m.label}</span>
-                                {m.essential && <span style={{ marginLeft: 6, fontSize: 10, color: Z.cyan, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 700 }}>core</span>}
-                                <div style={{ fontSize: 12, color: Z.textDim, fontFamily: font }}>{m.note}</div>
-                              </div>
+
+                        {/* RIGHT: results */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+
+                          {/* Standalone cost */}
+                          <div style={{ background: Z.cardBg, borderRadius: 12, padding: "18px 20px" }}>
+                            <div style={{ fontSize: 12, color: Z.textMid, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600, marginBottom: 10, fontFamily: font }}>Standalone tools — selected</div>
+                            {odooModules.filter(m => odooSelected.includes(m.id)).map(m => {
+                              const mc = m.flatCost !== null ? m.flatCost : (m.costPerUser || 0) * odooUsers;
+                              return (
+                                <div key={m.id} style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                                  <span style={{ fontSize: 13, color: Z.textMid, fontFamily: font }}>{m.equiv}</span>
+                                  <span style={{ fontSize: 13, color: Z.text, fontFamily: font, fontWeight: 400 }}>
+                                    {m.flatCost !== null ? "—" : `$${(m.costPerUser * odooUsers).toLocaleString()} / mo`}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10, paddingTop: 8 }}>
+                              <span style={{ fontSize: 13, color: Z.text, fontWeight: 600, fontFamily: font }}>Total / month</span>
+                              <span style={{ fontSize: 15, color: Z.error, fontWeight: 600, fontFamily: font }}>${Math.round(standaloneMonthly).toLocaleString()}</span>
                             </div>
-                          ))}
-                        </div>
-                        <div style={{ marginTop: 14, fontSize: 13, color: Z.textMid, fontFamily: font, lineHeight: 1.6 }}>
-                          All apps are included in both Standard and Custom plans. You are not charged per module — the plan price covers everything. The difference is API access and enterprise features (Custom only).
+                            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+                              <span style={{ fontSize: 12, color: Z.textDim, fontFamily: font }}>Annual</span>
+                              <span style={{ fontSize: 13, color: Z.error, fontFamily: font }}>${Math.round(standaloneAnnual).toLocaleString()}</span>
+                            </div>
+                          </div>
+
+                          {/* Odoo plan toggle + cost */}
+                          <div style={{ background: Z.cardBg, borderRadius: 12, padding: "18px 20px" }}>
+                            <div style={{ fontSize: 12, color: Z.textMid, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600, marginBottom: 10, fontFamily: font }}>Odoo — all apps included</div>
+                            <div style={{ display: "inline-flex", background: Z.inputBg, border: `1px solid ${Z.border}`, borderRadius: "0.4rem", padding: 2, gap: 2, marginBottom: 12 }}>
+                              {[["standard", "Standard"], ["custom", "Custom + API"]].map(([val, lbl]) => (
+                                <button key={val} onClick={() => setOdooPlan(val)} style={{
+                                  fontFamily: "'Roboto Mono', monospace", fontSize: "0.65rem", fontWeight: 400,
+                                  textTransform: "uppercase", letterSpacing: "0.1em",
+                                  cursor: "pointer", borderRadius: "0.3rem",
+                                  padding: "0.3rem 0.7rem",
+                                  border: "none",
+                                  background: odooPlan === val ? Z.cyan : "transparent",
+                                  color: odooPlan === val ? Z.cyanText : Z.text,
+                                  transition: "all 0.15s",
+                                }}>{lbl}</button>
+                              ))}
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                              <span style={{ fontSize: 13, color: Z.textMid, fontFamily: font }}>£{odooRate}/user × {odooUsers} users</span>
+                              <span style={{ fontSize: 15, color: Z.cyan, fontWeight: 600, fontFamily: font }}>{fmt(odooMonthly)} / mo</span>
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between" }}>
+                              <span style={{ fontSize: 12, color: Z.textDim, fontFamily: font }}>Annual</span>
+                              <span style={{ fontSize: 13, color: Z.cyan, fontFamily: font }}>{fmt(odooAnnual)}</span>
+                            </div>
+                            <div style={{ fontSize: 11, color: Z.textDim, marginTop: 8, fontFamily: font }}>
+                              {odooPlan === "standard" ? "No API access — portal integration not possible." : "Includes REST API — required for Zelim portal integration."}
+                            </div>
+                          </div>
+
+                          {/* Saving */}
+                          {saving > 0 && (
+                            <div style={{ background: `${Z.cyan}10`, border: `1px solid ${Z.cyan}40`, borderRadius: 12, padding: "16px 20px", textAlign: "center" }}>
+                              <div style={{ fontSize: 11, color: Z.cyan, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600, marginBottom: 4, fontFamily: font }}>Estimated annual saving with Odoo</div>
+                              <div style={{ fontSize: 26, fontWeight: 600, color: Z.cyan, fontFamily: font }}>{fmt(saving)}</div>
+                              <div style={{ fontSize: 12, color: Z.textMid, marginTop: 2, fontFamily: font }}>vs paying for selected tools separately</div>
+                            </div>
+                          )}
+
+                          {/* Year 1 */}
+                          <div style={{ background: Z.cardBg, borderRadius: 12, padding: "14px 20px" }}>
+                            <div style={{ fontSize: 12, color: Z.textMid, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600, marginBottom: 6, fontFamily: font }}>Year 1 incl. implementation</div>
+                            <div style={{ fontSize: 16, fontWeight: 600, color: Z.text, fontFamily: font }}>{fmt(odooYear1Low)} – {fmt(odooYear1High)}</div>
+                            <div style={{ fontSize: 11, color: Z.textDim, marginTop: 3, fontFamily: font }}>Licence + £4k–£12k implementation estimate</div>
+                          </div>
                         </div>
                       </div>
                     </div>
