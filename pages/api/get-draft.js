@@ -44,12 +44,11 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Missing required parameters' });
     }
 
-    // Find active drafts for this unit + maintenance type + access PIN
+    // Find active drafts for this unit + maintenance type (any PIN)
     const allDrafts = await base('maintenance_drafts')
       .select({
         filterByFormula: `AND(
           {maintenance_type} = '${esc(maintenanceType)}',
-          {access_pin_used} = '${accessPin}',
           NOT({completed})
         )`,
         fields: ['unit_id', 'draft_data', 'last_updated', 'engineer_email', 'access_pin_used', 'user_type'],

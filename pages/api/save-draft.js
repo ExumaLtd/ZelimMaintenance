@@ -51,12 +51,11 @@ export default async function handler(req, res) {
     const emailToUse = engineerEmail || PLACEHOLDER_EMAIL;
     const isRealEmail = emailToUse !== PLACEHOLDER_EMAIL && emailToUse.includes('@');
 
-    // Get all active drafts for this maintenance type AND access pin
+    // Get all active drafts for this unit + maintenance type (any PIN)
     const allDrafts = await base('maintenance_drafts')
       .select({
         filterByFormula: `AND(
           {maintenance_type} = '${esc(maintenanceType)}',
-          {access_pin_used} = '${accessPin}',
           NOT({completed})
         )`,
         fields: ['unit_id', 'engineer_email', 'last_updated', 'access_pin_used'],
@@ -65,21 +64,22 @@ export default async function handler(req, res) {
       .all();
 
     // Filter in JavaScript to match unit_id (Link field returns array)
-    const existingDrafts = allDrafts.filter(d => {
+    const allUnitDrafts = allDrafts.filter(d => {
       const linkedRecords = d.get('unit_id');
       return linkedRecords && linkedRecords.includes(unitId);
     });
 
     const draftDataString = JSON.stringify(draftData);
 
-    if (existingDrafts.length > 0) {
-      // Update the most recent draft for this unit + PIN
-      const draft = existingDrafts[0];
+    if (allUnitDrafts.length > 0) {
+      // Update the most recent draft regardless of which PIN created it,
+      // and stamp it with the current PIN. This prevents duplicate records
+      // accumulating across sessions.
+      const draft = allUnitDrafts[0];
       const draftId = draft.id;
       const updateFields = {
         draft_data: draftDataString,
         last_updated: new Date().toISOString(),
-        // Ensure PIN fields are always set
         access_pin_used: accessPin,
         user_type: userType,
         locked_by: accessPin,
@@ -92,12 +92,12 @@ export default async function handler(req, res) {
       const result = await base('maintenance_drafts').update(draftId, updateFields);
 
       return res.status(200).json({
-        success: true, 
-        action: 'updated', 
-        recordId: result.id 
+        success: true,
+        action: 'updated',
+        recordId: result.id
       });
     } else {
-      // Create new draft
+      // No existing draft — create one
       const result = await base('maintenance_drafts').create({
         unit_id: [unitId],
         maintenance_type: maintenanceType,
@@ -105,7 +105,6 @@ export default async function handler(req, res) {
         draft_data: draftDataString,
         last_updated: new Date().toISOString(),
         completed: false,
-        // Add PIN tracking
         access_pin_used: accessPin,
         user_type: userType,
         locked_by: accessPin,
