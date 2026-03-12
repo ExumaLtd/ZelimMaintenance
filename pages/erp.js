@@ -1,7 +1,6 @@
 import Head from 'next/head';
 import { useState } from "react";
 import { Check, X, Minus } from "lucide-react";
-import "../styles/erp.css";
 
 // ── ZELIM MAINTENANCE DESIGN SYSTEM ──────────────────────────
 const Z = {
