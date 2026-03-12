@@ -47,7 +47,7 @@ const platforms = [
     tag: "LEAD RECOMMENDATION", accent: Z.cyan, accentText: Z.cyanText,
     withApi:    { license: "~£37–45 / user / month", annual10: "~£4,500–5,400 / yr", impl: "£8,000–20,000", year1: "£13,000–25,000", note: "Custom plan required for portal API access" },
     withoutApi: { license: "~£25–30 / user / month", annual10: "~£3,000–3,600 / yr", impl: "£4,000–12,000", year1: "£7,000–16,000", note: "Standard plan — no external API access" },
-    scores: { manufacturing: 5, traceability: 5, api: 5, ease: 3, cost: 4, scalability: 5 },
+    scores: { fieldService: 5, api: 5, traceability: 5, crm: 5, manufacturing: 5, accounting: 5, scalability: 5, cost: 4, ease: 3 },
     capabilities: [
       { label: "Product / Item Master Data",        has: true },
       { label: "Bills of Materials (BOMs)",          has: true },
@@ -64,16 +64,16 @@ const platforms = [
       { label: "Self-implementation Friendly",       has: "partial", note: "Possible but complex" },
       { label: "Maritime / Compliance Specific",     has: false },
     ],
-    pros: ["Most complete ERP capability on the shortlist","Mature REST API — ideal for Zelim portal integration","Modular — activate only what you need","Scales well as Zelim grows","UK partner ecosystem available","Field service & maintenance modules built in"],
-    cons: ["Broadest scope — highest risk of scope creep","API requires the more expensive Custom plan","More complex to self-implement than alternatives","Partner implementation costs can be significant","Needs disciplined phased rollout to stay lean"],
-    verdict: "Best overall fit for Zelim. The right choice if portal API integration is a firm requirement — which it should be. Requires a tightly scoped Phase 1 to avoid overreach.",
+    pros: ["Only platform covering field service, CRM, accounting and manufacturing in one system","Mature REST API — direct integration with the Zelim maintenance portal","Field service module built in — engineer dispatch, job tracking, parts usage","Full CRM for client and contract management","Native accounting removes the need for a separate finance tool","Modular — activate only what Zelim needs, add more as you grow"],
+    cons: ["Broadest scope — highest risk of scope creep without a disciplined rollout","API requires the more expensive Custom plan","More complex to self-implement than alternatives","Partner implementation costs can be significant","Needs a tightly scoped Phase 1 to stay lean and on budget"],
+    verdict: "Best overall fit for Zelim. The only shortlisted platform that scores strongly across field service, CRM, accounting, and manufacturing — covering Zelim's full operational picture rather than just the workshop floor. Requires a disciplined Phase 1 scope to avoid overreach.",
   },
   {
     id: "mrpeasy", name: "MRPeasy", subtitle: "Enterprise Plan (API) / Starter",
     tag: "STRONG ALTERNATIVE", accent: "#579BA2", accentText: Z.text,
     withApi:    { license: "$149 / user / month (Enterprise)", annual10: "~£14,000 / yr", impl: "£1,500–4,000", year1: "£16,000–18,000", note: "API only on top tier — cost advantage disappears" },
     withoutApi: { license: "$49 / user / month (Starter)",     annual10: "~£4,700 / yr",  impl: "£1,500–3,000", year1: "£6,000–8,000",   note: "Starter plan — no API access to portal" },
-    scores: { manufacturing: 5, traceability: 5, api: 2, ease: 5, cost: 3, scalability: 3 },
+    scores: { fieldService: 1, api: 2, traceability: 5, crm: 2, manufacturing: 5, accounting: 2, scalability: 3, cost: 3, ease: 5 },
     capabilities: [
       { label: "Product / Item Master Data",        has: true },
       { label: "Bills of Materials (BOMs)",          has: true },
@@ -90,16 +90,16 @@ const platforms = [
       { label: "Self-implementation Friendly",       has: true },
       { label: "Maritime / Compliance Specific",     has: false },
     ],
-    pros: ["Purpose-built for small manufacturers","Excellent BOM and production planning","Best-in-class serialised traceability at this scale","Fastest to implement — shortest learning curve","30-day free trial available","Very intuitive for non-technical teams"],
-    cons: ["API only on $149/user/month tier","Cost case weakens significantly once API needed","No meaningful field service or maintenance module","Limited future expansion path","Accounting module weak — needs external tool","Less scalable for significant growth"],
-    verdict: "Excellent manufacturing tool. Best if portal integration is not required. However the API pricing tier fundamentally changes the cost comparison with Odoo.",
+    pros: ["Purpose-built for small manufacturers — excellent BOM and production planning","Best-in-class serialised traceability at this scale","Fastest to implement — shortest learning curve on the shortlist","30-day free trial available","Very intuitive for non-technical teams"],
+    cons: ["No field service or maintenance module — a significant gap for Zelim","No CRM — client and contract management requires a separate tool","Accounting weak — needs Xero or QuickBooks alongside it","API only on $149/user/month tier — cost advantage disappears entirely","Limited expansion path as Zelim grows beyond manufacturing"],
+    verdict: "Strong on manufacturing and traceability, but built for the workshop not the full business. No field service module, no CRM, and weak accounting mean Zelim would need multiple additional tools — eroding the cost advantage and adding integration complexity.",
   },
   {
     id: "cin7", name: "Cin7 Core", subtitle: "Formerly DEAR Systems",
     tag: "WORTH EVALUATING", accent: "#579BA2", accentText: Z.text,
     withApi:    { license: "~£35–50 / user / month", annual10: "~£4,200–6,000 / yr", impl: "£3,000–8,000", year1: "£7,000–14,000", note: "API included at standard tiers — no premium uplift" },
     withoutApi: { license: "~£35–50 / user / month", annual10: "~£4,200–6,000 / yr", impl: "£2,000–5,000", year1: "£6,000–11,000", note: "Same licensing — implementation simpler without integration" },
-    scores: { manufacturing: 4, traceability: 4, api: 4, ease: 4, cost: 4, scalability: 4 },
+    scores: { fieldService: 1, api: 4, traceability: 4, crm: 2, manufacturing: 4, accounting: 2, scalability: 4, cost: 4, ease: 4 },
     capabilities: [
       { label: "Product / Item Master Data",        has: true },
       { label: "Bills of Materials (BOMs)",          has: true },
@@ -116,16 +116,16 @@ const platforms = [
       { label: "Self-implementation Friendly",       has: true },
       { label: "Maritime / Compliance Specific",     has: false },
     ],
-    pros: ["Cleaner implementation path than Odoo","Strong inventory and traceability capability","API available without premium pricing tier","Good balance of depth and simplicity","Easier self-implementation than Odoo","Well-reviewed by small manufacturers"],
-    cons: ["Smaller UK partner / support ecosystem","Less community documentation available","No field service or maintenance module","Narrower long-term expansion path than Odoo","Less established name in UK market","Fewer native integrations than Odoo"],
-    verdict: "A credible middle ground — simpler than Odoo but more depth than MRPeasy. API included without a pricing penalty. Should be properly evaluated before the final decision.",
+    pros: ["Cleaner implementation path than Odoo","Strong inventory and traceability capability","API available without premium pricing tier — no uplift","Good balance of depth and simplicity","Easier self-implementation than Odoo"],
+    cons: ["No field service or maintenance module — a critical gap for Zelim","No meaningful CRM — client management needs a separate tool","Accounting requires Xero or QuickBooks integration","Narrower long-term expansion path than Odoo","Smaller UK partner and support ecosystem"],
+    verdict: "A credible option for inventory and manufacturing, but the absence of field service and CRM is a meaningful gap for a maintenance company. Would require bolt-on tools for the parts of the business Odoo covers natively.",
   },
   {
     id: "erpnext", name: "ERPNext", subtitle: "Open Source",
     tag: "LOWER PRIORITY", accent: "#579BA2", accentText: Z.text,
     withApi:    { license: "£0 open source / £20–40 hosted", annual10: "£0–4,800 / yr", impl: "£8,000–15,000", year1: "£8,000–15,000", note: "Low licence cost offset by high implementation effort" },
     withoutApi: { license: "£0 open source / £20–40 hosted", annual10: "£0–4,800 / yr", impl: "£6,000–12,000", year1: "£6,000–12,000", note: "Lower scope without portal integration work" },
-    scores: { manufacturing: 4, traceability: 4, api: 4, ease: 2, cost: 5, scalability: 4 },
+    scores: { fieldService: 4, api: 4, traceability: 4, crm: 4, manufacturing: 4, accounting: 5, scalability: 4, cost: 5, ease: 2 },
     capabilities: [
       { label: "Product / Item Master Data",        has: true },
       { label: "Bills of Materials (BOMs)",          has: true },
@@ -142,19 +142,22 @@ const platforms = [
       { label: "Self-implementation Friendly",       has: false },
       { label: "Maritime / Compliance Specific",     has: false },
     ],
-    pros: ["No licensing cost — fully open source","Highly flexible and customisable","Full ERP scope including accounting","API built in at all levels","No vendor lock-in","Strong global community"],
-    cons: ["Highest implementation complexity on shortlist","Requires internal technical ownership","Longer time to go-live","Support dependent on community or paid partners","Upgrades can break customisations","Not appropriate without dedicated technical resource"],
-    verdict: "Attractive on cost but the implementation overhead is real. Only appropriate if Zelim has internal technical resource to own it. Not recommended for a quick, clean deployment.",
+    pros: ["No licensing cost — fully open source","Full ERP scope: field service, CRM, accounting, manufacturing all included","API built in at all tiers — no premium uplift","Highly flexible and customisable","No vendor lock-in"],
+    cons: ["Highest implementation complexity on the shortlist by some margin","Requires internal technical ownership to build and maintain","Longest time to go-live — not suitable for a quick deployment","Upgrades can break customisations without careful management","Support dependent on community or paid partners — no guaranteed SLA"],
+    verdict: "Covers the full business scope as well as Odoo, and at lower licence cost. The implementation overhead is the blocker — only viable if Zelim has or plans to hire internal technical resource. Not the right choice for a quick, clean deployment.",
   },
 ];
 
 const scoreLabels = {
-  manufacturing: "Manufacturing",
-  traceability:  "Traceability",
+  fieldService:  "Field service",
   api:           "API / Integration",
-  ease:          "Ease of Setup",
-  cost:          "Cost Efficiency",
+  traceability:  "Traceability",
+  crm:           "CRM & clients",
+  manufacturing: "Manufacturing",
+  accounting:    "Accounting",
   scalability:   "Scalability",
+  cost:          "Cost efficiency",
+  ease:          "Ease of setup",
 };
 
 const allCaps = [
@@ -468,7 +471,7 @@ export default function ErpPage() {
                     ))}
                   </div>
                   <div className="erp-section-pad" style={{ padding: "24px 30px" }}>
-                    <SectionLabel>Capability Checklist</SectionLabel>
+                    <SectionLabel>Capability checklist</SectionLabel>
                     <div className="erp-capability-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px 16px" }}>
                       {p.capabilities.map((cap, i) => (
                         <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 9 }}>
