@@ -347,7 +347,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
         const hasNo = group.questions.some(q => q.answer === false);
         if (hasNo && !stepComments[groupIndex]?.trim()) {
           setFieldErrors(prev => ({ ...prev, stepComments: { ...prev.stepComments, [groupIndex]: true } }));
-          setErrorMsg('Please explain any item marked "No" before continuing.');
           return;
         }
       }
