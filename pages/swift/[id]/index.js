@@ -81,7 +81,7 @@ export async function getServerSideProps(context) {
 
   const maintenanceManualPath = "/downloads/Zelim_SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0.pdf";
   const installationGuidePath = "/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf";
-  const operatorsManualPath = "/downloads/SwiftSurvivorRecoverySystem_OperatorsMaintenanceManual_v1point0(Draft).pdf";
+  const operatorsManualPath = "/downloads/Zelim_SwiftSurvivorRecoverySystem_OperatorsMaintenanceManual_v1point0.pdf";
 
   const fileSizes = {
     maintenanceManualSize: getFileSize(maintenanceManualPath),
@@ -259,7 +259,7 @@ export default function SwiftUnitPage({
   const downloads = accessType === "operator"
     ? [
         {
-          href: "/downloads/SwiftSurvivorRecoverySystem_OperatorsMaintenanceManual_v1point0(Draft).pdf#page=1",
+          href: "/downloads/Zelim_SwiftSurvivorRecoverySystem_OperatorsMaintenanceManual_v1point0.pdf#page=1",
           name: "SWIFT operators maintenance manual.pdf",
           size: operatorsManualSize,
         },
