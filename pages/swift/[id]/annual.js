@@ -87,6 +87,7 @@ export default function Annual({ unit, template, companies = [], engineers = [],
 
   const [answers, setAnswers] = useState({});
   const [questionImages, setQuestionImages] = useState({});
+  const [questionErrors, setQuestionErrors] = useState({});
 
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
@@ -253,6 +254,7 @@ export default function Annual({ unit, template, companies = [], engineers = [],
     };
 
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+    setQuestionErrors({});
 
     // Only validate admin fields on step 1
     if (currentStep === 1) {
@@ -317,10 +319,7 @@ export default function Annual({ unit, template, companies = [], engineers = [],
       
       if (!answer || !answer.trim()) {
         errors.push(`q${questionIndex}`);
-        const questionElement = document.querySelector(`[name="q${questionIndex}"]`);
-        if (questionElement) {
-          questionElement.classList.add('has-error');
-        }
+        setQuestionErrors(prev => ({ ...prev, [`q${questionIndex}`]: true }));
       }
     }
 
@@ -651,6 +650,7 @@ export default function Annual({ unit, template, companies = [], engineers = [],
     let firstErrorField = null;
 
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+    setQuestionErrors({});
 
     const requiredQuestions = currentQuestions.filter(q => q.required);
     for (let i = 0; i < requiredQuestions.length; i++) {
@@ -660,11 +660,9 @@ export default function Annual({ unit, template, companies = [], engineers = [],
       
       if (!answer || !answer.trim()) {
         errors.push({ field: `q${questionIndex}`, message: `Please answer: ${q.title}.` });
+        setQuestionErrors(prev => ({ ...prev, [`q${questionIndex}`]: true }));
         const questionElement = document.querySelector(`[name="q${questionIndex}"]`);
-        if (questionElement) {
-          questionElement.classList.add('has-error');
-          if (!firstErrorField) firstErrorField = { current: questionElement };
-        }
+        if (questionElement && !firstErrorField) firstErrorField = { current: questionElement };
       }
     }
 
@@ -1116,13 +1114,13 @@ export default function Annual({ unit, template, companies = [], engineers = [],
                         <div className="textarea-wrapper">
                           <textarea
                             name={`q${questionIndex}`}
-                            className="checklist-textarea"
+                            className={clsx("checklist-textarea", questionErrors[`q${questionIndex}`] && "has-error")}
                             value={answers[`q${questionIndex}`] || ""}
                             onChange={(e) => {
                               setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
                               autoGrow(e);
                               if (e.target.value.trim()) {
-                                e.target.classList.remove('has-error');
+                                setQuestionErrors(prev => { const n = {...prev}; delete n[e.target.name]; return n; });
                               }
                             }}
                             onInput={autoGrow}

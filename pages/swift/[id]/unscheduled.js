@@ -57,6 +57,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
 
   const [answers, setAnswers] = useState({});
   const [questionImages, setQuestionImages] = useState({});
+  const [questionErrors, setQuestionErrors] = useState({});
 
   const [locationDisplay, setLocationDisplay] = useState("");
   const [locationCountry, setLocationCountry] = useState("");
@@ -420,7 +421,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       signature: false,
     };
 
-    document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+    setQuestionErrors({});
 
     const result = unscheduledSchema.safeParse({
       company: selectedCompany || "",
@@ -470,11 +471,9 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
       
       if (!answer || !answer.trim()) {
         errors.push({ field: `q${questionIndex}`, message: `Please answer: ${q.title}.` });
+        setQuestionErrors(prev => ({ ...prev, [`q${questionIndex}`]: true }));
         const questionElement = document.querySelector(`[name="q${questionIndex}"]`);
-        if (questionElement) {
-          questionElement.classList.add('has-error');
-          if (!firstErrorField) firstErrorField = { current: questionElement };
-        }
+        if (questionElement && !firstErrorField) firstErrorField = { current: questionElement };
       }
     }
 
@@ -919,13 +918,13 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
                       <div className="textarea-wrapper">
                         <textarea
                           name={`q${i + 1}`}
-                          className="checklist-textarea"
+                          className={clsx("checklist-textarea", questionErrors[`q${i + 1}`] && "has-error")}
                           value={answers[`q${i + 1}`] || ""}
                           onChange={(e) => {
                             setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));
                             autoGrow(e);
                             if (e.target.value.trim()) {
-                              e.target.classList.remove('has-error');
+                              setQuestionErrors(prev => { const n = {...prev}; delete n[e.target.name]; return n; });
                             }
                           }}
                           onInput={autoGrow}
