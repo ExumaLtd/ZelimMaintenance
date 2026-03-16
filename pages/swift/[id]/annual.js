@@ -23,7 +23,7 @@ const annualAdminSchema = z.object({
   location: z.string().min(1, 'Please provide a location.'),
   engineerName: z.string().min(1, 'Please select or enter an engineer name.'),
   engineerEmail: z.string().email('Please provide a valid engineer email.'),
-  engineerPhone: z.string().min(1, 'Please provide an engineer phone number.'),
+  engineerPhone: z.string().min(1, 'Please provide an engineer phone number.').max(20, 'Phone number must be 20 characters or less.'),
 });
 
 
@@ -73,6 +73,7 @@ export default function Annual({ unit, template, companies = [], engineers = [],
   const [currentStep, setCurrentStep] = useState(1);
   const [locationDisplay, setLocationDisplay] = useState("");
   const [locationCountry, setLocationCountry] = useState("");
+  const [locationFailed, setLocationFailed] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(accessType === 'operator' ? unit?.company || "" : "");
   const [engName, setEngName] = useState("");
   const [engEmail, setEngEmail] = useState("");
@@ -573,6 +574,7 @@ export default function Annual({ unit, template, companies = [], engineers = [],
           }
         },
         (error) => {
+          setLocationFailed(true);
           switch(error.code) {
             case error.PERMISSION_DENIED:
               console.log("User denied location permission");
@@ -890,6 +892,9 @@ export default function Annual({ unit, template, companies = [], engineers = [],
                       }
                     }}
                   />
+                  {locationFailed && !locationDisplay && (
+                    <p className="field-hint">Location couldn't be detected — please enter manually</p>
+                  )}
                 </div>
 
                 <div className="checklist-field">
@@ -976,6 +981,7 @@ export default function Annual({ unit, template, companies = [], engineers = [],
                     <label className="checklist-label">Operator phone</label>
                     <input
                       type="tel"
+                      maxLength={20}
                       className={clsx("checklist-input", fieldErrors.engineerPhone && "has-error")}
                       name="operator_phone"
                       required
@@ -1066,6 +1072,7 @@ export default function Annual({ unit, template, companies = [], engineers = [],
                     <label className="checklist-label">Engineer phone</label>
                     <input
                       type="tel"
+                      maxLength={20}
                       className={clsx("checklist-input", fieldErrors.engineerPhone && "has-error")}
                       name="engineer_phone"
                       required

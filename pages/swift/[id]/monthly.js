@@ -20,7 +20,7 @@ const monthlyAdminSchema = z.object({
   location: z.string().min(1, 'Please provide a location.'),
   engineerName: z.string().min(1, 'Please provide an operators name.'),
   engineerEmail: z.string().email('Please provide a valid operators email.'),
-  engineerPhone: z.string().min(1, 'Please provide an operators phone number.'),
+  engineerPhone: z.string().min(1, 'Please provide an operators phone number.').max(20, 'Phone number must be 20 characters or less.'),
 });
 
 const monthlySchema = z.object({
@@ -28,7 +28,7 @@ const monthlySchema = z.object({
   location: z.string().min(1, 'Please provide a location.'),
   engineerName: z.string().min(1, 'Please provide an operators name.'),
   engineerEmail: z.string().email('Please provide a valid operators email.'),
-  engineerPhone: z.string().min(1, 'Please provide an operators phone number.'),
+  engineerPhone: z.string().min(1, 'Please provide an operators phone number.').max(20, 'Phone number must be 20 characters or less.'),
   declaration: z.boolean().refine(val => val === true, { message: 'Please accept the declaration before submitting.' }),
   signature: z.string().min(1, 'Please sign before submitting.'),
 });
@@ -78,6 +78,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
   const [locationDisplay, setLocationDisplay] = useState("");
   const [locationCountry, setLocationCountry] = useState("");
+  const [locationFailed, setLocationFailed] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(accessType === 'operator' ? unit?.company || "" : "");
   const [engName, setEngName] = useState("");
   const [engEmail, setEngEmail] = useState("");
@@ -544,6 +545,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
           }
         },
         (error) => {
+          setLocationFailed(true);
           console.log("Location error:", error.code);
         },
         options
@@ -975,6 +977,9 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                       }
                     }}
                   />
+                  {locationFailed && !locationDisplay && (
+                    <p className="field-hint">Location couldn't be detected — please enter manually</p>
+                  )}
                 </div>
 
                 <div className="checklist-field">
@@ -1061,6 +1066,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                     <label className="checklist-label">Operator phone</label>
                     <input
                       type="tel"
+                      maxLength={20}
                       className={clsx("checklist-input", fieldErrors.engineerPhone && "has-error")}
                       name="operator_phone"
                       required
@@ -1150,6 +1156,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                     <label className="checklist-label">Engineer phone</label>
                     <input
                       type="tel"
+                      maxLength={20}
                       className={clsx("checklist-input", fieldErrors.engineerPhone && "has-error")}
                       name="engineer_phone"
                       required
@@ -1241,7 +1248,15 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                 {currentStep > 1 && currentGroup && (
                   <>
                     <h3 className="checklist-section-title">{currentGroup.title}</h3>
-                    <p className="checklist-section-subtitle">Please report equipment condition before starting maintenance.</p>
+                    <p className="checklist-section-subtitle">
+                      {currentGroup.title === 'Visual inspection'
+                        ? 'Visual inspections shall be carried out in accordance with the procedures detailed in the SWIFT Survivor Recovery System Operators Maintenance Manual.'
+                        : currentGroup.title === 'Lubrication'
+                        ? 'Lubrication shall be carried out in accordance with the procedures detailed in the SWIFT Survivor Recovery System Operators Maintenance Manual.'
+                        : currentGroup.title === 'Testing'
+                        ? 'Testing shall be carried out in accordance with the procedures detailed in the SWIFT Survivor Recovery System Operators Maintenance Manual.'
+                        : 'Please report equipment condition before starting maintenance.'}
+                    </p>
 
                     <div className="equipment-table">
                       <div className="equipment-header equipment-header-monthly" style={{ gridTemplateColumns: '1fr 120px' }}>
