@@ -142,6 +142,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           `https://api.airtable.com/v0/${baseId}/operators?filterByFormula=${encodeURIComponent(`{operator_name}='${esc(operator_name)}'`)}&maxRecords=1`,
           { headers: { Authorization: `Bearer ${apiKey}` } }
         );
+        if (!opRes.ok) throw new Error(`Operator lookup failed: ${opRes.status}`);
         const opData = await opRes.json();
 
         const operatorFields = {
@@ -170,6 +171,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ fields: operatorFields }),
           });
+          if (!newOp.ok) throw new Error(`Operator create failed: ${newOp.status}`);
           const newOpData = await newOp.json();
           operatorRecordId = newOpData.id;
         }
@@ -222,6 +224,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ fields: engineerFields })
         });
+        if (!newEng.ok) throw new Error(`Engineer create failed: ${newEng.status}`);
         const newEngData = await newEng.json();
         engineerRecordId = newEngData.id;
       }

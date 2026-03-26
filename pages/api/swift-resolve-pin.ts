@@ -26,6 +26,10 @@ const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
 const TABLE_NAME = process.env.AIRTABLE_SWIFT_TABLE; // swift_units
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
   try {
     // Rate limit by IP — 5 attempts per 5 minutes
     const ip = getClientIp(req);

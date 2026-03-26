@@ -68,7 +68,11 @@ export function getClientSession() {
 
     const cookieObj = {};
     cookies.split(';').forEach(cookie => {
-      const [key, value] = cookie.trim().split('=');
+      const trimmed = cookie.trim();
+      const eqIdx = trimmed.indexOf('=');
+      if (eqIdx === -1) return;
+      const key = trimmed.slice(0, eqIdx);
+      const value = trimmed.slice(eqIdx + 1); // preserve = signs in base64 values
       cookieObj[key] = value;
     });
 

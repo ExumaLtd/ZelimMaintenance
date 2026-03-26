@@ -39,7 +39,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const accessPin = session.pin; // e.g., "SWI005" or "CREW005"
 
-    const { unitId, maintenanceType } = req.query;
+    const unitId = Array.isArray(req.query.unitId) ? req.query.unitId[0] : req.query.unitId;
+    const maintenanceType = Array.isArray(req.query.maintenanceType) ? req.query.maintenanceType[0] : req.query.maintenanceType;
 
     if (!unitId || !maintenanceType) {
       return res.status(400).json({ error: 'Missing required parameters' });

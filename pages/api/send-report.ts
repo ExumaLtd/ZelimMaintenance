@@ -74,6 +74,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
              'N/A';
     };
 
+    if (!engineerEmail || typeof engineerEmail !== 'string' || !engineerEmail.includes('@')) {
+      return res.status(400).json({ error: 'Invalid or missing recipient email' });
+    }
+
     const companyName = getCompanyName();
 
     // 2. Define constants and brand colors
