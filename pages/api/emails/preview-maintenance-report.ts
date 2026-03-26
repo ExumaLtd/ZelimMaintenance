@@ -38,14 +38,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).send(html);
   } catch (error: any) {
     console.error('Preview error:', error);
-    return res.status(500).send(`
-      <html>
-        <body>
-          <h1>Preview Error</h1>
-          <pre>${error.message}</pre>
-          <pre>${error.stack}</pre>
-        </body>
-      </html>
-    `);
+    return res.status(500).send('<html><body><p>Preview unavailable.</p></body></html>');
   }
 }

@@ -76,6 +76,21 @@ const nextConfig = {
             key: 'Permissions-Policy',
             value: 'camera=self, microphone=self, geolocation=self',
           },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // unsafe-inline/eval required by Next.js
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com",
+              "img-src 'self' data: blob: https://res.cloudinary.com https://upload.wikimedia.org",
+              "media-src 'self' blob: https://res.cloudinary.com",
+              "connect-src 'self' https://api.cloudinary.com https://api.elevenlabs.io https://nominatim.openstreetmap.org",
+              "frame-ancestors 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+            ].join('; '),
+          },
         ],
       },
       // ========================================
