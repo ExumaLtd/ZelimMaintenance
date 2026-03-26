@@ -1,14 +1,27 @@
 // pages/api/cloudinary-sign.js
 import crypto from 'crypto';
+import { getSession } from '../../lib/session';
+
+// Only allow uploads into the zelimmaintenance/SWIFT/ folder tree
+const ALLOWED_FOLDER_PREFIX = 'zelimmaintenance/SWIFT/';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const session = getSession(req);
+  if (!session?.pin) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
   const { folder } = req.body;
   if (!folder) {
     return res.status(400).json({ error: 'Missing folder' });
+  }
+
+  if (!folder.startsWith(ALLOWED_FOLDER_PREFIX)) {
+    return res.status(400).json({ error: 'Invalid folder' });
   }
 
   try {

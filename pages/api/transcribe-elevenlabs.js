@@ -1,3 +1,5 @@
+import { getSession } from '../../lib/session';
+
 export const config = {
   api: {
     bodyParser: false,
@@ -6,10 +8,16 @@ export const config = {
 
 const DEBUG = process.env.NODE_ENV === 'development';
 const log = (...args) => DEBUG ? console.log(...args) : null;
+const MAX_AUDIO_BYTES = 10 * 1024 * 1024; // 10MB
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const session = getSession(req);
+  if (!session?.pin) {
+    return res.status(401).json({ error: 'Unauthorized' });
   }
 
   try {
@@ -22,15 +30,19 @@ export default async function handler(req, res) {
       });
     }
 
-    // Read audio buffer from request
+    // Read audio buffer from request (hard cap at 10MB)
     const chunks = [];
+    let totalBytes = 0;
     for await (const chunk of req) {
+      totalBytes += chunk.length;
+      if (totalBytes > MAX_AUDIO_BYTES) {
+        return res.status(413).json({ error: 'Audio file too large', fallback: true });
+      }
       chunks.push(chunk);
     }
     const buffer = Buffer.concat(chunks);
 
-    console.log('✅ Received audio buffer:', buffer.length, 'bytes');
-    console.log('🔍 Buffer first 20 bytes:', buffer.subarray(0, 20));
+    log('✅ Received audio buffer:', buffer.length, 'bytes');
 
     if (!buffer.length) {
       return res.status(400).json({ 

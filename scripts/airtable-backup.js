@@ -36,14 +36,26 @@ async function backupAirtable() {
 
         for (const table of tables) {
             console.log(`Backing up table: ${table.name}...`);
-            
+
             const url = `https://api.airtable.com/v0/${BASE_ID}/${table.id}`;
-            const recordsResponse = await axios.get(url, {
-                headers: { 
-                    Authorization: `Bearer ${AIRTABLE_PAT}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+
+            // Paginate through all records (Airtable returns max 100 per page)
+            let allRecords = [];
+            let offset = null;
+            do {
+                const params = offset ? { offset } : {};
+                const pageResponse = await axios.get(url, {
+                    headers: {
+                        Authorization: `Bearer ${AIRTABLE_PAT}`,
+                        'Content-Type': 'application/json'
+                    },
+                    params
+                });
+                allRecords = allRecords.concat(pageResponse.data.records);
+                offset = pageResponse.data.offset || null;
+            } while (offset);
+
+            console.log(`  → ${allRecords.length} records fetched`);
 
             // These variables use your exact naming logic from above
             const folderPath = `/Airtable/${year}/${monthName}/${dayFolderName}`;
@@ -65,9 +77,9 @@ async function backupAirtable() {
                     }),
                     'Content-Type': 'application/octet-stream'
                 },
-                data: JSON.stringify(recordsResponse.data.records, null, 2)
+                data: JSON.stringify(allRecords, null, 2)
             });
-            
+
             console.log(`✓ Successfully backed up ${table.name} (Status: ${dropboxResponse.status})`);
         }
 

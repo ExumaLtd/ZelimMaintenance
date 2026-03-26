@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import { getSession } from '../../lib/session';
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
-import { esc } from '../../utils/api-utils';
+import { esc, getClientIp } from '../../utils/api-utils';
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
@@ -26,7 +26,8 @@ export const config = {
 
 // Generate a human-readable record reference
 // Format: RI/SWI005/A/060226/1
-async function generateRecordRef(serialNumber, maintenanceType, apiKey, baseId) {
+// Uses Redis INCR for an atomic daily counter — no race condition under concurrent submissions.
+async function generateRecordRef(serialNumber, maintenanceType) {
   const typeMap = {
     'Monthly': 'M',
     'Annual': 'A',
@@ -38,38 +39,24 @@ async function generateRecordRef(serialNumber, maintenanceType, apiKey, baseId) 
   };
 
   const typeCode = typeMap[maintenanceType] || 'X';
-  
+
   const now = new Date();
   const dd = String(now.getDate()).padStart(2, '0');
   const mm = String(now.getMonth() + 1).padStart(2, '0');
   const yy = String(now.getFullYear()).slice(-2);
   const dateCode = `${dd}${mm}${yy}`;
 
-  // Query today's existing records for this unit + type to get the daily counter
-  const todayISO = now.toISOString().split('T')[0]; // 2026-02-06
-  
   try {
-    const formula = encodeURIComponent(
-      `AND({serial_number (from unit)}='${esc(serialNumber)}', {maintenance_type}='${esc(maintenanceType)}', DATESTR({date_of_maintenance})='${todayISO}')`
-    );
-    
-    const countRes = await fetch(
-      `https://api.airtable.com/v0/${baseId}/maintenance_checks?filterByFormula=${formula}&fields%5B%5D=record_ref`,
-      { headers: { Authorization: `Bearer ${apiKey}` } }
-    );
-
-    let dailyCount = 1;
-    
-    if (countRes.ok) {
-      const countData = await countRes.json();
-      dailyCount = (countData.records?.length || 0) + 1;
-    }
-
-    return `RI/${serialNumber}/${typeCode}/${dateCode}/${dailyCount}`;
+    // Atomic increment — concurrent submissions always get unique counters
+    const key = `ref:${serialNumber}:${typeCode}:${dateCode}`;
+    const count = await redis.incr(key);
+    await redis.expire(key, 86400); // Expire after 24h
+    return `RI/${serialNumber}/${typeCode}/${dateCode}/${count}`;
   } catch (error) {
-    // Fallback if count query fails
-    console.warn('Record ref count query failed, using fallback:', error.message);
-    return `RI/${serialNumber}/${typeCode}/${dateCode}/1`;
+    // Redis unavailable — fall back to a millisecond timestamp suffix so the
+    // ref is still unique, just less readable. Submission should not be lost.
+    console.warn('Redis counter unavailable, using timestamp fallback:', error.message);
+    return `RI/${serialNumber}/${typeCode}/${dateCode}/${Date.now()}`;
   }
 }
 
@@ -77,7 +64,7 @@ async function generateRecordRef(serialNumber, maintenanceType, apiKey, baseId) 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ?? '127.0.0.1';
+  const ip = getClientIp(req);
   const { success } = await ratelimit.limit(ip);
   if (!success) return res.status(429).json({ error: 'Too many requests. Please try again later.' });
 
@@ -116,12 +103,29 @@ export default async function handler(req, res) {
     signature,
   } = req.body;
 
+  if (!unit_record_id || !date_of_maintenance || !maintenance_type || !Array.isArray(answers)) {
+    return res.status(400).json({ error: 'Missing or invalid required fields' });
+  }
+
   const apiKey = process.env.AIRTABLE_API_KEY;
   const baseId = process.env.AIRTABLE_BASE_ID;
 
+  // Verify this unit belongs to the session's token — prevents IDOR
+  const unitVerifyRes = await fetch(
+    `https://api.airtable.com/v0/${baseId}/swift_units/${encodeURIComponent(unit_record_id)}?fields[]=public_token`,
+    { headers: { Authorization: `Bearer ${apiKey}` } }
+  );
+  if (!unitVerifyRes.ok) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  const unitVerifyData = await unitVerifyRes.json();
+  if (unitVerifyData.fields?.public_token !== session.token) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
   try {
     // Generate record reference
-    const recordRef = await generateRecordRef(serial_number, maintenance_type, apiKey, baseId);
+    const recordRef = await generateRecordRef(serial_number, maintenance_type);
 
     let companyRecordId = null;
     let engineerRecordId = null;
@@ -172,7 +176,7 @@ export default async function handler(req, res) {
     } else {
       // Engineer path — resolve maintenance company and engineer record
       const [compRes, engRes] = await Promise.all([
-        fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies?filterByFormula={company_name}='${esc(maintained_by)}'&maxRecords=1`, {
+        fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies?filterByFormula=${encodeURIComponent(`{company_name}='${esc(maintained_by)}'`)}&maxRecords=1`, {
           headers: { Authorization: `Bearer ${apiKey}` }
         }),
         engineer_record_id
@@ -368,25 +372,25 @@ export default async function handler(req, res) {
       throw new Error(`Airtable Sync Error`);
     }
 
-    // CRITICAL: Mark the draft as completed now that submission succeeded
+    // Mark the draft as completed — call Airtable directly, no HTTP round-trip to self
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://maintenance.exuma.co.uk';
-      const markCompleteRes = await fetch(`${baseUrl}/api/mark-draft-complete`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Cookie': req.headers.cookie
-        },
-        body: JSON.stringify({
-          unitId: unit_record_id,
-          maintenanceType: maintenance_type,
-          engineerEmail: submitterEmail
-        })
-      });
-      
-      if (!markCompleteRes.ok) {
-        const errorText = await markCompleteRes.text();
-        console.warn('⚠️ Failed to mark draft complete:', errorText);
+      const draftFormula = encodeURIComponent(
+        `AND({maintenance_type}='${esc(maintenance_type)}',{access_pin_used}='${esc(accessPin)}',NOT({completed}),FIND('${esc(unit_record_id)}',ARRAYJOIN({unit_id})))`
+      );
+      const draftFindRes = await fetch(
+        `https://api.airtable.com/v0/${baseId}/maintenance_drafts?filterByFormula=${draftFormula}&fields[]=unit_id&maxRecords=1`,
+        { headers: { Authorization: `Bearer ${apiKey}` } }
+      );
+      if (draftFindRes.ok) {
+        const draftData = await draftFindRes.json();
+        if (draftData.records?.length > 0) {
+          const draftId = draftData.records[0].id;
+          await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_drafts/${draftId}`, {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fields: { completed: true } })
+          });
+        }
       }
     } catch (markError) {
       console.warn('⚠️ Error marking draft complete:', markError.message);
@@ -395,6 +399,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true, recordRef });
   } catch (error) {
     console.error("Final Submission Failure:", error.message);
-    return res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({ success: false, error: 'Submission failed. Please try again.' });
   }
 }

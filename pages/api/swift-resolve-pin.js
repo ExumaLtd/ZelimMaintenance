@@ -3,6 +3,7 @@
 import Airtable from "airtable";
 import { Redis } from "@upstash/redis";
 import { Ratelimit } from "@upstash/ratelimit";
+import { getClientIp } from "../../utils/api-utils";
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
@@ -26,7 +27,7 @@ const TABLE_NAME = process.env.AIRTABLE_SWIFT_TABLE; // swift_units
 export default async function handler(req, res) {
   try {
     // Rate limit by IP — 5 attempts per 5 minutes
-    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ?? '127.0.0.1';
+    const ip = getClientIp(req);
     const { success, reset } = await ratelimit.limit(ip);
     if (!success) {
       const retryAfter = Math.ceil((reset - Date.now()) / 1000);
@@ -44,30 +45,37 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Invalid pin format" });
     }
 
-    // Lookup using either access_pin OR operator_pin
-    const records = await base(TABLE_NAME)
-      .select({
-        maxRecords: 1,
-        filterByFormula: `OR({engineer_pin} = "${pin}", {operator_pin} = "${pin}")`,
-        fields: ["public_token", "engineer_pin", "operator_pin"],
-      })
-      .firstPage();
+    // Run two queries in parallel — one per PIN type.
+    // Whichever returns a record tells us the access type without fetching raw PIN values.
+    const [engRecords, opRecords] = await Promise.all([
+      base(TABLE_NAME)
+        .select({
+          maxRecords: 1,
+          filterByFormula: `{engineer_pin} = "${pin}"`,
+          fields: ["public_token"],
+        })
+        .firstPage(),
+      base(TABLE_NAME)
+        .select({
+          maxRecords: 1,
+          filterByFormula: `{operator_pin} = "${pin}"`,
+          fields: ["public_token"],
+        })
+        .firstPage(),
+    ]);
 
-    if (!records || records.length === 0) {
+    // Engineer takes precedence if a unit somehow has identical PINs
+    const matchedRecord = engRecords[0] || opRecords[0];
+    if (!matchedRecord) {
       return res.status(404).json({ error: "Code not recognised" });
     }
 
-    const record = records[0];
-    const publicToken = record.get("public_token");
-    const accessPin = record.get("engineer_pin");
-    const operatorPin = record.get("operator_pin");
+    const publicToken = matchedRecord.get("public_token");
+    const accessType = engRecords.length > 0 ? "maintenance" : "operator";
 
-    // Determine access type based on which PIN was entered
-    const accessType = pin === accessPin ? "maintenance" : "operator";
-
-    return res.status(200).json({ 
+    return res.status(200).json({
       publicToken,
-      accessType 
+      accessType
     });
 
   } catch (err) {

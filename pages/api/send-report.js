@@ -3,6 +3,8 @@ import { MaintenanceReportEmail } from '../../emails/maintenance-report';
 import { TechnicalAlertEmail } from '../../emails/technical-alert';
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
+import { getSession } from '../../lib/session';
+import { getClientIp } from '../../utils/api-utils';
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
@@ -28,7 +30,12 @@ const addSpacesToCamelCase = (str) => {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ?? '127.0.0.1';
+  const session = getSession(req);
+  if (!session?.pin) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const ip = getClientIp(req);
   const { success } = await ratelimit.limit(ip);
   if (!success) return res.status(429).json({ error: 'Too many requests. Please try again later.' });
 
@@ -70,7 +77,7 @@ export default async function handler(req, res) {
 
     // 2. Define constants and brand colors
     const ZELIM_GREEN = "#172F36";
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://maintenance.exuma.co.uk';
+    const baseUrl = process.env.BASE_URL || process.env.NEXT_PUBLIC_BASE_URL || 'https://maintenance.exuma.co.uk';
     const logoUrl = companyLogoUrl || `${baseUrl}/logo/zelim-logo.png`;
     const zelimLogoUrl = `${baseUrl}/logo/zelim-logo.png`;
 

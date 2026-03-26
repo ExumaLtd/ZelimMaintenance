@@ -3,7 +3,7 @@ import Airtable from 'airtable';
 import { getSession } from '../../lib/session';
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
-import { esc } from '../../utils/api-utils';
+import { esc, getClientIp } from '../../utils/api-utils';
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ?? '127.0.0.1';
+  const ip = getClientIp(req);
   const { success } = await ratelimit.limit(ip);
   if (!success) return res.status(429).json({ error: 'Too many requests. Please try again later.' });
 
@@ -51,23 +51,19 @@ export default async function handler(req, res) {
     const emailToUse = engineerEmail || PLACEHOLDER_EMAIL;
     const isRealEmail = emailToUse !== PLACEHOLDER_EMAIL && emailToUse.includes('@');
 
-    // Get all active drafts for this unit + maintenance type (any PIN)
-    const allDrafts = await base('maintenance_drafts')
+    // Get active drafts for this specific unit + maintenance type (any PIN)
+    const allUnitDrafts = await base('maintenance_drafts')
       .select({
         filterByFormula: `AND(
           {maintenance_type} = '${esc(maintenanceType)}',
-          NOT({completed})
+          NOT({completed}),
+          FIND('${esc(unitId)}', ARRAYJOIN({unit_id}))
         )`,
         fields: ['unit_id', 'engineer_email', 'last_updated', 'access_pin_used'],
         sort: [{ field: 'last_updated', direction: 'desc' }],
+        maxRecords: 1,
       })
-      .all();
-
-    // Filter in JavaScript to match unit_id (Link field returns array)
-    const allUnitDrafts = allDrafts.filter(d => {
-      const linkedRecords = d.get('unit_id');
-      return linkedRecords && linkedRecords.includes(unitId);
-    });
+      .firstPage();
 
     const draftDataString = JSON.stringify(draftData);
 
@@ -116,9 +112,6 @@ export default async function handler(req, res) {
     console.error('❌ Save draft error:', error);
     console.error('Error details:', error.message);
     console.error('Error stack:', error.stack);
-    return res.status(500).json({ 
-      error: 'Failed to save draft',
-      details: error.message 
-    });
+    return res.status(500).json({ error: 'Failed to save draft' });
   }
 }

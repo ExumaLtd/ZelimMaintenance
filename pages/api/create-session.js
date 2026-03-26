@@ -1,4 +1,5 @@
 // pages/api/create-session.js
+import { randomUUID } from 'crypto';
 import { serialize } from 'cookie';
 import { encodeSession } from '../../lib/session';
 
@@ -49,5 +50,5 @@ export default async function handler(req, res) {
 }
 
 function generateSessionId() {
-  return crypto.randomUUID();
+  return randomUUID();
 }

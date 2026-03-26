@@ -25,11 +25,17 @@ async function backupVercel() {
             { headers: { Authorization: `Bearer ${VERCEL_TOKEN}` } }
         );
 
+        // Strip values — back up only key names, targets and types.
+        // Secret values must never be written to Dropbox.
+        const safeEnvs = envResponse.data.envs.map(({ key, target, type, createdAt, updatedAt }) => ({
+            key, target, type, createdAt, updatedAt
+        }));
+
         const backupData = {
             project: "Zelim Maintenance Portal",
             backup_time: now.toISOString(),
-            environment_variables: envResponse.data.envs,
-            note: "This file contains the secret keys and IDs required to run the portal."
+            environment_variables: safeEnvs,
+            note: "Variable names and metadata only — values are intentionally excluded."
         };
 
         const folderPath = `/Vercel/${year}/${monthName}/${dayFolderName}`;
