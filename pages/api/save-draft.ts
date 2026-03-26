@@ -1,5 +1,6 @@
-// pages/api/save-draft.js
+// pages/api/save-draft.ts
 import Airtable from 'airtable';
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from '../../lib/session';
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
@@ -23,7 +24,7 @@ const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
 
 const PLACEHOLDER_EMAIL = 'draft@zelimmaintenance.com';
 
-export default async function handler(req, res) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -73,7 +74,7 @@ export default async function handler(req, res) {
       // accumulating across sessions.
       const draft = allUnitDrafts[0];
       const draftId = draft.id;
-      const updateFields = {
+      const updateFields: Record<string, any> = {
         draft_data: draftDataString,
         last_updated: new Date().toISOString(),
         access_pin_used: accessPin,

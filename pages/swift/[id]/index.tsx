@@ -113,25 +113,25 @@ export async function getServerSideProps(context) {
 
     // operating_company is now a linked record field — resolve the name
     let companyName = "Client Unit";
-    const operatingCompanyIds = record.get("operating_company");
+    const operatingCompanyIds = record.get("operating_company") as string[] | undefined;
     if (operatingCompanyIds && operatingCompanyIds.length > 0) {
       try {
         const companyRecord = await base('operating_companies').find(operatingCompanyIds[0]);
-        companyName = companyRecord.get('company_name') || "Client Unit";
-      } catch (e) {
+        companyName = (companyRecord.get('company_name') as string) || "Client Unit";
+      } catch (e: any) {
         console.warn('Could not resolve operating company name:', e.message);
       }
     }
 
     const unitDetails = {
       record_id: unitRecordId,
-      serial_number: record.get("serial_number") || "N/A",
+      serial_number: (record.get("serial_number") as string) || "N/A",
       company: companyName,
       annualDue: record.get("annual_maintenance_due")
-        ? new Date(record.get("annual_maintenance_due")).toLocaleDateString("en-GB")
+        ? new Date(record.get("annual_maintenance_due") as string).toLocaleDateString("en-GB")
         : "N/A",
       depthDue: record.get("depth_maintenance_due")
-        ? new Date(record.get("depth_maintenance_due")).toLocaleDateString("en-GB")
+        ? new Date(record.get("depth_maintenance_due") as string).toLocaleDateString("en-GB")
         : "N/A",
     };
 
@@ -155,7 +155,7 @@ export async function getServerSideProps(context) {
       
       // Filter in JavaScript to match unit_id (Link field returns array)
       const matchingDrafts = allDrafts.filter(d => {
-        const linkedRecords = d.get('unit_id');
+        const linkedRecords = d.get('unit_id') as string[] | undefined;
         return linkedRecords && linkedRecords.includes(unitRecordId);
       });
       

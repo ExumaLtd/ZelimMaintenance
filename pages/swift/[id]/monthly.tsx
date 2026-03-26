@@ -73,8 +73,8 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   const [checklistData, setChecklistData] = useState([]);
   
   // Further comments — one per checklist group, keyed by groupIndex
-  const [stepComments, setStepComments] = useState({});
-  const [stepCommentImages, setStepCommentImages] = useState({});
+  const [stepComments, setStepComments] = useState<Record<string, string>>({});
+  const [stepCommentImages, setStepCommentImages] = useState<Record<string, any[]>>({});
 
   const [locationDisplay, setLocationDisplay] = useState("");
   const [locationCountry, setLocationCountry] = useState("");
@@ -290,6 +290,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
         photographImages: false,
         declaration: false,
         signature: false,
+        stepComments: {},
       };
 
       document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
@@ -602,6 +603,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       engineerName: false,
       engineerEmail: false,
       engineerPhone: false,
+      photographImages: false,
       stepComments: {},
       declaration: false,
       signature: false,

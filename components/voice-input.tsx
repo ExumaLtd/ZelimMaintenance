@@ -13,19 +13,19 @@ const MIN_BAR_HEIGHT_PX = 3;
 const MAX_BAR_HEIGHT_PX = 18;
 
 const DEBUG = process.env.NODE_ENV === 'development';
-const log = (...args) => {
+const log = (...args: any[]) => {
   if (DEBUG) console.log(...args);
 };
 
 // Smart formatting for voice transcripts
-const smartFormatTranscript = (newText) => {
+const smartFormatTranscript = (newText: string): string => {
   const trimmedNew = newText.trim();
   if (!trimmedNew) return '';
-  
+
   // Try to find the textarea - check active element first, then find any textarea in view
   let existingText = '';
-  let textarea = document.activeElement;
-  
+  let textarea: Element | undefined = document.activeElement || undefined;
+
   // If active element isn't a textarea, find the closest one
   if (!textarea || textarea.tagName !== 'TEXTAREA') {
     const allTextareas = document.querySelectorAll('textarea');
@@ -35,9 +35,9 @@ const smartFormatTranscript = (newText) => {
       return rect.height > 0 && rect.width > 0;
     });
   }
-  
+
   if (textarea && textarea.tagName === 'TEXTAREA') {
-    existingText = textarea.value || '';
+    existingText = (textarea as HTMLTextAreaElement).value || '';
   }
   
   // Capitalize first letter of new text
@@ -65,7 +65,13 @@ const smartFormatTranscript = (newText) => {
   return withPeriod;
 };
 
-export default function VoiceInput({ onTranscript, onError, disabled = false }) {
+interface VoiceInputProps {
+  onTranscript?: (text: string) => void;
+  onError?: (message: string) => void;
+  disabled?: boolean;
+}
+
+export default function VoiceInput({ onTranscript, onError, disabled = false }: VoiceInputProps) {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -84,15 +90,15 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }) 
   // Smoothing for "ChatGPT feel"
   const smoothedRef = useRef(0);
 
-  const recognitionRef = useRef(null);
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
-  const animationFrameRef = useRef(null);
-  const transcriptRef = useRef('');
-  const streamRef = useRef(null);
-  const audioContextRef = useRef(null);
-  const analyserRef = useRef(null);
-  const stopSafetyRef = useRef(null);
+  const recognitionRef = useRef<any>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const animationFrameRef = useRef<number | null>(null);
+  const transcriptRef = useRef<string>('');
+  const streamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const stopSafetyRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Guards to prevent double start/stop
   const isStartingRef = useRef(false);
@@ -103,7 +109,7 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }) 
     setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
 
     if (typeof window !== 'undefined') {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       if (SpeechRecognition) {
         setIsSupported(true);
 
@@ -167,7 +173,7 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }) 
   useEffect(() => {
     if (isListening && streamRef.current) {
       try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
         const audioContext = new AudioContext();
         const analyser = audioContext.createAnalyser();
         const microphone = audioContext.createMediaStreamSource(streamRef.current);

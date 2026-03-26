@@ -1,3 +1,4 @@
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from '../../lib/session';
 
 export const config = {
@@ -7,10 +8,10 @@ export const config = {
 };
 
 const DEBUG = process.env.NODE_ENV === 'development';
-const log = (...args) => DEBUG ? console.log(...args) : null;
+const log = (...args: any[]) => DEBUG ? console.log(...args) : null;
 const MAX_AUDIO_BYTES = 10 * 1024 * 1024; // 10MB
 
-export default async function handler(req, res) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -52,7 +53,7 @@ export default async function handler(req, res) {
     }
 
     // Get MIME type from client header
-    const mimeType = req.headers['x-audio-mime'] || 'audio/webm';
+    const mimeType = (req.headers['x-audio-mime'] as string) || 'audio/webm';
     console.log('📝 Audio MIME type:', mimeType);
 
     // Build multipart form-data for ElevenLabs STT

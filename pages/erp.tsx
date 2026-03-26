@@ -229,7 +229,7 @@ function SectionLabel({ children }) {
   );
 }
 
-function ArrowBox({ hovered, flip }) {
+function ArrowBox({ hovered, flip = false }: { hovered: any; flip?: any }) {
   return (
     <div style={{
       display: "flex", justifyContent: "center", alignItems: "center",
@@ -249,7 +249,7 @@ function ArrowBox({ hovered, flip }) {
   );
 }
 
-function PrimaryBtn({ children, onClick, fullWidth, back }) {
+function PrimaryBtn({ children, onClick, fullWidth, back = false }: { children: any; onClick: any; fullWidth?: any; back?: any }) {
   const [hovered, setHovered] = useState(false);
   const padding = back
     ? "0.4375rem 1.5rem 0.4375rem 0.75rem"
@@ -356,7 +356,7 @@ export default function ErpPage() {
               </div>
 
               <div style={{ display: "flex", background: Z.inputBg, border: `1px solid rgb(246,246,94)`, borderRadius: "0.6rem", padding: 3, gap: 3 }}>
-                {[[false,"Without Portal API"],[true,"With Portal API"]].map(([val, lbl]) => (
+                {([[false,"Without Portal API"],[true,"With Portal API"]] as [boolean, string][]).map(([val, lbl]) => (
                   <button key={String(val)} onClick={() => setApi(val)} style={{
                     fontFamily: "'Roboto Mono', monospace", fontSize: "0.7rem", fontWeight: 400,
                     textTransform: "uppercase", letterSpacing: "0.1em",

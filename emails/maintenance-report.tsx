@@ -1,47 +1,68 @@
 import {
   Body,
-  Button,
   Container,
   Head,
   Hr,
   Html,
   Img,
-  Link,
   Preview,
   Section,
   Text,
   Heading,
   Row,
   Column,
+  Link,
 } from '@react-email/components';
 import * as React from 'react';
 
-export const TechnicalAlertEmail = ({
+interface MaintenanceReportEmailProps {
+  engineerName?: string;
+  serialNumber?: string;
+  reportType?: string;
+  maintenanceCompany?: string;
+  companyName?: string;
+  location?: string;
+  answers?: Record<string, any>;
+  equipmentChecklist?: any;
+  maintenanceChecklist?: any;
+  brandColor?: string;
+  logoUrl?: string;
+  zelimLogoUrl?: string;
+  previewUrl?: string | null;
+  recordRef?: string | null;
+  isOperator?: boolean;
+}
+
+export const MaintenanceReportEmail = ({
+  engineerName = 'Engineer',
   serialNumber = 'N/A',
-  displayType = 'Maintenance',
-  isOperator = false,
-  technicalData = {},
+  reportType = 'Maintenance',
+  maintenanceCompany = 'N/A',
+  companyName = 'N/A',
+  location = 'N/A',
   answers = {},
   equipmentChecklist = null,
   maintenanceChecklist = null,
-  brandColor = '#152a31',
+  brandColor = '#172F36',
   logoUrl = '/logo/zelim-logo-dark.png',
   zelimLogoUrl = '/logo/zelim-logo-dark.png',
   previewUrl = null,
   recordRef = null,
-}) => {
-  const submissionDate = new Date();
-  const formattedDate = submissionDate.toLocaleDateString('en-GB', {
+  isOperator = false,
+}: MaintenanceReportEmailProps) => {
+  const now = new Date();
+  const today = now.toLocaleDateString('en-GB', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
   });
-  const formattedTime = submissionDate.toLocaleTimeString('en-GB', {
+  const submittedTime = now.toLocaleTimeString('en-GB', {
     hour: '2-digit',
     minute: '2-digit',
     timeZone: 'GMT',
   });
 
+  // Parse equipment checklist if it's a string (depth maintenance)
   let parsedEquipmentChecklist = null;
   if (equipmentChecklist) {
     try {
@@ -53,6 +74,7 @@ export const TechnicalAlertEmail = ({
     }
   }
 
+  // Parse maintenance checklist if it's a string (monthly maintenance)
   let parsedMaintenanceChecklist = null;
   if (maintenanceChecklist) {
     try {
@@ -64,17 +86,7 @@ export const TechnicalAlertEmail = ({
     }
   }
 
-  const airtableUrl = 'https://airtable.com/appOQXbopTwn0SdnL/tblAVxcIGNSWQTP9o/viweP5xYy6J5Nroal?blocks=hide';
-
-  const getCountryFromLocation = (locationStr) => {
-    if (!locationStr || locationStr === 'N/A') return 'N/A';
-    if (locationStr.includes(',')) {
-      const parts = locationStr.split(',');
-      return parts[parts.length - 1].trim();
-    }
-    return locationStr;
-  };
-
+  // Ensure logo URLs are absolute for email clients
   const absoluteLogoUrl = logoUrl?.startsWith('http')
     ? logoUrl
     : `https://maintenance.exuma.co.uk${logoUrl?.startsWith('/') ? logoUrl : `/${logoUrl}`}`;
@@ -92,11 +104,13 @@ export const TechnicalAlertEmail = ({
               background-color: #eaeeed !important;
             }
             
+            /* Desktop info values - larger text */
             .status-value {
               font-size: 16px !important;
               line-height: 24px !important;
             }
             
+            /* Image gallery - 4 per row on desktop with square aspect ratio */
             .image-link {
               width: calc(25% - 10px) !important;
             }
@@ -118,20 +132,24 @@ export const TechnicalAlertEmail = ({
               margin: 0 !important;
             }
             
+            /* Make container full width on mobile */
             .email-container {
               max-width: 100% !important;
               width: 100% !important;
               margin: 0 !important;
             }
             
+            /* Reduce content padding to 20px on mobile */
             .content-padding {
               padding: 0 20px 50px 20px !important;
             }
             
+            /* Status card padding on mobile - match checklist boxes */
             .status-card-mobile {
               padding: 20px 24px !important;
             }
             
+            /* Image gallery - 2 per row on mobile, fill width inside grey box with 10px gap */
             .image-gallery-mobile {
               margin-left: 0 !important;
               margin-right: 0 !important;
@@ -166,14 +184,15 @@ export const TechnicalAlertEmail = ({
           }
         `}</style>
       </Head>
-      <Preview>{displayType.replace('Reporting', 'Report')} {
-        displayType.toLowerCase().includes('depth') ? '🔧' : 
-        displayType.toLowerCase().includes('unscheduled') ? '⚠️' : 
-        displayType.toLowerCase().includes('fault') ? '🚨' : 
+      <Preview>{reportType} {
+        reportType.toLowerCase().includes('depth') ? '🔧' : 
+        reportType.toLowerCase().includes('unscheduled') ? '⚠️' : 
+        reportType.toLowerCase().includes('fault') ? '🚨' : 
         '📋'
       } {serialNumber}</Preview>
       <Body style={main} className="email-body">
         <Container style={container} className="email-container">
+          {/* Header */}
           <Section style={{ ...headerSection, borderTop: `6px solid ${brandColor}` }}>
             {logoUrl && (
               <Img
@@ -189,15 +208,19 @@ export const TechnicalAlertEmail = ({
           <Section style={contentPadding} className="content-padding">
             <Heading style={h1}>{serialNumber}</Heading>
             <Text style={{ ...subTitle, color: brandColor }}>
-              {displayType} Submitted
+              {reportType} Confirmation
             </Text>
             
             <Text style={text}>
-              A new <strong>{displayType.toLowerCase()}</strong> has been submitted for unit{' '}
-              <strong>{serialNumber}</strong>.
+              Hello <strong>{engineerName}</strong>,
+            </Text>
+            <Text style={text}>
+              This is your official maintenance receipt for work completed on{' '}
+              <strong>{today}</strong>. A copy of this report has been logged in our 
+              central system.
             </Text>
 
-            {/* Status Card */}
+            {/* Status Card - All Info */}
             <Section style={statusCard} className="status-card-section status-card-mobile">
               <Row style={{ marginBottom: '20px' }}>
                 <Column style={{ paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
@@ -206,29 +229,30 @@ export const TechnicalAlertEmail = ({
                 </Column>
                 <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>{isOperator ? 'Operator' : 'Company'}</Text>
-                  <Text style={value} className="status-value">{technicalData?.company_name || 'N/A'}</Text>
+                  <Text style={value} className="status-value">{companyName}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Date</Text>
-                  <Text style={value} className="status-value">{formattedDate}</Text>
+                  <Text style={value} className="status-value">{today}</Text>
                 </Column>
               </Row>
               <Row>
                 <Column style={{ paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Maintained By</Text>
-                  <Text style={value} className="status-value">{technicalData?.maintenance_company || 'N/A'}</Text>
+                  <Text style={value} className="status-value">{maintenanceCompany}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', paddingRight: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>{isOperator ? 'Operator name' : 'Engineer'}</Text>
-                  <Text style={value} className="status-value">{technicalData?.engineer_name || 'N/A'}</Text>
+                  <Text style={value} className="status-value">{engineerName}</Text>
                 </Column>
                 <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Location</Text>
-                  <Text style={value} className="status-value">{getCountryFromLocation(technicalData?.location_display)}</Text>
+                  <Text style={value} className="status-value">{location && location.includes(',') ? location.split(',').pop().trim() : location}</Text>
                 </Column>
               </Row>
             </Section>
 
+            {/* Equipment Checklist Section (Depth Maintenance) */}
             {parsedEquipmentChecklist && parsedEquipmentChecklist.length > 0 && (
               <>
                 <Heading as="h2" style={h2}>Pre-disassembly inspection</Heading>
@@ -258,7 +282,7 @@ export const TechnicalAlertEmail = ({
                       </Row>
                       
                       {item.images && item.images.length > 0 && (
-                        <Section style={imageGallery}>
+                        <Section style={imageGallery} className="image-gallery-mobile">
                           {item.images.map((imageUrl, imgIndex) => (
                             <Link 
                               key={imgIndex} 
@@ -282,35 +306,32 @@ export const TechnicalAlertEmail = ({
               </>
             )}
 
+            {/* Maintenance Checklist Section (Monthly Maintenance) */}
             {parsedMaintenanceChecklist && parsedMaintenanceChecklist.length > 0 && (
               <>
                 <Heading as="h2" style={h2}>Monthly inspection checklist</Heading>
-                
+
                 <Section>
                   {parsedMaintenanceChecklist.map((group, groupIndex) => (
-                    <div key={groupIndex} style={monthlyGroupBlock}>
+                    <div key={groupIndex} style={{ marginBottom: groupIndex < parsedMaintenanceChecklist.length - 1 ? '32px' : '0' }}>
                       <Text style={monthlyGroupTitle}>{group.title}</Text>
-                      
+                      <Text style={monthlyGroupDescription}>Please report equipment condition before starting maintenance.</Text>
+
                       {group.questions && group.questions.map((question, qIndex) => (
-                        <Row 
-                          key={qIndex} 
-                          style={{
-                            ...monthlyQuestionRow,
-                            marginBottom: qIndex === group.questions.length - 1 ? '0' : '8px'
-                          }}
-                        >
-                          <Column style={{ width: '70%' }}>
-                            <Text style={monthlyQuestionText}>{question.text}</Text>
-                          </Column>
-                          <Column style={{ width: '30%', textAlign: 'right' }}>
-                            <Text style={{
-                              ...monthlyAnswerText,
-                              color: question.answer === 'Yes' ? '#10B981' : question.answer === 'No' ? '#EF4444' : '#94A3B8'
-                            }}>
-                              {question.answer === 'Yes' ? '✓ Yes' : question.answer === 'No' ? '✗ No' : 'Not answered'}
-                            </Text>
-                          </Column>
-                        </Row>
+                        <div key={qIndex} style={{ ...checklistItemBlock, marginBottom: qIndex === group.questions.length - 1 ? '0' : '8px' }}>
+                          <Text style={checklistItemName}>{question.text}</Text>
+                          <Row>
+                            <Column>
+                              <Text style={checklistLabel}>Completed</Text>
+                              <Text style={{
+                                ...checklistValue,
+                                color: question.answer === 'Yes' ? '#10B981' : question.answer === 'No' ? '#EF4444' : '#94A3B8'
+                              }}>
+                                {question.answer === 'Yes' ? '✓ Yes' : question.answer === 'No' ? '✗ No' : 'Not answered'}
+                              </Text>
+                            </Column>
+                          </Row>
+                        </div>
                       ))}
                     </div>
                   ))}
@@ -318,30 +339,31 @@ export const TechnicalAlertEmail = ({
               </>
             )}
 
+            {/* Maintenance Questions Section */}
             {Object.keys(answers).length > 0 && (
               <>
                 <Heading as="h2" style={h2}>
-                  {displayType === 'Monthly' ? 'Additional comments' : `${displayType.charAt(0).toUpperCase() + displayType.slice(1).toLowerCase()} details`}
+                  {reportType === 'Monthly' ? 'Additional comments' : `${reportType.charAt(0).toUpperCase() + reportType.slice(1).toLowerCase()} details`}
                 </Heading>
                 
                 <Section>
                   {Object.entries(answers).map(([question, answerData], i) => {
                     const isObject = typeof answerData === 'object' && answerData !== null;
-                    const answerTextValue = isObject ? answerData.text : answerData;
+                    const answerText = isObject ? answerData.text : answerData;
                     const images = isObject ? (answerData.images || []) : [];
 
                     const isPhotographQuestion = question.toLowerCase().includes('photograph');
                     const hasImages = images.length > 0;
-                    const hasNoText = !answerTextValue || answerTextValue === '';
+                    const hasNoText = !answerText || answerText === '';
                     const shouldSkipNotAnswered = isPhotographQuestion && hasImages && hasNoText;
 
                     return (
-                      <div key={i} style={answerBlock} className="answer-block-mobile">
+                      <div key={i} style={answerBlock}>
                         <Text style={questionText}>{question}</Text>
                         {!shouldSkipNotAnswered && (
                           <Text style={answerTextStyle}>
-                            {answerTextValue !== null && answerTextValue !== undefined && answerTextValue !== '' 
-                              ? String(answerTextValue) 
+                            {answerText !== null && answerText !== undefined && answerText !== '' 
+                              ? String(answerText) 
                               : 'Not answered'}
                           </Text>
                         )}
@@ -376,20 +398,16 @@ export const TechnicalAlertEmail = ({
               </>
             )}
 
-            {technicalData?.unit_record_id && (
-              <Section style={buttonContainerLeft}>
-                <Link 
-                  href={airtableUrl}
-                  style={portalButton}
-                >
-                  View record online
-                </Link>
-              </Section>
-            )}
+            <Text style={footerContactText}>
+              Need technical assistance? Contact{' '}
+              <a href={`mailto:maintenance@zelim.com?subject=${encodeURIComponent(`${serialNumber} Technical Assistance Request`)}`} style={emailLink}>
+                maintenance@zelim.com
+              </a>
+            </Text>
           </Section>
 
           <Section style={footerSection}>
-            <Link href="https://www.zelim.com" style={footerLink}>
+            <a href="https://www.zelim.com" style={footerLink}>
               <Img
                 src={absoluteZelimLogoUrl}
                 width="120"
@@ -397,13 +415,13 @@ export const TechnicalAlertEmail = ({
                 alt="Zelim logo"
                 style={footerLogo}
               />
-            </Link>
+            </a>
             <Text style={attribution}>
               © {new Date().getFullYear()} Zelim Limited | Find Recover Protect
             </Text>
             {recordRef && (
               <Text style={recordRefText}>
-                {recordRef} | {formattedTime} GMT, {formattedDate}
+                {recordRef} | {submittedTime} GMT, {today}
               </Text>
             )}
           </Section>
@@ -413,29 +431,29 @@ export const TechnicalAlertEmail = ({
   );
 };
 
-export default TechnicalAlertEmail;
+export default MaintenanceReportEmail;
 
 // --- Styles ---
-const main = {
+const main : React.CSSProperties = {
   backgroundColor: '#eaeeed',
   padding: '0',
   margin: '0',
   fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
 };
 
-const container = {
+const container : React.CSSProperties = {
   backgroundColor: '#ffffff',
   margin: '0 auto',
   maxWidth: '620px',
   overflow: 'hidden',
 };
 
-const headerSection = {
+const headerSection : React.CSSProperties = {
   padding: '36px 0 30px 0',
   textAlign: 'center',
 };
 
-const logo = {
+const logo : React.CSSProperties = {
   margin: '0 auto',
   display: 'block',
   maxWidth: '250px',
@@ -445,11 +463,11 @@ const logo = {
   objectFit: 'contain',
 };
 
-const contentPadding = {
+const contentPadding : React.CSSProperties = {
   padding: '0 30px 50px 30px',
 };
 
-const h1 = {
+const h1 : React.CSSProperties = {
   color: '#152a31',
   fontSize: '32px',
   fontWeight: '600',
@@ -458,7 +476,7 @@ const h1 = {
   letterSpacing: '1px',
 };
 
-const subTitle = {
+const subTitle : React.CSSProperties = {
   fontSize: '13px',
   lineHeight: '24px',
   fontWeight: '600',
@@ -468,7 +486,7 @@ const subTitle = {
   margin: '4px 0 36px 0',
 };
 
-const text = {
+const text : React.CSSProperties = {
   color: '#152a31',
   fontSize: '15px',
   lineHeight: '21px',
@@ -476,14 +494,14 @@ const text = {
   textAlign: 'left',
 };
 
-const statusCard = {
+const statusCard : React.CSSProperties = {
   backgroundColor: '#f3f6f5',
   borderRadius: '8px',
   padding: '20px 24px',
   margin: '32px 0',
 };
 
-const label = {
+const label : React.CSSProperties = {
   fontSize: '11px',
   lineHeight: '16px',
   color: '#152a31',
@@ -494,7 +512,7 @@ const label = {
   textAlign: 'left',
 };
 
-const value = {
+const value : React.CSSProperties = {
   fontSize: '15px',
   lineHeight: '21px',
   color: '#152a31',
@@ -503,7 +521,7 @@ const value = {
   textAlign: 'left',
 };
 
-const h2 = {
+const h2 : React.CSSProperties = {
   color: '#152a31',
   fontSize: '18px',
   fontWeight: '600',
@@ -511,14 +529,14 @@ const h2 = {
   textAlign: 'left',
 };
 
-const checklistItemBlock = {
+const checklistItemBlock : React.CSSProperties = {
   marginBottom: '12px',
   padding: '20px 24px',
   backgroundColor: '#f3f6f5',
   borderRadius: '8px',
 };
 
-const checklistItemName = {
+const checklistItemName : React.CSSProperties = {
   fontSize: '15px',
   fontWeight: '600',
   color: '#152a31',
@@ -526,7 +544,7 @@ const checklistItemName = {
   lineHeight: '21px',
 };
 
-const checklistLabel = {
+const checklistLabel : React.CSSProperties = {
   fontSize: '11px',
   color: '#152a31',
   textTransform: 'uppercase',
@@ -535,7 +553,7 @@ const checklistLabel = {
   letterSpacing: '0.5px',
 };
 
-const checklistValue = {
+const checklistValue : React.CSSProperties = {
   fontSize: '15px',
   color: '#152a31',
   fontWeight: '600',
@@ -543,48 +561,14 @@ const checklistValue = {
   lineHeight: '21px',
 };
 
-const monthlyGroupBlock = {
+const monthlyGroupBlock : React.CSSProperties = {
   marginBottom: '12px',
   padding: '20px 24px',
   backgroundColor: '#f3f6f5',
   borderRadius: '8px',
 };
 
-const monthlyGroupTitle = {
-  fontSize: '15px',
-  fontWeight: '600',
-  color: '#152a31',
-  margin: '0 0 8px 0',
-  lineHeight: '21px',
-};
-
-const monthlyQuestionRow = {
-  padding: '0',
-};
-
-const monthlyQuestionText = {
-  fontSize: '15px',
-  color: '#152a31',
-  margin: '0',
-  fontWeight: '400',
-  lineHeight: '21px',
-};
-
-const monthlyAnswerText = {
-  fontSize: '15px',
-  fontWeight: '600',
-  margin: '0',
-  lineHeight: '21px',
-};
-
-const answerBlock = {
-  marginBottom: '12px',
-  padding: '20px 24px',
-  backgroundColor: '#f3f6f5',
-  borderRadius: '8px',
-};
-
-const questionText = {
+const monthlyGroupTitle : React.CSSProperties = {
   fontSize: '15px',
   fontWeight: '600',
   color: '#152a31',
@@ -592,7 +576,48 @@ const questionText = {
   lineHeight: '21px',
 };
 
-const answerTextStyle = {
+const monthlyGroupDescription : React.CSSProperties = {
+  fontSize: '13px',
+  color: '#6b7f83',
+  margin: '0 0 12px 0',
+  lineHeight: '19px',
+};
+
+const monthlyQuestionRow : React.CSSProperties = {
+  padding: '0',
+};
+
+const monthlyQuestionText : React.CSSProperties = {
+  fontSize: '15px',
+  color: '#152a31',
+  margin: '0',
+  fontWeight: '400',
+  lineHeight: '21px',
+};
+
+const monthlyAnswerText : React.CSSProperties = {
+  fontSize: '15px',
+  fontWeight: '600',
+  margin: '0',
+  lineHeight: '21px',
+};
+
+const answerBlock : React.CSSProperties = {
+  marginBottom: '12px',
+  padding: '20px 24px',
+  backgroundColor: '#f3f6f5',
+  borderRadius: '8px',
+};
+
+const questionText : React.CSSProperties = {
+  fontSize: '15px',
+  fontWeight: '600',
+  color: '#152a31',
+  margin: '0 0 4px 0',
+  lineHeight: '21px',
+};
+
+const answerTextStyle : React.CSSProperties = {
   fontSize: '15px',
   color: '#152a31',
   margin: '0',
@@ -600,53 +625,50 @@ const answerTextStyle = {
   whiteSpace: 'pre-wrap',
 };
 
-const imageGallery = {
+const imageGallery : React.CSSProperties = {
   display: 'flex',
   flexWrap: 'wrap',
   marginTop: '12px',
 };
 
-const imageLink = {
+const imageLink : React.CSSProperties = {
   display: 'inline-block',
   textDecoration: 'none',
   padding: '0 5px 10px 5px',
 };
 
-const imageThumbnail = {
+const imageThumbnail : React.CSSProperties = {
   width: '100%',
   borderRadius: '8px',
   display: 'block',
 };
 
-const buttonContainerLeft = {
-  textAlign: 'left',
-  margin: '20px 0 0 0',
-};
-
-const portalButton = {
-  display: 'inline-block',
-  padding: '10px 18px',
-  borderRadius: '8px',
-  backgroundColor: '#27454B',
-  color: '#ffffff',
+const footerContactText : React.CSSProperties = {
   fontSize: '15px',
-  fontWeight: '600',
-  textDecoration: 'none',
-  border: 'none',
+  lineHeight: '21px',
+  color: '#152a31',
+  textAlign: 'left',
+  margin: '24px 0 0 0',
 };
 
-const footerSection = {
+const emailLink : React.CSSProperties = {
+  color: '#152a31',
+  textDecoration: 'underline',
+  fontWeight: '600',
+};
+
+const footerSection : React.CSSProperties = {
   paddingBottom: '40px',
   textAlign: 'center',
 };
 
-const footerLink = {
+const footerLink : React.CSSProperties = {
   textDecoration: 'none',
   display: 'inline-block',
   marginBottom: '20px',
 };
 
-const footerLogo = {
+const footerLogo : React.CSSProperties = {
   margin: '0 auto',
   display: 'block',
   width: '120px',
@@ -654,13 +676,13 @@ const footerLogo = {
   objectFit: 'contain',
 };
 
-const attribution = {
+const attribution : React.CSSProperties = {
   fontSize: '12px',
   color: '#152a31',
   margin: '0',
 };
 
-const recordRefText = {
+const recordRefText : React.CSSProperties = {
   fontSize: '12px',
   color: '#152a31',
   margin: '0',

@@ -13,7 +13,7 @@ const base = new Airtable({
  * @param {string} publicToken - The public token from URL
  * @returns {Promise<Object|null>} Unit data or null if not found
  */
-export async function fetchUnitByToken(publicToken) {
+export async function fetchUnitByToken(publicToken: string) {
   try {
     const records = await base(process.env.AIRTABLE_SWIFT_TABLE)
       .select({
@@ -37,24 +37,24 @@ export async function fetchUnitByToken(publicToken) {
 
     // operating_company is now a linked record field — resolve the name
     let companyName = '';
-    const operatingCompanyIds = record.get('operating_company');
+    const operatingCompanyIds = record.get('operating_company') as string[] | undefined;
     if (operatingCompanyIds && operatingCompanyIds.length > 0) {
       try {
         const companyRecord = await base('operating_companies').find(operatingCompanyIds[0]);
-        companyName = companyRecord.get('company_name') || '';
-      } catch (e) {
+        companyName = (companyRecord.get('company_name') as string) || '';
+      } catch (e: any) {
         console.warn('Could not resolve operating company name:', e.message);
       }
     }
 
     return {
       record_id: record.id,
-      serial_number: record.get('serial_number') || 'Unit',
+      serial_number: (record.get('serial_number') as string) || 'Unit',
       company: companyName,
       operating_company_id: operatingCompanyIds?.[0] || null,
-      public_token: record.get('public_token') || publicToken,
-      annual_maintenance_due: record.get('annual_maintenance_due') || null,
-      depth_maintenance_due: record.get('depth_maintenance_due') || null,
+      public_token: (record.get('public_token') as string) || publicToken,
+      annual_maintenance_due: (record.get('annual_maintenance_due') as string) || null,
+      depth_maintenance_due: (record.get('depth_maintenance_due') as string) || null,
     };
   } catch (error) {
     console.error('Error fetching unit:', error);
@@ -68,7 +68,7 @@ export async function fetchUnitByToken(publicToken) {
  * @param {string} maintenanceType - Type of maintenance (e.g., 'Monthly', 'Annual')
  * @returns {Promise<Object|null>} Template data or null if not found
  */
-export async function fetchTemplate(maintenanceType) {
+export async function fetchTemplate(maintenanceType: string) {
   try {
     let templateName;
     
@@ -107,10 +107,10 @@ export async function fetchTemplate(maintenanceType) {
     }
 
     const record = records[0];
-    const questionsJson = record.get('questions_json');
-    const declarationText = record.get('declaration_text') || '';
+    const questionsJson = record.get('questions_json') as string | undefined;
+    const declarationText = (record.get('declaration_text') as string) || '';
     
-    let parsedJson = {};
+    let parsedJson: any = {};
     try {
       if (questionsJson) {
         parsedJson = JSON.parse(questionsJson);
@@ -162,7 +162,7 @@ export async function fetchTemplate(maintenanceType) {
  *   allEngineers: data.engineers,
  * }};
  */
-export async function fetchFormData(publicToken, maintenanceType) {
+export async function fetchFormData(publicToken: string, maintenanceType: string) {
   try {
     // ✅ OPTIMIZATION: Fetch all raw data in parallel (no dependencies between calls)
     const [unit, template, companyRecords, engineerRecords, operatorRecords] = await Promise.all([
@@ -183,7 +183,7 @@ export async function fetchFormData(publicToken, maintenanceType) {
     ]);
 
     // ✅ Build company lookup (fast - in-memory operation)
-    const companyLookup = {};
+    const companyLookup: Record<string, any> = {};
     companyRecords.forEach(r => {
       if (r.fields.company_name) {
         companyLookup[r.id] = r.fields.company_name;
@@ -192,26 +192,32 @@ export async function fetchFormData(publicToken, maintenanceType) {
 
     // ✅ Process companies list
     const companies = companyRecords
-      .map(r => r.get('company_name'))
+      .map(r => r.get('company_name') as string)
       .filter(Boolean);
 
     // ✅ Process engineers with company lookup
-    const engineers = engineerRecords.map(r => ({
-      id: r.id,
-      name: r.get('engineer_name'),
-      email: r.get('email') || '',
-      phone: r.get('phone') || '',
-      companyName: r.get('maintenance_company')?.[0] ? companyLookup[r.get('maintenance_company')[0]] : '',
-    })).filter(e => e.name);
+    const engineers = engineerRecords.map(r => {
+      const companyIds = r.get('maintenance_company') as string[] | undefined;
+      return {
+        id: r.id,
+        name: r.get('engineer_name') as string,
+        email: (r.get('email') as string) || '',
+        phone: (r.get('phone') as string) || '',
+        companyName: companyIds?.[0] ? companyLookup[companyIds[0]] : '',
+      };
+    }).filter(e => e.name);
 
     // ✅ Process operators — each carries their operating_company record ID for client-side filtering
-    const operators = operatorRecords.map(r => ({
-      id: r.id,
-      name: r.get('operator_name'),
-      email: r.get('email') || '',
-      phone: r.get('phone') || '',
-      operating_company_id: r.get('operating_company')?.[0] || '',
-    })).filter(o => o.name);
+    const operators = operatorRecords.map(r => {
+      const opCompanyIds = r.get('operating_company') as string[] | undefined;
+      return {
+        id: r.id,
+        name: r.get('operator_name') as string,
+        email: (r.get('email') as string) || '',
+        phone: (r.get('phone') as string) || '',
+        operating_company_id: opCompanyIds?.[0] || '',
+      };
+    }).filter(o => o.name);
 
     // If unit not found, return notFound flag
     if (!unit) {

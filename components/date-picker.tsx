@@ -1,4 +1,4 @@
-// components/date-picker.js
+// components/date-picker.tsx
 import { useState, useRef, useEffect } from 'react';
 import { DayPicker } from 'react-day-picker';
 import { format } from 'date-fns';
@@ -6,13 +6,20 @@ import { enGB } from 'date-fns/locale';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import 'react-day-picker/dist/style.css';
 
-export default function DatePicker({ value, onChange, max, disabled = false }) {
+interface DatePickerProps {
+  value: string | null;
+  onChange: (date: string) => void;
+  max?: string;
+  disabled?: boolean;
+}
+
+export default function DatePicker({ value, onChange, max, disabled = false }: DatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
-  const selectedDate = value ? new Date(value) : null;
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const selectedDate = value ? new Date(value) : undefined;
   const maxDate = max ? new Date(max) : new Date();
 
-  const handleSelect = (date) => {
+  const handleSelect = (date: Date | undefined) => {
     if (date) {
       onChange(format(date, 'yyyy-MM-dd'));
       setIsOpen(false);
@@ -21,16 +28,16 @@ export default function DatePicker({ value, onChange, max, disabled = false }) {
 
   // Close on click outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
-    
+
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
-    
+
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
@@ -55,23 +62,27 @@ export default function DatePicker({ value, onChange, max, disabled = false }) {
       {isOpen && (
         <div className="date-picker-dropdown">
           <DayPicker
-  mode="single"
-  selected={selectedDate}
-  onSelect={handleSelect}
-  disabled={{ after: maxDate }}
-  defaultMonth={selectedDate || maxDate}
-  toMonth={maxDate}
-  showOutsideDays
-  locale={enGB}
-  weekStartsOn={1}
-  formatters={{
-    formatWeekdayName: (date) => format(date, 'EEEEE', { locale: enGB })
-  }}
-  components={{
-    IconLeft: ({ ...props }) => <ChevronLeft size={20} strokeWidth={1.5} />,
-    IconRight: ({ ...props }) => <ChevronRight size={20} strokeWidth={1.5} />,
-  }}
-/>
+            mode="single"
+            selected={selectedDate}
+            onSelect={handleSelect}
+            disabled={{ after: maxDate }}
+            defaultMonth={selectedDate || maxDate}
+            endMonth={maxDate}
+            showOutsideDays
+            locale={enGB}
+            weekStartsOn={1}
+            formatters={{
+              formatWeekdayName: (date: Date) => format(date, 'EEEEE', { locale: enGB })
+            }}
+            components={{
+              Chevron: ({ orientation, ...props }: { orientation?: string; [key: string]: any }) =>
+                orientation === 'left' ? (
+                  <ChevronLeft size={20} strokeWidth={1.5} />
+                ) : (
+                  <ChevronRight size={20} strokeWidth={1.5} />
+                ),
+            }}
+          />
         </div>
       )}
     </div>

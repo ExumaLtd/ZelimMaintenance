@@ -1,6 +1,7 @@
-// pages/api/swift-resolve-pin.js
+// pages/api/swift-resolve-pin.ts
 
 import Airtable from "airtable";
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { Redis } from "@upstash/redis";
 import { Ratelimit } from "@upstash/ratelimit";
 import { getClientIp } from "../../utils/api-utils";
@@ -24,7 +25,7 @@ const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
 
 const TABLE_NAME = process.env.AIRTABLE_SWIFT_TABLE; // swift_units
 
-export default async function handler(req, res) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     // Rate limit by IP — 5 attempts per 5 minutes
     const ip = getClientIp(req);
@@ -34,7 +35,7 @@ export default async function handler(req, res) {
       return res.status(429).json({ error: "Too many failed attempts.", retryAfter });
     }
 
-    const pin = req.query.pin;
+    const pin = req.query.pin as string;
 
     if (!pin) {
       return res.status(400).json({ error: "Missing pin" });

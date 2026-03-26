@@ -1,4 +1,6 @@
+// pages/api/get-draft.ts
 import Airtable from 'airtable';
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from '../../lib/session';
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
@@ -9,19 +11,18 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-// 30 completions per hour per IP
 const ratelimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(30, '1 h'),
-  prefix: 'rl:draft-complete',
+  limiter: Ratelimit.slidingWindow(60, '1 h'),
+  prefix: 'rl:draft-read',
 });
 
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
   process.env.AIRTABLE_BASE_ID
 );
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
@@ -38,47 +39,51 @@ export default async function handler(req, res) {
 
     const accessPin = session.pin; // e.g., "SWI005" or "CREW005"
 
-    const { unitId, maintenanceType, engineerEmail } = req.body;
+    const { unitId, maintenanceType } = req.query;
 
     if (!unitId || !maintenanceType) {
       return res.status(400).json({ error: 'Missing required parameters' });
     }
 
-    // Find the draft for this unit + maintenance type + access PIN
+    // Find active draft for this specific unit + maintenance type (any PIN)
     const matchingDrafts = await base('maintenance_drafts')
       .select({
         filterByFormula: `AND(
           {maintenance_type} = '${esc(maintenanceType)}',
-          {access_pin_used} = '${esc(accessPin)}',
           NOT({completed}),
           FIND('${esc(unitId)}', ARRAYJOIN({unit_id}))
         )`,
-        fields: ['unit_id', 'completed', 'access_pin_used'],
+        fields: ['unit_id', 'draft_data', 'last_updated', 'engineer_email', 'access_pin_used', 'user_type'],
         sort: [{ field: 'last_updated', direction: 'desc' }],
         maxRecords: 1,
       })
       .firstPage();
 
     if (matchingDrafts.length === 0) {
-      return res.status(404).json({ error: 'No draft found' });
+      return res.status(200).json({ draft: null });
     }
 
-    // Mark the most recent draft as completed
-    const draftToComplete = matchingDrafts[0];
-    const draftId = draftToComplete.id;
+    const draft = matchingDrafts[0]; // Most recent due to sort
+    const draftDataString = draft.get('draft_data') as string | undefined;
+    const lastUpdated = draft.get('last_updated') as string | undefined;
 
-    await base('maintenance_drafts').update(draftId, {
-      completed: true,
-    });
+    if (!draftDataString) {
+      return res.status(200).json({ draft: null });
+    }
 
-    return res.status(200).json({
-      success: true, 
-      draftId: draftId 
-    });
-
+    try {
+      const draftData = JSON.parse(draftDataString);
+      return res.status(200).json({
+        draft: draftData,
+        lastUpdated: lastUpdated,
+        draftId: draft.id,
+      });
+    } catch (parseError) {
+      console.error('Failed to parse draft data:', parseError);
+      return res.status(200).json({ draft: null });
+    }
   } catch (error) {
-    console.error('❌ Mark draft complete error:', error);
-    console.error('Error details:', error.message);
-    return res.status(500).json({ error: 'Failed to mark draft complete' });
+    console.error('❌ Get draft error:', error);
+    return res.status(500).json({ error: 'Failed to retrieve draft' });
   }
 }

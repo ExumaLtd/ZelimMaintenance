@@ -197,7 +197,8 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
         await html5QrCode.start(
           cameraConfig,
           scanConfig,
-          (decodedText) => handleQrCodeDetected(decodedText, html5QrCode)
+          (decodedText) => handleQrCodeDetected(decodedText, html5QrCode),
+          undefined
         );
 
         setTimeout(() => {

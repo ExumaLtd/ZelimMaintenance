@@ -1,14 +1,15 @@
 import { TechnicalAlertEmail } from '../../../emails/technical-alert';
 import { render } from '@react-email/render';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
-export default async function handler(req, res) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { 
+    const {
       serialNumber = 'SWI005',
       displayType = 'Fault Report',
       brandColor = '#172F36',
       logoUrl = 'https://maintenance.exuma.co.uk/logo/zelim-logo-dark.png'
-    } = req.query;
+    } = req.query as Record<string, string>;
 
     // Sample technical data and answers for preview
     const sampleTechnicalData = {
@@ -43,7 +44,7 @@ export default async function handler(req, res) {
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     return res.status(200).send(html);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Preview error:', error);
     return res.status(500).send(`
       <html>

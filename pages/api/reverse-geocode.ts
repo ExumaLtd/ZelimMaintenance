@@ -1,5 +1,7 @@
-export default async function handler(req, res) {
-  const { lat, lon } = req.query;
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { lat, lon } = req.query as Record<string, string>;
 
   if (!lat || !lon) {
     return res.status(400).json({ error: 'Missing lat/lon' });
@@ -27,7 +29,7 @@ export default async function handler(req, res) {
 
     const data = await response.json();
     return res.status(200).json(data);
-  } catch (err) {
+  } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }
 }

@@ -1,23 +1,17 @@
-import { TechnicalAlertEmail } from '../../../emails/technical-alert';
+import { MaintenanceReportEmail } from '../../../emails/maintenance-report';
 import { render } from '@react-email/render';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
-export default async function handler(req, res) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    const { 
+    const {
+      engineerName = 'John Smith',
       serialNumber = 'SWI005',
-      displayType = 'Annual Maintenance',
       brandColor = '#172F36',
       logoUrl = 'https://maintenance.exuma.co.uk/logo/zelim-logo-dark.png'
-    } = req.query;
+    } = req.query as Record<string, string>;
 
-    // Sample technical data and answers for preview
-    const sampleTechnicalData = {
-      unit_record_id: 'rec75U8ecJM2ZpRSs',
-      checklist_template_id: 'recABC123XYZ',
-      engineer_phone: '+44 7700 900123',
-      location_country: 'United Kingdom'
-    };
-
+    // Sample answers for preview
     const sampleAnswers = {
       'Is the unit free from visible damage?': 'Yes, unit appears in good condition',
       'Have all seals been inspected?': 'All seals inspected and intact',
@@ -27,10 +21,9 @@ export default async function handler(req, res) {
     };
 
     const html = render(
-      TechnicalAlertEmail({
+      MaintenanceReportEmail({
+        engineerName,
         serialNumber,
-        displayType,
-        technicalData: sampleTechnicalData,
         answers: sampleAnswers,
         brandColor,
         logoUrl,
@@ -43,7 +36,7 @@ export default async function handler(req, res) {
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     return res.status(200).send(html);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Preview error:', error);
     return res.status(500).send(`
       <html>

@@ -10,10 +10,21 @@ import { PenLine, Trash2 } from 'lucide-react';
  * @param {boolean}  hasError - Shows red border when true
  * @param {object}   ref     - Exposes { clear(), isEmpty(), toDataURL() }
  */
-const SignaturePad = forwardRef(function SignaturePad({ onChange, hasError }, ref) {
-  const canvasRef = useRef(null);
-  const padRef = useRef(null);
-  const wrapperRef = useRef(null);
+interface SignaturePadProps {
+  onChange?: (dataURL: string | null) => void;
+  hasError?: boolean;
+}
+
+export interface SignaturePadHandle {
+  clear: () => void;
+  isEmpty: () => boolean;
+  toDataURL: (type?: string) => string | null;
+}
+
+const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(function SignaturePad({ onChange, hasError }, ref) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const padRef = useRef<any>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const [isEmpty, setIsEmpty] = useState(true);
   const [isReady, setIsReady] = useState(false);
 

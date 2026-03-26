@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from '../../lib/session';
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
@@ -61,7 +62,7 @@ async function generateRecordRef(serialNumber, maintenanceType) {
 }
 
 
-export default async function handler(req, res) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const ip = getClientIp(req);
@@ -249,8 +250,8 @@ export default async function handler(req, res) {
         const sigSignature = crypto.createHash('sha1').update(sigParamStr).digest('hex');
         const sigFormData = new FormData();
         sigFormData.append('file', blob, `${safeRef}_signature.png`);
-        sigFormData.append('api_key', process.env.CLOUDINARY_API_KEY);
-        sigFormData.append('timestamp', sigTimestamp);
+        sigFormData.append('api_key', process.env.CLOUDINARY_API_KEY ?? '');
+        sigFormData.append('timestamp', String(sigTimestamp));
         sigFormData.append('signature', sigSignature);
         sigFormData.append('public_id', sigPublicId);
         const sigRes = await fetch('https://api.cloudinary.com/v1_1/zelimmaintenanceportal/image/upload', {

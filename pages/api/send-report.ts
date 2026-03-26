@@ -1,3 +1,4 @@
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { Resend } from 'resend';
 import { MaintenanceReportEmail } from '../../emails/maintenance-report';
 import { TechnicalAlertEmail } from '../../emails/technical-alert';
@@ -23,11 +24,11 @@ const apiKey = process.env.RESEND_API_KEY?.replace(/['"]+/g, '');
 const resend = new Resend(apiKey);
 
 // Helper function to add spaces to camelCase strings
-const addSpacesToCamelCase = (str) => {
+const addSpacesToCamelCase = (str: string) => {
   return str.replace(/([A-Z])/g, ' $1').trim();
 };
 
-export default async function handler(req, res) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end();
 
   const session = getSession(req);

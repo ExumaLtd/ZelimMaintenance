@@ -1,9 +1,10 @@
-// pages/api/create-session.js
+// pages/api/create-session.ts
 import { randomUUID } from 'crypto';
 import { serialize } from 'cookie';
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { encodeSession } from '../../lib/session';
 
-export default async function handler(req, res) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
