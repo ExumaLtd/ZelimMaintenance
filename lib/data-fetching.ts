@@ -1,4 +1,5 @@
 import Airtable from 'airtable';
+import { esc } from '../utils/api-utils';
 
 const base = new Airtable({
   apiKey: process.env.AIRTABLE_API_KEY,
@@ -18,7 +19,7 @@ export async function fetchUnitByToken(publicToken: string) {
     const records = await base(process.env.AIRTABLE_SWIFT_TABLE)
       .select({
         maxRecords: 1,
-        filterByFormula: `{public_token} = "${publicToken}"`,
+        filterByFormula: `{public_token} = '${esc(publicToken)}'`,
         fields: [
           'serial_number',
           'operating_company',
@@ -97,7 +98,7 @@ export async function fetchTemplate(maintenanceType: string) {
     const records = await base('checklist_templates')
       .select({
         maxRecords: 1,
-        filterByFormula: `{template_name} = "${templateName}"`,
+        filterByFormula: `{template_name} = '${esc(templateName)}'`,
       })
       .firstPage();
 

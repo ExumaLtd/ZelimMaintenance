@@ -15,6 +15,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
+  if (accessType !== 'maintenance' && accessType !== 'operator') {
+    return res.status(400).json({ error: 'Invalid access type' });
+  }
+
   try {
     // Generate a random session ID
     const sessionId = generateSessionId();

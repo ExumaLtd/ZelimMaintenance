@@ -176,6 +176,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error(error.message);
     console.error("--- END ERROR ---");
     
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: 'Failed to send report' });
   }
 }

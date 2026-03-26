@@ -187,8 +187,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             })
       ]);
 
+      if (!compRes.ok) throw new Error(`Company lookup failed: ${compRes.status}`);
       const compData = await compRes.json();
-      const engData = engRes ? await engRes.json() : null;
+      const engData = engRes && engRes.ok ? await engRes.json() : null;
 
       companyRecordId = compData.records?.[0]?.id;
 
