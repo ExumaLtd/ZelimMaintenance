@@ -45,33 +45,26 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Invalid pin format" });
     }
 
-    // Run two queries in parallel — one per PIN type.
-    // Whichever returns a record tells us the access type without fetching raw PIN values.
-    const [engRecords, opRecords] = await Promise.all([
-      base(TABLE_NAME)
-        .select({
-          maxRecords: 1,
-          filterByFormula: `{engineer_pin} = "${pin}"`,
-          fields: ["public_token"],
-        })
-        .firstPage(),
-      base(TABLE_NAME)
-        .select({
-          maxRecords: 1,
-          filterByFormula: `{operator_pin} = "${pin}"`,
-          fields: ["public_token"],
-        })
-        .firstPage(),
-    ]);
+    // Single OR query — find the record matching either PIN type
+    const records = await base(TABLE_NAME)
+      .select({
+        maxRecords: 1,
+        filterByFormula: `OR({engineer_pin} = "${pin}", {operator_pin} = "${pin}")`,
+        fields: ["public_token", "engineer_pin"],
+      })
+      .firstPage();
 
-    // Engineer takes precedence if a unit somehow has identical PINs
-    const matchedRecord = engRecords[0] || opRecords[0];
-    if (!matchedRecord) {
+    if (!records || records.length === 0) {
       return res.status(404).json({ error: "Code not recognised" });
     }
 
-    const publicToken = matchedRecord.get("public_token");
-    const accessType = engRecords.length > 0 ? "maintenance" : "operator";
+    const record = records[0];
+    const publicToken = record.get("public_token");
+
+    // Determine access type from whether engineer_pin was populated on this record.
+    // We fetch engineer_pin only — operator_pin is never fetched, never in memory.
+    const engineerPin = record.get("engineer_pin");
+    const accessType = engineerPin === pin ? "maintenance" : "operator";
 
     return res.status(200).json({
       publicToken,
