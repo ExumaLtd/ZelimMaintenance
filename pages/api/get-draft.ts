@@ -46,13 +46,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Missing required parameters' });
     }
 
-    // Find active draft for this specific unit + maintenance type (any PIN)
+    // Find active draft for this PIN + maintenance type
     const matchingDrafts = await base('maintenance_drafts')
       .select({
         filterByFormula: `AND(
           {maintenance_type} = '${esc(maintenanceType)}',
-          NOT({completed}),
-          FIND('${esc(unitId)}', ARRAYJOIN({unit_id}))
+          {access_pin_used} = '${esc(accessPin)}',
+          NOT({completed})
         )`,
         fields: ['unit_id', 'draft_data', 'last_updated', 'engineer_email', 'access_pin_used', 'user_type'],
         sort: [{ field: 'last_updated', direction: 'desc' }],

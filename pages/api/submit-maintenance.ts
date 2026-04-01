@@ -377,23 +377,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error(`Airtable Sync Error`);
     }
 
-    // Mark the draft as completed — call Airtable directly, no HTTP round-trip to self
+    // Mark all uncompleted drafts for this PIN + type as completed
+    // (maxRecords=10 cleans up any duplicates that may have accumulated)
     try {
       const draftFormula = encodeURIComponent(
-        `AND({maintenance_type}='${esc(maintenance_type)}',{access_pin_used}='${esc(accessPin)}',NOT({completed}),FIND('${esc(unit_record_id)}',ARRAYJOIN({unit_id})))`
+        `AND({maintenance_type}='${esc(maintenance_type)}',{access_pin_used}='${esc(accessPin)}',NOT({completed}))`
       );
       const draftFindRes = await fetch(
-        `https://api.airtable.com/v0/${baseId}/maintenance_drafts?filterByFormula=${draftFormula}&fields[]=unit_id&maxRecords=1`,
+        `https://api.airtable.com/v0/${baseId}/maintenance_drafts?filterByFormula=${draftFormula}&fields[]=unit_id&maxRecords=10`,
         { headers: { Authorization: `Bearer ${apiKey}` } }
       );
       if (draftFindRes.ok) {
         const draftData = await draftFindRes.json();
         if (draftData.records?.length > 0) {
-          const draftId = draftData.records[0].id;
-          await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_drafts/${draftId}`, {
+          // Batch update: Airtable accepts up to 10 records per PATCH
+          await fetch(`https://api.airtable.com/v0/${baseId}/maintenance_drafts`, {
             method: 'PATCH',
             headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fields: { completed: true } })
+            body: JSON.stringify({
+              records: draftData.records.map((r: { id: string }) => ({
+                id: r.id,
+                fields: { completed: true }
+              }))
+            })
           });
         }
       }

@@ -51,8 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         filterByFormula: `AND(
           {maintenance_type} = '${esc(maintenanceType)}',
           {access_pin_used} = '${esc(accessPin)}',
-          NOT({completed}),
-          FIND('${esc(unitId)}', ARRAYJOIN({unit_id}))
+          NOT({completed})
         )`,
         fields: ['unit_id', 'completed', 'access_pin_used'],
         sort: [{ field: 'last_updated', direction: 'desc' }],

@@ -52,13 +52,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const emailToUse = engineerEmail || PLACEHOLDER_EMAIL;
     const isRealEmail = emailToUse !== PLACEHOLDER_EMAIL && emailToUse.includes('@');
 
-    // Get active drafts for this specific unit + maintenance type (any PIN)
+    // Get active drafts for this specific PIN + maintenance type
     const allUnitDrafts = await base('maintenance_drafts')
       .select({
         filterByFormula: `AND(
           {maintenance_type} = '${esc(maintenanceType)}',
-          NOT({completed}),
-          FIND('${esc(unitId)}', ARRAYJOIN({unit_id}))
+          {access_pin_used} = '${esc(accessPin)}',
+          NOT({completed})
         )`,
         fields: ['unit_id', 'engineer_email', 'last_updated', 'access_pin_used'],
         sort: [{ field: 'last_updated', direction: 'desc' }],
