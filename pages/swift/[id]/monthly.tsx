@@ -957,6 +957,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                     className={clsx("checklist-input", fieldErrors.location && "has-error")}
                     name="location_display"
                     required
+                    placeholder={locationFailed && !locationDisplay ? "Enter location manually" : ""}
                     value={locationDisplay}
                     onChange={(e) => {
                       setLocationDisplay(e.target.value);
@@ -965,9 +966,6 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                       }
                     }}
                   />
-                  {locationFailed && !locationDisplay && (
-                    <p className="field-hint">Location couldn't be detected — please enter manually</p>
-                  )}
                 </div>
 
                 <div className="checklist-field">
