@@ -561,20 +561,6 @@ export default function FaultReporting({ unit, template, allCompanies = [], allE
       if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
       const submitResult = await res.json();
 
-      try {
-        await fetch('/api/mark-draft-complete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            unitId: unit?.record_id,
-            maintenanceType: 'Fault report',
-            engineerEmail: engEmail,
-          }),
-        });
-      } catch (err) {
-        console.log('No draft to mark complete (form completed without auto-save)');
-      }
-
       const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
 
       await fetch("/api/send-report", {
