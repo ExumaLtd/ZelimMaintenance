@@ -113,7 +113,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Verify this unit belongs to the session's token — prevents IDOR
   const unitVerifyRes = await fetch(
-    `https://api.airtable.com/v0/${baseId}/swift_units/${encodeURIComponent(unit_record_id)}?fields[]=public_token`,
+    `https://api.airtable.com/v0/${baseId}/swift_units/${encodeURIComponent(unit_record_id)}`,
     { headers: { Authorization: `Bearer ${apiKey}` } }
   );
   if (!unitVerifyRes.ok) {
