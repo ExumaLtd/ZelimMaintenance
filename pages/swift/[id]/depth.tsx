@@ -994,6 +994,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
       localStorage.setItem("last_maintenance_type", template?.type || "Depth");
       localStorage.setItem("last_public_token", unit?.public_token);
       localStorage.removeItem(storageKey);
+      localStorage.removeItem(`${storageKey}_step`);
       router.push('/portal/swift/depth-complete');
     } catch (err) {
       setErrorMsg(err.message);
