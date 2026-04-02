@@ -485,7 +485,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     }
 
     if (currentStep > 1) {
-      const requiredQuestions = currentQuestions.filter(q => q.required && q.id !== 1);
+      const requiredQuestions = currentQuestions.filter(q => q.required !== false && q.id !== 1);
       for (let i = 0; i < requiredQuestions.length; i++) {
         const q = requiredQuestions[i];
         const questionIndex = (template?.questionsData || []).indexOf(q) + 1;
@@ -606,6 +606,14 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [currentStep, isWinchReturned]);
+
+  // Re-apply autoGrow to all textareas when step changes (they render with correct
+  // values but at default height — autoGrow only fires on user input otherwise)
+  useEffect(() => {
+    setTimeout(() => {
+      document.querySelectorAll('.checklist-textarea').forEach(el => autoGrow(el));
+    }, 0);
+  }, [currentStep]);
 
   // Load localStorage draft (only for page refreshes, not "Continue maintenance")
   useEffect(() => {
