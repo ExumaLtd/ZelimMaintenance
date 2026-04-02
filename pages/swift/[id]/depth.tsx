@@ -485,7 +485,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     }
 
     if (currentStep > 1) {
-      const requiredQuestions = currentQuestions.filter(q => q.required !== false && q.id !== 1);
+      const requiredQuestions = currentQuestions.filter(q => q.required && q.id !== 1);
       for (let i = 0; i < requiredQuestions.length; i++) {
         const q = requiredQuestions[i];
         const questionIndex = (template?.questionsData || []).indexOf(q) + 1;
