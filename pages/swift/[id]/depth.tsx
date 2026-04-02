@@ -152,6 +152,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   // Refs to prevent duplicate operations
   const hasLoadedDraftRef = useRef(false);
   const hasSubmittedRef = useRef(false);
+  const checklistInitialisedRef = useRef(false);
 
   // Check if winch was returned (item id: 3)
   const isWinchReturned = useMemo(() => {
@@ -204,7 +205,8 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     const isDraft = urlParams.get('draft') === 'true';
     if (isDraft) return;
     
-    if (template?.maintenanceChecklist && !hasLoadedDraftRef.current) {
+    if (template?.maintenanceChecklist && !checklistInitialisedRef.current) {
+      checklistInitialisedRef.current = true;
       setChecklistData(
         template.maintenanceChecklist.map(item => ({
           ...item,
