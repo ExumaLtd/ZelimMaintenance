@@ -1,5 +1,5 @@
 import { MaintenanceReportEmail } from '../../../emails/maintenance-report';
-import { render } from '@react-email/render';
+import { render } from 'react-email';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       'Additional notes': 'Annual maintenance completed successfully. All systems operational.'
     };
 
-    const html = render(
+    const html = await render(
       MaintenanceReportEmail({
         engineerName,
         serialNumber,

@@ -43,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const accessPin = session.pin;
     const userType = session.access === 'operator' ? 'Operator' : 'Engineer';
 
-    const { unitId, maintenanceType, engineerEmail, draftData } = req.body;
+    const { unitId, maintenanceType, engineerEmail, draftData, recordId } = req.body;
 
     if (!unitId || !maintenanceType || !draftData) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -51,8 +51,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const emailToUse = engineerEmail || PLACEHOLDER_EMAIL;
     const isRealEmail = emailToUse !== PLACEHOLDER_EMAIL && emailToUse.includes('@');
+    const draftDataString = JSON.stringify(draftData);
 
-    // Get active drafts for this specific PIN + maintenance type
+    // If the client already knows the record ID, skip the SELECT entirely
+    if (recordId) {
+      const updateFields: Record<string, any> = {
+        draft_data: draftDataString,
+        last_updated: new Date().toISOString(),
+        access_pin_used: accessPin,
+        user_type: userType,
+        locked_by: accessPin,
+      };
+      if (isRealEmail) updateFields.engineer_email = emailToUse;
+      const result = await base('maintenance_drafts').update(recordId, updateFields);
+      return res.status(200).json({ success: true, action: 'updated', recordId: result.id });
+    }
+
+    // First save in this session — find or create the draft record
     const allUnitDrafts = await base('maintenance_drafts')
       .select({
         filterByFormula: `AND(
@@ -66,12 +81,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       })
       .firstPage();
 
-    const draftDataString = JSON.stringify(draftData);
-
     if (allUnitDrafts.length > 0) {
-      // Update the most recent draft regardless of which PIN created it,
-      // and stamp it with the current PIN. This prevents duplicate records
-      // accumulating across sessions.
       const draft = allUnitDrafts[0];
       const draftId = draft.id;
       const updateFields: Record<string, any> = {

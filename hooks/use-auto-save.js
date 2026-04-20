@@ -10,6 +10,7 @@ export function useAutoSave(config, shouldSave) {
   const { unitId, maintenanceType, engineerEmail, draftData } = config;
   const saveTimeoutRef = useRef(null);
   const lastSavedRef = useRef(null);
+  const draftRecordIdRef = useRef(null);
   const isSavingRef = useRef(false);
   const configRef = useRef(config);
   const shouldSaveRef = useRef(shouldSave);
@@ -42,11 +43,14 @@ export function useAutoSave(config, shouldSave) {
           maintenanceType,
           engineerEmail: engineerEmail || '',
           draftData,
+          recordId: draftRecordIdRef.current,
         }),
       });
 
       if (response.ok) {
         lastSavedRef.current = currentData;
+        const data = await response.json();
+        if (data.recordId) draftRecordIdRef.current = data.recordId;
         console.log('✅ Draft saved');
       }
     } catch (error) {
@@ -68,7 +72,7 @@ export function useAutoSave(config, shouldSave) {
 
     saveTimeoutRef.current = setTimeout(() => {
       saveDraft();
-    }, 2000);
+    }, 5000);
 
     return () => {
       if (saveTimeoutRef.current) {

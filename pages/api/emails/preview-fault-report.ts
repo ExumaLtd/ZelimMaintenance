@@ -1,5 +1,5 @@
 import { TechnicalAlertEmail } from '../../../emails/technical-alert';
-import { render } from '@react-email/render';
+import { render } from 'react-email';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       'Additional notes': 'Photos attached showing extent of damage. Unit remains in service pending repair schedule.'
     };
 
-    const html = render(
+    const html = await render(
       TechnicalAlertEmail({
         serialNumber,
         displayType,
