@@ -71,7 +71,7 @@ export function useAutoSave(config, shouldSave) {
 
     saveTimeoutRef.current = setTimeout(() => {
       saveDraft();
-    }, 10000);
+    }, 5000);
 
     return () => {
       if (saveTimeoutRef.current) {
