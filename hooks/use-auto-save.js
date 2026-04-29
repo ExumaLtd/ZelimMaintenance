@@ -51,7 +51,6 @@ export function useAutoSave(config, shouldSave) {
         lastSavedRef.current = currentData;
         const data = await response.json();
         if (data.recordId) draftRecordIdRef.current = data.recordId;
-        console.log('✅ Draft saved');
       }
     } catch (error) {
       console.error('Draft save error:', error);
@@ -72,7 +71,7 @@ export function useAutoSave(config, shouldSave) {
 
     saveTimeoutRef.current = setTimeout(() => {
       saveDraft();
-    }, 5000);
+    }, 10000);
 
     return () => {
       if (saveTimeoutRef.current) {
@@ -105,4 +104,8 @@ export function useAutoSave(config, shouldSave) {
       window.removeEventListener('pagehide', handleBeforeUnload);
     };
   }, []);
+
+  return {
+    getDraftId: () => draftRecordIdRef.current,
+  };
 }

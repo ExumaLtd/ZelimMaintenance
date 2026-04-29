@@ -21,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Missing folder' });
   }
 
-  if (!folder.startsWith(ALLOWED_FOLDER_PREFIX) || folder.includes('..') || folder.includes('\0')) {
+  if (!folder.startsWith(ALLOWED_FOLDER_PREFIX) || !/^[a-zA-Z0-9/_-]+$/.test(folder)) {
     return res.status(400).json({ error: 'Invalid folder' });
   }
 

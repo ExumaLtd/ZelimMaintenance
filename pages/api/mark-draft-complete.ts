@@ -39,33 +39,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const accessPin = session.pin; // e.g., "SWI005" or "CREW005"
 
-    const { unitId, maintenanceType, engineerEmail } = req.body;
+    const { unitId, maintenanceType, engineerEmail, draftId: clientDraftId } = req.body;
 
     if (!unitId || !maintenanceType) {
       return res.status(400).json({ error: 'Missing required parameters' });
     }
 
-    // Find the draft for this unit + maintenance type + access PIN
-    const matchingDrafts = await base('maintenance_drafts')
-      .select({
-        filterByFormula: `AND(
-          {maintenance_type} = '${esc(maintenanceType)}',
-          {access_pin_used} = '${esc(accessPin)}',
-          NOT({completed})
-        )`,
-        fields: ['unit_id', 'completed', 'access_pin_used'],
-        sort: [{ field: 'last_updated', direction: 'desc' }],
-        maxRecords: 1,
-      })
-      .firstPage();
+    let draftId: string;
 
-    if (matchingDrafts.length === 0) {
-      return res.status(404).json({ error: 'No draft found' });
+    if (clientDraftId && typeof clientDraftId === 'string') {
+      // Client already knows the draft ID — skip the Airtable lookup
+      draftId = clientDraftId;
+    } else {
+      const matchingDrafts = await base('maintenance_drafts')
+        .select({
+          filterByFormula: `AND(
+            {maintenance_type} = '${esc(maintenanceType)}',
+            {access_pin_used} = '${esc(accessPin)}',
+            NOT({completed})
+          )`,
+          fields: ['unit_id', 'completed', 'access_pin_used'],
+          sort: [{ field: 'last_updated', direction: 'desc' }],
+          maxRecords: 1,
+        })
+        .firstPage();
+
+      if (matchingDrafts.length === 0) {
+        return res.status(404).json({ error: 'No draft found' });
+      }
+
+      draftId = matchingDrafts[0].id;
     }
-
-    // Mark the most recent draft as completed
-    const draftToComplete = matchingDrafts[0];
-    const draftId = draftToComplete.id;
 
     await base('maintenance_drafts').update(draftId, {
       completed: true,

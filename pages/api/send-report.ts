@@ -74,7 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
              'N/A';
     };
 
-    if (!engineerEmail || typeof engineerEmail !== 'string' || !engineerEmail.includes('@')) {
+    if (!engineerEmail || typeof engineerEmail !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(engineerEmail)) {
       return res.status(400).json({ error: 'Invalid or missing recipient email' });
     }
 

@@ -5,10 +5,6 @@ import Airtable from "airtable";
 import { useRouter } from "next/router";
 import { getSession } from "../../../lib/session";
 
-// REMOVE these imports - they'll be used inside getServerSideProps instead
-// import fs from "fs";
-// import path from "path";
-
 // Client logo resolver - KEEP THIS
 const getClientLogo = (companyName, serialNumber) => {
   const logoMap = {
@@ -65,14 +61,8 @@ export async function getServerSideProps(context) {
   // Get session to extract PIN
   const session = getSession(context.req);
   
-  console.log('=== DASHBOARD DEBUG ===');
-  console.log('publicToken:', publicToken);
-  console.log('session:', session);
-  console.log('accessPin:', session?.pin);
-
   // If no valid session, redirect to login
   if (!session || !session.pin) {
-    console.log('❌ No valid session, redirecting to login');
     return { redirect: { destination: "/", permanent: false } };
   }
 
@@ -109,8 +99,6 @@ export async function getServerSideProps(context) {
     const record = records[0];
     const unitRecordId = record.id;
 
-    console.log('unitRecordId:', unitRecordId);
-
     // operating_company is now a linked record field — resolve the name
     let companyName = "Client Unit";
     const operatingCompanyIds = record.get("operating_company") as string[] | undefined;
@@ -138,9 +126,6 @@ export async function getServerSideProps(context) {
     // Check for active drafts - FILTERED BY ACCESS PIN
     let activeDrafts = [];
     try {
-      console.log(`Fetching drafts for unit ${unitRecordId} with PIN ${accessPin}...`);
-      
-      // Get all active drafts for this access PIN
       const allDrafts = await base('maintenance_drafts')
         .select({
           filterByFormula: `AND(
@@ -150,24 +135,17 @@ export async function getServerSideProps(context) {
           fields: ['unit_id', 'maintenance_type', 'last_updated', 'engineer_email', 'access_pin_used'],
         })
         .all();
-      
-      console.log(`Found ${allDrafts.length} active drafts for PIN ${accessPin}`);
-      
-      // Filter in JavaScript to match unit_id (Link field returns array)
+
       const matchingDrafts = allDrafts.filter(d => {
         const linkedRecords = d.get('unit_id') as string[] | undefined;
         return linkedRecords && linkedRecords.includes(unitRecordId);
       });
-      
-      console.log(`Matching drafts for unit ${unitRecordId} + PIN ${accessPin}: ${matchingDrafts.length}`);
 
       activeDrafts = matchingDrafts.map(d => ({
         type: d.get('maintenance_type'),
         lastUpdated: d.get('last_updated'),
         engineerEmail: d.get('engineer_email'),
       }));
-      
-      console.log('Found drafts:', activeDrafts);
     } catch (draftError) {
       console.error('Error fetching drafts:', draftError);
       // Continue without drafts if table doesn't exist yet

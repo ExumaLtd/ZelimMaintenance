@@ -1,15 +1,46 @@
 const axios = require('axios');
 
+const STATE_FILE_PATH = '/Airtable/_backup_state.json';
+
+async function readBackupState(DROPBOX_ACCESS_TOKEN) {
+    try {
+        const response = await axios({
+            method: 'post',
+            url: 'https://content.dropboxapi.com/2/files/download',
+            headers: {
+                'Authorization': `Bearer ${DROPBOX_ACCESS_TOKEN}`,
+                'Dropbox-API-Arg': JSON.stringify({ path: STATE_FILE_PATH }),
+            },
+            responseType: 'text',
+        });
+        return JSON.parse(response.data);
+    } catch {
+        return null;
+    }
+}
+
+async function writeBackupState(DROPBOX_ACCESS_TOKEN, state) {
+    await axios({
+        method: 'post',
+        url: 'https://content.dropboxapi.com/2/files/upload',
+        headers: {
+            'Authorization': `Bearer ${DROPBOX_ACCESS_TOKEN}`,
+            'Dropbox-API-Arg': JSON.stringify({ path: STATE_FILE_PATH, mode: 'overwrite' }),
+            'Content-Type': 'application/octet-stream',
+        },
+        data: JSON.stringify(state, null, 2),
+    });
+}
+
 async function backupAirtable() {
     try {
         const AIRTABLE_PAT = process.env.AIRTABLE_PAT;
-        const BASE_ID = 'appOQXbopTwn0SdnL'; 
+        const BASE_ID = 'appOQXbopTwn0SdnL';
         const DROPBOX_ACCESS_TOKEN = process.env.DROPBOX_ACCESS_TOKEN;
 
         console.log("Testing Airtable authentication...");
         console.log("Token starts with:", AIRTABLE_PAT ? AIRTABLE_PAT.substring(0, 10) + '...' : 'TOKEN MISSING!');
 
-        // --- START OF YOUR NAMING LOGIC ---
         const now = new Date();
         const year = now.getFullYear();
         const monthName = now.toLocaleString('default', { month: 'long' });
@@ -17,14 +48,23 @@ async function backupAirtable() {
         const monthNum = String(now.getMonth() + 1).padStart(2, '0');
         const dateStamp = `${day}${monthNum}${year}`;
         const dayFolderName = `${day}-${monthNum}-${year}`;
-        // --- END OF YOUR NAMING LOGIC ---
+
+        // Read last backup state for incremental backup
+        const backupState = await readBackupState(DROPBOX_ACCESS_TOKEN);
+        const lastBackupTime = backupState?.lastBackupTime || null;
+
+        if (lastBackupTime) {
+            console.log(`Incremental backup — only fetching records modified since: ${lastBackupTime}`);
+        } else {
+            console.log('No previous backup state found — running full backup');
+        }
 
         console.log("Fetching list of all tables from Airtable...");
-        
+
         const schemaResponse = await axios.get(
             `https://api.airtable.com/v0/meta/bases/${BASE_ID}/tables`,
-            { 
-                headers: { 
+            {
+                headers: {
                     Authorization: `Bearer ${AIRTABLE_PAT}`,
                     'Content-Type': 'application/json'
                 }
@@ -34,16 +74,21 @@ async function backupAirtable() {
         const tables = schemaResponse.data.tables;
         console.log(`Found ${tables.length} tables to backup`);
 
+        let totalRecordsBacked = 0;
+
         for (const table of tables) {
             console.log(`Backing up table: ${table.name}...`);
 
             const url = `https://api.airtable.com/v0/${BASE_ID}/${table.id}`;
 
-            // Paginate through all records (Airtable returns max 100 per page)
             let allRecords = [];
             let offset = null;
             do {
-                const params = offset ? { offset } : {};
+                const params = { ...(offset ? { offset } : {}) };
+                if (lastBackupTime) {
+                    params.filterByFormula = `IS_AFTER(LAST_MODIFIED_TIME(), '${lastBackupTime}')`;
+                }
+
                 const pageResponse = await axios.get(url, {
                     headers: {
                         Authorization: `Bearer ${AIRTABLE_PAT}`,
@@ -57,13 +102,18 @@ async function backupAirtable() {
 
             console.log(`  → ${allRecords.length} records fetched`);
 
-            // These variables use your exact naming logic from above
+            if (allRecords.length === 0) {
+                console.log(`  ↳ No changes since last backup — skipping upload`);
+                continue;
+            }
+
+            totalRecordsBacked += allRecords.length;
+
             const folderPath = `/Airtable/${year}/${monthName}/${dayFolderName}`;
             const fileName = `zelim_backup_${table.name.toLowerCase().replace(/\s+/g, '_')}_${dateStamp}.json`;
             const fullPath = `${folderPath}/${fileName}`;
 
-            // "Direct Upload" method to bypass Dropbox library limitations
-            const dropboxResponse = await axios({
+            await axios({
                 method: 'post',
                 url: 'https://content.dropboxapi.com/2/files/upload',
                 headers: {
@@ -80,10 +130,13 @@ async function backupAirtable() {
                 data: JSON.stringify(allRecords, null, 2)
             });
 
-            console.log(`✓ Successfully backed up ${table.name} (Status: ${dropboxResponse.status})`);
+            console.log(`✓ Successfully backed up ${table.name}`);
         }
 
-        console.log('SUCCESS: All tables backed up to Dropbox.');
+        // Persist the timestamp so the next run is incremental
+        await writeBackupState(DROPBOX_ACCESS_TOKEN, { lastBackupTime: now.toISOString() });
+
+        console.log(`SUCCESS: Backup complete. ${totalRecordsBacked} records backed up.`);
     } catch (e) {
         console.error('BACKUP FAILED');
         if (e.response && e.response.data) {
