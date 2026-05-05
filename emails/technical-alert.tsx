@@ -365,7 +365,8 @@ export const TechnicalAlertEmail = ({
                           <Section style={{...imageGallery, marginTop: shouldSkipNotAnswered ? '8px' : '12px'}} className="image-gallery-mobile">
                             {images.map((item, imgIndex) => {
                               const imgUrl = typeof item === 'string' ? item : item.url;
-                              const imgSrc = typeof item === 'string' ? item : (item.thumbnail || item.url);
+                              const rawSrc = typeof item === 'string' ? item : item.url;
+                              const imgSrc = rawSrc?.includes('/upload/') ? rawSrc.replace('/upload/', '/upload/w_600,c_limit,q_auto/') : rawSrc;
                               return (
                                 <Link
                                   key={imgIndex}
