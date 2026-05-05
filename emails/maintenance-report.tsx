@@ -284,7 +284,9 @@ export const MaintenanceReportEmail = ({
                       {item.images && item.images.length > 0 && (
                         <Section style={imageGallery} className="image-gallery-mobile">
                           {item.images.map((imageUrl, imgIndex) => {
-                            const emailSrc = imageUrl?.includes('/upload/') ? imageUrl.replace('/upload/', '/upload/w_600,c_limit,q_auto/') : imageUrl;
+                            const emailSrc = typeof imageUrl === 'string' && imageUrl.includes('/upload/')
+                              ? imageUrl.replace('/upload/', '/upload/w_600,c_limit,q_auto/')
+                              : imageUrl;
                             return (
                               <Link
                                 key={imgIndex}
@@ -375,8 +377,11 @@ export const MaintenanceReportEmail = ({
                           <Section style={{...imageGallery, marginTop: shouldSkipNotAnswered ? '8px' : '12px'}} className="image-gallery-mobile">
                             {images.map((item, imgIndex) => {
                               const imgUrl = typeof item === 'string' ? item : item.url;
-                              const rawSrc = typeof item === 'string' ? item : item.url;
-                              const imgSrc = rawSrc?.includes('/upload/') ? rawSrc.replace('/upload/', '/upload/w_600,c_limit,q_auto/') : rawSrc;
+                              const fileType = typeof item === 'string' ? 'image' : (item.fileType || 'image');
+                              const thumbnail = typeof item === 'string' ? null : item.thumbnail;
+                              const imgSrc = fileType === 'image'
+                                ? imgUrl?.replace('/upload/', '/upload/w_600,c_limit,q_auto/')
+                                : thumbnail?.replace('w_150,h_150', 'w_600,h_600') ?? imgUrl;
                               return (
                                 <Link
                                   key={imgIndex}
