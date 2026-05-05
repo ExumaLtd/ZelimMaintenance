@@ -377,11 +377,9 @@ export const MaintenanceReportEmail = ({
                           <Section style={{...imageGallery, marginTop: shouldSkipNotAnswered ? '8px' : '12px'}} className="image-gallery-mobile">
                             {images.map((item, imgIndex) => {
                               const imgUrl = typeof item === 'string' ? item : item.url;
-                              const fileType = typeof item === 'string' ? 'image' : (item.fileType || 'image');
-                              const thumbnail = typeof item === 'string' ? null : item.thumbnail;
-                              const imgSrc = fileType === 'image'
-                                ? imgUrl?.replace('/upload/', '/upload/w_600,c_limit,q_auto/')
-                                : thumbnail?.replace('w_150,h_150', 'w_600,h_600') ?? imgUrl;
+                              const imgSrc = imgUrl?.includes('/upload/')
+                                ? imgUrl.replace('/upload/', '/upload/w_600,c_limit,q_auto/')
+                                : imgUrl;
                               return (
                                 <Link
                                   key={imgIndex}
