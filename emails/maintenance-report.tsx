@@ -283,21 +283,24 @@ export const MaintenanceReportEmail = ({
                       
                       {item.images && item.images.length > 0 && (
                         <Section style={imageGallery} className="image-gallery-mobile">
-                          {item.images.map((imageUrl, imgIndex) => (
-                            <Link 
-                              key={imgIndex} 
-                              href={imageUrl}
-                              target="_blank"
-                              style={imageLink}
-                              className="image-link"
-                            >
-                              <Img
-                                src={imageUrl}
-                                alt={`${item.name} - Image ${imgIndex + 1}`}
-                                style={imageThumbnail}
-                              />
-                            </Link>
-                          ))}
+                          {item.images.map((imageUrl, imgIndex) => {
+                            const emailSrc = imageUrl?.includes('/upload/') ? imageUrl.replace('/upload/', '/upload/w_600,c_limit,q_auto/') : imageUrl;
+                            return (
+                              <Link
+                                key={imgIndex}
+                                href={imageUrl}
+                                target="_blank"
+                                style={imageLink}
+                                className="image-link"
+                              >
+                                <Img
+                                  src={emailSrc}
+                                  alt={`${item.name} - Image ${imgIndex + 1}`}
+                                  style={imageThumbnail}
+                                />
+                              </Link>
+                            );
+                          })}
                         </Section>
                       )}
                     </div>
