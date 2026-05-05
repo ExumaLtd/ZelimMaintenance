@@ -31,12 +31,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // Rate limit by IP — 5 attempts per 5 minutes
+    // Rate limit by IP — 5 attempts per 5 minutes (fail-open if Redis is unavailable)
     const ip = getClientIp(req);
-    const { success, reset } = await ratelimit.limit(ip);
-    if (!success) {
-      const retryAfter = Math.ceil((reset - Date.now()) / 1000);
-      return res.status(429).json({ error: "Too many failed attempts.", retryAfter });
+    try {
+      const { success, reset } = await ratelimit.limit(ip);
+      if (!success) {
+        const retryAfter = Math.ceil((reset - Date.now()) / 1000);
+        return res.status(429).json({ error: "Too many failed attempts.", retryAfter });
+      }
+    } catch (redisErr) {
+      console.warn("Rate limiter unavailable, allowing request:", redisErr.message);
     }
 
     const pin = req.query.pin as string;
