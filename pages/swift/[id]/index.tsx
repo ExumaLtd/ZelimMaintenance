@@ -60,9 +60,9 @@ export async function getServerSideProps(context) {
   
   // Get session to extract PIN
   const session = getSession(context.req);
-  
-  // If no valid session, redirect to login
-  if (!session || !session.pin) {
+
+  // If no valid session, or the URL token does not match the session, redirect to login
+  if (!session || !session.pin || publicToken !== session.token) {
     return { redirect: { destination: "/", permanent: false } };
   }
 

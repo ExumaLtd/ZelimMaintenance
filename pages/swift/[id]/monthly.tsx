@@ -1427,7 +1427,9 @@ export async function getServerSideProps({ params, req }) {
   const token = params.id;
 
   const session = getSession(req);
-  if (!session || session.access !== 'operator') {
+  // Confirm the URL token matches the session so one unit's session cannot load
+  // another unit's data.
+  if (!session || session.access !== 'operator' || token !== session.token) {
     return { redirect: { destination: '/', permanent: false } };
   }
 

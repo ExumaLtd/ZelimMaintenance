@@ -1555,7 +1555,13 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 export async function getServerSideProps({ params, req }) {
   const token = params.id;
   const session = getSession(req);
-  const accessType = session?.access || 'maintenance';
+  // Enforce the session here rather than relying only on the proxy layer, and
+  // confirm the URL token matches the session so one unit's session cannot load
+  // another unit's data.
+  if (!session || !session.pin || token !== session.token) {
+    return { redirect: { destination: '/', permanent: false } };
+  }
+  const accessType = session.access;
 
   try {
     const data = await fetchFormData(token, '30-month depth');
