@@ -55,6 +55,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // If the client already knows the record ID, skip the SELECT entirely
     if (recordId) {
+      // Verify the caller owns this draft before writing to it. Without this a
+      // valid session could overwrite another unit's draft by supplying its
+      // record ID (IDOR).
+      let existingDraft;
+      try {
+        existingDraft = await base('maintenance_drafts').find(recordId);
+      } catch (findError) {
+        return res.status(404).json({ error: 'Draft not found' });
+      }
+      if (existingDraft.get('access_pin_used') !== accessPin) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
       const updateFields: Record<string, any> = {
         draft_data: draftDataString,
         last_updated: new Date().toISOString(),
