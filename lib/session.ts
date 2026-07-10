@@ -67,43 +67,6 @@ export function getSession(req) {
   }
 }
 
-/**
- * Get session from client-side (browser JavaScript)
- */
-export function getClientSession() {
-  if (typeof document === 'undefined') return null;
-
-  try {
-    const cookies = document.cookie;
-    if (!cookies) return null;
-
-    const cookieObj = {};
-    cookies.split(';').forEach(cookie => {
-      const trimmed = cookie.trim();
-      const eqIdx = trimmed.indexOf('=');
-      if (eqIdx === -1) return;
-      const key = trimmed.slice(0, eqIdx);
-      const value = trimmed.slice(eqIdx + 1); // preserve = signs in base64 values
-      cookieObj[key] = value;
-    });
-
-    const encodedSession = cookieObj['portal_session'];
-    if (!encodedSession) return null;
-
-    // Decode session (strip signature if present)
-    const dotIndex = encodedSession.lastIndexOf('.');
-    const payload = dotIndex !== -1 ? encodedSession.slice(0, dotIndex) : encodedSession;
-    const session = JSON.parse(atob(payload));
-
-    if (session.expires && Date.now() > session.expires) return null;
-
-    return session;
-  } catch (error) {
-    console.error('Client session parse error:', error);
-    return null;
-  }
-}
-
 export function clearSession(res) {
   res.setHeader('Set-Cookie', 'portal_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly');
 }

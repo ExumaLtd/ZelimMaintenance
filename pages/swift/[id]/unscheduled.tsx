@@ -12,7 +12,7 @@ import DatePicker from '../../../components/date-picker';
 import { ChevronDown, ChevronUp } from "lucide-react";
 import SignaturePad from '../../../components/signature-pad';
 import { useAutoSave } from '../../../hooks/use-auto-save';
-import { getClientSession, getSession } from '../../../lib/session';
+import { getSession } from '../../../lib/session';
 import { fetchFormData } from '@/lib/data-fetching';
 
 const unscheduledSchema = z.object({
@@ -78,8 +78,9 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
   const [showOperatorDropdown, setShowOperatorDropdown] = useState(false);
 
   const storageKey = useMemo(() => {
-  const session = getClientSession();
-  const pin = session?.pin || 'unknown';
+  // The session cookie is httpOnly, so it is not readable client-side. The draft
+  // localStorage key uses a fixed 'unknown' segment for the pin component.
+  const pin = 'unknown';
   return `draft_unscheduled_${unit?.serial_number}_${pin}`;
 }, [unit?.serial_number]);
 
