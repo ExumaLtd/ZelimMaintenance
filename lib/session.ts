@@ -1,4 +1,15 @@
 // lib/session.js
+//
+// Session cookie format: base64(JSON payload).hmac-sha256-hex(payload)
+//
+// The payload is base64-encoded and HMAC-signed, it is NOT encrypted. The
+// signature prevents tampering: a client cannot change the token, access type,
+// PIN or expiry without invalidating it. But anyone who can read the raw cookie
+// value can base64-decode the JSON, which includes the access PIN. So
+// confidentiality relies on the cookie being httpOnly and Secure and sent only
+// over TLS, not on the payload being secret. The PIN is embedded deliberately so
+// the server can scope drafts and submissions to the access code without an
+// extra Airtable lookup on every request.
 import crypto from 'crypto';
 
 function getSecret() {
