@@ -4,6 +4,7 @@ import Image from "next/image";
 import Airtable from "airtable";
 import { useRouter } from "next/router";
 import { getSession } from "../../../lib/session";
+import { esc } from "../../../utils/api-utils";
 
 // Client logo resolver - KEEP THIS
 const getClientLogo = (companyName, serialNumber) => {
@@ -87,7 +88,7 @@ export async function getServerSideProps(context) {
     const records = await base(process.env.AIRTABLE_SWIFT_TABLE)
       .select({
         maxRecords: 1,
-        filterByFormula: `{public_token} = "${publicToken}"`,
+        filterByFormula: `{public_token} = '${esc(publicToken)}'`,
         fields: ["serial_number", "operating_company", "annual_maintenance_due", "depth_maintenance_due"],
       })
       .firstPage();
