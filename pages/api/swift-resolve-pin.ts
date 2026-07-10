@@ -18,6 +18,12 @@ const ratelimit = new Ratelimit({
   prefix: "rl:pin",
 });
 
+// Per-PIN lockout: lock a specific access code after this many failed attempts,
+// independent of source IP, so an attacker cannot brute force one code by
+// rotating IPs. See the fail-open note in the handler.
+const MAX_PIN_FAILURES = 10;
+const PIN_LOCK_SECONDS = 15 * 60; // 15 minutes
+
 // Connect to correct Airtable base
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
   process.env.AIRTABLE_BASE_ID // appOQXbopTwS0SdnL
@@ -54,6 +60,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "Invalid pin format" });
     }
 
+    // Per-PIN lockout check. Runs alongside the per-IP limit above and locks a
+    // specific code after MAX_PIN_FAILURES failed attempts.
+    //
+    // Fail-open: if Redis is unavailable we log and allow the attempt rather than
+    // lock a technician out of a safety-critical maintenance tool. This is a
+    // deliberate availability decision; the per-IP limit remains as a backstop.
+    const pinLockKey = `lock:pin:${pin}`;
+    try {
+      const failures = Number(await redis.get(pinLockKey)) || 0;
+      if (failures >= MAX_PIN_FAILURES) {
+        const ttl = await redis.ttl(pinLockKey);
+        const retryAfter = ttl > 0 ? ttl : PIN_LOCK_SECONDS;
+        return res.status(429).json({ error: "Too many failed attempts.", retryAfter });
+      }
+    } catch (redisErr) {
+      console.warn("PIN lockout check unavailable, allowing request:", redisErr.message);
+    }
+
     // Single OR query — find the record matching either PIN type
     const records = await base(TABLE_NAME)
       .select({
@@ -64,7 +88,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .firstPage();
 
     if (!records || records.length === 0) {
+      // Count this failed attempt toward the per-PIN lockout (fail-open).
+      try {
+        const count = await redis.incr(pinLockKey);
+        if (count === 1) await redis.expire(pinLockKey, PIN_LOCK_SECONDS);
+      } catch (redisErr) {
+        console.warn("PIN failure counter unavailable:", redisErr.message);
+      }
       return res.status(404).json({ error: "Code not recognised" });
+    }
+
+    // Successful lookup — clear any accumulated failures for this PIN (fail-open).
+    try {
+      await redis.del(pinLockKey);
+    } catch (redisErr) {
+      console.warn("PIN counter reset unavailable:", redisErr.message);
     }
 
     const record = records[0];
