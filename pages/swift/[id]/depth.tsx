@@ -15,6 +15,10 @@ import { useAutoSave } from '../../../hooks/use-auto-save';
 import { fetchFormData } from '@/lib/data-fetching';
 import { getSession } from '../../../lib/session';
 
+// Development-only debug logger. No-ops in production.
+const DEBUG = process.env.NODE_ENV === 'development';
+const dlog = (...args: any[]) => { if (DEBUG) console.log(...args); };
+
 const depthAdminSchema = z.object({
   company: z.string().min(1, 'Please select a maintenance company.'),
   location: z.string().min(1, 'Please provide a location.'),
@@ -528,7 +532,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     let nextStep = currentStep + 1;
     if (currentStep === 7 && !isWinchReturned) {
       nextStep = 9;
-      console.log('⏭️ Skipping Step 8 (Winch maintenance) - winch not returned');
+      dlog('⏭️ Skipping Step 8 (Winch maintenance) - winch not returned');
     }
     
     setCurrentStep(nextStep);
@@ -674,7 +678,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
         const data = await res.json();
         
         if (data.draft) {
-          console.log('📦 Draft found in Airtable');
+          dlog('📦 Draft found in Airtable');
           
           if (data.draft.checklistData) setChecklistData(data.draft.checklistData);
           if (data.draft.answers) setAnswers(data.draft.answers);
@@ -698,10 +702,10 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
               for (let s = 2; s <= data.draft.currentStep; s++) {
                 window.history.pushState({ step: s }, '', window.location.href);
               }
-              console.log(`✅ Draft loaded - restored to step ${data.draft.currentStep}`);
+              dlog(`✅ Draft loaded - restored to step ${data.draft.currentStep}`);
             }, 0);
           } else {
-            console.log('✅ Draft loaded from Airtable');
+            dlog('✅ Draft loaded from Airtable');
           }
         }
       } catch (error) {
@@ -761,16 +765,16 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
           setLocationFailed(true);
           switch(error.code) {
             case error.PERMISSION_DENIED:
-              console.log("User denied location permission");
+              dlog("User denied location permission");
               break;
             case error.POSITION_UNAVAILABLE:
-              console.log("Location information unavailable");
+              dlog("Location information unavailable");
               break;
             case error.TIMEOUT:
-              console.log("Location request timed out");
+              dlog("Location request timed out");
               break;
             default:
-              console.log("Unknown location error:", error.message);
+              dlog("Unknown location error:", error.message);
           }
         },
         options
@@ -816,10 +820,10 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('🔴 FORM SUBMITTED - Step:', currentStep);
-    console.log('  - Event type:', e.type);
-    console.log('  - Submitter:', e.nativeEvent?.submitter);
-    console.log('  - Stack trace:', new Error().stack);
+    dlog('🔴 FORM SUBMITTED - Step:', currentStep);
+    dlog('  - Event type:', e.type);
+    dlog('  - Submitter:', e.nativeEvent?.submitter);
+    dlog('  - Stack trace:', new Error().stack);
     
     setErrorMsg("");
     if (submitting) return;

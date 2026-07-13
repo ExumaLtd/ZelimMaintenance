@@ -54,14 +54,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Get MIME type from client header
     const mimeType = (req.headers['x-audio-mime'] as string) || 'audio/webm';
-    console.log('📝 Audio MIME type:', mimeType);
+    log('📝 Audio MIME type:', mimeType);
 
     // Build multipart form-data for ElevenLabs STT
     const form = new FormData();
     form.append('file', new Blob([buffer], { type: mimeType }), 'audio.webm');
     form.append('model_id', 'scribe_v2');
 
-    console.log('🌐 Sending to ElevenLabs API...');
+    log('🌐 Sending to ElevenLabs API...');
 
     const response = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {
       method: 'POST',
@@ -101,7 +101,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    console.log('✅ ElevenLabs response:', data);
+    log('✅ ElevenLabs response:', data);
 
     // Extract text from response
     const text = data.text || data.transcript || data.result || '';

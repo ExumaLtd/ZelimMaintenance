@@ -103,7 +103,7 @@ export async function fetchTemplate(maintenanceType: string) {
       .firstPage();
 
     if (!records || records.length === 0) {
-      console.log('Template not found for:', templateName);
+      if (process.env.NODE_ENV === 'development') console.log('Template not found for:', templateName);
       return null;
     }
 

@@ -18,6 +18,10 @@ import { useAutoSave } from '../../../hooks/use-auto-save';
 import { fetchFormData } from '@/lib/data-fetching';
 import { getSession } from '../../../lib/session';
 
+// Development-only debug logger. No-ops in production.
+const DEBUG = process.env.NODE_ENV === 'development';
+const dlog = (...args: any[]) => { if (DEBUG) console.log(...args); };
+
 const annualAdminSchema = z.object({
   company: z.string().min(1, 'Please select a maintenance company.'),
   location: z.string().min(1, 'Please provide a location.'),
@@ -438,21 +442,21 @@ export default function Annual({ unit, template, companies = [], engineers = [],
     const loadDraft = async () => {
       // Only load once per session
       if (hasLoadedDraftRef.current) {
-        console.log('⏭️ Draft already loaded, skipping...');
+        dlog('⏭️ Draft already loaded, skipping...');
         return;
       }
       
       // PRIORITY 1: ALWAYS check Airtable first
       if (unit?.record_id) {
         try {
-          console.log('🔍 Checking Airtable for draft...');
+          dlog('🔍 Checking Airtable for draft...');
           const res = await fetch(
             `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Annual`
           );
           const data = await res.json();
           
           if (data.draft) {
-            console.log('📦 Draft found in Airtable');
+            dlog('📦 Draft found in Airtable');
             
             if (data.draft.currentStep) {
               setCurrentStep(data.draft.currentStep);
@@ -479,10 +483,10 @@ export default function Annual({ unit, template, companies = [], engineers = [],
             localStorage.removeItem(storageKey);
 
             hasLoadedDraftRef.current = true;
-            console.log('✅ Draft loaded from Airtable:', new Date(data.lastUpdated).toLocaleString());
+            dlog('✅ Draft loaded from Airtable:', new Date(data.lastUpdated).toLocaleString());
             return; // STOP
           } else {
-            console.log('ℹ️ No draft found in Airtable');
+            dlog('ℹ️ No draft found in Airtable');
           }
         } catch (error) {
           console.error('❌ Failed to load Airtable draft:', error);
@@ -490,7 +494,7 @@ export default function Annual({ unit, template, companies = [], engineers = [],
       }
       
       // PRIORITY 2: localStorage fallback (only if Airtable had nothing)
-      console.log('🔍 Checking localStorage for draft...');
+      dlog('🔍 Checking localStorage for draft...');
       const savedDraft = localStorage.getItem(storageKey);
       if (savedDraft) {
         try {
@@ -520,12 +524,12 @@ export default function Annual({ unit, template, companies = [], engineers = [],
           }
           
           hasLoadedDraftRef.current = true;
-          console.log('✅ Draft loaded from localStorage');
+          dlog('✅ Draft loaded from localStorage');
         } catch (e) {
           console.error("❌ localStorage draft load error:", e);
         }
       } else {
-        console.log('ℹ️ No draft found in localStorage - fresh start');
+        dlog('ℹ️ No draft found in localStorage - fresh start');
       }
     };
     
@@ -580,16 +584,16 @@ export default function Annual({ unit, template, companies = [], engineers = [],
           setLocationFailed(true);
           switch(error.code) {
             case error.PERMISSION_DENIED:
-              console.log("User denied location permission");
+              dlog("User denied location permission");
               break;
             case error.POSITION_UNAVAILABLE:
-              console.log("Location information unavailable");
+              dlog("Location information unavailable");
               break;
             case error.TIMEOUT:
-              console.log("Location request timed out");
+              dlog("Location request timed out");
               break;
             default:
-              console.log("Unknown location error:", error.message);
+              dlog("Unknown location error:", error.message);
           }
         },
         options
