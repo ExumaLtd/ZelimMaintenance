@@ -21,7 +21,7 @@ const ratelimit = new Ratelimit({
 // Per-PIN lockout: lock a specific access code after this many failed attempts,
 // independent of source IP, so an attacker cannot brute force one code by
 // rotating IPs. See the fail-open note in the handler.
-const MAX_PIN_FAILURES = 10;
+const MAX_PIN_FAILURES = 5;
 const PIN_LOCK_SECONDS = 15 * 60; // 15 minutes
 
 // Connect to correct Airtable base
