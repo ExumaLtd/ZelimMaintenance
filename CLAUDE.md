@@ -20,6 +20,7 @@ Standing conventions for the Zelim maintenance portal. Follow these in every ses
 - TypeScript strict mode is off. Do not enable it without being asked.
 - Do not refactor the large form components (annual, depth, monthly, unscheduled, fault-reporting) for style or lint reasons. They are safety-critical. Behaviour changes there need explicit instruction.
 - The 59 react-hooks v6 lint warnings are accepted tech debt, deliberately set to warn. Do not silence them or refactor to clear them.
+- The `.return-dashboard-btn` styles are duplicated in `styles/form-complete.css` and `styles/form.css`, with the `form-complete.css` copy winning because it is imported last. The two copies also disagree on their mobile breakpoint (`form.css` uses 768px, `form-complete.css` uses 600px). Known tech debt: keep the two copies in sync when editing until they are reconciled.
 
 ## Held major upgrades
 

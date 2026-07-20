@@ -90,7 +90,7 @@
     color: #ffffff;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    padding: 0.4375rem 0.75rem 0.4375rem 1.5rem;
+    padding: 0.4375rem 0.4375rem 0.4375rem 1.5rem;
     border: 1px solid rgb(246, 246, 94);
     border-radius: 0.5rem;
     transition: background-color 0.5s, color 0.5s;
