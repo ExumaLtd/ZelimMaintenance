@@ -3,6 +3,7 @@
 // Airtable is the single source of truth: callers must never trust a publicToken
 // or accessType supplied by the client, they must derive both from here.
 import Airtable from 'airtable';
+import { requireEnv } from './env';
 
 export type AccessType = 'maintenance' | 'operator';
 
@@ -24,11 +25,15 @@ export function isValidPinFormat(pin: unknown): pin is string {
   return typeof pin === 'string' && pin.length > 0 && pin.length <= 20 && PIN_PATTERN.test(pin);
 }
 
+const AIRTABLE_PAT = requireEnv('AIRTABLE_PAT');
+const AIRTABLE_BASE_ID = requireEnv('AIRTABLE_BASE_ID');
+const AIRTABLE_SWIFT_TABLE = requireEnv('AIRTABLE_SWIFT_TABLE');
+
 let defaultBase: AirtableBase | null = null;
 function getDefaultBase(): AirtableBase {
   if (!defaultBase) {
-    defaultBase = new Airtable({ apiKey: process.env.AIRTABLE_PAT }).base(
-      process.env.AIRTABLE_BASE_ID
+    defaultBase = new Airtable({ apiKey: AIRTABLE_PAT }).base(
+      AIRTABLE_BASE_ID
     ) as unknown as AirtableBase;
   }
   return defaultBase;
@@ -42,9 +47,7 @@ export async function resolvePin(
   accessPin: string,
   base: AirtableBase = getDefaultBase()
 ): Promise<ResolvedPin | null> {
-  const tableName = process.env.AIRTABLE_SWIFT_TABLE as string;
-
-  const records = await base(tableName)
+  const records = await base(AIRTABLE_SWIFT_TABLE)
     .select({
       maxRecords: 1,
       filterByFormula: `OR({engineer_pin} = "${accessPin}", {operator_pin} = "${accessPin}")`,

@@ -5,6 +5,11 @@ import Airtable from "airtable";
 import { useRouter } from "next/router";
 import { getSession } from "../../../lib/session";
 import { esc } from "../../../utils/api-utils";
+import { requireEnv } from "../../../lib/env";
+
+const AIRTABLE_PAT = requireEnv('AIRTABLE_PAT');
+const AIRTABLE_BASE_ID = requireEnv('AIRTABLE_BASE_ID');
+const AIRTABLE_SWIFT_TABLE = requireEnv('AIRTABLE_SWIFT_TABLE');
 
 // Client logo resolver - KEEP THIS
 const getClientLogo = (companyName, serialNumber) => {
@@ -82,10 +87,10 @@ export async function getServerSideProps(context) {
 
   try {
     const base = new Airtable({
-      apiKey: process.env.AIRTABLE_PAT,
-    }).base(process.env.AIRTABLE_BASE_ID);
+      apiKey: AIRTABLE_PAT,
+    }).base(AIRTABLE_BASE_ID);
 
-    const records = await base(process.env.AIRTABLE_SWIFT_TABLE)
+    const records = await base(AIRTABLE_SWIFT_TABLE)
       .select({
         maxRecords: 1,
         filterByFormula: `{public_token} = '${esc(publicToken)}'`,

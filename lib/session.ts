@@ -11,14 +11,14 @@
 // the server can scope drafts and submissions to the access code without an
 // extra Airtable lookup on every request.
 import crypto from 'crypto';
+import { requireEnv } from './env';
 
-function getSecret() {
-  if (!process.env.SESSION_SECRET) throw new Error('SESSION_SECRET env var is not set');
-  return process.env.SESSION_SECRET;
-}
+// Asserted at module load so a missing secret fails on deploy rather than on a
+// technician's first login attempt.
+const SESSION_SECRET = requireEnv('SESSION_SECRET');
 
 function sign(payload) {
-  return crypto.createHmac('sha256', getSecret()).update(payload).digest('hex');
+  return crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
 }
 
 /**

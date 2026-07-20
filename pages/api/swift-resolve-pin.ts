@@ -5,10 +5,11 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { Redis } from "@upstash/redis";
 import { Ratelimit } from "@upstash/ratelimit";
 import { getClientIp } from "../../utils/api-utils";
+import { requireEnv } from "../../lib/env";
 
 const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  url: requireEnv('UPSTASH_REDIS_REST_URL'),
+  token: requireEnv('UPSTASH_REDIS_REST_TOKEN'),
 });
 
 // 5 attempts per IP per 5 minutes
@@ -25,11 +26,11 @@ const MAX_PIN_FAILURES = 5;
 const PIN_LOCK_SECONDS = 15 * 60; // 15 minutes
 
 // Connect to correct Airtable base
-const base = new Airtable({ apiKey: process.env.AIRTABLE_PAT }).base(
-  process.env.AIRTABLE_BASE_ID // appOQXbopTwS0SdnL
+const base = new Airtable({ apiKey: requireEnv('AIRTABLE_PAT') }).base(
+  requireEnv('AIRTABLE_BASE_ID') // appOQXbopTwS0SdnL
 );
 
-const TABLE_NAME = process.env.AIRTABLE_SWIFT_TABLE; // swift_units
+const TABLE_NAME = requireEnv('AIRTABLE_SWIFT_TABLE'); // swift_units
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {

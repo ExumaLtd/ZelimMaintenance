@@ -4,11 +4,17 @@ import { getSession } from '../../lib/session';
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
 import { esc, getClientIp } from '../../utils/api-utils';
+import { requireEnv } from '../../lib/env';
 
 const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  url: requireEnv('UPSTASH_REDIS_REST_URL'),
+  token: requireEnv('UPSTASH_REDIS_REST_TOKEN'),
 });
+
+const AIRTABLE_PAT = requireEnv('AIRTABLE_PAT');
+const AIRTABLE_BASE_ID = requireEnv('AIRTABLE_BASE_ID');
+const CLOUDINARY_API_KEY = requireEnv('CLOUDINARY_API_KEY');
+const CLOUDINARY_API_SECRET = requireEnv('CLOUDINARY_API_SECRET');
 
 // 20 submissions per hour per IP
 const ratelimit = new Ratelimit({
@@ -108,8 +114,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Missing or invalid required fields' });
   }
 
-  const apiKey = process.env.AIRTABLE_PAT;
-  const baseId = process.env.AIRTABLE_BASE_ID;
+  const apiKey = AIRTABLE_PAT;
+  const baseId = AIRTABLE_BASE_ID;
 
   // Verify this unit belongs to the session's token — prevents IDOR
   const unitVerifyRes = await fetch(
@@ -250,11 +256,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const safeRef = recordRef.replace(/\//g, '_'); // e.g. RI_SWI005_U_180226_5
         const sigPublicId = `${cloudinaryFolder}/${safeRef}_signature`;
         const sigTimestamp = Math.round(Date.now() / 1000);
-        const sigParamStr = `public_id=${sigPublicId}&timestamp=${sigTimestamp}${process.env.CLOUDINARY_API_SECRET}`;
+        const sigParamStr = `public_id=${sigPublicId}&timestamp=${sigTimestamp}${CLOUDINARY_API_SECRET}`;
         const sigSignature = crypto.createHash('sha1').update(sigParamStr).digest('hex');
         const sigFormData = new FormData();
         sigFormData.append('file', blob, `${safeRef}_signature.png`);
-        sigFormData.append('api_key', process.env.CLOUDINARY_API_KEY ?? '');
+        sigFormData.append('api_key', CLOUDINARY_API_KEY);
         sigFormData.append('timestamp', String(sigTimestamp));
         sigFormData.append('signature', sigSignature);
         sigFormData.append('public_id', sigPublicId);

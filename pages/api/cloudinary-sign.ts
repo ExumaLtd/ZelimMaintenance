@@ -2,6 +2,10 @@
 import crypto from 'crypto';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from '../../lib/session';
+import { requireEnv } from '../../lib/env';
+
+const CLOUDINARY_API_KEY = requireEnv('CLOUDINARY_API_KEY');
+const CLOUDINARY_API_SECRET = requireEnv('CLOUDINARY_API_SECRET');
 
 // Only allow uploads into the zelimmaintenance/SWIFT/ folder tree
 const ALLOWED_FOLDER_PREFIX = 'zelimmaintenance/SWIFT/';
@@ -31,13 +35,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Parameters must be sorted alphabetically before signing
     const signature = crypto
       .createHash('sha1')
-      .update(`folder=${folder}&timestamp=${timestamp}${process.env.CLOUDINARY_API_SECRET}`)
+      .update(`folder=${folder}&timestamp=${timestamp}${CLOUDINARY_API_SECRET}`)
       .digest('hex');
 
     return res.status(200).json({
       signature,
       timestamp,
-      apiKey: process.env.CLOUDINARY_API_KEY,
+      apiKey: CLOUDINARY_API_KEY,
       folder,
     });
   } catch (err) {

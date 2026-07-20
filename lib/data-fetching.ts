@@ -1,9 +1,12 @@
 import Airtable from 'airtable';
 import { esc } from '../utils/api-utils';
+import { requireEnv } from './env';
+
+const AIRTABLE_SWIFT_TABLE = requireEnv('AIRTABLE_SWIFT_TABLE');
 
 const base = new Airtable({
-  apiKey: process.env.AIRTABLE_PAT,
-}).base(process.env.AIRTABLE_BASE_ID);
+  apiKey: requireEnv('AIRTABLE_PAT'),
+}).base(requireEnv('AIRTABLE_BASE_ID'));
 
 // ============================================================================
 // INDIVIDUAL FETCH FUNCTIONS
@@ -16,7 +19,7 @@ const base = new Airtable({
  */
 export async function fetchUnitByToken(publicToken: string) {
   try {
-    const records = await base(process.env.AIRTABLE_SWIFT_TABLE)
+    const records = await base(AIRTABLE_SWIFT_TABLE)
       .select({
         maxRecords: 1,
         filterByFormula: `{public_token} = '${esc(publicToken)}'`,

@@ -5,10 +5,11 @@ import { getSession } from '../../lib/session';
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
 import { esc, getClientIp } from '../../utils/api-utils';
+import { requireEnv } from '../../lib/env';
 
 const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  url: requireEnv('UPSTASH_REDIS_REST_URL'),
+  token: requireEnv('UPSTASH_REDIS_REST_TOKEN'),
 });
 
 // 120 saves per hour per IP — supports frequent auto-saves
@@ -18,8 +19,8 @@ const ratelimit = new Ratelimit({
   prefix: 'rl:draft-save',
 });
 
-const base = new Airtable({ apiKey: process.env.AIRTABLE_PAT }).base(
-  process.env.AIRTABLE_BASE_ID
+const base = new Airtable({ apiKey: requireEnv('AIRTABLE_PAT') }).base(
+  requireEnv('AIRTABLE_BASE_ID')
 );
 
 const PLACEHOLDER_EMAIL = 'draft@zelimmaintenance.com';
