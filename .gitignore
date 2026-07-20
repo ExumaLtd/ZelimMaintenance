@@ -12,3 +12,6 @@ yarn-error.log*
 
 # TypeScript incremental build cache
 tsconfig.tsbuildinfo
+
+# macOS folder metadata
+.DS_Store
