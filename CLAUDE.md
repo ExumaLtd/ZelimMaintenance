@@ -4,7 +4,8 @@ Standing conventions for the Zelim maintenance portal. Follow these in every ses
 
 ## Writing style
 
-- Never use em dashes or en dashes anywhere: code comments, commit messages, documentation, UI copy.
+- Never use em dashes or en dashes in code comments, commit messages, or documentation.
+- The dash rule does not apply to user-facing UI copy, where normal typographic punctuation, including en dashes, is fine.
 - Plain, direct prose.
 
 ## Product naming

@@ -1173,7 +1173,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                   <>
                     <h3 className="checklist-section-title">Monthly maintenance</h3>
                     <p className="checklist-section-subtitle">
-                      All monthly maintenance must be completed in accordance with Section 5.2, Monthly maintenance, of the approved Swift Rescue Conveyor Operators Maintenance Manual.
+                      All monthly maintenance must be completed in accordance with Section 5.2 – Monthly maintenance of the approved Swift Rescue Conveyor Operators Maintenance Manual.
                     </p>
 
                     <div style={{ marginTop: "24px" }}>
