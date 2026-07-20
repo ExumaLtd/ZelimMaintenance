@@ -77,7 +77,8 @@ gitignored); production values are set in the Vercel project settings.
 Application runtime (set in Vercel):
 
 - `SESSION_SECRET` secret used to HMAC-sign the session cookie
-- `AIRTABLE_PAT` Airtable personal access token used by the app
+- `AIRTABLE_PAT` Airtable personal access token used by the app (see the note
+  below: this name is used for two independent credentials)
 - `AIRTABLE_BASE_ID` Airtable base identifier
 - `AIRTABLE_SWIFT_TABLE` name of the SWIFT units table
 - `UPSTASH_REDIS_REST_URL` Upstash Redis REST endpoint
@@ -98,10 +99,31 @@ Build time:
 Backup workflow (GitHub Actions repository secrets, not application runtime):
 
 - `AIRTABLE_PAT` scoped Airtable personal access token used by the backup job
+  (see the note below: this name is used for two independent credentials)
 - `DROPBOX_APP_KEY`
 - `DROPBOX_APP_SECRET`
 - `DROPBOX_REFRESH_TOKEN`
 - `VERCEL_TOKEN`
+
+### A note on `AIRTABLE_PAT`
+
+The name `AIRTABLE_PAT` appears twice above, and the two entries are **separate
+credentials that happen to share a variable name**. They are not the same value
+and should not be assumed interchangeable.
+
+- The **application runtime token** lives in the Vercel project settings. It is
+  read by the portal at request time and only needs record read and write access
+  on the tables the app actually touches.
+- The **backup token** lives in the GitHub Actions repository secrets. It is
+  read only by `scripts/airtable-backup.js` inside the workflow and needs
+  broader access, including schema read across every table in the base, because
+  it enumerates and exports all of them.
+
+Because the backup job needs a wider scope than the app, keeping them as two
+distinct tokens is intentional: it limits what the runtime token can reach if it
+is ever exposed. Rotate them independently, and when rotating one, check which
+system you are updating. Setting the broader backup token as the runtime value
+would silently widen the app's access.
 
 ## Local development
 
@@ -206,12 +228,29 @@ Other API routes carry their own per-IP limits sized to their expected use (for
 example draft saves allow frequent auto-saves, while email sends are tightly
 capped).
 
-### Redis fail-open decision
+### Rate limiting failure modes
 
-If Upstash Redis is unreachable, the rate limiter and the per-PIN lockout log a
+Rate limiting has two distinct failure modes, and they are handled differently
+on purpose. The short version: **fail loud on misconfiguration, fail open on
+outage.**
+
+**Missing configuration fails loud, at startup.** If `UPSTASH_REDIS_REST_URL` or
+`UPSTASH_REDIS_REST_TOKEN` is absent, every module that rate limits throws at
+module load with a message naming the missing variable. The route does not
+start. A deployment with rate limiting not configured at all is a
+misconfiguration, not a degraded state, and it must never reach users silently
+serving unlimited access-code attempts. This is caught at deploy time rather
+than discovered later from logs.
+
+**A runtime outage fails open.** If Redis is configured but unreachable or
+erroring while serving traffic, the rate limiter and the per-PIN lockout log a
 warning and allow the request to proceed rather than blocking it. This is a
 deliberate availability decision. The portal is a safety-critical maintenance
-tool used on vessels, and locking a legitimate technician out because a rate
+tool used offshore, and locking a legitimate technician out because the rate
 limiting backend is temporarily down is a worse outcome than briefly weakened
 brute-force protection. The controls resume automatically as soon as Redis is
 reachable again.
+
+The distinction is between never having been configured, which is a deploy
+error worth stopping for, and having been configured but temporarily failing,
+which is an outage worth riding out.
