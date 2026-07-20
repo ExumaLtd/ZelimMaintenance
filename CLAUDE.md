@@ -21,6 +21,13 @@ Standing conventions for the Zelim maintenance portal. Follow these in every ses
 - Do not refactor the large form components (annual, depth, monthly, unscheduled, fault-reporting) for style or lint reasons. They are safety-critical. Behaviour changes there need explicit instruction.
 - The 59 react-hooks v6 lint warnings are accepted tech debt, deliberately set to warn. Do not silence them or refactor to clear them.
 
+## Held major upgrades
+
+Two major upgrades are held pending upstream support. Both unblock when `eslint-config-next` updates its bundled lint stack. Recheck when Next ships a major.
+
+- TypeScript 7: held. Blocked because the `typescript-eslint` peers cap at `typescript <6.1.0`, including its latest release, so lint and the Next build fail. The codebase itself compiles clean under TypeScript 7 with zero errors, so this is an upstream wait, not a code problem.
+- ESLint 10: held. Blocked because `eslint-plugin-react` 7.37.5 (its latest release) still calls `context.getFilename()`, which ESLint 10 removed, and its peers cap at ESLint 9.7, so lint crashes on load. `eslint-config-next`'s own peer of `eslint >=9.0.0` is misleadingly permissive since the plugins it bundles are not.
+
 ## Security conventions
 
 - All Airtable access is server-side. No credential may reach the client.
