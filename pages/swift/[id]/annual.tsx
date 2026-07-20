@@ -33,7 +33,7 @@ const annualAdminSchema = z.object({
 
 // Define sections for multi-step flow
 const sections = [
-  { step: 1, title: "Photograph SWIFT", subtitle: null, questionIds: [1] },
+  { step: 1, title: "Photograph Swift", subtitle: null, questionIds: [1] },
   { step: 2, title: "Records and visual checks", subtitle: null, questionIds: [2, 3] },
   { step: 3, title: "Lubrication and mechanical checks", subtitle: null, questionIds: [4, 5, 6] },
   { step: 4, title: "Conveyor belt checks", subtitle: null, questionIds: [7, 8, 9, 10] },
@@ -313,7 +313,7 @@ export default function Annual({ unit, template, companies = [], engineers = [],
         if (images.length === 0) {
           errors.push('photograph_images');
           newFieldErrors.photographImages = true;
-          setErrorMsg("Please upload at least one photo of the SWIFT.");
+          setErrorMsg("Please upload at least one photo of the Swift.");
         }
       }
     }
@@ -1088,7 +1088,7 @@ export default function Annual({ unit, template, companies = [], engineers = [],
                   <>
                     <h3 className="checklist-section-title">Annual maintenance</h3>
                     <p className="checklist-section-subtitle">
-                      All annual maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual.
+                      All annual maintenance must be completed in accordance with the approved Swift Rescue Conveyor Maintenance Manual.
                     </p>
                   </>
                 )}

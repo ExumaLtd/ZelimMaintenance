@@ -38,7 +38,7 @@ const sections = [
   { 
     step: 2, 
     title: "30-month depth maintenance",
-    subtitle: "All 30-month depth maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual and Installation Guide.", 
+    subtitle: "All 30-month depth maintenance must be completed in accordance with the approved Swift Rescue Conveyor Maintenance Manual and Installation Guide.", 
     questionIds: [1] 
   },
   { 
@@ -49,7 +49,7 @@ const sections = [
   },
   { 
     step: 4, 
-    title: "Clean the SWIFT", 
+    title: "Clean the Swift",
     subtitle: null, 
     questionIds: [3] 
   },
@@ -486,7 +486,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
         if (images.length === 0) {
           errors.push('photograph_images');
           newFieldErrors.photographImages = true;
-          setErrorMsg("Please upload at least one photo of the SWIFT.");
+          setErrorMsg("Please upload at least one photo of the Swift.");
         }
       }
     }

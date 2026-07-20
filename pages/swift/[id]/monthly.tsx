@@ -330,7 +330,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
       if (errors.length > 0) {
         if (errors.includes('photograph_images') && errors.length === 1) {
-          setErrorMsg("Please upload at least one photo of the SWIFT.");
+          setErrorMsg("Please upload at least one photo of the Swift.");
         } else if (errors.length === 1) {
           if (errors.includes('company')) setErrorMsg("Please select a maintenance company.");
           else if (errors.includes('location')) setErrorMsg("Please provide a location.");
@@ -749,7 +749,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     const answers = [];
     if (photographImages.length > 0 || photographComments) {
       answers.push({
-        question: "Photograph SWIFT",
+        question: "Photograph Swift",
         answer: photographComments || "",
         images: photographImages.map(img => ({ url: img.url, fileType: img.fileType || 'image' }))
       });
@@ -815,7 +815,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
       const answersForEmail = {};
       if (photographImages.length > 0 || photographComments) {
-        answersForEmail["Photograph SWIFT"] = {
+        answersForEmail["Photograph Swift"] = {
           text: photographComments || "",
           images: photographImages.map(img => ({ url: img.url, thumbnail: img.thumbnail, fileType: img.fileType || 'image' }))
         };
@@ -1168,17 +1168,17 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
             {/* CARD 2: MULTI-STEP */}
             <div ref={card2Ref} className="checklist-form-card" style={{ marginTop: "20px" }}>
 
-                {/* STEP 1: Photograph SWIFT */}
+                {/* STEP 1: Photograph Swift */}
                 {currentStep === 1 && (
                   <>
                     <h3 className="checklist-section-title">Monthly maintenance</h3>
                     <p className="checklist-section-subtitle">
-                      All monthly maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Operators Maintenance Manual.
+                      All monthly maintenance must be completed in accordance with the approved Swift Rescue Conveyor Operators Maintenance Manual.
                     </p>
 
                     <div style={{ marginTop: "24px" }}>
-                      <label className="checklist-label">Photograph SWIFT</label>
-                      <p className="question-instruction">Take clear photos of the SWIFT in situ and the surrounding installation area.</p>
+                      <label className="checklist-label">Photograph Swift</label>
+                      <p className="question-instruction">Take clear photos of the Swift in situ and the surrounding installation area.</p>
                       <div className="question-with-upload">
                         <div className="textarea-wrapper">
                           <textarea
@@ -1207,7 +1207,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                         </div>
                         <ImageUploader
                           questionKey="photograph_swift"
-                          questionText="Photograph SWIFT"
+                          questionText="Photograph Swift"
                           serialNumber={unit?.serial_number}
                           maintenanceType="monthly"
                           initialImages={photographImages || []}
@@ -1241,11 +1241,11 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
                     <h3 className="checklist-section-title">{currentGroup.title}</h3>
                     <p className="checklist-section-subtitle">
                       {currentGroup.title === 'Visual inspection'
-                        ? 'Visual inspections shall be carried out in accordance with the procedures detailed in the SWIFT Survivor Recovery System Operators Maintenance Manual.'
+                        ? 'Visual inspections shall be carried out in accordance with the procedures detailed in the Swift Rescue Conveyor Operators Maintenance Manual.'
                         : currentGroup.title === 'Lubrication'
-                        ? 'Lubrication shall be carried out in accordance with the procedures detailed in the SWIFT Survivor Recovery System Operators Maintenance Manual.'
+                        ? 'Lubrication shall be carried out in accordance with the procedures detailed in the Swift Rescue Conveyor Operators Maintenance Manual.'
                         : currentGroup.title === 'Testing'
-                        ? 'Testing shall be carried out in accordance with the procedures detailed in the SWIFT Survivor Recovery System Operators Maintenance Manual.'
+                        ? 'Testing shall be carried out in accordance with the procedures detailed in the Swift Rescue Conveyor Operators Maintenance Manual.'
                         : 'Please report equipment condition before starting maintenance.'}
                     </p>
 

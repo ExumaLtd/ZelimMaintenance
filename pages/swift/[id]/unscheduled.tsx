@@ -898,7 +898,7 @@ export default function Unscheduled({ unit, template, allCompanies = [], allEngi
             <div className="checklist-form-card" style={{ marginTop: "20px" }}>
                 <h3 className="checklist-section-title">Unscheduled maintenance</h3>
                 <p className="checklist-section-subtitle">
-                  All unscheduled maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual.
+                  All unscheduled maintenance must be completed in accordance with the approved Swift Rescue Conveyor Maintenance Manual.
                 </p>
                 
                 {(template?.questionsData || []).map((q, i) => (

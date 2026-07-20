@@ -1,7 +1,7 @@
 # Zelim Maintenance Portal
 
-A mobile-first maintenance and fault-reporting portal for the Zelim SWIFT
-Survivor Recovery System, a piece of maritime safety equipment installed on
+A mobile-first maintenance and fault-reporting portal for the Zelim Swift
+Rescue Conveyor, a piece of maritime safety equipment installed on
 vessels. Maintenance engineers and vessel operators scan a QR code on a unit,
 enter (or auto-fill) an access code, complete the relevant checklist, attach
 photos, videos and a signature, and submit. Submissions are written to Airtable
@@ -80,7 +80,7 @@ Application runtime (set in Vercel):
 - `AIRTABLE_PAT` Airtable personal access token used by the app (see the note
   below: this name is used for two independent credentials)
 - `AIRTABLE_BASE_ID` Airtable base identifier
-- `AIRTABLE_SWIFT_TABLE` name of the SWIFT units table
+- `AIRTABLE_SWIFT_TABLE` name of the Swift units table
 - `UPSTASH_REDIS_REST_URL` Upstash Redis REST endpoint
 - `UPSTASH_REDIS_REST_TOKEN` Upstash Redis REST token
 - `CLOUDINARY_API_KEY` Cloudinary API key (returned to the client inside the

@@ -190,33 +190,33 @@ export default function SwiftUnitPage({
   const allMaintenanceTypes = [
     {
       title: "Monthly\nmaintenance",
-      description: "To be completed in accordance with the SWIFT Survivor Recovery System Operators Maintenance Manual.",
+      description: "To be completed in accordance with the Swift Rescue Conveyor Operators Maintenance Manual.",
       href: `/portal/swift/monthly`,
       type: "Monthly",
     },
     {
       title: "Annual\nmaintenance",
-      description: "To be completed in accordance with Section 6.1 – Annual maintenance of the SWIFT Survivor Recovery System Maintenance Manual.",
+      description: "To be completed in accordance with Section 6.1 – Annual maintenance of the Swift Rescue Conveyor Maintenance Manual.",
       href: `/portal/swift/annual`,
       type: "Annual",
     },
     {
       title: "30-month depth\nmaintenance",
-      description: "To be completed in accordance with Section 6.2 – 30-month depth maintenance of the SWIFT Survivor Recovery System Maintenance Manual.",
+      description: "To be completed in accordance with Section 6.2 – 30-month depth maintenance of the Swift Rescue Conveyor Maintenance Manual.",
       href: `/portal/swift/depth`,
       type: "30-month depth",
     },
     {
       title: "Unscheduled\nmaintenance",
       description: accessType === "operator"
-        ? "To be completed in accordance with Section 5.2 – Unscheduled maintenance of the SWIFT Survivor Recovery System Operators Maintenance Manual."
-        : "To be completed in accordance with Section 6.3 – Unscheduled maintenance of the SWIFT Survivor Recovery System Maintenance Manual.",
+        ? "To be completed in accordance with Section 5.2 – Unscheduled maintenance of the Swift Rescue Conveyor Operators Maintenance Manual."
+        : "To be completed in accordance with Section 6.3 – Unscheduled maintenance of the Swift Rescue Conveyor Maintenance Manual.",
       href: `/portal/swift/unscheduled`,
       type: "Unscheduled",
     },
     {
       title: "Report a fault",
-      description: "Complete this form to report a fault with the SWIFT system. Your report will be sent to the maintenance facility for review and follow-up.",
+      description: "Complete this form to report a fault with the Swift system. Your report will be sent to the maintenance facility for review and follow-up.",
       href: `/portal/swift/fault-reporting`,
       type: "Fault report",
     },
@@ -244,19 +244,19 @@ export default function SwiftUnitPage({
     ? [
         {
           href: "/downloads/Zelim_SwiftSurvivorRecoverySystem_OperatorsMaintenanceManual_v1point0.pdf#page=1",
-          name: "SWIFT operators maintenance manual.pdf",
+          name: "Swift operators maintenance manual.pdf",
           size: operatorsManualSize,
         },
       ]
     : [
         {
           href: "/downloads/Zelim_SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0.pdf#page=1",
-          name: "SWIFT maintenance manual.pdf",
+          name: "Swift maintenance manual.pdf",
           size: maintenanceManualSize,
         },
         {
           href: "/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf#page=1",
-          name: "SWIFT installation guide.pdf",
+          name: "Swift installation guide.pdf",
           size: installationGuideSize,
         },
       ];
@@ -353,8 +353,8 @@ export default function SwiftUnitPage({
                 <h3>Downloads</h3>
                 <p className="description">
                   {accessType === "operator"
-                    ? "Operator maintenance documents for the SWIFT Survivor Recovery System."
-                    : "Maintenance and installation documents for the SWIFT Survivor Recovery System."
+                    ? "Operator maintenance documents for the Swift Rescue Conveyor."
+                    : "Maintenance and installation documents for the Swift Rescue Conveyor."
                   }
                 </p>
 
