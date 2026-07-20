@@ -108,7 +108,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Missing or invalid required fields' });
   }
 
-  const apiKey = process.env.AIRTABLE_API_KEY;
+  const apiKey = process.env.AIRTABLE_PAT;
   const baseId = process.env.AIRTABLE_BASE_ID;
 
   // Verify this unit belongs to the session's token — prevents IDOR

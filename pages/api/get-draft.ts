@@ -17,7 +17,7 @@ const ratelimit = new Ratelimit({
   prefix: 'rl:draft-read',
 });
 
-const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
+const base = new Airtable({ apiKey: process.env.AIRTABLE_PAT }).base(
   process.env.AIRTABLE_BASE_ID
 );
 

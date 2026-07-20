@@ -27,7 +27,7 @@ export function isValidPinFormat(pin: unknown): pin is string {
 let defaultBase: AirtableBase | null = null;
 function getDefaultBase(): AirtableBase {
   if (!defaultBase) {
-    defaultBase = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
+    defaultBase = new Airtable({ apiKey: process.env.AIRTABLE_PAT }).base(
       process.env.AIRTABLE_BASE_ID
     ) as unknown as AirtableBase;
   }

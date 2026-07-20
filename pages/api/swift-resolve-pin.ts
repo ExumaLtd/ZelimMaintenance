@@ -25,7 +25,7 @@ const MAX_PIN_FAILURES = 5;
 const PIN_LOCK_SECONDS = 15 * 60; // 15 minutes
 
 // Connect to correct Airtable base
-const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
+const base = new Airtable({ apiKey: process.env.AIRTABLE_PAT }).base(
   process.env.AIRTABLE_BASE_ID // appOQXbopTwS0SdnL
 );
 

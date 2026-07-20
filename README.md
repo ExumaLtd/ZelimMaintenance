@@ -77,7 +77,7 @@ gitignored); production values are set in the Vercel project settings.
 Application runtime (set in Vercel):
 
 - `SESSION_SECRET` secret used to HMAC-sign the session cookie
-- `AIRTABLE_API_KEY` Airtable access token for the app
+- `AIRTABLE_PAT` Airtable personal access token used by the app
 - `AIRTABLE_BASE_ID` Airtable base identifier
 - `AIRTABLE_SWIFT_TABLE` name of the SWIFT units table
 - `UPSTASH_REDIS_REST_URL` Upstash Redis REST endpoint

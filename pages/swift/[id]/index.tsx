@@ -82,7 +82,7 @@ export async function getServerSideProps(context) {
 
   try {
     const base = new Airtable({
-      apiKey: process.env.AIRTABLE_API_KEY,
+      apiKey: process.env.AIRTABLE_PAT,
     }).base(process.env.AIRTABLE_BASE_ID);
 
     const records = await base(process.env.AIRTABLE_SWIFT_TABLE)
