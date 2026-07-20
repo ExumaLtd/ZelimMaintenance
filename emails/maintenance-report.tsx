@@ -407,8 +407,8 @@ export const MaintenanceReportEmail = ({
 
             <Text style={footerContactText}>
               Need technical assistance? Contact{' '}
-              <a href={`mailto:maintenance@zelim.com?subject=${encodeURIComponent(`${serialNumber} Technical Assistance Request`)}`} style={emailLink}>
-                maintenance@zelim.com
+              <a href={`mailto:swift.support@zelim.com?subject=${encodeURIComponent(`${serialNumber} Technical Assistance Request`)}`} style={emailLink}>
+                swift.support@zelim.com
               </a>
             </Text>
           </Section>
