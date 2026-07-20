@@ -190,27 +190,27 @@ export default function SwiftUnitPage({
   const allMaintenanceTypes = [
     {
       title: "Monthly\nmaintenance",
-      description: "To be completed in accordance with the Swift Rescue Conveyor Operators Maintenance Manual.",
+      description: "To be completed in accordance with Section 5.2, Monthly maintenance, of the Swift Rescue Conveyor Operators Maintenance Manual.",
       href: `/portal/swift/monthly`,
       type: "Monthly",
     },
     {
       title: "Annual\nmaintenance",
-      description: "To be completed in accordance with Section 6.1 – Annual maintenance of the Swift Rescue Conveyor Maintenance Manual.",
+      description: "To be completed in accordance with Section 6.1, Annual maintenance, of the Swift Rescue Conveyor Maintenance Manual.",
       href: `/portal/swift/annual`,
       type: "Annual",
     },
     {
       title: "30-month depth\nmaintenance",
-      description: "To be completed in accordance with Section 6.2 – 30-month depth maintenance of the Swift Rescue Conveyor Maintenance Manual.",
+      description: "To be completed in accordance with Section 6.2, 30-month depth maintenance, of the Swift Rescue Conveyor Maintenance Manual.",
       href: `/portal/swift/depth`,
       type: "30-month depth",
     },
     {
       title: "Unscheduled\nmaintenance",
       description: accessType === "operator"
-        ? "To be completed in accordance with Section 5.2 – Unscheduled maintenance of the Swift Rescue Conveyor Operators Maintenance Manual."
-        : "To be completed in accordance with Section 6.3 – Unscheduled maintenance of the Swift Rescue Conveyor Maintenance Manual.",
+        ? "To be completed in accordance with Section 5.3, Unscheduled maintenance, of the Swift Rescue Conveyor Operators Maintenance Manual."
+        : "To be completed in accordance with Section 6.3, Unscheduled maintenance, of the Swift Rescue Conveyor Maintenance Manual.",
       href: `/portal/swift/unscheduled`,
       type: "Unscheduled",
     },
