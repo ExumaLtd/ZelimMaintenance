@@ -3,31 +3,37 @@ import { randomUUID } from 'crypto';
 import { serialize } from 'cookie';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { encodeSession } from '../../lib/session';
+import { resolvePin, isValidPinFormat } from '../../lib/resolve-pin';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { publicToken, accessType, accessPin } = req.body;
+  const { accessPin } = req.body;
 
-  if (!publicToken || !accessType || !accessPin) {
+  if (!accessPin) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  if (accessType !== 'maintenance' && accessType !== 'operator') {
-    return res.status(400).json({ error: 'Invalid access type' });
+  if (!isValidPinFormat(accessPin)) {
+    return res.status(400).json({ error: 'Invalid pin format' });
   }
 
   try {
-    // Generate a random session ID
-    const sessionId = generateSessionId();
+    // Resolve the PIN against Airtable and derive the unit token and access type
+    // from the matched record. Any publicToken or accessType in the request body
+    // is deliberately ignored, so a caller cannot forge a session for an arbitrary
+    // unit or elevate an operator PIN to maintenance access.
+    const resolved = await resolvePin(accessPin);
+    if (!resolved) {
+      return res.status(401).json({ error: 'Code not recognised' });
+    }
 
-    // Store session data in cookie (encrypted)
     const sessionData = {
-      id: sessionId,
-      token: publicToken,
-      access: accessType,
+      id: randomUUID(),
+      token: resolved.publicToken,
+      access: resolved.accessType,
       pin: accessPin,
       created: Date.now(),
       expires: Date.now() + (8 * 60 * 60 * 1000) // 8 hours
@@ -52,8 +58,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('Session creation error:', err);
     return res.status(500).json({ error: 'Failed to create session' });
   }
-}
-
-function generateSessionId() {
-  return randomUUID();
 }

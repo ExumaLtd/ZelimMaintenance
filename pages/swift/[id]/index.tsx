@@ -4,6 +4,12 @@ import Image from "next/image";
 import Airtable from "airtable";
 import { useRouter } from "next/router";
 import { getSession } from "../../../lib/session";
+import { esc } from "../../../utils/api-utils";
+import { requireEnv } from "../../../lib/env";
+
+const AIRTABLE_PAT = requireEnv('AIRTABLE_PAT');
+const AIRTABLE_BASE_ID = requireEnv('AIRTABLE_BASE_ID');
+const AIRTABLE_SWIFT_TABLE = requireEnv('AIRTABLE_SWIFT_TABLE');
 
 // Client logo resolver - KEEP THIS
 const getClientLogo = (companyName, serialNumber) => {
@@ -60,9 +66,9 @@ export async function getServerSideProps(context) {
   
   // Get session to extract PIN
   const session = getSession(context.req);
-  
-  // If no valid session, redirect to login
-  if (!session || !session.pin) {
+
+  // If no valid session, or the URL token does not match the session, redirect to login
+  if (!session || !session.pin || publicToken !== session.token) {
     return { redirect: { destination: "/", permanent: false } };
   }
 
@@ -81,13 +87,13 @@ export async function getServerSideProps(context) {
 
   try {
     const base = new Airtable({
-      apiKey: process.env.AIRTABLE_API_KEY,
-    }).base(process.env.AIRTABLE_BASE_ID);
+      apiKey: AIRTABLE_PAT,
+    }).base(AIRTABLE_BASE_ID);
 
-    const records = await base(process.env.AIRTABLE_SWIFT_TABLE)
+    const records = await base(AIRTABLE_SWIFT_TABLE)
       .select({
         maxRecords: 1,
-        filterByFormula: `{public_token} = "${publicToken}"`,
+        filterByFormula: `{public_token} = '${esc(publicToken)}'`,
         fields: ["serial_number", "operating_company", "annual_maintenance_due", "depth_maintenance_due"],
       })
       .firstPage();
@@ -99,7 +105,7 @@ export async function getServerSideProps(context) {
     const record = records[0];
     const unitRecordId = record.id;
 
-    // operating_company is now a linked record field — resolve the name
+    // operating_company is now a linked record field, so resolve the name
     let companyName = "Client Unit";
     const operatingCompanyIds = record.get("operating_company") as string[] | undefined;
     if (operatingCompanyIds && operatingCompanyIds.length > 0) {
@@ -184,33 +190,33 @@ export default function SwiftUnitPage({
   const allMaintenanceTypes = [
     {
       title: "Monthly\nmaintenance",
-      description: "To be completed in accordance with the SWIFT Survivor Recovery System Operators Maintenance Manual.",
+      description: "To be completed in accordance with Section 5.2 – Monthly maintenance of the Swift Rescue Conveyor Operators Maintenance Manual.",
       href: `/portal/swift/monthly`,
       type: "Monthly",
     },
     {
       title: "Annual\nmaintenance",
-      description: "To be completed in accordance with Section 6.1 – Annual maintenance of the SWIFT Survivor Recovery System Maintenance Manual.",
+      description: "To be completed in accordance with Section 6.1 – Annual maintenance of the Swift Rescue Conveyor Maintenance Manual.",
       href: `/portal/swift/annual`,
       type: "Annual",
     },
     {
       title: "30-month depth\nmaintenance",
-      description: "To be completed in accordance with Section 6.2 – 30-month depth maintenance of the SWIFT Survivor Recovery System Maintenance Manual.",
+      description: "To be completed in accordance with Section 6.2 – 30-month depth maintenance of the Swift Rescue Conveyor Maintenance Manual.",
       href: `/portal/swift/depth`,
       type: "30-month depth",
     },
     {
       title: "Unscheduled\nmaintenance",
       description: accessType === "operator"
-        ? "To be completed in accordance with Section 5.2 – Unscheduled maintenance of the SWIFT Survivor Recovery System Operators Maintenance Manual."
-        : "To be completed in accordance with Section 6.3 – Unscheduled maintenance of the SWIFT Survivor Recovery System Maintenance Manual.",
+        ? "To be completed in accordance with Section 5.3 – Unscheduled maintenance of the Swift Rescue Conveyor Operators Maintenance Manual."
+        : "To be completed in accordance with Section 6.3 – Unscheduled maintenance of the Swift Rescue Conveyor Maintenance Manual.",
       href: `/portal/swift/unscheduled`,
       type: "Unscheduled",
     },
     {
       title: "Report a fault",
-      description: "Complete this form to report a fault with the SWIFT system. Your report will be sent to the maintenance facility for review and follow-up.",
+      description: "Complete this form to report a fault with the Swift system. Your report will be sent to the maintenance facility for review and follow-up.",
       href: `/portal/swift/fault-reporting`,
       type: "Fault report",
     },
@@ -238,19 +244,19 @@ export default function SwiftUnitPage({
     ? [
         {
           href: "/downloads/Zelim_SwiftSurvivorRecoverySystem_OperatorsMaintenanceManual_v1point0.pdf#page=1",
-          name: "SWIFT operators maintenance manual.pdf",
+          name: "Swift operators maintenance manual.pdf",
           size: operatorsManualSize,
         },
       ]
     : [
         {
           href: "/downloads/Zelim_SwiftSurvivorRecoverySystem_MaintenanceManual_v2point0.pdf#page=1",
-          name: "SWIFT maintenance manual.pdf",
+          name: "Swift maintenance manual.pdf",
           size: maintenanceManualSize,
         },
         {
           href: "/downloads/SwiftSurvivorRecoverySystem_InstallationGuide_v2point0(Draft).pdf#page=1",
-          name: "SWIFT installation guide.pdf",
+          name: "Swift installation guide.pdf",
           size: installationGuideSize,
         },
       ];
@@ -347,8 +353,8 @@ export default function SwiftUnitPage({
                 <h3>Downloads</h3>
                 <p className="description">
                   {accessType === "operator"
-                    ? "Operator maintenance documents for the SWIFT Survivor Recovery System."
-                    : "Maintenance and installation documents for the SWIFT Survivor Recovery System."
+                    ? "Operator maintenance documents for the Swift Rescue Conveyor."
+                    : "Maintenance and installation documents for the Swift Rescue Conveyor."
                   }
                 </p>
 

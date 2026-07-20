@@ -4,10 +4,11 @@ import { getSession } from '../../lib/session';
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
 import { esc, getClientIp } from '../../utils/api-utils';
+import { requireEnv } from '../../lib/env';
 
 const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  url: requireEnv('UPSTASH_REDIS_REST_URL'),
+  token: requireEnv('UPSTASH_REDIS_REST_TOKEN'),
 });
 
 // 30 completions per hour per IP
@@ -17,8 +18,8 @@ const ratelimit = new Ratelimit({
   prefix: 'rl:draft-complete',
 });
 
-const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
-  process.env.AIRTABLE_BASE_ID
+const base = new Airtable({ apiKey: requireEnv('AIRTABLE_PAT') }).base(
+  requireEnv('AIRTABLE_BASE_ID')
 );
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -48,7 +49,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     let draftId: string;
 
     if (clientDraftId && typeof clientDraftId === 'string') {
-      // Client already knows the draft ID — skip the Airtable lookup
+      // Client already knows the draft ID. Verify the caller owns it before
+      // completing it, otherwise a valid session could mark another unit's
+      // draft complete by supplying its record ID (IDOR).
+      let existingDraft;
+      try {
+        existingDraft = await base('maintenance_drafts').find(clientDraftId);
+      } catch (findError) {
+        return res.status(404).json({ error: 'No draft found' });
+      }
+      if (existingDraft.get('access_pin_used') !== accessPin) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
       draftId = clientDraftId;
     } else {
       const matchingDrafts = await base('maintenance_drafts')

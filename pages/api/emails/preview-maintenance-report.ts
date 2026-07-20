@@ -3,6 +3,10 @@ import { render } from 'react-email';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (process.env.NODE_ENV === "production") {
+    return res.status(404).end();
+  }
+
   try {
     const {
       engineerName = 'John Smith',

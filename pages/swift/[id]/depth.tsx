@@ -13,7 +13,11 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import SignaturePad from '../../../components/signature-pad';
 import { useAutoSave } from '../../../hooks/use-auto-save';
 import { fetchFormData } from '@/lib/data-fetching';
-import { getClientSession, getSession } from '../../../lib/session';
+import { getSession } from '../../../lib/session';
+
+// Development-only debug logger. No-ops in production.
+const DEBUG = process.env.NODE_ENV === 'development';
+const dlog = (...args: any[]) => { if (DEBUG) console.log(...args); };
 
 const depthAdminSchema = z.object({
   company: z.string().min(1, 'Please select a maintenance company.'),
@@ -34,7 +38,7 @@ const sections = [
   { 
     step: 2, 
     title: "30-month depth maintenance",
-    subtitle: "All 30-month depth maintenance must be completed in accordance with the approved SWIFT Survivor Recovery System Maintenance Manual and Installation Guide.", 
+    subtitle: "All 30-month depth maintenance must be completed in accordance with the approved Swift Rescue Conveyor Maintenance Manual and Installation Guide.", 
     questionIds: [1] 
   },
   { 
@@ -45,7 +49,7 @@ const sections = [
   },
   { 
     step: 4, 
-    title: "Clean the SWIFT", 
+    title: "Clean the Swift",
     subtitle: null, 
     questionIds: [3] 
   },
@@ -144,8 +148,9 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
 
   const storageKey = useMemo(() => {
-  const session = getClientSession();
-  const pin = session?.pin || 'unknown';
+  // The session cookie is httpOnly, so it is not readable client-side. The draft
+  // localStorage key uses a fixed 'unknown' segment for the pin component.
+  const pin = 'unknown';
   return `draft_depth_${unit?.serial_number}_${pin}`;
 }, [unit?.serial_number]);
 
@@ -481,7 +486,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
         if (images.length === 0) {
           errors.push('photograph_images');
           newFieldErrors.photographImages = true;
-          setErrorMsg("Please upload at least one photo of the SWIFT.");
+          setErrorMsg("Please upload at least one photo of the Swift.");
         }
       }
     }
@@ -527,7 +532,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
     let nextStep = currentStep + 1;
     if (currentStep === 7 && !isWinchReturned) {
       nextStep = 9;
-      console.log('⏭️ Skipping Step 8 (Winch maintenance) - winch not returned');
+      dlog('⏭️ Skipping Step 8 (Winch maintenance) - winch not returned');
     }
     
     setCurrentStep(nextStep);
@@ -610,7 +615,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   }, [currentStep, isWinchReturned]);
 
   // Re-apply autoGrow to all textareas when step changes (they render with correct
-  // values but at default height — autoGrow only fires on user input otherwise)
+  // values but at default height, autoGrow only fires on user input otherwise)
   useEffect(() => {
     setTimeout(() => {
       document.querySelectorAll('.checklist-textarea').forEach(el => autoGrow(el));
@@ -673,7 +678,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
         const data = await res.json();
         
         if (data.draft) {
-          console.log('📦 Draft found in Airtable');
+          dlog('📦 Draft found in Airtable');
           
           if (data.draft.checklistData) setChecklistData(data.draft.checklistData);
           if (data.draft.answers) setAnswers(data.draft.answers);
@@ -697,10 +702,10 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
               for (let s = 2; s <= data.draft.currentStep; s++) {
                 window.history.pushState({ step: s }, '', window.location.href);
               }
-              console.log(`✅ Draft loaded - restored to step ${data.draft.currentStep}`);
+              dlog(`✅ Draft loaded - restored to step ${data.draft.currentStep}`);
             }, 0);
           } else {
-            console.log('✅ Draft loaded from Airtable');
+            dlog('✅ Draft loaded from Airtable');
           }
         }
       } catch (error) {
@@ -760,16 +765,16 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
           setLocationFailed(true);
           switch(error.code) {
             case error.PERMISSION_DENIED:
-              console.log("User denied location permission");
+              dlog("User denied location permission");
               break;
             case error.POSITION_UNAVAILABLE:
-              console.log("Location information unavailable");
+              dlog("Location information unavailable");
               break;
             case error.TIMEOUT:
-              console.log("Location request timed out");
+              dlog("Location request timed out");
               break;
             default:
-              console.log("Unknown location error:", error.message);
+              dlog("Unknown location error:", error.message);
           }
         },
         options
@@ -815,10 +820,10 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('🔴 FORM SUBMITTED - Step:', currentStep);
-    console.log('  - Event type:', e.type);
-    console.log('  - Submitter:', e.nativeEvent?.submitter);
-    console.log('  - Stack trace:', new Error().stack);
+    dlog('🔴 FORM SUBMITTED - Step:', currentStep);
+    dlog('  - Event type:', e.type);
+    dlog('  - Submitter:', e.nativeEvent?.submitter);
+    dlog('  - Stack trace:', new Error().stack);
     
     setErrorMsg("");
     if (submitting) return;
@@ -1555,7 +1560,13 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
 export async function getServerSideProps({ params, req }) {
   const token = params.id;
   const session = getSession(req);
-  const accessType = session?.access || 'maintenance';
+  // Enforce the session here rather than relying only on the proxy layer, and
+  // confirm the URL token matches the session so one unit's session cannot load
+  // another unit's data.
+  if (!session || !session.pin || token !== session.token) {
+    return { redirect: { destination: '/', permanent: false } };
+  }
+  const accessType = session.access;
 
   try {
     const data = await fetchFormData(token, '30-month depth');

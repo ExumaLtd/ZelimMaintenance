@@ -5,10 +5,11 @@ import { getSession } from '../../lib/session';
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
 import { esc, getClientIp } from '../../utils/api-utils';
+import { requireEnv } from '../../lib/env';
 
 const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  url: requireEnv('UPSTASH_REDIS_REST_URL'),
+  token: requireEnv('UPSTASH_REDIS_REST_TOKEN'),
 });
 
 const ratelimit = new Ratelimit({
@@ -17,8 +18,8 @@ const ratelimit = new Ratelimit({
   prefix: 'rl:draft-read',
 });
 
-const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
-  process.env.AIRTABLE_BASE_ID
+const base = new Airtable({ apiKey: requireEnv('AIRTABLE_PAT') }).base(
+  requireEnv('AIRTABLE_BASE_ID')
 );
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

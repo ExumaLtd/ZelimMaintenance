@@ -25,7 +25,7 @@ export default function DepthComplete() {
   return (
     <div className="form-scope">
       <Head>
-        <title>{maintenanceType} maintenance submitted | Zelim</title>
+        <title>{unitSN ? `${unitSN} | ${maintenanceType} maintenance submitted` : `${maintenanceType} maintenance submitted`}</title>
       </Head>
 
       <div className="swift-main-layout-wrapper">

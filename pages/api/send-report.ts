@@ -6,10 +6,11 @@ import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
 import { getSession } from '../../lib/session';
 import { getClientIp } from '../../utils/api-utils';
+import { requireEnv } from '../../lib/env';
 
 const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  url: requireEnv('UPSTASH_REDIS_REST_URL'),
+  token: requireEnv('UPSTASH_REDIS_REST_TOKEN'),
 });
 
 // 10 email sends per hour per IP
@@ -20,7 +21,7 @@ const ratelimit = new Ratelimit({
 });
 
 // Cleans any quotation marks from your .env.local file automatically
-const apiKey = process.env.RESEND_API_KEY?.replace(/['"]+/g, '');
+const apiKey = requireEnv('RESEND_API_KEY').replace(/['"]+/g, '');
 const resend = new Resend(apiKey);
 
 // Helper function to add spaces to camelCase strings

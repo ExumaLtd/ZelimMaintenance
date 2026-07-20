@@ -1,4 +1,4 @@
-// Shared client registry — add new clients here only
+// Shared client registry. Add new clients here only
 const CLIENTS = [
   {
     serials: ["SWI001", "SWI002"],

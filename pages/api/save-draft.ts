@@ -5,21 +5,22 @@ import { getSession } from '../../lib/session';
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
 import { esc, getClientIp } from '../../utils/api-utils';
+import { requireEnv } from '../../lib/env';
 
 const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  url: requireEnv('UPSTASH_REDIS_REST_URL'),
+  token: requireEnv('UPSTASH_REDIS_REST_TOKEN'),
 });
 
-// 120 saves per hour per IP — supports frequent auto-saves
+// 120 saves per hour per IP, enough to support frequent auto-saves
 const ratelimit = new Ratelimit({
   redis,
   limiter: Ratelimit.slidingWindow(120, '1 h'),
   prefix: 'rl:draft-save',
 });
 
-const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
-  process.env.AIRTABLE_BASE_ID
+const base = new Airtable({ apiKey: requireEnv('AIRTABLE_PAT') }).base(
+  requireEnv('AIRTABLE_BASE_ID')
 );
 
 const PLACEHOLDER_EMAIL = 'draft@zelimmaintenance.com';
@@ -55,6 +56,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // If the client already knows the record ID, skip the SELECT entirely
     if (recordId) {
+      // Verify the caller owns this draft before writing to it. Without this a
+      // valid session could overwrite another unit's draft by supplying its
+      // record ID (IDOR).
+      let existingDraft;
+      try {
+        existingDraft = await base('maintenance_drafts').find(recordId);
+      } catch (findError) {
+        return res.status(404).json({ error: 'Draft not found' });
+      }
+      if (existingDraft.get('access_pin_used') !== accessPin) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
       const updateFields: Record<string, any> = {
         draft_data: draftDataString,
         last_updated: new Date().toISOString(),
@@ -67,7 +81,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ success: true, action: 'updated', recordId: result.id });
     }
 
-    // First save in this session — find or create the draft record
+    // First save in this session, so find or create the draft record
     const allUnitDrafts = await base('maintenance_drafts')
       .select({
         filterByFormula: `AND(
@@ -104,7 +118,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         recordId: result.id
       });
     } else {
-      // No existing draft — create one
+      // No existing draft, so create one
       const result = await base('maintenance_drafts').create({
         unit_id: [unitId],
         maintenance_type: maintenanceType,

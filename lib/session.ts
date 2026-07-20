@@ -1,13 +1,24 @@
 // lib/session.js
+//
+// Session cookie format: base64(JSON payload).hmac-sha256-hex(payload)
+//
+// The payload is base64-encoded and HMAC-signed, it is NOT encrypted. The
+// signature prevents tampering: a client cannot change the token, access type,
+// PIN or expiry without invalidating it. But anyone who can read the raw cookie
+// value can base64-decode the JSON, which includes the access PIN. So
+// confidentiality relies on the cookie being httpOnly and Secure and sent only
+// over TLS, not on the payload being secret. The PIN is embedded deliberately so
+// the server can scope drafts and submissions to the access code without an
+// extra Airtable lookup on every request.
 import crypto from 'crypto';
+import { requireEnv } from './env';
 
-function getSecret() {
-  if (!process.env.SESSION_SECRET) throw new Error('SESSION_SECRET env var is not set');
-  return process.env.SESSION_SECRET;
-}
+// Asserted at module load so a missing secret fails on deploy rather than on a
+// technician's first login attempt.
+const SESSION_SECRET = requireEnv('SESSION_SECRET');
 
 function sign(payload) {
-  return crypto.createHmac('sha256', getSecret()).update(payload).digest('hex');
+  return crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
 }
 
 /**
@@ -52,43 +63,6 @@ export function getSession(req) {
     return session;
   } catch (error) {
     console.error('Session decode error:', error);
-    return null;
-  }
-}
-
-/**
- * Get session from client-side (browser JavaScript)
- */
-export function getClientSession() {
-  if (typeof document === 'undefined') return null;
-
-  try {
-    const cookies = document.cookie;
-    if (!cookies) return null;
-
-    const cookieObj = {};
-    cookies.split(';').forEach(cookie => {
-      const trimmed = cookie.trim();
-      const eqIdx = trimmed.indexOf('=');
-      if (eqIdx === -1) return;
-      const key = trimmed.slice(0, eqIdx);
-      const value = trimmed.slice(eqIdx + 1); // preserve = signs in base64 values
-      cookieObj[key] = value;
-    });
-
-    const encodedSession = cookieObj['portal_session'];
-    if (!encodedSession) return null;
-
-    // Decode session (strip signature if present)
-    const dotIndex = encodedSession.lastIndexOf('.');
-    const payload = dotIndex !== -1 ? encodedSession.slice(0, dotIndex) : encodedSession;
-    const session = JSON.parse(atob(payload));
-
-    if (session.expires && Date.now() > session.expires) return null;
-
-    return session;
-  } catch (error) {
-    console.error('Client session parse error:', error);
     return null;
   }
 }

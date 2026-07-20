@@ -134,7 +134,7 @@ export default function ImageUploader({
   };
 
   const uploadToCloudinary = async (file) => {
-    // Get server-signed upload parameters — keeps API secret off the client
+    // Get server-signed upload parameters so the API secret stays off the client
     const signRes = await fetch('/api/cloudinary-sign', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -158,7 +158,7 @@ export default function ImageUploader({
     if (isVideo) {
       uploadUrl = 'https://api.cloudinary.com/v1_1/zelimmaintenanceportal/video/upload';
     } else {
-      // Both images and PDFs use the image endpoint — PDFs support pg_1 thumbnail transformation
+      // Both images and PDFs use the image endpoint, which gives PDFs pg_1 thumbnail transformation
       uploadUrl = 'https://api.cloudinary.com/v1_1/zelimmaintenanceportal/image/upload';
     }
 

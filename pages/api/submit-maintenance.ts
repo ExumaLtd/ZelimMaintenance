@@ -4,11 +4,17 @@ import { getSession } from '../../lib/session';
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
 import { esc, getClientIp } from '../../utils/api-utils';
+import { requireEnv } from '../../lib/env';
 
 const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  url: requireEnv('UPSTASH_REDIS_REST_URL'),
+  token: requireEnv('UPSTASH_REDIS_REST_TOKEN'),
 });
+
+const AIRTABLE_PAT = requireEnv('AIRTABLE_PAT');
+const AIRTABLE_BASE_ID = requireEnv('AIRTABLE_BASE_ID');
+const CLOUDINARY_API_KEY = requireEnv('CLOUDINARY_API_KEY');
+const CLOUDINARY_API_SECRET = requireEnv('CLOUDINARY_API_SECRET');
 
 // 20 submissions per hour per IP
 const ratelimit = new Ratelimit({
@@ -27,7 +33,7 @@ export const config = {
 
 // Generate a human-readable record reference
 // Format: RI/SWI005/A/060226/1
-// Uses Redis INCR for an atomic daily counter — no race condition under concurrent submissions.
+// Uses Redis INCR for an atomic daily counter, so there is no race condition under concurrent submissions.
 async function generateRecordRef(serialNumber, maintenanceType) {
   const typeMap = {
     'Monthly': 'M',
@@ -48,13 +54,13 @@ async function generateRecordRef(serialNumber, maintenanceType) {
   const dateCode = `${dd}${mm}${yy}`;
 
   try {
-    // Atomic increment — concurrent submissions always get unique counters
+    // Atomic increment, so concurrent submissions always get unique counters
     const key = `ref:${serialNumber}:${typeCode}:${dateCode}`;
     const count = await redis.incr(key);
     await redis.expire(key, 86400); // Expire after 24h
     return `RI/${serialNumber}/${typeCode}/${dateCode}/${count}`;
   } catch (error) {
-    // Redis unavailable — fall back to a millisecond timestamp suffix so the
+    // Redis unavailable, fall back to a millisecond timestamp suffix so the
     // ref is still unique, just less readable. Submission should not be lost.
     console.warn('Redis counter unavailable, using timestamp fallback:', error.message);
     return `RI/${serialNumber}/${typeCode}/${dateCode}/${Date.now()}`;
@@ -108,10 +114,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Missing or invalid required fields' });
   }
 
-  const apiKey = process.env.AIRTABLE_API_KEY;
-  const baseId = process.env.AIRTABLE_BASE_ID;
+  const apiKey = AIRTABLE_PAT;
+  const baseId = AIRTABLE_BASE_ID;
 
-  // Verify this unit belongs to the session's token — prevents IDOR
+  // Verify this unit belongs to the session's token, which prevents IDOR
   const unitVerifyRes = await fetch(
     `https://api.airtable.com/v0/${baseId}/swift_units/${encodeURIComponent(unit_record_id)}`,
     { headers: { Authorization: `Bearer ${apiKey}` } }
@@ -137,7 +143,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Existing operator selected from dropdown
         operatorRecordId = operator_record_id;
       } else if (operator_name) {
-        // New operator typed manually — look up or create
+        // New operator typed manually, look up or create
         const opRes = await fetch(
           `https://api.airtable.com/v0/${baseId}/operators?filterByFormula=${encodeURIComponent(`{operator_name}='${esc(operator_name)}'`)}&maxRecords=1`,
           { headers: { Authorization: `Bearer ${apiKey}` } }
@@ -153,7 +159,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         };
 
         if (opData?.records?.length > 0) {
-          // Operator exists — reuse, update if details changed
+          // Operator exists, reuse and update if details changed
           operatorRecordId = opData.records[0].id;
           const existing = opData.records[0].fields;
           const needsUpdate = existing.email !== operator_email || existing.phone !== operator_phone;
@@ -177,7 +183,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
     } else {
-      // Engineer path — resolve maintenance company and engineer record
+      // Engineer path, resolve maintenance company and engineer record
       const [compRes, engRes] = await Promise.all([
         fetch(`https://api.airtable.com/v0/${baseId}/maintenance_companies?filterByFormula=${encodeURIComponent(`{company_name}='${esc(maintained_by)}'`)}&maxRecords=1`, {
           headers: { Authorization: `Bearer ${apiKey}` }
@@ -250,11 +256,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const safeRef = recordRef.replace(/\//g, '_'); // e.g. RI_SWI005_U_180226_5
         const sigPublicId = `${cloudinaryFolder}/${safeRef}_signature`;
         const sigTimestamp = Math.round(Date.now() / 1000);
-        const sigParamStr = `public_id=${sigPublicId}&timestamp=${sigTimestamp}${process.env.CLOUDINARY_API_SECRET}`;
+        const sigParamStr = `public_id=${sigPublicId}&timestamp=${sigTimestamp}${CLOUDINARY_API_SECRET}`;
         const sigSignature = crypto.createHash('sha1').update(sigParamStr).digest('hex');
         const sigFormData = new FormData();
         sigFormData.append('file', blob, `${safeRef}_signature.png`);
-        sigFormData.append('api_key', process.env.CLOUDINARY_API_KEY ?? '');
+        sigFormData.append('api_key', CLOUDINARY_API_KEY);
         sigFormData.append('timestamp', String(sigTimestamp));
         sigFormData.append('signature', sigSignature);
         sigFormData.append('public_id', sigPublicId);

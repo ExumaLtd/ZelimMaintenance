@@ -76,14 +76,12 @@ export async function proxy(request) {
     return NextResponse.rewrite(url);
   }
 
-  // Block direct access to /swift/* URLs (force use of /portal/swift)
-  if (pathname.startsWith('/swift/')) {
-    if (request.headers.get('x-middleware-rewrite')) {
-      return NextResponse.next();
-    }
-    return NextResponse.redirect(new URL('/', request.url));
-  }
-
+  // Direct /swift/* access is no longer policed here. Each swift page verifies
+  // the session and that the URL token matches the session in getServerSideProps,
+  // so it redirects unauthenticated or cross-unit requests on its own. The
+  // previous edge block trusted an x-middleware-rewrite request header to let the
+  // internal rewrite through, and that header is client-settable, so relying on
+  // it for access control was unsafe. It has been removed.
   return NextResponse.next();
 }
 
@@ -93,6 +91,5 @@ export async function proxy(request) {
 export const config = {
   matcher: [
     '/portal/swift/:path*',  // Portal routes that need session checking
-    '/swift/:path*',         // Direct swift routes that need blocking
   ],
 };

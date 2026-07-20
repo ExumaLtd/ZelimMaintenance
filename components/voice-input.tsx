@@ -428,7 +428,7 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }: 
       log('⏹️ Stopping ElevenLabs recording...');
 
       stopSafetyRef.current = setTimeout(() => {
-        console.warn('⚠️ Recorder stop timeout — forcing cleanup');
+        console.warn('⚠️ Recorder stop timeout, forcing cleanup');
         cleanupStreams();
         mediaRecorderRef.current = null;
         audioChunksRef.current = [];
@@ -443,14 +443,14 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }: 
           stopSafetyRef.current = null;
         }
 
-        console.log('📊 Recording stopped, processing audio...');
+        log('📊 Recording stopped, processing audio...');
         const mime = recorder?.mimeType || 'audio/webm';
         const audioBlob = new Blob(audioChunksRef.current, { type: mime });
-        
-        console.log('🔍 Audio blob size:', audioBlob.size, 'bytes');
-        console.log('🔍 Audio blob type:', audioBlob.type);
-        console.log('🔍 Audio chunks count:', audioChunksRef.current.length);
-        console.log('🔍 Recorder MIME type:', recorder?.mimeType);
+
+        log('🔍 Audio blob size:', audioBlob.size, 'bytes');
+        log('🔍 Audio blob type:', audioBlob.type);
+        log('🔍 Audio chunks count:', audioChunksRef.current.length);
+        log('🔍 Recorder MIME type:', recorder?.mimeType);
 
         if (audioBlob.size === 0) {
           console.error('❌ Audio blob is empty');
@@ -464,16 +464,16 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }: 
         }
 
         try {
-          console.log('🌐 Sending to ElevenLabs API...');
+          log('🌐 Sending to ElevenLabs API...');
           const response = await fetch('/api/transcribe-elevenlabs', {
             method: 'POST',
             headers: { 'x-audio-mime': audioBlob.type },
             body: audioBlob,
           });
 
-          console.log('📡 API response status:', response.status);
+          log('📡 API response status:', response.status);
           const data = await response.json();
-          console.log('📝 ElevenLabs response:', data);
+          log('📝 ElevenLabs response:', data);
 
           if (!data.fallback && data.text && onTranscript) {
             log('✨ Transcription successful:', data.text);
