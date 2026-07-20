@@ -38,6 +38,7 @@ export default function MyApp({ Component, pageProps }) {
   return (
     <div className={`${montserrat.className} ${robotoMono.variable}`}>
       <Head>
+        <title>Zelim Maintenance Portal</title>
         <link rel="icon" href="/favicon/ZelimFavicon_192x192.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#172F36" />

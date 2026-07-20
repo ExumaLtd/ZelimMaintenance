@@ -20,7 +20,7 @@ export default function FaultReportingComplete() {
   return (
     <div className="form-scope">
       <Head>
-        <title>Fault report submitted | Zelim</title>
+        <title>{unitSN ? `${unitSN} | Fault report submitted` : "Fault report submitted"}</title>
       </Head>
 
       <div className="swift-main-layout-wrapper">
