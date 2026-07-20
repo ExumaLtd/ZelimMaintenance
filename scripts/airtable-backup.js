@@ -54,9 +54,9 @@ async function backupAirtable() {
         const lastBackupTime = backupState?.lastBackupTime || null;
 
         if (lastBackupTime) {
-            console.log(`Incremental backup — only fetching records modified since: ${lastBackupTime}`);
+            console.log(`Incremental backup, only fetching records modified since: ${lastBackupTime}`);
         } else {
-            console.log('No previous backup state found — running full backup');
+            console.log('No previous backup state found, running full backup');
         }
 
         console.log("Fetching list of all tables from Airtable...");
@@ -103,7 +103,7 @@ async function backupAirtable() {
             console.log(`  → ${allRecords.length} records fetched`);
 
             if (allRecords.length === 0) {
-                console.log(`  ↳ No changes since last backup — skipping upload`);
+                console.log(`  ↳ No changes since last backup, skipping upload`);
                 continue;
             }
 

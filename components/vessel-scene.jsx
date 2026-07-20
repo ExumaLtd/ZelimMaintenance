@@ -72,7 +72,7 @@ function PlaceholderShip() {
   );
 }
 
-/* ─── Controls — auto-rotate stops on first pointer interaction ───────────── */
+/* ─── Controls, auto-rotate stops on first pointer interaction ───────────── */
 function Controls({ onInteract }) {
   const controlsRef = useRef();
   const interacted = useRef(false);
@@ -184,7 +184,7 @@ export default function VesselScene() {
       {/* Placeholder notice */}
       {glbExists === false && (
         <div style={badgeStyle}>
-          Placeholder — drop your model at{' '}
+          Placeholder, drop your model at{' '}
           <code style={{ fontFamily: 'monospace', background: 'rgba(255,255,255,0.1)', padding: '1px 5px', borderRadius: 3 }}>
             /public/ship.glb
           </code>

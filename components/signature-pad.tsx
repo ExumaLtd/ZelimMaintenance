@@ -125,7 +125,7 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(function 
       <div className="signature-canvas-area">
         <canvas ref={canvasRef} className="signature-canvas" />
 
-        {/* Placeholder — hidden once user has drawn */}
+        {/* Placeholder, hidden once user has drawn */}
         {isEmpty && isReady && (
           <div className="signature-placeholder" aria-hidden="true">
             <PenLine size={22} strokeWidth={1.5} />
@@ -133,7 +133,7 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(function 
           </div>
         )}
 
-        {/* Clear button — top-right corner, only shown when not empty */}
+        {/* Clear button, top-right corner, only shown when not empty */}
         {!isEmpty && (
           <button
             type="button"

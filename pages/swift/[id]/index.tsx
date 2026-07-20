@@ -105,7 +105,7 @@ export async function getServerSideProps(context) {
     const record = records[0];
     const unitRecordId = record.id;
 
-    // operating_company is now a linked record field — resolve the name
+    // operating_company is now a linked record field, so resolve the name
     let companyName = "Client Unit";
     const operatingCompanyIds = record.get("operating_company") as string[] | undefined;
     if (operatingCompanyIds && operatingCompanyIds.length > 0) {

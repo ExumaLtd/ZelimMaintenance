@@ -39,7 +39,7 @@ export async function fetchUnitByToken(publicToken: string) {
 
     const record = records[0];
 
-    // operating_company is now a linked record field — resolve the name
+    // operating_company is now a linked record field, so resolve the name
     let companyName = '';
     const operatingCompanyIds = record.get('operating_company') as string[] | undefined;
     if (operatingCompanyIds && operatingCompanyIds.length > 0) {
@@ -211,7 +211,7 @@ export async function fetchFormData(publicToken: string, maintenanceType: string
       };
     }).filter(e => e.name);
 
-    // ✅ Process operators — each carries their operating_company record ID for client-side filtering
+    // ✅ Process operators, each carrying their operating_company record ID for client-side filtering
     const operators = operatorRecords.map(r => {
       const opCompanyIds = r.get('operating_company') as string[] | undefined;
       return {

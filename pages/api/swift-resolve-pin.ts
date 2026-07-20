@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // Rate limit by IP — 5 attempts per 5 minutes (fail-open if Redis is unavailable)
+    // Rate limit by IP, 5 attempts per 5 minutes (fail-open if Redis is unavailable)
     const ip = getClientIp(req);
     try {
       const { success, reset } = await ratelimit.limit(ip);
@@ -79,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.warn("PIN lockout check unavailable, allowing request:", redisErr.message);
     }
 
-    // Single OR query — find the record matching either PIN type
+    // Single OR query to find the record matching either PIN type
     const records = await base(TABLE_NAME)
       .select({
         maxRecords: 1,
@@ -99,7 +99,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ error: "Code not recognised" });
     }
 
-    // Successful lookup — clear any accumulated failures for this PIN (fail-open).
+    // Successful lookup, so clear any accumulated failures for this PIN (fail-open).
     try {
       await redis.del(pinLockKey);
     } catch (redisErr) {
@@ -110,7 +110,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const publicToken = record.get("public_token");
 
     // Determine access type from whether engineer_pin was populated on this record.
-    // We fetch engineer_pin only — operator_pin is never fetched, never in memory.
+    // We fetch engineer_pin only. operator_pin is never fetched, never in memory.
     const engineerPin = record.get("engineer_pin");
     const accessType = engineerPin === pin ? "maintenance" : "operator";
 

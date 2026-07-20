@@ -615,7 +615,7 @@ export default function Depth({ unit, template, allCompanies = [], allEngineers 
   }, [currentStep, isWinchReturned]);
 
   // Re-apply autoGrow to all textareas when step changes (they render with correct
-  // values but at default height — autoGrow only fires on user input otherwise)
+  // values but at default height, autoGrow only fires on user input otherwise)
   useEffect(() => {
     setTimeout(() => {
       document.querySelectorAll('.checklist-textarea').forEach(el => autoGrow(el));

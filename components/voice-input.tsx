@@ -428,7 +428,7 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }: 
       log('⏹️ Stopping ElevenLabs recording...');
 
       stopSafetyRef.current = setTimeout(() => {
-        console.warn('⚠️ Recorder stop timeout — forcing cleanup');
+        console.warn('⚠️ Recorder stop timeout, forcing cleanup');
         cleanupStreams();
         mediaRecorderRef.current = null;
         audioChunksRef.current = [];

@@ -12,7 +12,7 @@ const redis = new Redis({
   token: requireEnv('UPSTASH_REDIS_REST_TOKEN'),
 });
 
-// 120 saves per hour per IP — supports frequent auto-saves
+// 120 saves per hour per IP, enough to support frequent auto-saves
 const ratelimit = new Ratelimit({
   redis,
   limiter: Ratelimit.slidingWindow(120, '1 h'),
@@ -81,7 +81,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ success: true, action: 'updated', recordId: result.id });
     }
 
-    // First save in this session — find or create the draft record
+    // First save in this session, so find or create the draft record
     const allUnitDrafts = await base('maintenance_drafts')
       .select({
         filterByFormula: `AND(
@@ -118,7 +118,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         recordId: result.id
       });
     } else {
-      // No existing draft — create one
+      // No existing draft, so create one
       const result = await base('maintenance_drafts').create({
         unit_id: [unitId],
         maintenance_type: maintenanceType,

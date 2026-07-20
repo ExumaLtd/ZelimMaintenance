@@ -76,7 +76,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   // Checklist data - initialize from template (grouped structure)
   const [checklistData, setChecklistData] = useState([]);
   
-  // Further comments — one per checklist group, keyed by groupIndex
+  // Further comments, one per checklist group, keyed by groupIndex
   const [stepComments, setStepComments] = useState<Record<string, string>>({});
   const [stepCommentImages, setStepCommentImages] = useState<Record<string, any[]>>({});
 
@@ -720,7 +720,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     setFieldErrors(newFieldErrors);
 
     if (errors.length > 0) {
-      // 'comments' error is shown inline below the textarea — exclude it from the global errorMsg
+      // 'comments' error is shown inline below the textarea, so exclude it from the global errorMsg
       const nonInlineErrors = errors.filter(e => e.field !== 'comments');
       if (nonInlineErrors.length === 1) {
         setErrorMsg(nonInlineErrors[0].message);
