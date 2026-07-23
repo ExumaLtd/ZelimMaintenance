@@ -19,6 +19,7 @@ export function useAutoSave(config: AutoSaveConfig, shouldSave: unknown) {
   const lastSavedRef = useRef<string | null>(null);
   const draftRecordIdRef = useRef<string | null>(null);
   const isSavingRef = useRef(false);
+  const pendingSaveRef = useRef(false);
   const configRef = useRef(config);
   const shouldSaveRef = useRef(shouldSave);
 
@@ -32,7 +33,12 @@ export function useAutoSave(config: AutoSaveConfig, shouldSave: unknown) {
 
   // Save function using refs
   const saveDraft = async (force = false) => {
-    if (isSavingRef.current && !force) return;
+    if (isSavingRef.current && !force) {
+      // A save is in flight; remember to run again with the latest state
+      // once it finishes, or this debounce firing would be silently lost.
+      pendingSaveRef.current = true;
+      return;
+    }
     
     const { unitId, maintenanceType, engineerEmail, draftData } = configRef.current;
     
@@ -66,6 +72,10 @@ export function useAutoSave(config: AutoSaveConfig, shouldSave: unknown) {
       console.error('Draft save error:', error);
     } finally {
       isSavingRef.current = false;
+      if (pendingSaveRef.current) {
+        pendingSaveRef.current = false;
+        saveDraft();
+      }
     }
   };
 
