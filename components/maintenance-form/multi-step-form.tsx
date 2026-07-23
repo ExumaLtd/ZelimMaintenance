@@ -160,7 +160,6 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
       signature: false,
     };
 
-    document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
     setQuestionErrors({});
 
     // Only validate admin fields on step 1
@@ -184,23 +183,15 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
           } else if (field === 'location') {
             errors.push('location');
             newFieldErrors.location = true;
-            const locationInput = document.querySelector('[name="location_display"]');
-            if (locationInput) locationInput.classList.add('has-error');
           } else if (field === 'engineerName') {
             errors.push('engineer');
             newFieldErrors.engineerName = true;
-            const engineerInput = document.querySelector('[name="engineer_name"]');
-            if (engineerInput) engineerInput.classList.add('has-error');
           } else if (field === 'engineerEmail') {
             errors.push('email');
             newFieldErrors.engineerEmail = true;
-            const emailInput = document.querySelector('[name="engineer_email"]');
-            if (emailInput) emailInput.classList.add('has-error');
           } else if (field === 'engineerPhone') {
             errors.push('phone');
             newFieldErrors.engineerPhone = true;
-            const phoneInput = document.querySelector('[name="engineer_phone"]');
-            if (phoneInput) phoneInput.classList.add('has-error');
           }
         });
       }
@@ -347,7 +338,6 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
     const errors: { field: string; message: string }[] = [];
     let firstErrorField: { current: any } | null = null;
 
-    document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
     setQuestionErrors({});
 
     const requiredQuestions = currentQuestions.filter(q => q.required);

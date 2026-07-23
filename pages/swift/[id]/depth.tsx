@@ -121,6 +121,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
 
   const [currentStep, setCurrentStep] = useState(1);
   const [checklistData, setChecklistData] = useState<EquipmentItem[]>([]);
+  const [checklistErrors, setChecklistErrors] = useState<Record<number, { returned?: boolean; condition?: boolean }>>({});
   const [closingItems, setClosingItems] = useState<Set<number>>(new Set());
 
   const [answers, setAnswers] = useState<Answers>({});
@@ -226,6 +227,12 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
   };
 
   const updateChecklist = (index: number, field: 'returned' | 'condition', value: any) => {
+    setChecklistErrors(prev => {
+      if (!prev[index]) return prev;
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
     setChecklistData(prev => {
       const updated = [...prev];
       const item = updated[index];
@@ -263,12 +270,6 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
         updated[index].condition = null;
       }
 
-      const rows = document.querySelectorAll('.equipment-row-wrapper');
-      if (rows[index]) {
-        const allButtons = rows[index].querySelectorAll('.toggle-btn');
-        allButtons.forEach(btn => btn.classList.remove('has-error'));
-      }
-
       return updated;
     });
   };
@@ -298,8 +299,8 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
       signature: false,
     };
 
-    document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
     setQuestionErrors({});
+    const newChecklistErrors: Record<number, { returned?: boolean; condition?: boolean }> = {};
 
     if (currentStep === 1) {
       const adminResult = depthAdminSchema.safeParse({
@@ -321,23 +322,15 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
           } else if (field === 'location') {
             errors.push('location');
             newFieldErrors.location = true;
-            const locationInput = document.querySelector('[name="location_display"]');
-            if (locationInput) locationInput.classList.add('has-error');
           } else if (field === 'engineerName') {
             errors.push('engineer');
             newFieldErrors.engineerName = true;
-            const engineerInput = document.querySelector('[name="engineer_name"]');
-            if (engineerInput) engineerInput.classList.add('has-error');
           } else if (field === 'engineerEmail') {
             errors.push('email');
             newFieldErrors.engineerEmail = true;
-            const emailInput = document.querySelector('[name="engineer_email"]');
-            if (emailInput) emailInput.classList.add('has-error');
           } else if (field === 'engineerPhone') {
             errors.push('phone');
             newFieldErrors.engineerPhone = true;
-            const phoneInput = document.querySelector('[name="engineer_phone"]');
-            if (phoneInput) phoneInput.classList.add('has-error');
           }
         });
       }
@@ -354,16 +347,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
       if (incompleteItems.length > 0) {
         errors.push('checklist');
         incompleteItems.forEach(item => {
-          const rows = document.querySelectorAll('.equipment-row-wrapper');
-          if (rows[item.index]) {
-            if (item.type === 'returned') {
-              const returnedButtons = rows[item.index].querySelectorAll('.toggle-group:not(.condition-group) .toggle-btn');
-              returnedButtons.forEach(btn => btn.classList.add('has-error'));
-            } else if (item.type === 'condition') {
-              const conditionButtons = rows[item.index].querySelectorAll('.condition-group .toggle-btn');
-              conditionButtons.forEach(btn => btn.classList.add('has-error'));
-            }
-          }
+          newChecklistErrors[item.index] = { ...newChecklistErrors[item.index], [item.type]: true };
         });
       }
     }
@@ -396,6 +380,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
     }
 
     setFieldErrors(newFieldErrors);
+    setChecklistErrors(newChecklistErrors);
 
     if (errors.length > 0 && !errors.includes('photograph_images')) {
       if (errors.length === 1) {
@@ -631,7 +616,6 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
     const errors: { field: string; message: string }[] = [];
     let firstErrorField: { current: any } | null = null;
 
-    document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
     setQuestionErrors({});
 
     const requiredQuestions = currentQuestions.filter(q => q.required);
@@ -827,14 +811,16 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
                       <div className="toggle-group">
                         <button
                           type="button"
-                          className={`toggle-btn ${item.returned === true ? 'active' : ''}`}
+                          aria-pressed={item.returned === true}
+                          className={`toggle-btn ${item.returned === true ? 'active' : ''} ${checklistErrors[index]?.returned ? 'has-error' : ''}`}
                           onClick={() => updateChecklist(index, 'returned', true)}
                         >
                           Yes
                         </button>
                         <button
                           type="button"
-                          className={`toggle-btn ${item.returned === false ? 'active' : ''}`}
+                          aria-pressed={item.returned === false}
+                          className={`toggle-btn ${item.returned === false ? 'active' : ''} ${checklistErrors[index]?.returned ? 'has-error' : ''}`}
                           onClick={() => updateChecklist(index, 'returned', false)}
                         >
                           No
@@ -844,7 +830,8 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
                       <div className={`toggle-group condition-group ${item.returned === true ? 'show-on-mobile' : ''}`}>
                         <button
                           type="button"
-                          className={`toggle-btn ${item.condition === 'good' ? 'active' : ''}`}
+                          aria-pressed={item.condition === 'good'}
+                          className={`toggle-btn ${item.condition === 'good' ? 'active' : ''} ${checklistErrors[index]?.condition ? 'has-error' : ''}`}
                           onClick={() => updateChecklist(index, 'condition', 'good')}
                           disabled={item.returned !== true}
                           style={{ opacity: item.returned !== true ? 0.3 : 1 }}
@@ -853,7 +840,8 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
                         </button>
                         <button
                           type="button"
-                          className={`toggle-btn ${item.condition === 'fair' ? 'active' : ''}`}
+                          aria-pressed={item.condition === 'fair'}
+                          className={`toggle-btn ${item.condition === 'fair' ? 'active' : ''} ${checklistErrors[index]?.condition ? 'has-error' : ''}`}
                           onClick={() => updateChecklist(index, 'condition', 'fair')}
                           disabled={item.returned !== true}
                           style={{ opacity: item.returned !== true ? 0.3 : 1 }}
@@ -862,7 +850,8 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
                         </button>
                         <button
                           type="button"
-                          className={`toggle-btn ${item.condition === 'poor' ? 'active' : ''}`}
+                          aria-pressed={item.condition === 'poor'}
+                          className={`toggle-btn ${item.condition === 'poor' ? 'active' : ''} ${checklistErrors[index]?.condition ? 'has-error' : ''}`}
                           onClick={() => updateChecklist(index, 'condition', 'poor')}
                           disabled={item.returned !== true}
                           style={{ opacity: item.returned !== true ? 0.3 : 1 }}

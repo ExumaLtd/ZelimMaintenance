@@ -96,16 +96,6 @@ export function useAdminFields({ unit, accessType, engineers, operators, setFiel
       engineerEmail: engineer.email ? false : prev.engineerEmail,
       engineerPhone: engineer.phone ? false : prev.engineerPhone,
     }));
-    const engineerInput = document.querySelector('[name="engineer_name"]');
-    if (engineerInput) engineerInput.classList.remove('has-error');
-    if (engineer.email) {
-      const emailInput = document.querySelector('[name="engineer_email"]');
-      if (emailInput) emailInput.classList.remove('has-error');
-    }
-    if (engineer.phone) {
-      const phoneInput = document.querySelector('[name="engineer_phone"]');
-      if (phoneInput) phoneInput.classList.remove('has-error');
-    }
   }, [setFieldErrors]);
 
   const clearEngineer = useCallback(() => {
@@ -273,7 +263,6 @@ export function AdminCard({ admin, accessType, companies, fieldErrors, setFieldE
             onChange={(e) => {
               setLocationDisplay(e.target.value);
               if (e.target.value.trim()) {
-                e.target.classList.remove('has-error');
                 setFieldErrors(prev => ({ ...prev, location: false }));
               }
             }}
@@ -444,7 +433,6 @@ export function AdminCard({ admin, accessType, companies, fieldErrors, setFieldE
               onChange={(e) => {
                 setEngEmail(e.target.value);
                 if (e.target.value.trim()) {
-                  e.target.classList.remove('has-error');
                   setFieldErrors(prev => ({ ...prev, engineerEmail: false }));
                 }
               }}
@@ -463,7 +451,6 @@ export function AdminCard({ admin, accessType, companies, fieldErrors, setFieldE
               onChange={(e) => {
                 setEngPhone(e.target.value);
                 if (e.target.value.trim()) {
-                  e.target.classList.remove('has-error');
                   setFieldErrors(prev => ({ ...prev, engineerPhone: false }));
                 }
               }}

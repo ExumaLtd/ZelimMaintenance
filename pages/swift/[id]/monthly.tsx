@@ -74,6 +74,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
 
   // Checklist data - initialize from template (grouped structure)
   const [checklistData, setChecklistData] = useState<ChecklistGroup[]>([]);
+  const [toggleErrors, setToggleErrors] = useState<Record<string, boolean>>({});
 
   // Further comments, one per checklist group, keyed by groupIndex
   const [stepComments, setStepComments] = useState<Record<string, string>>({});
@@ -154,6 +155,13 @@ export default function Monthly({ unit, template, companies = [], engineers = []
 
   // Checklist update function (for grouped structure)
   const updateChecklist = (groupIndex: number, questionIndex: number, value: boolean) => {
+    setToggleErrors(prev => {
+      const key = `${groupIndex}:${questionIndex}`;
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
     setChecklistData(prev => {
       const updated = [...prev];
       updated[groupIndex] = {
@@ -162,12 +170,6 @@ export default function Monthly({ unit, template, companies = [], engineers = []
           qIdx === questionIndex ? { ...q, answer: value } : q
         )
       };
-
-      const row = document.querySelector(`[data-group="${groupIndex}"][data-question="${questionIndex}"]`);
-      if (row) {
-        const allButtons = row.querySelectorAll('.toggle-btn');
-        allButtons.forEach(btn => btn.classList.remove('has-error'));
-      }
 
       return updated;
     });
@@ -194,8 +196,6 @@ export default function Monthly({ unit, template, companies = [], engineers = []
         signature: false,
         stepComments: {},
       };
-
-      document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
 
       const adminResult = monthlyAdminSchema.safeParse({
         company: admin.selectedCompany || "",
@@ -383,7 +383,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
       signature: false,
     };
 
-    document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+    setToggleErrors({});
 
     const result = monthlySchema.safeParse({
       company: admin.selectedCompany || "",
@@ -446,16 +446,14 @@ export default function Monthly({ unit, template, companies = [], engineers = []
       const targetStep = firstIncompleteGroupIndex + 2;
       setCurrentStep(targetStep);
       window.history.pushState({ step: targetStep }, '', window.location.href);
+      const newToggleErrors: Record<string, boolean> = {};
+      incompleteItems.forEach(incomplete => {
+        if (incomplete.groupIndex === firstIncompleteGroupIndex) {
+          newToggleErrors[`${incomplete.groupIndex}:${incomplete.questionIndex}`] = true;
+        }
+      });
+      setToggleErrors(newToggleErrors);
       setTimeout(() => {
-        incompleteItems.forEach(incomplete => {
-          if (incomplete.groupIndex === firstIncompleteGroupIndex) {
-            const row = document.querySelector(`[data-group="${incomplete.groupIndex}"][data-question="${incomplete.questionIndex}"]`);
-            if (row) {
-              const buttons = row.querySelectorAll('.toggle-btn');
-              buttons.forEach(btn => btn.classList.add('has-error'));
-            }
-          }
-        });
         if (card2Ref.current) {
           const elementPosition = card2Ref.current.getBoundingClientRect().top + window.pageYOffset;
           const isMobile = window.innerWidth <= 768;
@@ -764,14 +762,16 @@ export default function Monthly({ unit, template, companies = [], engineers = []
                       <div className="toggle-group">
                         <button
                           type="button"
-                          className={`toggle-btn ${question.answer === true ? 'active' : ''}`}
+                          aria-pressed={question.answer === true}
+                          className={`toggle-btn ${question.answer === true ? 'active' : ''} ${toggleErrors[`${currentStep - 2}:${questionIndex}`] ? 'has-error' : ''}`}
                           onClick={() => updateChecklist(currentStep - 2, questionIndex, true)}
                         >
                           Yes
                         </button>
                         <button
                           type="button"
-                          className={`toggle-btn ${question.answer === false ? 'active' : ''}`}
+                          aria-pressed={question.answer === false}
+                          className={`toggle-btn ${question.answer === false ? 'active' : ''} ${toggleErrors[`${currentStep - 2}:${questionIndex}`] ? 'has-error' : ''}`}
                           onClick={() => updateChecklist(currentStep - 2, questionIndex, false)}
                         >
                           No
