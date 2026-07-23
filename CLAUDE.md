@@ -53,9 +53,12 @@ Two major upgrades are held pending upstream support. Both unblock when `eslint-
 
 ## Offline submissions
 
-- `utils/offline-queue.ts` queues a submission in localStorage when the device is offline or the submit fetch dies at the network level, and flushes oldest-first on app load and on the browser online event (wired in `_app`). All three submit paths (form engine, monthly, depth) go through `submitWithOfflineQueue`.
+- `utils/offline-queue.ts` queues a submission in localStorage when the device is offline or the submit fetch dies at the network level, and flushes oldest-first on app load and on the browser online event (wired in `_app`). All three submit paths (form engine, monthly, depth) go through `submitOrQueue`.
+- Queueing is an accepted outcome, not an error: the form clears its local state and navigates to the completion page with queued messaging, entries carry unique ids so distinct submissions never overwrite each other, and a failed queue write throws `OfflineSaveError` so the UI never claims unsaved work is safe. Do not reintroduce a keep-the-form-open queued path; it created duplicate-record races.
+- The flusher classifies failures: network errors and non-JSON 200s retry later, 401 stops the flush until the next login, 403 skips the entry (wrong unit for this session) so it cannot block others, and 400-class rejections park the entry as failed. The dashboard's `OfflineQueueBanner` surfaces pending and failed counts; keep it mounted or the queue is invisible.
 - Report email bodies are built before submitting; only recordRef comes from the submit response and is patched in at send time. Keep it that way or offline queueing breaks.
 - The flusher dequeues an entry before sending its report email so a mid-flush failure can never submit the same record twice. A failed report email after a successful save is deliberately swallowed: surfacing it makes users resubmit and duplicate records.
+- Draft mirrors (`useLocalDraftMirror` and the page-local copies in monthly and depth) hold their writes until the draft loader's ready ref flips, or the initial empty state destroys the saved mirror before the localStorage fallback can read it.
 
 ## Tests
 
