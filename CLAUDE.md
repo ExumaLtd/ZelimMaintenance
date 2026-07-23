@@ -18,8 +18,8 @@ Standing conventions for the Zelim maintenance portal. Follow these in every ses
 - One logical change per commit, conventional-style message (`security:`, `chore:`, `docs:`, `fix:`).
 - Prefer complete files over partial snippets when presenting changes.
 - TypeScript strict mode is off. Do not enable it without being asked.
-- Do not refactor the large form components (annual, depth, monthly, unscheduled, fault-reporting) for style or lint reasons. They are safety-critical. Behaviour changes there need explicit instruction.
-- The react-hooks v6 lint warnings (about 55) are accepted tech debt, deliberately set to warn. Do not silence them or refactor to clear them.
+- The five maintenance forms are safety-critical. Their shared machinery lives in `components/maintenance-form/` (admin card, question field, declaration card, persistence, submit plumbing, single- and multi-step engines); annual, unscheduled and fault-reporting are thin config wrappers, while monthly and depth keep their unique checklist logic in the page. Behaviour changes need explicit instruction, and the persistence strings in the configs (draft slugs, upload slugs, Airtable type labels) must never change since live drafts depend on them.
+- The react-hooks v6 lint warnings (about 45) are accepted tech debt, deliberately set to warn. Do not silence them or refactor to clear them.
 
 ## Styling
 
