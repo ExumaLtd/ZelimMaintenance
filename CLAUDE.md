@@ -19,8 +19,16 @@ Standing conventions for the Zelim maintenance portal. Follow these in every ses
 - Prefer complete files over partial snippets when presenting changes.
 - TypeScript strict mode is off. Do not enable it without being asked.
 - Do not refactor the large form components (annual, depth, monthly, unscheduled, fault-reporting) for style or lint reasons. They are safety-critical. Behaviour changes there need explicit instruction.
-- The 59 react-hooks v6 lint warnings are accepted tech debt, deliberately set to warn. Do not silence them or refactor to clear them.
-- The `.return-dashboard-btn` styles are duplicated in `styles/form-complete.css` and `styles/form.css`, with the `form-complete.css` copy winning because it is imported last. The two copies also disagree on their mobile breakpoint (`form.css` uses 768px, `form-complete.css` uses 600px). Known tech debt: keep the two copies in sync when editing until they are reconciled.
+- The react-hooks v6 lint warnings (about 55) are accepted tech debt, deliberately set to warn. Do not silence them or refactor to clear them.
+
+## Styling
+
+- New and migrated UI uses Tailwind v4. Design tokens (brand colors, fonts) live in `styles/tailwind.css` and are the single source of truth; do not hardcode brand hex values in components.
+- Fonts are declared in `@theme inline` because next/font sets its variables on a wrapper div, not `:root`. Keep them there.
+- Tailwind preflight and cascade layers are deliberately not imported while the legacy stylesheets remain, so utilities cannot change unmigrated pages. Enable them only when the last legacy stylesheet is deleted.
+- Shared UI primitives live in `components/ui/` (PortalShell, MessageCard, ArrowButton). Reuse them instead of re-styling cards and buttons per page.
+- The legacy stylesheets (`form.css`, `dashboard.css`, `voice-input.css`, `globals.css`) are still imported globally and still style the unmigrated pages (the five form pages and the dashboard). Delete rules from them only when the last page using them migrates.
+- `scanner.css` is deliberate plain CSS: it styles DOM injected by html5-qrcode inside `#reader`, which utilities cannot reach. Keep it.
 
 ## Held major upgrades
 
