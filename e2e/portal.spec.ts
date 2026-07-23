@@ -48,11 +48,11 @@ test.describe('as engineer', () => {
   test('shows the engineer maintenance dashboard', async ({ page }) => {
     await page.goto('/portal/swift');
     for (const form of ['annual', 'depth', 'unscheduled']) {
-      await expect(page.locator(`a[href="/portal/swift/${form}"]`)).toBeVisible();
+      await expect(page.locator(`a[href^="/portal/swift/${form}"]`)).toBeVisible();
     }
     // Monthly and fault reporting are operator forms and must not be offered.
-    await expect(page.locator('a[href="/portal/swift/monthly"]')).toHaveCount(0);
-    await expect(page.locator('a[href="/portal/swift/fault-reporting"]')).toHaveCount(0);
+    await expect(page.locator('a[href^="/portal/swift/monthly"]')).toHaveCount(0);
+    await expect(page.locator('a[href^="/portal/swift/fault-reporting"]')).toHaveCount(0);
   });
 
   for (const form of ['unscheduled', 'annual', 'depth']) {
@@ -80,11 +80,11 @@ test.describe('as operator', () => {
   test('shows the operator dashboard', async ({ page }) => {
     await page.goto('/portal/swift');
     for (const form of ['monthly', 'unscheduled', 'fault-reporting']) {
-      await expect(page.locator(`a[href="/portal/swift/${form}"]`)).toBeVisible();
+      await expect(page.locator(`a[href^="/portal/swift/${form}"]`)).toBeVisible();
     }
     // Annual and depth are engineer forms and must not be offered.
-    await expect(page.locator('a[href="/portal/swift/annual"]')).toHaveCount(0);
-    await expect(page.locator('a[href="/portal/swift/depth"]')).toHaveCount(0);
+    await expect(page.locator('a[href^="/portal/swift/annual"]')).toHaveCount(0);
+    await expect(page.locator('a[href^="/portal/swift/depth"]')).toHaveCount(0);
   });
 
   for (const form of ['monthly', 'fault-reporting']) {
