@@ -173,8 +173,9 @@ export function useAdminFields({ unit, accessType, engineers, operators, setFiel
   };
 }
 
-/** CARD 1: company or operator, location, date, and identity fields. */
-export function AdminCard({ admin, accessType, companies, fieldErrors, setFieldErrors }) {
+/** CARD 1: company or operator, location, date, and identity fields.
+    cardRef lets a form scroll the whole card into view on validation errors. */
+export function AdminCard({ admin, accessType, companies, fieldErrors, setFieldErrors, cardRef = null }) {
   const {
     companyFieldRef, locationFieldRef, engineerFieldRef,
     companyDropdownRef, engineerDropdownRef, operatorDropdownRef,
@@ -194,7 +195,7 @@ export function AdminCard({ admin, accessType, companies, fieldErrors, setFieldE
   } = admin;
 
   return (
-    <div className="checklist-form-card">
+    <div ref={cardRef} className="checklist-form-card">
       <div className="checklist-inline-group">
         <div className="checklist-field" ref={companyFieldRef}>
           <label className="checklist-label">{accessType === 'operator' ? 'Operator' : 'Maintenance company'}</label>
