@@ -20,6 +20,7 @@ type DeclarationCardProps = {
   setSignatureData: SetState<string | null>;
   errorMsg: string;
   submitting: boolean;
+  submitLabel?: string;
   style?: CSSProperties;
 };
 
@@ -34,6 +35,7 @@ export default function DeclarationCard({
   setSignatureData,
   errorMsg,
   submitting,
+  submitLabel = "Submit maintenance",
   style,
 }: DeclarationCardProps) {
   return (
@@ -77,7 +79,7 @@ export default function DeclarationCard({
 
       {errorMsg && <p className="error-message">{errorMsg}</p>}
       <ArrowButton type="submit" disabled={submitting} className="mt-[34px] max-[600px]:mt-[30px]">
-        {submitting ? "Submitting" : "Submit maintenance"}
+        {submitting ? "Submitting" : submitLabel}
       </ArrowButton>
     </div>
   );

@@ -25,6 +25,8 @@ export type MaintenanceFormConfig = {
   sectionSubtitle: string;
   /** Confirmation page route pushed after a successful submit. */
   completeRoute: string;
+  /** Submit button label; DeclarationCard defaults to 'Submit maintenance'. */
+  submitLabel?: string;
   /** Multi-step forms only: the step definitions. */
   sections?: FormSection[];
   /** Multi-step forms only: step 1 requires a photo of the Swift (question id 1). */
@@ -73,4 +75,5 @@ export const faultReportingConfig: MaintenanceFormConfig = {
   sectionTitle: 'Fault report',
   sectionSubtitle: 'Report damage, defects, or wear on the Swift. Describe what is affected and when it was noticed, then attach clear photos where possible.',
   completeRoute: '/portal/swift/fault-reporting-complete',
+  submitLabel: 'Submit fault',
 };

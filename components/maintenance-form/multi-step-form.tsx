@@ -471,6 +471,7 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
             setSignatureData={setSignatureData}
             errorMsg={errorMsg}
             submitting={submitting}
+            submitLabel={config.submitLabel}
             style={{ marginTop: "20px" }}
           />
         )}
