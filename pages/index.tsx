@@ -296,7 +296,7 @@ const handleQrCodeDetected = async (decodedText: string, html5QrCode: any) => {
                 <span>Maintenance</span>
                 <span>portal</span>
               </h1>
-              <p className="mx-0 mt-6 mb-0 text-center font-sans text-[15px] font-light leading-[22px] tracking-[0.05em] text-white">
+              <p className="mx-0 mt-6 mb-0 text-center font-sans text-[15px] font-light leading-[22px] tracking-[0.02em] text-white">
                 For authorised persons carrying out official inspections and maintenance.
               </p>
             </div>
@@ -337,7 +337,7 @@ const handleQrCodeDetected = async (decodedText: string, html5QrCode: any) => {
               <div className="mt-5 hidden text-center max-[900px]:block">
                 <button
                   type="button"
-                  className="cursor-pointer border-none bg-transparent p-2 font-sans text-[15px] font-light leading-[22px] tracking-[0.05em] text-white"
+                  className="cursor-pointer border-none bg-transparent p-2 font-sans text-[15px] font-light leading-[22px] tracking-[0.02em] text-white"
                   onClick={startScanner}
                 >
                   Log in with QR code

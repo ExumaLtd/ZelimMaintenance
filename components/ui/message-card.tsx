@@ -25,7 +25,7 @@ export default function MessageCard({ icon, title, text, action }: Props) {
           {title}
         </h1>
 
-        <p className="mb-6 block text-sm leading-5 tracking-[0.05em] text-ink-muted max-[600px]:mb-5">
+        <p className="mb-6 block text-sm leading-5 tracking-[0.02em] text-ink-muted max-[600px]:mb-5">
           {text}
         </p>
 

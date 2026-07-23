@@ -340,7 +340,7 @@ export default function SwiftUnitPage({
                         </span>
                       ))}
                     </h3>
-                    <p className="mt-0 mb-5 text-sm font-light leading-5 tracking-[0.05em] text-ink-muted">{maintenance.description}</p>
+                    <p className="mt-0 mb-5 text-sm font-light leading-5 tracking-[0.02em] text-ink-muted">{maintenance.description}</p>
                     <Link
                       href={
                         maintenance.hasDraft
@@ -364,7 +364,7 @@ export default function SwiftUnitPage({
               {/* Downloads */}
               <div className="w-full rounded-[20px] bg-field p-[24px_30px_30px] max-[600px]:p-[24px_20px_20px]">
                 <h3 className="mt-0 mb-3 font-mono text-xl font-normal leading-[26px] tracking-[0.1em] text-ink">Downloads</h3>
-                <p className="mt-0 mb-5 text-sm font-light leading-5 tracking-[0.05em] text-ink-muted">
+                <p className="mt-0 mb-5 text-sm font-light leading-5 tracking-[0.02em] text-ink-muted">
                   {accessType === "operator"
                     ? "Operator maintenance documents for the Swift Rescue Conveyor."
                     : "Maintenance and installation documents for the Swift Rescue Conveyor."

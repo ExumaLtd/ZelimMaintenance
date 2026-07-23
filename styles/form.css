@@ -1142,7 +1142,7 @@
   font-size: 14px;
   line-height: 20px;
   padding: 0 !important;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.02em;
   font-weight: 300;
 }
 
@@ -1611,7 +1611,7 @@
   font-size: 13px;
   font-weight: 300;
   line-height: 19px;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.02em;
 }
 
 .form-scope .declaration-checkbox.has-error .declaration-checkmark {
