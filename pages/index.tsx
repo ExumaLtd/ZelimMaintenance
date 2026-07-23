@@ -327,7 +327,7 @@ const handleQrCodeDetected = async (decodedText: string, html5QrCode: any) => {
                   </ArrowButton>
                 </div>
 
-                <p className="absolute top-full left-0 m-0 mt-2.5 text-left text-sm leading-5 text-danger max-[900px]:static max-[900px]:mt-2">
+                <p className="absolute top-full left-0 m-0 mt-2.5 text-left text-sm leading-5 tracking-[0.02em] text-danger max-[900px]:static max-[900px]:mt-2">
                   {rateLimitCountdown > 0
                     ? `Too many failed attempts. Try again in ${formatCountdown(rateLimitCountdown)}.`
                     : error || ''}
