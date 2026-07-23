@@ -9,6 +9,17 @@ updates:
     groups:
       minor-and-patch:
         update-types: ["minor", "patch"]
+    ignore:
+      # Held majors, documented in CLAUDE.md. TypeScript 7 is blocked by the
+      # typescript-eslint peer cap and ESLint 10 by eslint-plugin-react;
+      # both unblock when eslint-config-next updates its bundled lint stack.
+      - dependency-name: typescript
+        versions: [">=7"]
+      - dependency-name: eslint
+        versions: [">=10"]
+      # Tracks the Vercel Node runtime, not the newest Node.
+      - dependency-name: "@types/node"
+        versions: [">=25"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
