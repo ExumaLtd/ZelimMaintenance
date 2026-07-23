@@ -5,6 +5,7 @@ import ImageUploader from '@/components/image-uploader';
 import { getCompanyLogoUrl } from '@/utils/get-company-logo';
 import { autoGrow } from '@/utils/form-utils';
 import { useAutoSave } from '@/hooks/use-auto-save';
+import { errorMessage } from '@/utils/errors';
 import { fetchFormData } from '@/lib/data-fetching';
 import { getSession } from '@/lib/session';
 import FormShell from '@/components/maintenance-form/form-shell';
@@ -772,7 +773,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
       localStorage.removeItem(`${storageKey}_step`);
       router.push('/portal/swift/depth-complete');
     } catch (err) {
-      setErrorMsg(err.message);
+      setErrorMsg(errorMessage(err));
       setSubmitting(false);
       hasSubmittedRef.current = false;
     }

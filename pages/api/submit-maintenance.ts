@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { errorMessage } from '@/utils/errors';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from '../../lib/session';
 import { Redis } from '@upstash/redis';
@@ -62,7 +63,7 @@ async function generateRecordRef(serialNumber, maintenanceType) {
   } catch (error) {
     // Redis unavailable, fall back to a millisecond timestamp suffix so the
     // ref is still unique, just less readable. Submission should not be lost.
-    console.warn('Redis counter unavailable, using timestamp fallback:', error.message);
+    console.warn('Redis counter unavailable, using timestamp fallback:', errorMessage(error));
     return `RI/${serialNumber}/${typeCode}/${dateCode}/${Date.now()}`;
   }
 }
@@ -277,7 +278,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           console.warn('Signature upload failed:', await sigRes.text());
         }
       } catch (sigErr) {
-        console.warn('Signature upload error:', sigErr.message);
+        console.warn('Signature upload error:', errorMessage(sigErr));
       }
     }
 
@@ -410,12 +411,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
     } catch (markError) {
-      console.warn('⚠️ Error marking draft complete:', markError.message);
+      console.warn('⚠️ Error marking draft complete:', errorMessage(markError));
     }
 
     return res.status(200).json({ success: true, recordRef });
   } catch (error) {
-    console.error("Final Submission Failure:", error.message);
+    console.error("Final Submission Failure:", errorMessage(error));
     return res.status(500).json({ success: false, error: 'Submission failed. Please try again.' });
   }
 }

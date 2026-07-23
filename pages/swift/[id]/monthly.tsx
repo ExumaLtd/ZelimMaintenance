@@ -7,6 +7,7 @@ import { autoGrow } from '@/utils/form-utils';
 import ImageUploader from '@/components/image-uploader';
 import VoiceInput from '@/components/voice-input';
 import { useAutoSave } from '@/hooks/use-auto-save';
+import { errorMessage } from '@/utils/errors';
 import { fetchFormData } from '@/lib/data-fetching';
 import { getSession } from '@/lib/session';
 import FormShell from '@/components/maintenance-form/form-shell';
@@ -630,7 +631,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
       localStorage.removeItem(storageKey);
       router.push(`/portal/swift/monthly-complete`);
     } catch (err) {
-      setErrorMsg(err.message);
+      setErrorMsg(errorMessage(err));
       setSubmitting(false);
       hasSubmittedRef.current = false;
     }

@@ -10,6 +10,7 @@ import { useGeolocation, useMicPreflight } from './device-hooks';
 import { useDraftLoader, useLocalDraftMirror, applyCommonAirtableDraft, applyCommonLocalDraft } from './persistence';
 import { performSubmission } from './submit';
 import { useAutoSave } from '@/hooks/use-auto-save';
+import { errorMessage } from '@/utils/errors';
 
 const adminSchema = z.object({
   company: z.string().min(1, 'Please select a maintenance company.'),
@@ -384,7 +385,7 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
         router,
       });
     } catch (err) {
-      setErrorMsg(err.message);
+      setErrorMsg(errorMessage(err));
       setSubmitting(false);
       hasSubmittedRef.current = false; // Reset on error
     }

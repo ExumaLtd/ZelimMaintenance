@@ -9,6 +9,7 @@ import { useGeolocation, useMicPreflight } from './device-hooks';
 import { useDraftLoader, useLocalDraftMirror, applyCommonAirtableDraft, applyCommonLocalDraft } from './persistence';
 import { performSubmission } from './submit';
 import { useAutoSave } from '@/hooks/use-auto-save';
+import { errorMessage } from '@/utils/errors';
 
 const singleStepSchema = z.object({
   company: z.string().min(1, 'Please select a maintenance company.'),
@@ -226,7 +227,7 @@ export default function SingleStepForm({ config, unit, template, companies = [],
         answers, questionImages, signatureData, storageKey, router,
       });
     } catch (err) {
-      setErrorMsg(err.message);
+      setErrorMsg(errorMessage(err));
       setSubmitting(false);
       hasSubmittedRef.current = false; // Reset on error
     }

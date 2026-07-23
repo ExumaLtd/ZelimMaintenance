@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { errorMessage } from '@/utils/errors';
 import { Resend } from 'resend';
 import { MaintenanceReportEmail } from '../../emails/maintenance-report';
 import { TechnicalAlertEmail } from '../../emails/technical-alert';
@@ -178,7 +179,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (error) {
     // Detailed error logging for troubleshooting
     console.error("--- RESEND BATCH ERROR ---");
-    console.error(error.message);
+    console.error(errorMessage(error));
     console.error("--- END ERROR ---");
     
     return res.status(500).json({ error: 'Failed to send report' });

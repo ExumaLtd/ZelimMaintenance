@@ -1,4 +1,5 @@
 import Head from 'next/head';
+import { errorMessage } from '@/utils/errors';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -106,7 +107,7 @@ export default function Home() {
       return null;
     } catch (err) {
       clearTimeout(timeoutId);
-      if (err.name === 'AbortError') {
+      if (err instanceof Error && err.name === 'AbortError') {
         if (timedOut) return { serverError: true };
         return null;
       }
@@ -207,7 +208,7 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
 
       } catch (err) {
         console.error("Scanner start error:", err);
-        setError(`Camera access error: ${err.message || 'Unable to access camera'}`);
+        setError(`Camera access error: ${errorMessage(err) || 'Unable to access camera'}`);
         setShowScanner(false);
       }
     }, 50);
