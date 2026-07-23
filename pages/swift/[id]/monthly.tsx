@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { z } from "zod";
 import clsx from "clsx";
 import { getCompanyLogoUrl } from '@/utils/get-company-logo';
+import { submitWithOfflineQueue } from '@/utils/offline-queue';
 import { autoGrow } from '@/utils/form-utils';
 import ImageUploader from '@/components/image-uploader';
 import VoiceInput from '@/components/voice-input';
@@ -572,15 +573,6 @@ export default function Monthly({ unit, template, companies = [], engineers = []
     };
 
     try {
-      const res = await fetch("/api/submit-maintenance", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
-      const submitResult = await res.json();
-
       const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
 
       const answersForEmail: Record<string, any> = {};
@@ -601,38 +593,42 @@ export default function Monthly({ unit, template, companies = [], engineers = []
         }
       });
 
-      await fetch("/api/send-report", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          engineerEmail: accessType === 'operator' ? admin.operatorEmail : admin.engEmail,
-          engineerName: accessType === 'operator' ? admin.operatorName : admin.engName,
-          serialNumber: unit?.serial_number,
-          company: unit?.company,
-          maintenance_checklist: checklistData.map(group => ({
-            id: group.id,
-            title: group.title,
-            questions: group.questions.map(q => ({
-              id: q.id,
-              text: q.text,
-              answer: q.answer === true ? 'Yes' : q.answer === false ? 'No' : 'Not answered'
-            }))
-          })),
-          answers: answersForEmail,
-          reportType: "Monthly",
-          companyLogoUrl: companyLogoUrl,
-          recordRef: submitResult.recordRef,
-          isOperator: accessType === 'operator',
-          technicalData: {
-            unit_record_id: unit?.record_id,
-            checklist_template_id: template?.id,
-            maintenance_company: accessType === 'operator' ? unit?.company : admin.selectedCompany,
-            engineer_name: accessType === 'operator' ? admin.operatorName : admin.engName,
-            location_display: admin.locationDisplay,
-            date_of_maintenance: new Date().toISOString().split('T')[0],
-            time_of_maintenance: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-          },
-        }),
+      // Built before submitting so the pair can be queued offline as one
+      // unit; recordRef is patched in from the submit response on send.
+      const reportBody = {
+        engineerEmail: accessType === 'operator' ? admin.operatorEmail : admin.engEmail,
+        engineerName: accessType === 'operator' ? admin.operatorName : admin.engName,
+        serialNumber: unit?.serial_number,
+        company: unit?.company,
+        maintenance_checklist: checklistData.map(group => ({
+          id: group.id,
+          title: group.title,
+          questions: group.questions.map(q => ({
+            id: q.id,
+            text: q.text,
+            answer: q.answer === true ? 'Yes' : q.answer === false ? 'No' : 'Not answered'
+          }))
+        })),
+        answers: answersForEmail,
+        reportType: "Monthly",
+        companyLogoUrl: companyLogoUrl,
+        isOperator: accessType === 'operator',
+        technicalData: {
+          unit_record_id: unit?.record_id,
+          checklist_template_id: template?.id,
+          maintenance_company: accessType === 'operator' ? unit?.company : admin.selectedCompany,
+          engineer_name: accessType === 'operator' ? admin.operatorName : admin.engName,
+          location_display: admin.locationDisplay,
+          date_of_maintenance: new Date().toISOString().split('T')[0],
+          time_of_maintenance: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+        },
+      };
+
+      await submitWithOfflineQueue({
+        queueKey: storageKey,
+        submitPayload: payload,
+        reportBody,
+        clearKeys: [storageKey],
       });
 
       localStorage.setItem("last_submitted_sn", unit?.serial_number);

@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { z } from "zod";
 import ImageUploader from '@/components/image-uploader';
 import { getCompanyLogoUrl } from '@/utils/get-company-logo';
+import { submitWithOfflineQueue } from '@/utils/offline-queue';
 import { autoGrow } from '@/utils/form-utils';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { errorMessage } from '@/utils/errors';
@@ -719,51 +720,46 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
     };
 
     try {
-      const res = await fetch("/api/submit-maintenance", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
-      const submitResult = await res.json();
-
       const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
 
-      await fetch("/api/send-report", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          engineerEmail: accessType === 'operator' ? admin.operatorEmail : admin.engEmail,
-          engineerName: accessType === 'operator' ? admin.operatorName : admin.engName,
-          serialNumber: unit?.serial_number,
-          company: unit?.company,
-          answers: emailFriendlyAnswers,
-          equipment_checklist: checklistData.map(item => ({
-            ...item,
-            images: checklistImages[`item_${item.id}`]?.map(img => img.url) || []
-          })),
-          reportType: template?.type || "Depth",
-          companyLogoUrl: companyLogoUrl,
-          recordRef: submitResult.recordRef,
-          isOperator: accessType === 'operator',
-          technicalData: {
-            unit_record_id: unit?.record_id,
-            checklist_template_id: template?.id,
-            maintenance_company: accessType === 'operator' ? unit?.company : admin.selectedCompany,
-            engineer_name: accessType === 'operator' ? admin.operatorName : admin.engName,
-            location_display: admin.locationDisplay,
-            date_of_maintenance: new Date().toISOString().split('T')[0],
-            time_of_maintenance: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-          },
-        }),
+      // Built before submitting so the pair can be queued offline as one
+      // unit; recordRef is patched in from the submit response on send.
+      const reportBody = {
+        engineerEmail: accessType === 'operator' ? admin.operatorEmail : admin.engEmail,
+        engineerName: accessType === 'operator' ? admin.operatorName : admin.engName,
+        serialNumber: unit?.serial_number,
+        company: unit?.company,
+        answers: emailFriendlyAnswers,
+        equipment_checklist: checklistData.map(item => ({
+          ...item,
+          images: checklistImages[`item_${item.id}`]?.map(img => img.url) || []
+        })),
+        reportType: template?.type || "Depth",
+        companyLogoUrl: companyLogoUrl,
+        isOperator: accessType === 'operator',
+        technicalData: {
+          unit_record_id: unit?.record_id,
+          checklist_template_id: template?.id,
+          maintenance_company: accessType === 'operator' ? unit?.company : admin.selectedCompany,
+          engineer_name: accessType === 'operator' ? admin.operatorName : admin.engName,
+          location_display: admin.locationDisplay,
+          date_of_maintenance: new Date().toISOString().split('T')[0],
+          time_of_maintenance: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+        },
+      };
+
+      const imageKeys = (template?.questionsData || []).map(
+        (_, i) => `images_depth_${unit?.serial_number}_q${i + 1}`
+      );
+
+      await submitWithOfflineQueue({
+        queueKey: storageKey,
+        submitPayload: payload,
+        reportBody,
+        clearKeys: [...imageKeys, storageKey, `${storageKey}_step`],
       });
 
-      (template?.questionsData || []).forEach((_, i) => {
-        const questionKey = `q${i + 1}`;
-        const imageStorageKey = `images_depth_${unit?.serial_number}_${questionKey}`;
-        localStorage.removeItem(imageStorageKey);
-      });
+      imageKeys.forEach((key) => localStorage.removeItem(key));
 
       localStorage.setItem("last_submitted_sn", unit?.serial_number);
       localStorage.setItem("last_maintenance_type", template?.type || "Depth");

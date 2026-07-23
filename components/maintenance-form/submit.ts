@@ -1,4 +1,5 @@
 import { getCompanyLogoUrl } from '@/utils/get-company-logo';
+import { submitWithOfflineQueue } from '@/utils/offline-queue';
 import type { NextRouter } from 'next/router';
 import type { MaintenanceFormConfig } from './config';
 import type { Unit, ChecklistTemplate, Answers, QuestionImages, AdminValues } from './types';
@@ -70,8 +71,9 @@ export function buildSubmitPayload({ typeLabel, unit, template, admin, signature
  * Save the submission, send the report email, clear the local draft and
  * uploader caches, then navigate to the confirmation page. Throws when the
  * database save fails so the form can surface the error and re-enable
- * submission. The signature (base64 data URL) is uploaded server-side so
- * record_ref can be used as the filename.
+ * submission; throws OfflineQueuedError when the network is down and the
+ * submission was queued on-device instead. The signature (base64 data URL)
+ * is uploaded server-side so record_ref can be used as the filename.
  */
 type PerformSubmissionArgs = {
   config: MaintenanceFormConfig;
@@ -106,47 +108,42 @@ export async function performSubmission({
     unit, template, admin, signatureData, answers, questionImages,
   });
 
-  const res = await fetch("/api/submit-maintenance", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-
-  if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
-  const submitResult = await res.json();
-
   const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
 
-  await fetch("/api/send-report", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      engineerEmail: accessType === 'operator' ? admin.operatorEmail : admin.engEmail,
-      engineerName: accessType === 'operator' ? admin.operatorName : admin.engName,
-      serialNumber: unit?.serial_number,
-      company: unit?.company,
-      answers: emailFriendlyAnswers,
-      reportType: config.typeLabel,
-      companyLogoUrl: companyLogoUrl,
-      recordRef: submitResult.recordRef,
-      isOperator: accessType === 'operator',
-      technicalData: {
-        unit_record_id: unit?.record_id,
-        checklist_template_id: template?.id,
-        maintenance_company: accessType === 'operator' ? unit?.company : admin.selectedCompany,
-        engineer_name: accessType === 'operator' ? admin.operatorName : admin.engName,
-        location_display: admin.locationDisplay,
-        date_of_maintenance: new Date().toISOString().split('T')[0],
-        time_of_maintenance: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-      },
-    }),
+  // Built before submitting so the pair can be queued offline as one unit;
+  // recordRef is patched in from the submit response when it actually sends.
+  const reportBody = {
+    engineerEmail: accessType === 'operator' ? admin.operatorEmail : admin.engEmail,
+    engineerName: accessType === 'operator' ? admin.operatorName : admin.engName,
+    serialNumber: unit?.serial_number,
+    company: unit?.company,
+    answers: emailFriendlyAnswers,
+    reportType: config.typeLabel,
+    companyLogoUrl: companyLogoUrl,
+    isOperator: accessType === 'operator',
+    technicalData: {
+      unit_record_id: unit?.record_id,
+      checklist_template_id: template?.id,
+      maintenance_company: accessType === 'operator' ? unit?.company : admin.selectedCompany,
+      engineer_name: accessType === 'operator' ? admin.operatorName : admin.engName,
+      location_display: admin.locationDisplay,
+      date_of_maintenance: new Date().toISOString().split('T')[0],
+      time_of_maintenance: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+    },
+  };
+
+  const imageKeys = (template?.questionsData || []).map(
+    (_, i) => `images_${config.uploadSlug}_${unit?.serial_number}_q${i + 1}`
+  );
+
+  await submitWithOfflineQueue({
+    queueKey: storageKey,
+    submitPayload: payload,
+    reportBody,
+    clearKeys: [...imageKeys, storageKey, ...extraLocalKeys],
   });
 
-  (template?.questionsData || []).forEach((_, i) => {
-    const questionKey = `q${i + 1}`;
-    const imageStorageKey = `images_${config.uploadSlug}_${unit?.serial_number}_${questionKey}`;
-    localStorage.removeItem(imageStorageKey);
-  });
+  imageKeys.forEach((key) => localStorage.removeItem(key));
 
   localStorage.setItem("last_submitted_sn", unit?.serial_number);
   localStorage.setItem("last_maintenance_type", config.typeLabel);

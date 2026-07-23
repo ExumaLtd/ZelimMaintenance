@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import type { AppProps } from "next/app";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
+import { flushOfflineQueue } from "../utils/offline-queue";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -32,6 +33,15 @@ export default function MyApp({ Component, pageProps }: AppProps) {
       history.scrollRestoration = 'manual';
     }
     window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
+    // Retry submissions queued while offline: once on load, then whenever
+    // connectivity returns.
+    flushOfflineQueue();
+    const onOnline = () => flushOfflineQueue();
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
   }, []);
 
   return (
