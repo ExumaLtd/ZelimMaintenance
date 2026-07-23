@@ -31,7 +31,7 @@ export default function OfflineQueueBanner() {
   if (pending === 0 && failed === 0) return null;
 
   return (
-    <div className="mb-5 rounded-lg border border-line bg-card p-4 text-sm leading-6 text-ink-soft">
+    <div className="mb-5 rounded-[10px] border border-line bg-card p-4 text-sm leading-6 tracking-[0.02em] text-ink-soft">
       {pending > 0 && (
         <p className="m-0 flex items-start gap-2.5">
           <CloudUpload size={18} strokeWidth={1.5} className="mt-1 shrink-0 text-accent" />
