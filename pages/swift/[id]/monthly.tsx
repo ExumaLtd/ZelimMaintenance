@@ -1,23 +1,32 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/router";
-import Head from "next/head";
-import Image from "next/image";
 import { z } from "zod";
 import clsx from "clsx";
-import { getCompanyLogoUrl, getClientLogo } from '../../../utils/get-company-logo';
-import { autoGrow } from '../../../utils/form-utils';
-import ImageUploader from '../../../components/image-uploader';
-import VoiceInput from '../../../components/voice-input';
-import DatePicker from '../../../components/date-picker';
-import { ChevronDown, ChevronUp } from "lucide-react";
-import SignaturePad from '../../../components/signature-pad';
-import { useAutoSave } from '../../../hooks/use-auto-save';
+import { getCompanyLogoUrl } from '@/utils/get-company-logo';
+import { submitOrQueue } from '@/utils/offline-queue';
+import { buildMonthlyPayload } from '@/components/maintenance-form/checklist-payloads';
+import { autoGrow, focusFirstError } from '@/utils/form-utils';
+import ImageUploader from '@/components/image-uploader';
+import VoiceInput from '@/components/voice-input';
+import { useAutoSave } from '@/hooks/use-auto-save';
+import { errorMessage } from '@/utils/errors';
 import { fetchFormData } from '@/lib/data-fetching';
-import { getSession } from '../../../lib/session';
+import { getSession } from '@/lib/session';
+import FormShell from '@/components/maintenance-form/form-shell';
+import type { FieldErrors, FormPageProps, UploadedImage } from '@/components/maintenance-form/types';
+import type { FormEvent } from 'react';
+import type { GetServerSidePropsContext } from 'next';
 
-// Development-only debug logger. No-ops in production.
-const DEBUG = process.env.NODE_ENV === 'development';
-const dlog = (...args: any[]) => { if (DEBUG) console.log(...args); };
+type ChecklistGroup = {
+  id: number;
+  title: string;
+  questions: { id: number; text: string; answer: boolean | null }[];
+};
+import ArrowButton from '@/components/ui/arrow-button';
+import { useAdminFields, AdminCard } from '@/components/maintenance-form/admin-card';
+import DeclarationCard from '@/components/maintenance-form/declaration-card';
+import { useGeolocation, useMicPreflight } from '@/components/maintenance-form/device-hooks';
+import { useDraftLoader } from '@/components/maintenance-form/persistence';
 
 const monthlyAdminSchema = z.object({
   company: z.string().min(1, 'Operator is required.'),
@@ -27,41 +36,28 @@ const monthlyAdminSchema = z.object({
   engineerPhone: z.string().min(1, 'Please provide an operators phone number.').max(20, 'Phone number must be 20 characters or less.'),
 });
 
-const monthlySchema = z.object({
-  company: z.string().min(1, 'Operator is required.'),
-  location: z.string().min(1, 'Please provide a location.'),
-  engineerName: z.string().min(1, 'Please provide an operators name.'),
-  engineerEmail: z.string().email('Please provide a valid operators email.'),
-  engineerPhone: z.string().min(1, 'Please provide an operators phone number.').max(20, 'Phone number must be 20 characters or less.'),
+const monthlySchema = monthlyAdminSchema.extend({
   declaration: z.boolean().refine(val => val === true, { message: 'Please accept the declaration before submitting.' }),
   signature: z.string().min(1, 'Please sign before submitting.'),
 });
 
 
-export default function Monthly({ unit, template, allCompanies = [], allEngineers = [], allOperators = [], accessType = 'operator' }) {
+export default function Monthly({ unit, template, companies = [], engineers = [], operators = [], accessType = 'operator' }: FormPageProps) {
   const router = useRouter();
 
-  const companyFieldRef = useRef(null);
-  const locationFieldRef = useRef(null);
-  const engineerFieldRef = useRef(null);
-  const card1Ref = useRef(null);
-  const signatureRef = useRef(null);
-  const companyDropdownRef = useRef(null);
-  const engineerDropdownRef = useRef(null);
-  const operatorDropdownRef = useRef(null);
-  const card2Ref = useRef(null);
-  const hasLoadedDraftRef = useRef(false);
-  const hasSubmittedRef = useRef(false);
+  const card1Ref = useRef<HTMLDivElement | null>(null);
+  const card2Ref = useRef<HTMLDivElement | null>(null);
+  const signatureRef = useRef<any>(null);
 
   const [submitting, setSubmitting] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [today, setToday] = useState("");
   const [declarationChecked, setDeclarationChecked] = useState(false);
-  const [signatureData, setSignatureData] = useState(null);
+  const [signatureData, setSignatureData] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
-  const [photographImages, setPhotographImages] = useState([]);
+  const [photographImages, setPhotographImages] = useState<UploadedImage[]>([]);
   const [photographComments, setPhotographComments] = useState("");
-  const [fieldErrors, setFieldErrors] = useState({
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({
     company: false,
     location: false,
     engineerName: false,
@@ -74,44 +70,27 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   });
 
   // Checklist data - initialize from template (grouped structure)
-  const [checklistData, setChecklistData] = useState([]);
-  
+  const [checklistData, setChecklistData] = useState<ChecklistGroup[]>([]);
+  const [toggleErrors, setToggleErrors] = useState<Record<string, boolean>>({});
+
   // Further comments, one per checklist group, keyed by groupIndex
   const [stepComments, setStepComments] = useState<Record<string, string>>({});
-  const [stepCommentImages, setStepCommentImages] = useState<Record<string, any[]>>({});
+  const [stepCommentImages, setStepCommentImages] = useState<Record<string, UploadedImage[]>>({});
 
-  const [locationDisplay, setLocationDisplay] = useState("");
-  const [locationCountry, setLocationCountry] = useState("");
-  const [locationFailed, setLocationFailed] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState(accessType === 'operator' ? unit?.company || "" : "");
-  const [engName, setEngName] = useState("");
-  const [engEmail, setEngEmail] = useState("");
-  const [engPhone, setEngPhone] = useState("");
-  const [engId, setEngId] = useState("");
-
-  const [operatorName, setOperatorName] = useState("");
-  const [operatorEmail, setOperatorEmail] = useState("");
-  const [operatorPhone, setOperatorPhone] = useState("");
-  const [operatorId, setOperatorId] = useState("");
-  const [showOperatorDropdown, setShowOperatorDropdown] = useState(false);
-
-  const [maintenanceDate, setMaintenanceDate] = useState(new Date().toISOString().split("T")[0]);
-
-  const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
-  const [showEngineerDropdown, setShowEngineerDropdown] = useState(false);
+  const admin = useAdminFields({ unit, accessType, engineers, operators, setFieldErrors });
 
   const storageKey = useMemo(() => {
-  // The session cookie is httpOnly, so it is not readable client-side. The draft
-  // localStorage key uses a fixed 'unknown' segment for the pin component.
-  const pin = 'unknown';
-  return `draft_monthly_${unit?.serial_number}_${pin}`;
-}, [unit?.serial_number]);
+    // The session cookie is httpOnly, so it is not readable client-side. The draft
+    // localStorage key uses a fixed 'unknown' segment for the pin component.
+    const pin = 'unknown';
+    return `draft_monthly_${unit?.serial_number}_${pin}`;
+  }, [unit?.serial_number]);
 
   // Auto-save draft to Airtable
   useAutoSave({
     unitId: unit?.record_id,
     maintenanceType: 'Monthly',
-    engineerEmail: accessType === 'operator' ? operatorEmail : engEmail,
+    engineerEmail: accessType === 'operator' ? admin.operatorEmail : admin.engEmail,
     draftData: {
       currentStep,
       checklistData,
@@ -119,21 +98,22 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       stepCommentImages,
       photographImages,
       photographComments,
-      selectedCompany,
-      locationDisplay,
-      locationCountry,
-      engName,
-      engEmail,
-      engPhone,
-      engId,
-      operatorName,
-      operatorEmail,
-      operatorPhone,
-      operatorId,
+      selectedCompany: admin.selectedCompany,
+      locationDisplay: admin.locationDisplay,
+      locationCountry: admin.locationCountry,
+      what3words: admin.what3words,
+      engName: admin.engName,
+      engEmail: admin.engEmail,
+      engPhone: admin.engPhone,
+      engId: admin.engId,
+      operatorName: admin.operatorName,
+      operatorEmail: admin.operatorEmail,
+      operatorPhone: admin.operatorPhone,
+      operatorId: admin.operatorId,
     }
   },
     !submitting &&
-    !hasSubmittedRef.current &&
+    !hasSubmitted &&
     (
       (checklistData && checklistData.length > 0 && checklistData.some(group =>
         group.questions.some(q => q.answer !== null)
@@ -141,26 +121,28 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       Object.values(stepComments).some(c => c?.trim()) ||
       Object.values(stepCommentImages).some(imgs => imgs?.length > 0) ||
       (photographImages && photographImages.length > 0) ||
-      (selectedCompany && selectedCompany !== '') ||
-      (engName && engName !== '' && engName !== 'Please select') ||
-      (engEmail && engEmail !== '') ||
-      (engPhone && engPhone !== '')
+      (admin.selectedCompany && admin.selectedCompany !== '') ||
+      (admin.engName && admin.engName !== '' && admin.engName !== 'Please select') ||
+      (admin.engEmail && admin.engEmail !== '') ||
+      (admin.engPhone && admin.engPhone !== '')
     )
   );
 
-  // Initialize checklist data from template (grouped structure)
+  // Initialize checklist data from template (grouped structure). Skipped when
+  // a draft is being restored so restored answers are not wiped.
+  const hasLoadedDraftForInitRef = useRef(false);
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const isDraft = urlParams.get('draft') === 'true';
     if (isDraft) return;
-    
-    if (template?.maintenanceChecklist && template.maintenanceChecklist.length > 0 && !hasLoadedDraftRef.current) {
+
+    if (template?.maintenanceChecklist && template.maintenanceChecklist.length > 0 && !hasLoadedDraftForInitRef.current) {
       setChecklistData(
         template.maintenanceChecklist
-          .filter(item => item.questions && item.questions.length > 0)
-          .map(group => ({
+          .filter((item: any) => item.questions && item.questions.length > 0)
+          .map((group: any) => ({
             ...group,
-            questions: group.questions.map(q => ({
+            questions: group.questions.map((q: any) => ({
               ...q,
               answer: null
             }))
@@ -169,115 +151,30 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     }
   }, [template]);
 
-  const filteredEngineers = useMemo(() => {
-    if (!selectedCompany) return [];
-    let list = allEngineers.filter(e => e.companyName === selectedCompany && e.name !== engName);
-
-    if (engName && engName !== "Please select" && engName.trim()) {
-      const search = engName.toLowerCase();
-      return list.filter(e => e.name.toLowerCase().includes(search));
-    }
-    return list;
-  }, [selectedCompany, engName, allEngineers]);
-
-  const filteredOperators = useMemo(() => {
-    const opId = unit?.operating_company_id;
-    if (!opId) return allOperators;
-    let list = allOperators.filter(o => o.operating_company_id === opId && o.name !== operatorName);
-    if (operatorName && operatorName !== "Please select" && operatorName.trim()) {
-      const search = operatorName.toLowerCase();
-      return list.filter(o => o.name.toLowerCase().includes(search));
-    }
-    return list;
-  }, [unit?.operating_company_id, operatorName, allOperators]);
-
-  const selectCompany = useCallback((company) => {
-    setSelectedCompany(company);
-    setEngName("Please select");
-    setEngEmail("");
-    setEngPhone("");
-    setEngId("");
-    setShowCompanyDropdown(false);
-    setFieldErrors(prev => ({ ...prev, company: false }));
-  }, []);
-
-  const selectEngineer = useCallback((engineer) => {
-    setEngName(engineer.name);
-    setEngEmail(engineer.email || "");
-    setEngPhone(engineer.phone || "");
-    setEngId(engineer.id || "");
-    setShowEngineerDropdown(false);
-    setFieldErrors(prev => ({
-      ...prev,
-      engineerName: false,
-      engineerEmail: engineer.email ? false : prev.engineerEmail,
-      engineerPhone: engineer.phone ? false : prev.engineerPhone,
-    }));
-    const engineerInput = document.querySelector('[name="engineer_name"]');
-    if (engineerInput) engineerInput.classList.remove('has-error');
-    if (engineer.email) {
-      const emailInput = document.querySelector('[name="engineer_email"]');
-      if (emailInput) emailInput.classList.remove('has-error');
-    }
-    if (engineer.phone) {
-      const phoneInput = document.querySelector('[name="engineer_phone"]');
-      if (phoneInput) phoneInput.classList.remove('has-error');
-    }
-  }, []);
-
-  const clearEngineer = useCallback(() => {
-    setEngName("");
-    setEngEmail("");
-    setEngPhone("");
-    setEngId("");
-    setShowEngineerDropdown(false);
-  }, []);
-
-  const selectOperator = useCallback((operator) => {
-    setOperatorName(operator.name);
-    setOperatorEmail(operator.email || "");
-    setOperatorPhone(operator.phone || "");
-    setOperatorId(operator.id || "");
-    setShowOperatorDropdown(false);
-    setFieldErrors(prev => ({
-      ...prev,
-      engineerName: false,
-      engineerEmail: operator.email ? false : prev.engineerEmail,
-      engineerPhone: operator.phone ? false : prev.engineerPhone,
-    }));
-  }, []);
-
-  const clearOperator = useCallback(() => {
-    setOperatorName("");
-    setOperatorEmail("");
-    setOperatorPhone("");
-    setOperatorId("");
-    setShowOperatorDropdown(false);
-  }, []);
-
   // Checklist update function (for grouped structure)
-  const updateChecklist = (groupIndex, questionIndex, value) => {
+  const updateChecklist = (groupIndex: number, questionIndex: number, value: boolean) => {
+    setToggleErrors(prev => {
+      const key = `${groupIndex}:${questionIndex}`;
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
     setChecklistData(prev => {
       const updated = [...prev];
       updated[groupIndex] = {
         ...updated[groupIndex],
-        questions: updated[groupIndex].questions.map((q, qIdx) => 
+        questions: updated[groupIndex].questions.map((q, qIdx) =>
           qIdx === questionIndex ? { ...q, answer: value } : q
         )
       };
-      
-      const row = document.querySelector(`[data-group="${groupIndex}"][data-question="${questionIndex}"]`);
-      if (row) {
-        const allButtons = row.querySelectorAll('.toggle-btn');
-        allButtons.forEach(btn => btn.classList.remove('has-error'));
-      }
-      
+
       return updated;
     });
   };
 
   // Handle comment images per step
-  const handleStepCommentImagesChange = (groupIndex, images) => {
+  const handleStepCommentImagesChange = (groupIndex: number, images: UploadedImage[]) => {
     setStepCommentImages(prev => ({ ...prev, [groupIndex]: images }));
   };
 
@@ -285,8 +182,8 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
   const handleContinue = () => {
     // On step 1 (admin + photo), validate both before advancing
     if (currentStep === 1) {
-      const errors = [];
-      const newFieldErrors = {
+      const errors: string[] = [];
+      const newFieldErrors: FieldErrors = {
         company: false,
         location: false,
         engineerName: false,
@@ -298,16 +195,14 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
         stepComments: {},
       };
 
-      document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
-
       const adminResult = monthlyAdminSchema.safeParse({
-        company: selectedCompany || "",
-        location: locationDisplay?.trim() || "",
+        company: admin.selectedCompany || "",
+        location: admin.locationDisplay?.trim() || "",
         engineerName: accessType === 'operator'
-          ? (operatorName && operatorName !== "Please select") ? operatorName.trim() : ""
-          : (engName && engName !== "Please select") ? engName.trim() : "",
-        engineerEmail: accessType === 'operator' ? operatorEmail?.trim() || "" : engEmail?.trim() || "",
-        engineerPhone: accessType === 'operator' ? operatorPhone?.trim() || "" : engPhone?.trim() || "",
+          ? (admin.operatorName && admin.operatorName !== "Please select") ? admin.operatorName.trim() : ""
+          : (admin.engName && admin.engName !== "Please select") ? admin.engName.trim() : "",
+        engineerEmail: accessType === 'operator' ? admin.operatorEmail?.trim() || "" : admin.engEmail?.trim() || "",
+        engineerPhone: accessType === 'operator' ? admin.operatorPhone?.trim() || "" : admin.engPhone?.trim() || "",
       });
 
       if (!adminResult.success) {
@@ -385,7 +280,7 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
 
   // Handle browser back/forward buttons
   useEffect(() => {
-    const handlePopState = (event) => {
+    const handlePopState = (event: PopStateEvent) => {
       const targetStep = event.state?.step ?? 1;
       setCurrentStep(targetStep);
       setTimeout(() => {
@@ -401,208 +296,94 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Close dropdowns on outside click
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (companyDropdownRef.current && !companyDropdownRef.current.contains(event.target)) {
-        setShowCompanyDropdown(false);
-      }
-      if (engineerDropdownRef.current && !engineerDropdownRef.current.contains(event.target)) {
-        setShowEngineerDropdown(false);
-      }
-      if (operatorDropdownRef.current && !operatorDropdownRef.current.contains(event.target)) {
-        setShowOperatorDropdown(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // Load draft - ALWAYS check Airtable first, localStorage as fallback
-  useEffect(() => {
-    setToday(new Date().toISOString().split("T")[0]);
-    
-    const loadDraft = async () => {
-      if (hasLoadedDraftRef.current) {
-        dlog('⏭️ Draft already loaded, skipping...');
-        return;
-      }
-      
-      // PRIORITY 1: ALWAYS check Airtable first
-      if (unit?.record_id) {
-        try {
-          dlog('🔍 Checking Airtable for draft...');
-          const res = await fetch(
-            `/api/get-draft?unitId=${unit.record_id}&maintenanceType=Monthly`
-          );
-          const data = await res.json();
-          
-          if (data.draft) {
-            dlog('📦 Draft found in Airtable');
-            
-            if (data.draft.currentStep) {
-              setCurrentStep(data.draft.currentStep);
-              for (let s = 2; s <= data.draft.currentStep; s++) {
-                window.history.pushState({ step: s }, '', window.location.href);
-              }
-            }
-            if (data.draft.checklistData) setChecklistData(data.draft.checklistData);
-            if (data.draft.stepComments) setStepComments(data.draft.stepComments);
-            if (data.draft.stepCommentImages) setStepCommentImages(data.draft.stepCommentImages);
-            if (data.draft.photographImages) setPhotographImages(data.draft.photographImages);
-            if (data.draft.photographComments) setPhotographComments(data.draft.photographComments);
-            if (data.draft.selectedCompany) setSelectedCompany(data.draft.selectedCompany);
-            if (data.draft.locationDisplay) setLocationDisplay(data.draft.locationDisplay);
-            if (data.draft.locationCountry) setLocationCountry(data.draft.locationCountry);
-            if (data.draft.engName) setEngName(data.draft.engName);
-            if (data.draft.engEmail) setEngEmail(data.draft.engEmail);
-            if (data.draft.engPhone) setEngPhone(data.draft.engPhone);
-            if (data.draft.engId) setEngId(data.draft.engId);
-            if (data.draft.operatorName) setOperatorName(data.draft.operatorName);
-            if (data.draft.operatorEmail) setOperatorEmail(data.draft.operatorEmail);
-            if (data.draft.operatorPhone) setOperatorPhone(data.draft.operatorPhone);
-            if (data.draft.operatorId) setOperatorId(data.draft.operatorId);
-
-            // Clear stale localStorage
-            localStorage.removeItem(storageKey);
-
-            hasLoadedDraftRef.current = true;
-            dlog('✅ Draft loaded from Airtable:', new Date(data.lastUpdated).toLocaleString());
-            return;
-          } else {
-            dlog('ℹ️ No draft found in Airtable');
-          }
-        } catch (error) {
-          console.error('❌ Failed to load Airtable draft:', error);
+  const { draftLoadedRef } = useDraftLoader({
+    unit,
+    typeLabel: 'Monthly',
+    storageKey,
+    applyAirtableDraft: (draft) => {
+      hasLoadedDraftForInitRef.current = true;
+      if (draft.currentStep) {
+        setCurrentStep(draft.currentStep);
+        for (let s = 2; s <= draft.currentStep; s++) {
+          window.history.pushState({ step: s }, '', window.location.href);
         }
       }
-      
-      // PRIORITY 2: localStorage fallback
-      dlog('🔍 Checking localStorage for draft...');
-      const savedDraft = localStorage.getItem(storageKey);
-      if (savedDraft) {
-        try {
-          const data = JSON.parse(savedDraft);
-          if (data.maintained_by) setSelectedCompany(data.maintained_by);
-          if (data.location_display && data.location_display.trim()) {
-            setLocationDisplay(data.location_display);
-          }
-          if (data.location_country) setLocationCountry(data.location_country);
-          if (data.engineer_name) setEngName(data.engineer_name);
-          if (data.engineer_email) setEngEmail(data.engineer_email);
-          if (data.engineer_phone) setEngPhone(data.engineer_phone);
-          if (data.further_comments) setStepComments({ [checklistData.length - 1]: data.further_comments });
-          
-          if (data.checklist_data && Array.isArray(data.checklist_data)) {
-            setChecklistData(data.checklist_data);
-          }
-          
-          hasLoadedDraftRef.current = true;
-          dlog('✅ Draft loaded from localStorage');
-        } catch (e) {
-          console.error("❌ localStorage draft load error:", e);
-        }
-      } else {
-        dlog('ℹ️ No draft found in localStorage - fresh start');
+      if (draft.checklistData) setChecklistData(draft.checklistData);
+      if (draft.stepComments) setStepComments(draft.stepComments);
+      if (draft.stepCommentImages) setStepCommentImages(draft.stepCommentImages);
+      if (draft.photographImages) setPhotographImages(draft.photographImages);
+      if (draft.photographComments) setPhotographComments(draft.photographComments);
+      if (draft.selectedCompany) admin.setSelectedCompany(draft.selectedCompany);
+      if (draft.locationDisplay) admin.setLocationDisplay(draft.locationDisplay);
+      if (draft.locationCountry) admin.setLocationCountry(draft.locationCountry);
+      if (draft.what3words) admin.setWhat3words(draft.what3words);
+      if (draft.engName) admin.setEngName(draft.engName);
+      if (draft.engEmail) admin.setEngEmail(draft.engEmail);
+      if (draft.engPhone) admin.setEngPhone(draft.engPhone);
+      if (draft.engId) admin.setEngId(draft.engId);
+      if (draft.operatorName) admin.setOperatorName(draft.operatorName);
+      if (draft.operatorEmail) admin.setOperatorEmail(draft.operatorEmail);
+      if (draft.operatorPhone) admin.setOperatorPhone(draft.operatorPhone);
+      if (draft.operatorId) admin.setOperatorId(draft.operatorId);
+    },
+    applyLocalDraft: (data) => {
+      hasLoadedDraftForInitRef.current = true;
+      if (data.maintained_by) admin.setSelectedCompany(data.maintained_by);
+      if (data.location_display && data.location_display.trim()) {
+        admin.setLocationDisplay(data.location_display);
       }
-    };
-    
-    loadDraft();
-  }, [unit?.record_id, storageKey]);
-
-  // Get geolocation
-  useEffect(() => {
-    if (typeof window === "undefined" || !navigator.geolocation) return;
-    if (locationDisplay && locationDisplay.trim() !== "") return;
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const isDraft = urlParams.get('draft') === 'true';
-    if (isDraft) return;
-
-    const options = {
-      enableHighAccuracy: false,
-      timeout: 8000,
-      maximumAge: 0
-    };
-
-    const doGetLocation = () => {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          try {
-            const res = await fetch(
-              `/api/reverse-geocode?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`
-            );
-
-            if (!res.ok) return;
-
-            const data = await res.json();
-
-            if (data?.address) {
-              const loc = data.address.suburb || data.address.village || data.address.town || data.address.city || "";
-              const formalCountry = data.address.country || "";
-              const displayCountry = data.address.country_code ? data.address.country_code.toUpperCase() : formalCountry;
-              const shortCountry = displayCountry === "GB" ? "UK" : displayCountry;
-              const combinedDisplay = loc ? `${loc}, ${shortCountry}` : shortCountry;
-
-              setLocationDisplay((prev) => (!prev || prev.trim() === "") ? combinedDisplay : prev);
-              setLocationCountry(formalCountry);
-            }
-          } catch (err) {
-          }
-        },
-        (error) => {
-          setLocationFailed(true);
-          dlog("Location error:", error.code);
-        },
-        options
-      );
-    };
-
-    if (navigator.permissions) {
-      navigator.permissions.query({ name: 'geolocation' }).then(result => {
-        if (result.state !== 'denied') doGetLocation();
-      }).catch(() => doGetLocation());
-    } else {
-      doGetLocation();
-    }
-  }, []);
-
-  // Pre-request microphone permission
-  useEffect(() => {
-    if (typeof window === "undefined" || !navigator.mediaDevices || !navigator.permissions) return;
-    navigator.permissions.query({ name: 'microphone' }).then(result => {
-      if (result.state === 'prompt') {
-        navigator.mediaDevices.getUserMedia({ audio: true })
-          .then(stream => { stream.getTracks().forEach(t => t.stop()); })
-          .catch(() => {});
+      if (data.location_country) admin.setLocationCountry(data.location_country);
+      if (data.what3words) admin.setWhat3words(data.what3words);
+      if (data.engineer_name) admin.setEngName(data.engineer_name);
+      if (data.engineer_email) admin.setEngEmail(data.engineer_email);
+      if (data.engineer_phone) admin.setEngPhone(data.engineer_phone);
+      // The mirror writes step_comments; the legacy further_comments key is
+      // mapped onto the last group of the mirrored checklist, not the stale
+      // mount-time state.
+      if (data.step_comments) {
+        setStepComments(data.step_comments);
+      } else if (data.further_comments && Array.isArray(data.checklist_data) && data.checklist_data.length > 0) {
+        setStepComments({ [data.checklist_data.length - 1]: data.further_comments });
       }
-    }).catch(() => {});
-  }, []);
 
-  // Save draft to localStorage (refresh protection)
+      if (data.checklist_data && Array.isArray(data.checklist_data)) {
+        setChecklistData(data.checklist_data);
+      }
+    },
+  });
+
+  useGeolocation(admin);
+  useMicPreflight();
+
+  // Save draft to localStorage (refresh protection). Held until the draft
+  // load finished so the initial empty state cannot clobber a saved mirror.
   useEffect(() => {
+    if (!draftLoadedRef.current) return;
     const draftData = {
-      maintained_by: selectedCompany,
-      location_display: locationDisplay,
-      location_country: locationCountry,
-      engineer_name: engName,
-      engineer_email: engEmail,
-      engineer_phone: engPhone,
-      engineer_record_id: engId,
+      maintained_by: admin.selectedCompany,
+      location_display: admin.locationDisplay,
+      location_country: admin.locationCountry,
+      what3words: admin.what3words,
+      engineer_name: admin.engName,
+      engineer_email: admin.engEmail,
+      engineer_phone: admin.engPhone,
+      engineer_record_id: admin.engId,
       checklist_data: checklistData,
       step_comments: stepComments,
     };
     localStorage.setItem(storageKey, JSON.stringify(draftData));
-  }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, checklistData, stepComments, storageKey]);
+    // draftLoadedRef is a ref by design: it gates the write, not the deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [admin.selectedCompany, admin.locationDisplay, admin.locationCountry, admin.what3words, admin.engName, admin.engEmail, admin.engPhone, admin.engId, checklistData, stepComments, storageKey]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMsg("");
     if (submitting) return;
 
-    hasSubmittedRef.current = true;
+    setHasSubmitted(true);
 
-    const newFieldErrors = {
+    const newFieldErrors: FieldErrors = {
       company: false,
       location: false,
       engineerName: false,
@@ -614,36 +395,36 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       signature: false,
     };
 
-    document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+    setToggleErrors({});
 
     const result = monthlySchema.safeParse({
-      company: selectedCompany || "",
-      location: locationDisplay?.trim() || "",
+      company: admin.selectedCompany || "",
+      location: admin.locationDisplay?.trim() || "",
       engineerName: accessType === 'operator'
-        ? (operatorName && operatorName !== "Please select") ? operatorName.trim() : ""
-        : (engName && engName !== "Please select") ? engName.trim() : "",
-      engineerEmail: accessType === 'operator' ? operatorEmail?.trim() || "" : engEmail?.trim() || "",
-      engineerPhone: accessType === 'operator' ? operatorPhone?.trim() || "" : engPhone?.trim() || "",
+        ? (admin.operatorName && admin.operatorName !== "Please select") ? admin.operatorName.trim() : ""
+        : (admin.engName && admin.engName !== "Please select") ? admin.engName.trim() : "",
+      engineerEmail: accessType === 'operator' ? admin.operatorEmail?.trim() || "" : admin.engEmail?.trim() || "",
+      engineerPhone: accessType === 'operator' ? admin.operatorPhone?.trim() || "" : admin.engPhone?.trim() || "",
       declaration: declarationChecked,
       signature: signatureData || "",
     });
 
-    const errors = [];
-    let firstErrorField = null;
+    const errors: { field: string; message: string }[] = [];
+    let firstErrorEl: Element | null = null;
 
     if (!result.success) {
       result.error.issues.forEach(issue => {
-        const field = issue.path[0];
+        const field = String(issue.path[0]);
         errors.push({ field, message: issue.message });
         if (field === 'company') {
           newFieldErrors.company = true;
-          if (!firstErrorField) firstErrorField = companyFieldRef;
+          if (!firstErrorEl) firstErrorEl = admin.companyFieldRef.current;
         } else if (field === 'location') {
           newFieldErrors.location = true;
-          if (!firstErrorField) firstErrorField = locationFieldRef;
+          if (!firstErrorEl) firstErrorEl = admin.locationFieldRef.current;
         } else if (field === 'engineerName') {
           newFieldErrors.engineerName = true;
-          if (!firstErrorField) firstErrorField = engineerFieldRef;
+          if (!firstErrorEl) firstErrorEl = admin.engineerFieldRef.current;
         } else if (field === 'engineerEmail') {
           newFieldErrors.engineerEmail = true;
         } else if (field === 'engineerPhone') {
@@ -656,8 +437,8 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       });
     }
 
-    const incompleteItems = [];
-    const groupsNeedingComments = [];
+    const incompleteItems: { groupIndex: number; questionIndex: number; text: string }[] = [];
+    const groupsNeedingComments: number[] = [];
 
     checklistData.forEach((group, groupIndex) => {
       group.questions.forEach((question, questionIndex) => {
@@ -677,16 +458,14 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       const targetStep = firstIncompleteGroupIndex + 2;
       setCurrentStep(targetStep);
       window.history.pushState({ step: targetStep }, '', window.location.href);
+      const newToggleErrors: Record<string, boolean> = {};
+      incompleteItems.forEach(incomplete => {
+        if (incomplete.groupIndex === firstIncompleteGroupIndex) {
+          newToggleErrors[`${incomplete.groupIndex}:${incomplete.questionIndex}`] = true;
+        }
+      });
+      setToggleErrors(newToggleErrors);
       setTimeout(() => {
-        incompleteItems.forEach(incomplete => {
-          if (incomplete.groupIndex === firstIncompleteGroupIndex) {
-            const row = document.querySelector(`[data-group="${incomplete.groupIndex}"][data-question="${incomplete.questionIndex}"]`);
-            if (row) {
-              const buttons = row.querySelectorAll('.toggle-btn');
-              buttons.forEach(btn => btn.classList.add('has-error'));
-            }
-          }
-        });
         if (card2Ref.current) {
           const elementPosition = card2Ref.current.getBoundingClientRect().top + window.pageYOffset;
           const isMobile = window.innerWidth <= 768;
@@ -695,10 +474,10 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
         }
       }, 200);
     }
-    
+
     if (groupsNeedingComments.length > 0) {
       errors.push({ field: 'comments', message: 'Please explain any item marked "No" before submitting.' });
-      const newStepCommentErrors = {};
+      const newStepCommentErrors: Record<string, boolean> = {};
       groupsNeedingComments.forEach(gi => { newStepCommentErrors[gi] = true; });
       newFieldErrors.stepComments = newStepCommentErrors;
       // Navigate to the earliest step missing a comment (if not already on incomplete step)
@@ -729,91 +508,23 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
       } else {
         setErrorMsg("");
       }
-      
-      if (firstErrorField) {
-        if (firstErrorField.current) {
-          firstErrorField.current.scrollIntoView({ behavior: "smooth", block: "center" });
-          setTimeout(() => {
-            if (firstErrorField.current.focus) {
-              firstErrorField.current.focus();
-            }
-          }, 300);
-        }
-      }
-      hasSubmittedRef.current = false;
+
+      focusFirstError(firstErrorEl);
+      setHasSubmitted(false);
       return;
     }
 
     setSubmitting(true);
 
-    const answers = [];
-    if (photographImages.length > 0 || photographComments) {
-      answers.push({
-        question: "Photograph Swift",
-        answer: photographComments || "",
-        images: photographImages.map(img => ({ url: img.url, fileType: img.fileType || 'image' }))
-      });
-    }
-    checklistData.forEach((group, groupIndex) => {
-      const comment = stepComments[groupIndex];
-      const images = stepCommentImages[groupIndex] || [];
-      if (comment || images.length > 0) {
-        answers.push({
-          question: `Further comments (${group.title})`,
-          answer: comment || "",
-          images: images.map(img => ({ url: img.url, fileType: img.fileType || 'image' }))
-        });
-      }
+    const payload = buildMonthlyPayload({
+      unit, template, admin, signatureData,
+      checklistData, photographImages, photographComments, stepComments, stepCommentImages,
     });
 
-    const payload = {
-      maintained_by: selectedCompany,
-      location_display: locationDisplay,
-      location_country: locationCountry,
-      maintenance_type: "Monthly",
-      date_of_maintenance: new Date().toISOString(),
-      engineer_name: engName,
-      engineer_email: engEmail,
-      engineer_phone: engPhone,
-      engineer_record_id: engId,
-      // Operator fields (operator logins)
-      operator_name: operatorName,
-      operator_email: operatorEmail,
-      operator_phone: operatorPhone,
-      operator_record_id: operatorId,
-      operating_company_id: unit?.operating_company_id,
-      unit_record_id: unit?.record_id,
-      checklist_template_id: template?.id,
-      serial_number: unit?.serial_number,
-      declaration_text: template?.declarationText || "",
-      signature: signatureData,
-      maintenance_checklist: JSON.stringify(
-        checklistData.map(group => ({
-          id: group.id,
-          title: group.title,
-          questions: group.questions.map(q => ({
-            id: q.id,
-            text: q.text,
-            answer: q.answer === true ? 'Yes' : q.answer === false ? 'No' : 'Not answered'
-          }))
-        }))
-      ),
-      answers: answers,
-    };
-
     try {
-      const res = await fetch("/api/submit-maintenance", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) throw new Error("Failed to submit to database. Please try again.");
-      const submitResult = await res.json();
-
       const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
 
-      const answersForEmail = {};
+      const answersForEmail: Record<string, any> = {};
       if (photographImages.length > 0 || photographComments) {
         answersForEmail["Photograph Swift"] = {
           text: photographComments || "",
@@ -831,622 +542,304 @@ export default function Monthly({ unit, template, allCompanies = [], allEngineer
         }
       });
 
-      await fetch("/api/send-report", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          engineerEmail: accessType === 'operator' ? operatorEmail : engEmail,
-          engineerName: accessType === 'operator' ? operatorName : engName,
-          serialNumber: unit?.serial_number,
-          company: unit?.company,
-          maintenance_checklist: checklistData.map(group => ({
-            id: group.id,
-            title: group.title,
-            questions: group.questions.map(q => ({
-              id: q.id,
-              text: q.text,
-              answer: q.answer === true ? 'Yes' : q.answer === false ? 'No' : 'Not answered'
-            }))
-          })),
-          answers: answersForEmail,
-          reportType: "Monthly",
-          companyLogoUrl: companyLogoUrl,
-          recordRef: submitResult.recordRef,
-          isOperator: accessType === 'operator',
-          technicalData: {
-            unit_record_id: unit?.record_id,
-            checklist_template_id: template?.id,
-            maintenance_company: accessType === 'operator' ? unit?.company : selectedCompany,
-            engineer_name: accessType === 'operator' ? operatorName : engName,
-            location_display: locationDisplay,
-            date_of_maintenance: new Date().toISOString().split('T')[0],
-            time_of_maintenance: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-          },
-        }),
-      });
+      // Built before submitting so the pair can be queued offline as one
+      // unit; recordRef is patched in from the submit response on send.
+      const reportBody = {
+        engineerEmail: accessType === 'operator' ? admin.operatorEmail : admin.engEmail,
+        engineerName: accessType === 'operator' ? admin.operatorName : admin.engName,
+        serialNumber: unit?.serial_number,
+        company: unit?.company,
+        maintenance_checklist: checklistData.map(group => ({
+          id: group.id,
+          title: group.title,
+          questions: group.questions.map(q => ({
+            id: q.id,
+            text: q.text,
+            answer: q.answer === true ? 'Yes' : q.answer === false ? 'No' : 'Not answered'
+          }))
+        })),
+        answers: answersForEmail,
+        reportType: "Monthly",
+        companyLogoUrl: companyLogoUrl,
+        isOperator: accessType === 'operator',
+        technicalData: {
+          unit_record_id: unit?.record_id,
+          checklist_template_id: template?.id,
+          maintenance_company: accessType === 'operator' ? unit?.company : admin.selectedCompany,
+          engineer_name: accessType === 'operator' ? admin.operatorName : admin.engName,
+          location_display: admin.locationDisplay,
+          date_of_maintenance: admin.maintenanceDate,
+          time_of_maintenance: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+        },
+      };
+
+      const { queued } = await submitOrQueue({ submitPayload: payload, reportBody });
+
+      // Clear the uploader caches too, or last month's photos would restore
+      // into the next monthly form and satisfy the photo validation.
+      const imageKeys = [
+        `images_monthly_${unit?.serial_number}_photograph_swift`,
+        ...checklistData.map((_, gi) => `images_monthly_${unit?.serial_number}_further_comments_${gi}`),
+      ];
+      imageKeys.forEach((key) => localStorage.removeItem(key));
 
       localStorage.setItem("last_submitted_sn", unit?.serial_number);
       localStorage.setItem("last_maintenance_type", "Monthly");
-      localStorage.setItem("last_public_token", unit?.public_token);
       localStorage.removeItem(storageKey);
-      router.push(`/portal/swift/monthly-complete`);
+      router.push(queued ? `/portal/swift/monthly-complete?queued=true` : `/portal/swift/monthly-complete`);
     } catch (err) {
-      setErrorMsg(err.message);
+      setErrorMsg(errorMessage(err));
       setSubmitting(false);
-      hasSubmittedRef.current = false;
+      setHasSubmitted(false);
     }
   };
-
-  const logo = getClientLogo(unit?.company, unit?.serial_number);
-  const hasEngineerResults = filteredEngineers.length > 0;
-  const hasClearEng = engName && engName !== "Please select" && engName !== "";
-  const shouldShowEngDropdown = showEngineerDropdown && (hasEngineerResults || hasClearEng);
-  const hasOperatorResults = filteredOperators.length > 0;
-  const hasClearOp = operatorName && operatorName !== "Please select" && operatorName !== "";
-  const shouldShowOpDropdown = showOperatorDropdown && (hasOperatorResults || hasClearOp);
 
   const totalSteps = template?.maintenanceChecklist?.length || 4;
   const isLastStep = currentStep === totalSteps;
   const currentGroup = currentStep > 1 ? checklistData[currentStep - 2] : null;
 
   return (
-    <div className="form-scope">
-      <Head>
-        <title>{unit?.serial_number} | Monthly Maintenance</title>
-      </Head>
+    <FormShell unit={unit} headTitle="Monthly Maintenance" heroLabel="monthly maintenance">
+      <AdminCard
+        admin={admin}
+        accessType={accessType}
+        companies={companies}
+        fieldErrors={fieldErrors}
+        setFieldErrors={setFieldErrors}
+        cardRef={card1Ref}
+      />
 
-      <div className="swift-main-layout-wrapper">
-        <div className="page-wrapper">
-          <div className="swift-checklist-container">
-            {logo && (
-              <div className="checklist-logo">
-                <Image src={logo.src} alt={logo.alt} fill priority sizes="250px" />
-              </div>
-            )}
+      <form onSubmit={handleSubmit} autoComplete="off" noValidate style={{ width: "100%", display: "block", margin: 0, padding: 0 }}>
+        {/* CARD 2: MULTI-STEP */}
+        <div ref={card2Ref} className="checklist-form-card" style={{ marginTop: "20px" }}>
 
-            <h1 className="checklist-hero-title">
-              {unit?.serial_number}
-              <span className="break-point">monthly maintenance</span>
-            </h1>
+          {/* STEP 1: Photograph Swift */}
+          {currentStep === 1 && (
+            <>
+              <h3 className="checklist-section-title">Monthly maintenance</h3>
+              <p className="checklist-section-subtitle">
+                All monthly maintenance must be completed in accordance with Section 5.2 – Monthly maintenance of the approved Swift Rescue Conveyor Operators Maintenance Manual.
+              </p>
 
-            {/* CARD 1: ADMIN FIELDS */}
-            <div ref={card1Ref} className="checklist-form-card">
-              <div className="checklist-inline-group">
-                <div className="checklist-field" ref={companyFieldRef}>
-                  <label className="checklist-label">{accessType === 'operator' ? 'Operator' : 'Maintenance company'}</label>
-                  {accessType === 'operator' ? (
-                    <input
-                      readOnly
-                      className="checklist-input is-active"
-                      value={selectedCompany}
+              <div style={{ marginTop: "24px" }}>
+                <label className="checklist-label">Photograph Swift</label>
+                <p className="question-instruction">Take clear photos of the Swift in situ and the surrounding installation area.</p>
+                <div className="question-with-upload">
+                  <div className="textarea-wrapper relative">
+                    <textarea
+                      name="photograph_comments"
+                      className="checklist-textarea pr-12! max-[768px]:pr-14!"
+                      value={photographComments}
+                      onChange={(e) => {
+                        setPhotographComments(e.target.value);
+                        autoGrow(e);
+                      }}
+                      onInput={autoGrow}
+                      placeholder=""
                     />
-                  ) : (
-                    <div className="custom-dropdown-container" ref={companyDropdownRef}>
-                      <div className="field-icon-wrapper">
-                        <input
-                          readOnly
-                          className={clsx(
-                            "checklist-input",
-                            selectedCompany ? "is-active" : "is-placeholder",
-                            showCompanyDropdown && "is-focused",
-                            fieldErrors.company && "has-error"
-                          )}
-                          value={selectedCompany || "Please select"}
-                          onClick={() => setShowCompanyDropdown(!showCompanyDropdown)}
-                          style={{ cursor: "pointer", paddingRight: "40px" }}
-                        />
-                        <div className="field-icon-inside">
-                          {showCompanyDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
-                        </div>
-                      </div>
-                      {showCompanyDropdown && (
-                        <ul className={clsx("custom-dropdown-list", fieldErrors.company && "has-error")}>
-                          {allCompanies.sort().map((c, i) => (
-                            <li
-                              key={i}
-                              className={`custom-dropdown-item ${selectedCompany === c ? "active" : ""}`}
-                              onClick={() => selectCompany(c)}
-                            >
-                              {c}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <div className="checklist-field" ref={locationFieldRef}>
-                  <label className="checklist-label">Location</label>
-                  <input
-                    className={clsx("checklist-input", fieldErrors.location && "has-error")}
-                    name="location_display"
-                    required
-                    placeholder={locationFailed && !locationDisplay ? "Enter location manually" : ""}
-                    value={locationDisplay}
-                    onChange={(e) => {
-                      setLocationDisplay(e.target.value);
-                      if (e.target.value.trim()) {
-                        setFieldErrors(prev => ({ ...prev, location: false }));
+                    <VoiceInput
+                      onTranscript={(text) => {
+                        setPhotographComments((prev) => (prev || '') + text);
+                        requestAnimationFrame(() => {
+                          requestAnimationFrame(() => {
+                            const textarea = document.querySelector('[name="photograph_comments"]');
+                            if (textarea) autoGrow(textarea);
+                          });
+                        });
+                      }}
+                      onError={(errorMsg) => setErrorMsg(errorMsg)}
+                    />
+                  </div>
+                  <ImageUploader
+                    questionKey="photograph_swift"
+                    questionText="Photograph Swift"
+                    serialNumber={unit?.serial_number}
+                    maintenanceType="monthly"
+                    initialImages={photographImages || []}
+                    onImagesChange={(images) => {
+                      setPhotographImages(images);
+                      if (images.length > 0) {
+                        setFieldErrors(prev => ({ ...prev, photographImages: false }));
+                        setErrorMsg("");
                       }
                     }}
-                  />
-                </div>
-
-                <div className="checklist-field">
-                  <label className="checklist-label">Date</label>
-                  <DatePicker
-                    value={maintenanceDate}
-                    onChange={(date) => setMaintenanceDate(date)}
-                    max={today}
+                    hasError={!!fieldErrors.photographImages}
                   />
                 </div>
               </div>
 
-              {accessType === 'operator' ? (
-                <div className="checklist-inline-group" style={{ marginTop: "24px" }}>
-                  <div className="checklist-field" ref={engineerFieldRef}>
-                    <label className="checklist-label">Operator name</label>
-                    <div className="custom-dropdown-container" ref={operatorDropdownRef}>
-                      <div className="field-icon-wrapper">
-                        <input
-                          className={clsx(
-                            "checklist-input",
-                            operatorName === "Please select" || !operatorName ? "is-placeholder" : "is-active",
-                            shouldShowOpDropdown && "is-focused",
-                            fieldErrors.engineerName && "has-error"
-                          )}
-                          name="operator_name"
-                          required
-                          value={operatorName}
-                          autoComplete="off"
-                          onFocus={() => setShowOperatorDropdown(true)}
-                          onChange={(e) => {
-                            setOperatorName(e.target.value);
-                            setOperatorId("");
-                            setShowOperatorDropdown(true);
-                            if (e.target.value.trim() && e.target.value !== "Please select") {
-                              setFieldErrors(prev => ({ ...prev, engineerName: false }));
-                            }
-                          }}
-                          style={{
-                            paddingRight: (hasOperatorResults || hasClearOp) ? "40px" : "16px",
-                          }}
-                        />
-                        {(hasOperatorResults || hasClearOp) && (
-                          <div className="field-icon-inside">
-                            {showOperatorDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
-                          </div>
-                        )}
+              {errorMsg && <p className="error-message">{errorMsg}</p>}
+              <ArrowButton onClick={handleContinue} className="mt-[34px] max-[600px]:mt-[30px]">
+                Continue
+              </ArrowButton>
+            </>
+          )}
+
+          {/* STEPS 2+: Individual checklist group */}
+          {currentStep > 1 && currentGroup && (
+            <>
+              <h3 className="checklist-section-title">{currentGroup.title}</h3>
+              <p className="checklist-section-subtitle">
+                {currentGroup.title === 'Visual inspection'
+                  ? 'Visual inspections shall be carried out in accordance with the procedures detailed in the Swift Rescue Conveyor Operators Maintenance Manual.'
+                  : currentGroup.title === 'Lubrication'
+                  ? 'Lubrication shall be carried out in accordance with the procedures detailed in the Swift Rescue Conveyor Operators Maintenance Manual.'
+                  : currentGroup.title === 'Testing'
+                  ? 'Testing shall be carried out in accordance with the procedures detailed in the Swift Rescue Conveyor Operators Maintenance Manual.'
+                  : 'Please report equipment condition before starting maintenance.'}
+              </p>
+
+              <div className="equipment-table">
+                <div className="equipment-header equipment-header-monthly" style={{ gridTemplateColumns: '1fr 120px' }}>
+                  <div className="header-item" style={{ textAlign: 'left' }}>{currentGroup.title}</div>
+                  <div className="header-returned">Completed?</div>
+                </div>
+
+                {currentGroup.questions.map((question, questionIndex) => (
+                  <div
+                    key={question.id}
+                    className="equipment-row-wrapper monthly-question-row"
+                    data-group={currentStep - 2}
+                    data-question={questionIndex}
+                  >
+                    <div className="item-name-mobile">{question.text}</div>
+                    <div className="equipment-row monthly-equipment-row">
+                      <div className="item-name">{question.text}</div>
+
+                      <div className="toggle-group">
+                        <button
+                          type="button"
+                          aria-pressed={question.answer === true}
+                          className={`toggle-btn ${question.answer === true ? 'active' : ''} ${toggleErrors[`${currentStep - 2}:${questionIndex}`] ? 'has-error' : ''}`}
+                          onClick={() => updateChecklist(currentStep - 2, questionIndex, true)}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          type="button"
+                          aria-pressed={question.answer === false}
+                          className={`toggle-btn ${question.answer === false ? 'active' : ''} ${toggleErrors[`${currentStep - 2}:${questionIndex}`] ? 'has-error' : ''}`}
+                          onClick={() => updateChecklist(currentStep - 2, questionIndex, false)}
+                        >
+                          No
+                        </button>
                       </div>
-                      {shouldShowOpDropdown && (
-                        <ul className={clsx("custom-dropdown-list", fieldErrors.engineerName && "has-error")}>
-                          {hasClearOp && (
-                            <li className="custom-dropdown-item" onClick={clearOperator}>
-                              Clear details
-                            </li>
-                          )}
-                          {filteredOperators.map((op, i) => (
-                            <li key={i} className="custom-dropdown-item" onClick={() => selectOperator(op)}>
-                              {op.name}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
                     </div>
                   </div>
+                ))}
+              </div>
 
-                  <div className="checklist-field">
-                    <label className="checklist-label">Operator email</label>
-                    <input
-                      type="email"
-                      className={clsx("checklist-input", fieldErrors.engineerEmail && "has-error")}
-                      name="operator_email"
-                      required
-                      value={operatorEmail}
-                      onChange={(e) => {
-                        setOperatorEmail(e.target.value);
-                        if (e.target.value.trim()) {
-                          setFieldErrors(prev => ({ ...prev, engineerEmail: false }));
-                        }
-                      }}
-                    />
-                  </div>
+              {/* Further comments - shown on every checklist step */}
+              {(() => {
+                const groupIndex = currentStep - 2;
+                const hasError = fieldErrors.stepComments?.[groupIndex];
+                return (
+                  <div style={{ marginTop: "32px" }}>
+                    <label className="checklist-label" style={{ marginTop: 0 }}>Further comments</label>
+                    <p className="question-instruction">Record any additional observations, defects, or actions.</p>
 
-                  <div className="checklist-field">
-                    <label className="checklist-label">Operator phone</label>
-                    <input
-                      type="tel"
-                      maxLength={20}
-                      className={clsx("checklist-input", fieldErrors.engineerPhone && "has-error")}
-                      name="operator_phone"
-                      required
-                      value={operatorPhone}
-                      onChange={(e) => {
-                        setOperatorPhone(e.target.value);
-                        if (e.target.value.trim()) {
-                          setFieldErrors(prev => ({ ...prev, engineerPhone: false }));
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="checklist-inline-group" style={{ marginTop: "24px" }}>
-                  <div className="checklist-field" ref={engineerFieldRef}>
-                    <label className="checklist-label">Engineer name</label>
-                    <div className="custom-dropdown-container" ref={engineerDropdownRef}>
-                      <div className="field-icon-wrapper">
-                        <input
-                          className={clsx(
-                            "checklist-input",
-                            engName === "Please select" || !engName ? "is-placeholder" : "is-active",
-                            shouldShowEngDropdown && "is-focused",
-                            fieldErrors.engineerName && "has-error"
-                          )}
-                          name="engineer_name"
-                          required
-                          value={engName}
-                          autoComplete="off"
-                          onFocus={() => {
-                            if (selectedCompany) setShowEngineerDropdown(true);
-                          }}
+                    <div className="question-with-upload">
+                      <div className="textarea-wrapper relative">
+                        <textarea
+                          className={clsx("checklist-textarea pr-12! max-[768px]:pr-14!", hasError && "has-error")}
+                          value={stepComments[groupIndex] || ""}
                           onChange={(e) => {
-                            setEngName(e.target.value);
-                            setEngId("");
-                            if (selectedCompany) setShowEngineerDropdown(true);
-                            if (e.target.value.trim() && e.target.value !== "Please select") {
-                              setFieldErrors(prev => ({ ...prev, engineerName: false }));
-                            }
-                          }}
-                          style={{
-                            paddingRight: selectedCompany && (hasEngineerResults || hasClearEng) ? "40px" : "16px",
-                          }}
-                        />
-                        {selectedCompany && (hasEngineerResults || hasClearEng) && (
-                          <div className="field-icon-inside">
-                            {showEngineerDropdown ? <ChevronUp size={20} strokeWidth={1.5} /> : <ChevronDown size={20} strokeWidth={1.5} />}
-                          </div>
-                        )}
-                      </div>
-                      {shouldShowEngDropdown && (
-                        <ul className={clsx("custom-dropdown-list", fieldErrors.engineerName && "has-error")}>
-                          {hasClearEng && (
-                            <li className="custom-dropdown-item" onClick={clearEngineer}>
-                              Clear details
-                            </li>
-                          )}
-                          {filteredEngineers.map((eng, i) => (
-                            <li key={i} className="custom-dropdown-item" onClick={() => selectEngineer(eng)}>
-                              {eng.name}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="checklist-field">
-                    <label className="checklist-label">Engineer email</label>
-                    <input
-                      type="email"
-                      className={clsx("checklist-input", fieldErrors.engineerEmail && "has-error")}
-                      name="engineer_email"
-                      required
-                      value={engEmail}
-                      onChange={(e) => {
-                        setEngEmail(e.target.value);
-                        if (e.target.value.trim()) {
-                          setFieldErrors(prev => ({ ...prev, engineerEmail: false }));
-                        }
-                      }}
-                    />
-                  </div>
-
-                  <div className="checklist-field">
-                    <label className="checklist-label">Engineer phone</label>
-                    <input
-                      type="tel"
-                      maxLength={20}
-                      className={clsx("checklist-input", fieldErrors.engineerPhone && "has-error")}
-                      name="engineer_phone"
-                      required
-                      value={engPhone}
-                      onChange={(e) => {
-                        setEngPhone(e.target.value);
-                        if (e.target.value.trim()) {
-                          setFieldErrors(prev => ({ ...prev, engineerPhone: false }));
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <form onSubmit={handleSubmit} autoComplete="off" noValidate style={{ width: "100%", display: "block", margin: 0, padding: 0 }}>
-            {/* CARD 2: MULTI-STEP */}
-            <div ref={card2Ref} className="checklist-form-card" style={{ marginTop: "20px" }}>
-
-                {/* STEP 1: Photograph Swift */}
-                {currentStep === 1 && (
-                  <>
-                    <h3 className="checklist-section-title">Monthly maintenance</h3>
-                    <p className="checklist-section-subtitle">
-                      All monthly maintenance must be completed in accordance with Section 5.2 – Monthly maintenance of the approved Swift Rescue Conveyor Operators Maintenance Manual.
-                    </p>
-
-                    <div style={{ marginTop: "24px" }}>
-                      <label className="checklist-label">Photograph Swift</label>
-                      <p className="question-instruction">Take clear photos of the Swift in situ and the surrounding installation area.</p>
-                      <div className="question-with-upload">
-                        <div className="textarea-wrapper">
-                          <textarea
-                            name="photograph_comments"
-                            className="checklist-textarea"
-                            value={photographComments}
-                            onChange={(e) => {
-                              setPhotographComments(e.target.value);
-                              autoGrow(e);
-                            }}
-                            onInput={autoGrow}
-                            placeholder=""
-                          />
-                          <VoiceInput
-                            onTranscript={(text) => {
-                              setPhotographComments((prev) => (prev || '') + text);
-                              requestAnimationFrame(() => {
-                                requestAnimationFrame(() => {
-                                  const textarea = document.querySelector('[name="photograph_comments"]');
-                                  if (textarea) autoGrow(textarea);
-                                });
-                              });
-                            }}
-                            onError={(errorMsg) => setErrorMsg(errorMsg)}
-                          />
-                        </div>
-                        <ImageUploader
-                          questionKey="photograph_swift"
-                          questionText="Photograph Swift"
-                          serialNumber={unit?.serial_number}
-                          maintenanceType="monthly"
-                          initialImages={photographImages || []}
-                          onImagesChange={(images) => {
-                            setPhotographImages(images);
-                            if (images.length > 0) {
-                              setFieldErrors(prev => ({ ...prev, photographImages: false }));
+                            const val = e.target.value;
+                            setStepComments(prev => ({ ...prev, [groupIndex]: val }));
+                            autoGrow(e);
+                            if (val.trim()) {
+                              setFieldErrors(prev => ({ ...prev, stepComments: { ...prev.stepComments, [groupIndex]: false } }));
                               setErrorMsg("");
                             }
                           }}
-                          hasError={fieldErrors.photographImages}
+                          onInput={autoGrow}
+                          placeholder=""
+                        />
+
+                        <VoiceInput
+                          onTranscript={(text) => {
+                            setStepComments(prev => ({ ...prev, [groupIndex]: (prev[groupIndex] || '') + text }));
+                            requestAnimationFrame(() => {
+                              requestAnimationFrame(() => {
+                                const textarea = document.querySelector(`[data-step-comments="${groupIndex}"]`);
+                                if (textarea) autoGrow(textarea);
+                              });
+                            });
+                          }}
+                          onError={(msg) => setErrorMsg(msg)}
                         />
                       </div>
+
+                      <ImageUploader
+                        questionKey={`further_comments_${groupIndex}`}
+                        questionText="Further comments"
+                        serialNumber={unit?.serial_number}
+                        maintenanceType="monthly"
+                        initialImages={stepCommentImages[groupIndex] || []}
+                        onImagesChange={(images) => handleStepCommentImagesChange(groupIndex, images)}
+                      />
                     </div>
-
-                    {errorMsg && <p className="error-message">{errorMsg}</p>}
-                    <button type="button" className="checklist-submit" onClick={handleContinue}>
-                      <span className="left">Continue</span>
-                      <span className="right">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                          <path d="M10.1458 7.5L0 7.5L0 5.83333L10.1458 5.83333L5.47917 1.16667L6.66667 0L13.3333 6.66667L6.66667 13.3333L5.47917 12.1667L10.1458 7.5Z" fill="#172F36"/>
-                        </svg>
-                      </span>
-                    </button>
-                  </>
-                )}
-
-                {/* STEPS 2+: Individual checklist group */}
-                {currentStep > 1 && currentGroup && (
-                  <>
-                    <h3 className="checklist-section-title">{currentGroup.title}</h3>
-                    <p className="checklist-section-subtitle">
-                      {currentGroup.title === 'Visual inspection'
-                        ? 'Visual inspections shall be carried out in accordance with the procedures detailed in the Swift Rescue Conveyor Operators Maintenance Manual.'
-                        : currentGroup.title === 'Lubrication'
-                        ? 'Lubrication shall be carried out in accordance with the procedures detailed in the Swift Rescue Conveyor Operators Maintenance Manual.'
-                        : currentGroup.title === 'Testing'
-                        ? 'Testing shall be carried out in accordance with the procedures detailed in the Swift Rescue Conveyor Operators Maintenance Manual.'
-                        : 'Please report equipment condition before starting maintenance.'}
-                    </p>
-
-                    <div className="equipment-table">
-                      <div className="equipment-header equipment-header-monthly" style={{ gridTemplateColumns: '1fr 120px' }}>
-                        <div className="header-item" style={{ textAlign: 'left' }}>{currentGroup.title}</div>
-                        <div className="header-returned">Completed?</div>
-                      </div>
-
-                      {currentGroup.questions.map((question, questionIndex) => (
-                        <div
-                          key={question.id}
-                          className="equipment-row-wrapper monthly-question-row"
-                          data-group={currentStep - 2}
-                          data-question={questionIndex}
-                        >
-                          <div className="item-name-mobile">{question.text}</div>
-                          <div className="equipment-row monthly-equipment-row">
-                            <div className="item-name">{question.text}</div>
-
-                            <div className="toggle-group">
-                              <button
-                                type="button"
-                                className={`toggle-btn ${question.answer === true ? 'active' : ''}`}
-                                onClick={() => updateChecklist(currentStep - 2, questionIndex, true)}
-                              >
-                                Yes
-                              </button>
-                              <button
-                                type="button"
-                                className={`toggle-btn ${question.answer === false ? 'active' : ''}`}
-                                onClick={() => updateChecklist(currentStep - 2, questionIndex, false)}
-                              >
-                                No
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Further comments - shown on every checklist step */}
-                    {(() => {
-                      const groupIndex = currentStep - 2;
-                      const hasError = fieldErrors.stepComments?.[groupIndex];
-                      return (
-                        <div style={{ marginTop: "32px" }}>
-                          <label className="checklist-label" style={{ marginTop: 0 }}>Further comments</label>
-                          <p className="question-instruction">Record any additional observations, defects, or actions.</p>
-
-                          <div className="question-with-upload">
-                            <div className="textarea-wrapper">
-                              <textarea
-                                className={clsx("checklist-textarea", hasError && "has-error")}
-                                value={stepComments[groupIndex] || ""}
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  setStepComments(prev => ({ ...prev, [groupIndex]: val }));
-                                  autoGrow(e);
-                                  if (val.trim()) {
-                                    setFieldErrors(prev => ({ ...prev, stepComments: { ...prev.stepComments, [groupIndex]: false } }));
-                                    setErrorMsg("");
-                                  }
-                                }}
-                                onInput={autoGrow}
-                                placeholder=""
-                              />
-
-                              <VoiceInput
-                                onTranscript={(text) => {
-                                  setStepComments(prev => ({ ...prev, [groupIndex]: (prev[groupIndex] || '') + text }));
-                                  requestAnimationFrame(() => {
-                                    requestAnimationFrame(() => {
-                                      const textarea = document.querySelector(`[data-step-comments="${groupIndex}"]`);
-                                      if (textarea) autoGrow(textarea);
-                                    });
-                                  });
-                                }}
-                                onError={(msg) => setErrorMsg(msg)}
-                              />
-                            </div>
-
-                            <ImageUploader
-                              questionKey={`further_comments_${groupIndex}`}
-                              questionText="Further comments"
-                              serialNumber={unit?.serial_number}
-                              maintenanceType="monthly"
-                              initialImages={stepCommentImages[groupIndex] || []}
-                              onImagesChange={(images) => handleStepCommentImagesChange(groupIndex, images)}
-                            />
-                          </div>
-                          {hasError && (
-                            <p className="error-message">Please explain any item marked &ldquo;No&rdquo; before continuing.</p>
-                          )}
-                        </div>
-                      );
-                    })()}
-
-                    {/* Continue button - non-last steps only */}
-                    {!isLastStep && (
-                      <>
-                        {errorMsg && <p className="error-message">{errorMsg}</p>}
-                        <button type="button" className="checklist-submit" onClick={handleContinue}>
-                          <span className="left">Continue</span>
-                          <span className="right">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                              <path d="M10.1458 7.5L0 7.5L0 5.83333L10.1458 5.83333L5.47917 1.16667L6.66667 0L13.3333 6.66667L6.66667 13.3333L5.47917 12.1667L10.1458 7.5Z" fill="#172F36"/>
-                            </svg>
-                          </span>
-                        </button>
-                      </>
+                    {hasError && (
+                      <p className="error-message">Please explain any item marked &ldquo;No&rdquo; before continuing.</p>
                     )}
-                  </>
-                )}
-
-            </div>
-
-            {/* CARD 3: DECLARATION & SIGNATURE */}
-            {isLastStep && (
-            <div className="checklist-form-card" style={{ marginTop: "20px" }}>
-                <h3 className="checklist-section-title">Declaration</h3>
-
-                {template?.declarationText && (
-                  <div className={clsx("declaration-checkbox", fieldErrors.declaration && "has-error")}>
-                    <input
-                      type="checkbox"
-                      id="declaration-check"
-                      checked={declarationChecked}
-                      onChange={(e) => {
-                        setDeclarationChecked(e.target.checked);
-                        if (e.target.checked) {
-                          setFieldErrors(prev => ({ ...prev, declaration: false }));
-                          setErrorMsg("");
-                        }
-                      }}
-                    />
-                    <label htmlFor="declaration-check" className="declaration-checkmark" />
-                    <span className="declaration-text">
-                      {template.declarationText}
-                    </span>
                   </div>
-                )}
+                );
+              })()}
 
-                <div style={{ marginTop: "20px" }}>
-                  <label className="checklist-label">Signature</label>
-                  <div style={{ marginTop: "8px" }}>
-                    <SignaturePad
-                      ref={signatureRef}
-                      onChange={(data) => {
-                        setSignatureData(data);
-                        if (data) setFieldErrors(prev => ({ ...prev, signature: false }));
-                      }}
-                      hasError={fieldErrors.signature}
-                    />
-                  </div>
-                </div>
+              {/* Continue button - non-last steps only */}
+              {!isLastStep && (
+                <>
+                  {errorMsg && <p className="error-message">{errorMsg}</p>}
+                  <ArrowButton onClick={handleContinue} className="mt-[34px] max-[600px]:mt-[30px]">
+                    Continue
+                  </ArrowButton>
+                </>
+              )}
+            </>
+          )}
 
-                {errorMsg && <p className="error-message">{errorMsg}</p>}
-                <button type="submit" className="checklist-submit" disabled={submitting}>
-                  <span className="left">{submitting ? "Submitting" : "Submit maintenance"}</span>
-                  <span className="right">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                      <path d="M10.1458 7.5L0 7.5L0 5.83333L10.1458 5.83333L5.47917 1.16667L6.66667 0L13.3333 6.66667L6.66667 13.3333L5.47917 12.1667L10.1458 7.5Z" fill="#172F36"/>
-                    </svg>
-                  </span>
-                </button>
-            </div>
-            )}
-            </form>
-          </div>
         </div>
 
-        <footer className="footer-section">
-          <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
-            <Image src="/logo/zelim-logo.svg" width={120} height={40} alt="Zelim logo" />
-          </a>
-        </footer>
-      </div>
-    </div>
+        {/* CARD 3: DECLARATION & SIGNATURE */}
+        {isLastStep && (
+          <DeclarationCard
+            template={template}
+            declarationChecked={declarationChecked}
+            setDeclarationChecked={setDeclarationChecked}
+            fieldErrors={fieldErrors}
+            setFieldErrors={setFieldErrors}
+            setErrorMsg={setErrorMsg}
+            signatureRef={signatureRef}
+            setSignatureData={setSignatureData}
+            errorMsg={errorMsg}
+            submitting={submitting}
+            style={{ marginTop: "20px" }}
+          />
+        )}
+      </form>
+    </FormShell>
   );
 }
 
-export async function getServerSideProps({ params, req }) {
-  const token = params.id;
+export async function getServerSideProps({ params, req }: GetServerSidePropsContext) {
+  const token = String(params?.id ?? '');
 
   const session = getSession(req);
   // Confirm the URL token matches the session so one unit's session cannot load
-  // another unit's data.
+  // another unit's data. Monthly maintenance is operator-only.
   if (!session || session.access !== 'operator' || token !== session.token) {
     return { redirect: { destination: '/', permanent: false } };
   }
 
   try {
     const data = await fetchFormData(token, 'Monthly');
-    
+
     if (data.notFound) {
       return { redirect: { destination: '/', permanent: false } };
     }
-    
+
     const maintenanceChecklist = data.template?.rawData?.maintenance_checklist || [];
-    
+
     return {
       props: {
         unit: data.unit,
@@ -1454,9 +847,9 @@ export async function getServerSideProps({ params, req }) {
           ...data.template,
           maintenanceChecklist,
         },
-        allCompanies: data.companies,
-        allEngineers: data.engineers,
-        allOperators: data.operators,
+        companies: data.companies,
+        engineers: data.engineers,
+        operators: data.operators,
         accessType: session.access,
       },
     };

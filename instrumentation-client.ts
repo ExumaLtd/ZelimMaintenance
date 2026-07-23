@@ -1,3 +1,9 @@
+// Client-side Sentry initialization. This is the file @sentry/nextjs actually
+// loads in the browser; keep its settings aligned with the hardened server
+// config: sampled tracing in production, error-only replays, no console log
+// streaming and no PII on error reports.
+// https://docs.sentry.io/platforms/javascript/guides/nextjs/
+
 import * as Sentry from "@sentry/nextjs";
 
 Sentry.init({
@@ -18,3 +24,5 @@ Sentry.init({
     Sentry.replayIntegration(),
   ],
 });
+
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

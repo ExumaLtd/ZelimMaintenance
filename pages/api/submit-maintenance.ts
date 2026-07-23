@@ -1,10 +1,12 @@
 import crypto from 'crypto';
+import { errorMessage } from '@/utils/errors';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from '../../lib/session';
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
-import { esc, getClientIp } from '../../utils/api-utils';
+import { esc, getClientIp } from '../../lib/api-utils';
 import { requireEnv } from '../../lib/env';
+import { submitMaintenanceSchema } from '../../lib/submit-schema';
 
 const redis = new Redis({
   url: requireEnv('UPSTASH_REDIS_REST_URL'),
@@ -34,8 +36,8 @@ export const config = {
 // Generate a human-readable record reference
 // Format: RI/SWI005/A/060226/1
 // Uses Redis INCR for an atomic daily counter, so there is no race condition under concurrent submissions.
-async function generateRecordRef(serialNumber, maintenanceType) {
-  const typeMap = {
+async function generateRecordRef(serialNumber: string, maintenanceType: string) {
+  const typeMap: Record<string, string> = {
     'Monthly': 'M',
     'Annual': 'A',
     '30-month depth': 'D',
@@ -62,7 +64,7 @@ async function generateRecordRef(serialNumber, maintenanceType) {
   } catch (error) {
     // Redis unavailable, fall back to a millisecond timestamp suffix so the
     // ref is still unique, just less readable. Submission should not be lost.
-    console.warn('Redis counter unavailable, using timestamp fallback:', error.message);
+    console.warn('Redis counter unavailable, using timestamp fallback:', errorMessage(error));
     return `RI/${serialNumber}/${typeCode}/${dateCode}/${Date.now()}`;
   }
 }
@@ -85,6 +87,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const isOperator = session.access === 'operator';
   const userType = isOperator ? 'Operator' : 'Engineer';
 
+  // Validate the shape and consume the parsed result, so the destructured
+  // fields carry real types and the schema and handler cannot disagree. The
+  // schema has no transforms or defaults, so values pass through unchanged.
+  const parsed = submitMaintenanceSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'Missing or invalid required fields' });
+  }
   const {
     unit_record_id,
     maintained_by,
@@ -102,17 +111,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     location_display,
     location_town,
     location_country,
+    location_what3words,
     answers,
     maintenance_checklist,
     serial_number,
     checklist_template_id,
     declaration_text,
     signature,
-  } = req.body;
-
-  if (!unit_record_id || !date_of_maintenance || !maintenance_type || !Array.isArray(answers)) {
-    return res.status(400).json({ error: 'Missing or invalid required fields' });
-  }
+  } = parsed.data;
 
   const apiKey = AIRTABLE_PAT;
   const baseId = AIRTABLE_BASE_ID;
@@ -132,7 +138,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     // Generate record reference
-    const recordRef = await generateRecordRef(serial_number, maintenance_type);
+    const recordRef = await generateRecordRef(serial_number ?? '', maintenance_type);
 
     let companyRecordId = null;
     let engineerRecordId = null;
@@ -277,11 +283,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           console.warn('Signature upload failed:', await sigRes.text());
         }
       } catch (sigErr) {
-        console.warn('Signature upload error:', sigErr.message);
+        console.warn('Signature upload error:', errorMessage(sigErr));
       }
     }
 
-    const formattedAnswers = answers.reduce((acc, item) => {
+    const formattedAnswers = answers.reduce<Record<string, { text: string; images: unknown[] }>>((acc, item) => {
       acc[item.question] = {
         text: item.answer,
         images: item.images || []
@@ -299,7 +305,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const submitterName = isOperator ? operator_name : engineer_name;
     const submitterEmail = isOperator ? operator_email : engineer_email;
 
-    const logFields = {
+    const logFields: Record<string, any> = {
       "unit_link": [unit_record_id],
       "date_of_maintenance": trimmedDate,
       "maintenance_type": maintenance_type,
@@ -325,7 +331,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const finalTown = location_town || location_display || "";
-    const checkFields = {
+    const checkFields: Record<string, any> = {
       "unit": [unit_record_id],
       "date_of_maintenance": trimmedDate,
       "maintenance_type": maintenance_type,
@@ -357,6 +363,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (maintenance_checklist) {
       checkFields["maintenance_checklist"] = maintenance_checklist;
+    }
+
+    // maintenance_checks only; maintenance_logs has no what3words field.
+    if (location_what3words) {
+      checkFields["location_what3words"] = location_what3words;
     }
 
     // Submit to both tables simultaneously
@@ -410,12 +421,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
     } catch (markError) {
-      console.warn('⚠️ Error marking draft complete:', markError.message);
+      console.warn('⚠️ Error marking draft complete:', errorMessage(markError));
     }
 
     return res.status(200).json({ success: true, recordRef });
   } catch (error) {
-    console.error("Final Submission Failure:", error.message);
+    console.error("Final Submission Failure:", errorMessage(error));
     return res.status(500).json({ success: false, error: 'Submission failed. Please try again.' });
   }
 }

@@ -15,6 +15,18 @@ import { Camera, Loader2, AlertCircle, X } from 'lucide-react';
  * @param {array} initialImages - Images to load from draft (optional)
  * @param {boolean} hasError - Whether to show error styling (optional)
  */
+type UploaderImage = { url: string; thumbnail?: string; fileType?: string; publicId?: string };
+
+type ImageUploaderProps = {
+  questionKey: string;
+  questionText: string;
+  serialNumber: string;
+  maintenanceType: string;
+  onImagesChange?: (images: UploaderImage[]) => void;
+  initialImages?: UploaderImage[];
+  hasError?: boolean;
+};
+
 export default function ImageUploader({ 
   questionKey, 
   questionText, 
@@ -23,17 +35,17 @@ export default function ImageUploader({
   onImagesChange,
   initialImages = [],
   hasError = false
-}) {
-  const [images, setImages] = useState([]);
+}: ImageUploaderProps) {
+  const [images, setImages] = useState<UploaderImage[]>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [isMobile, setIsMobile] = useState(false);
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const isInitialMount = useRef(true);
   // Track if user has made changes (upload/delete) - if so, don't reload from initialImages
   const userHasModifiedImages = useRef(false);
   // Track the last initialImages we loaded to detect actual changes
-  const lastLoadedInitialImages = useRef(null);
+  const lastLoadedInitialImages = useRef<UploaderImage[] | null>(null);
 
   const storageKey = `images_${maintenanceType}_${serialNumber}_${questionKey}`;
 
@@ -133,7 +145,7 @@ export default function ImageUploader({
     return `zelimmaintenance/SWIFT/${maintenanceType}/${serialNumber}/${dateStr}/${questionSlug}`;
   };
 
-  const uploadToCloudinary = async (file) => {
+  const uploadToCloudinary = async (file: File) => {
     // Get server-signed upload parameters so the API secret stays off the client
     const signRes = await fetch('/api/cloudinary-sign', {
       method: 'POST',
@@ -213,7 +225,7 @@ export default function ImageUploader({
     }
   };
 
-  const handleFileSelect = async (files) => {
+  const handleFileSelect = async (files: FileList | File[] | null) => {
     if (!files || files.length === 0) return;
 
     setError('');
@@ -238,19 +250,19 @@ export default function ImageUploader({
     }
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     const files = e.dataTransfer.files;
     handleFileSelect(files);
   };
 
-  const handleDragOver = (e) => {
+  const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
   };
 
-  const removeImage = useCallback((index) => {
+  const removeImage = useCallback((index: number) => {
     // Mark that user has modified images
     userHasModifiedImages.current = true;
     
@@ -264,14 +276,14 @@ export default function ImageUploader({
     });
   }, [onImagesChange]);
 
-  const handleRemoveClick = (e, index) => {
+  const handleRemoveClick = (e: React.MouseEvent, index: number) => {
     e.preventDefault();
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
     removeImage(index);
   };
 
-  const handleRemoveTouch = (e, index) => {
+  const handleRemoveTouch = (e: React.TouchEvent, index: number) => {
     e.preventDefault();
     e.stopPropagation();
     removeImage(index);
@@ -340,6 +352,7 @@ export default function ImageUploader({
         <div className="image-thumbnails">
           {images.map((img, index) => (
             <div key={`${img.publicId}-${index}`} className="thumbnail-item">
+              {/* eslint-disable-next-line @next/next/no-img-element -- thumbnails include transient blob and data URLs that next/image cannot optimise */}
               <img src={img.thumbnail} alt={`Upload ${index + 1}`} />
               <button
                 type="button"

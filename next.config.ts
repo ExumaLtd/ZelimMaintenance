@@ -1,6 +1,8 @@
-/** @type {import('next').NextConfig} */
-const { withSentryConfig } = require("@sentry/nextjs");
-const withPWA = require("@ducanh2912/next-pwa").default({
+import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
+import withPWAInit from "@ducanh2912/next-pwa";
+
+const withPWA = withPWAInit({
   dest: "public",
   cacheOnFrontEndNav: true,
   aggressiveFrontEndNavCaching: true,
@@ -11,7 +13,7 @@ const withPWA = require("@ducanh2912/next-pwa").default({
   },
 });
 
-const nextConfig = {
+const nextConfig: NextConfig = {
   reactStrictMode: true,
 
   turbopack: {
@@ -96,15 +98,22 @@ const nextConfig = {
       // ========================================
       // ALLOW caching of static assets
       // ========================================
-      {
-        source: '/_next/static/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
+      // Production only: dev chunk filenames are stable rather than
+      // content-hashed, so an immutable header makes browsers keep stale
+      // chunks across code changes.
+      ...(process.env.NODE_ENV === 'production'
+        ? [
+            {
+              source: '/_next/static/:path*',
+              headers: [
+                {
+                  key: 'Cache-Control',
+                  value: 'public, max-age=31536000, immutable',
+                },
+              ],
+            },
+          ]
+        : []),
       {
         source: '/favicon/:path*',
         headers: [
@@ -160,7 +169,7 @@ const nextConfig = {
   },
 };
 
-module.exports = withSentryConfig(withPWA(nextConfig), {
+export default withSentryConfig(withPWA(nextConfig), {
   silent: true,
   org: "exuma",
   project: "zelim-maintenance",

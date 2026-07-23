@@ -1,10 +1,11 @@
 // pages/api/swift-resolve-pin.ts
 
 import Airtable from "airtable";
+import { errorMessage } from '@/utils/errors';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { Redis } from "@upstash/redis";
 import { Ratelimit } from "@upstash/ratelimit";
-import { getClientIp } from "../../utils/api-utils";
+import { getClientIp } from "../../lib/api-utils";
 import { requireEnv } from "../../lib/env";
 
 const redis = new Redis({
@@ -47,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(429).json({ error: "Too many failed attempts.", retryAfter });
       }
     } catch (redisErr) {
-      console.warn("Rate limiter unavailable, allowing request:", redisErr.message);
+      console.warn("Rate limiter unavailable, allowing request:", errorMessage(redisErr));
     }
 
     const pin = req.query.pin as string;
@@ -76,7 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(429).json({ error: "Too many failed attempts.", retryAfter });
       }
     } catch (redisErr) {
-      console.warn("PIN lockout check unavailable, allowing request:", redisErr.message);
+      console.warn("PIN lockout check unavailable, allowing request:", errorMessage(redisErr));
     }
 
     // Single OR query to find the record matching either PIN type
@@ -94,7 +95,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const count = await redis.incr(pinLockKey);
         if (count === 1) await redis.expire(pinLockKey, PIN_LOCK_SECONDS);
       } catch (redisErr) {
-        console.warn("PIN failure counter unavailable:", redisErr.message);
+        console.warn("PIN failure counter unavailable:", errorMessage(redisErr));
       }
       return res.status(404).json({ error: "Code not recognised" });
     }
@@ -103,7 +104,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       await redis.del(pinLockKey);
     } catch (redisErr) {
-      console.warn("PIN counter reset unavailable:", redisErr.message);
+      console.warn("PIN counter reset unavailable:", errorMessage(redisErr));
     }
 
     const record = records[0];

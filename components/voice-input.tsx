@@ -105,7 +105,8 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }: 
   const isStoppingRef = useRef(false);
 
   useEffect(() => {
-    // Detect mobile
+    // Detect mobile after mount; navigator is unavailable during SSR.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
 
     if (typeof window !== 'undefined') {
@@ -118,7 +119,7 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }: 
         recognitionRef.current.interimResults = true;
         recognitionRef.current.lang = 'en-GB';
 
-        recognitionRef.current.onresult = (event) => {
+        recognitionRef.current.onresult = (event: any) => {
           let finalTranscript = '';
           for (let i = event.resultIndex; i < event.results.length; i++) {
             if (event.results[i].isFinal) {
@@ -131,7 +132,7 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }: 
           }
         };
 
-        recognitionRef.current.onerror = (event) => {
+        recognitionRef.current.onerror = (event: any) => {
           console.error('Speech recognition error:', event.error);
         };
       }
@@ -373,7 +374,7 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }: 
 
         mediaRecorderRef.current = mediaRecorder;
 
-        mediaRecorder.ondataavailable = (event) => {
+        mediaRecorder.ondataavailable = (event: any) => {
           if (event.data && event.data.size > 0) {
             audioChunksRef.current.push(event.data);
           }
@@ -554,11 +555,22 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }: 
 
   if (!isSupported) return null;
 
-  const getBarHeightPx = (lvl, idx) => {
+  const getBarHeightPx = (lvl: number, idx: number) => {
     const w = CENTER_WEIGHTS[idx] || 1;
     const h = MIN_BAR_HEIGHT_PX + (MAX_BAR_HEIGHT_PX - MIN_BAR_HEIGHT_PX) * Math.min(1, lvl * 1.25) * w;
     return Math.max(MIN_BAR_HEIGHT_PX, Math.min(MAX_BAR_HEIGHT_PX, h));
   };
+
+  const tooltipClasses =
+    "pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 -translate-x-1/2 rounded-lg " +
+    "bg-field px-2.5 py-1.5 text-[13px] font-medium whitespace-nowrap text-white opacity-0 " +
+    "shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-opacity duration-200 group-hover:opacity-100";
+
+  const iconBtnClasses =
+    "group relative flex h-[18px] w-[18px] cursor-pointer items-center justify-center border-none " +
+    "bg-transparent p-0 text-white outline-none transition-all duration-200 " +
+    "[-webkit-tap-highlight-color:transparent] hover:scale-110 active:scale-95 " +
+    "[&:hover>svg]:opacity-70 max-[768px]:h-5 max-[768px]:w-5";
 
   return (
     <>
@@ -567,30 +579,30 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }: 
           type="button"
           onClick={startRecording}
           disabled={disabled}
-          className="voice-mic-icon"
+          className="group absolute right-4 bottom-4 z-10 flex h-[18px] w-[18px] cursor-pointer items-center justify-center border-none bg-transparent p-0 text-ink-dim outline-none transition-all duration-200 [-webkit-tap-highlight-color:transparent] hover:scale-110 hover:text-white disabled:cursor-not-allowed disabled:opacity-30 max-[768px]:h-5 max-[768px]:w-5"
           aria-label="Start voice dictation"
         >
           <Mic size={18} strokeWidth={1.5} />
-          {!isMobile && <span className="voice-tooltip-popup">Dictate</span>}
+          {!isMobile && <span className={tooltipClasses}>Dictate</span>}
         </button>
       ) : (
-        <div className="voice-recording-state">
+        <div className="absolute right-4 bottom-4 z-10 flex items-center gap-1.5 max-[768px]:gap-[7px]">
           <button
             type="button"
             onClick={stopAndCancel}
-            className="voice-icon-btn"
+            className={iconBtnClasses}
             aria-label="Cancel recording"
           >
             <X size={18} strokeWidth={1.5} />
-            {!isMobile && <span className="voice-tooltip-popup">Cancel</span>}
+            {!isMobile && <span className={tooltipClasses}>Cancel</span>}
           </button>
 
-          <div className={`voice-waveform-bars ${isSpeaking ? 'speaking' : 'idle'}`}>
+          <div className="flex h-[18px] items-end gap-0.5 px-1 max-[768px]:h-5">
             {levelHistory.map((lvl, idx) => (
               <span
                 key={idx}
-                className="wave-bar"
-                style={{ height: `${getBarHeightPx(lvl, idx)}px` }}
+                className={`block w-px origin-bottom rounded-[1px] bg-white transition-[height] duration-[60ms] ease-out will-change-[height,transform] max-[768px]:w-[1.5px] ${isSpeaking ? 'opacity-100' : 'animate-voice-idle opacity-90'}`}
+                style={{ height: `${getBarHeightPx(lvl, idx)}px`, animationDelay: `${idx * 0.06}s` }}
               />
             ))}
           </div>
@@ -598,11 +610,11 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }: 
           <button
             type="button"
             onClick={stopAndAccept}
-            className="voice-icon-btn"
+            className={iconBtnClasses}
             aria-label="Accept recording"
           >
             <Check size={18} strokeWidth={1.5} />
-            {!isMobile && <span className="voice-tooltip-popup">Submit</span>}
+            {!isMobile && <span className={tooltipClasses}>Submit</span>}
           </button>
         </div>
       )}

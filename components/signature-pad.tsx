@@ -15,7 +15,7 @@ interface SignaturePadProps {
   hasError?: boolean;
 }
 
-export interface SignaturePadHandle {
+interface SignaturePadHandle {
   clear: () => void;
   isEmpty: () => boolean;
   toDataURL: (type?: string) => string | null;
@@ -39,7 +39,7 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(function 
 
     canvas.width = canvas.offsetWidth * ratio;
     canvas.height = canvas.offsetHeight * ratio;
-    canvas.getContext('2d').scale(ratio, ratio);
+    canvas.getContext('2d')?.scale(ratio, ratio);
 
     pad.clear();
     if (savedData && savedData.length > 0) {
@@ -49,8 +49,8 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(function 
 
   // --- Initialise signature_pad (dynamic import to avoid SSR issues) ---
   useEffect(() => {
-    let pad;
-    let resizeObserver;
+    let pad: any;
+    let resizeObserver: ResizeObserver | undefined;
 
     import('signature_pad').then(({ default: SignaturePadLib }) => {
       const canvas = canvasRef.current;
@@ -60,7 +60,7 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(function 
       const ratio = Math.max(window.devicePixelRatio || 1, 1);
       canvas.width = canvas.offsetWidth * ratio;
       canvas.height = canvas.offsetHeight * ratio;
-      canvas.getContext('2d').scale(ratio, ratio);
+      canvas.getContext('2d')?.scale(ratio, ratio);
 
       pad = new SignaturePadLib(canvas, {
         backgroundColor: 'rgba(0,0,0,0)',

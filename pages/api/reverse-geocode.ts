@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from '../../lib/session';
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
-import { getClientIp } from '../../utils/api-utils';
+import { getClientIp } from '../../lib/api-utils';
 import { requireEnv } from '../../lib/env';
 
 const redis = new Redis({
@@ -44,6 +44,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    // Optional what3words lookup, ideal at sea where street addresses fail.
+    // Guarded in-handler like ELEVENLABS_API_KEY so the portal degrades
+    // gracefully when the key is not configured. Started before awaiting
+    // Nominatim since it only needs the coordinates; running the two lookups
+    // in parallel keeps location autofill fast on slow vessel links.
+    const w3wPromise = process.env.W3W_API_KEY
+      ? fetch(
+          `https://api.what3words.com/v3/convert-to-3wa?coordinates=${latNum}%2C${lonNum}&key=${process.env.W3W_API_KEY}`
+        )
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null)
+      : null;
+
     const response = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latNum}&lon=${lonNum}&zoom=14&accept-language=en-GB`,
       {
@@ -58,6 +71,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const data = await response.json();
+
+    if (w3wPromise) {
+      const w3w = await w3wPromise;
+      // A failed lookup resolves null; the address is still useful alone.
+      if (w3w?.words) data.what3words = w3w.words;
+    }
+
     return res.status(200).json(data);
   } catch (err: any) {
     console.error('Geocoding error:', err);

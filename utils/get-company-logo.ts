@@ -22,14 +22,14 @@ const CLIENTS = [
 
 const BASE_URL = "https://maintenance.exuma.co.uk";
 
-const findClient = (companyName, serialNumber) =>
-  CLIENTS.find(c => c.serials.includes(serialNumber) || companyName?.includes(c.nameMatch)) ?? null;
+const findClient = (companyName?: string, serialNumber?: string) =>
+  CLIENTS.find(c => c.serials.includes(serialNumber ?? '') || companyName?.includes(c.nameMatch)) ?? null;
 
 /**
  * Get the company logo URL for emails based on company name or serial number
  * Returns the PNG version of the logo (not the white SVG version)
  */
-export const getCompanyLogoUrl = (companyName, serialNumber) => {
+export const getCompanyLogoUrl = (companyName?: string, serialNumber?: string) => {
   const client = findClient(companyName, serialNumber);
   return client ? `${BASE_URL}${client.logoPng}` : null;
 };
@@ -37,15 +37,7 @@ export const getCompanyLogoUrl = (companyName, serialNumber) => {
 /**
  * Get the client logo for the form UI (white SVG version, for display on dark backgrounds)
  */
-export const getClientLogo = (companyName, serialNumber) => {
+export const getClientLogo = (companyName?: string, serialNumber?: string) => {
   const client = findClient(companyName, serialNumber);
   return client ? { src: client.logoSvg, alt: `${companyName} Logo` } : null;
-};
-
-/**
- * Get just the logo path (if you're already constructing the base URL elsewhere)
- */
-export const getCompanyLogoPath = (companyName, serialNumber) => {
-  const client = findClient(companyName, serialNumber);
-  return client ? client.logoPng : null;
 };

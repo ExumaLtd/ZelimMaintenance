@@ -1,21 +1,21 @@
+import "../styles/tailwind.css";
 import "../styles/globals.css";
-import "../styles/landing.css";
-import "../styles/dashboard.css";
+import "../styles/scanner.css";
 import "../styles/form.css";
-import "../styles/form-complete.css";
-import "../styles/voice-input.css";
-import "../styles/erp.css";
 
 import Head from "next/head";
 import { Montserrat, Roboto_Mono } from "next/font/google";
 import { useEffect } from "react";
+import type { AppProps } from "next/app";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
+import { flushOfflineQueue } from "../utils/offline-queue";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   display: "swap",
+  variable: "--font-montserrat",
 });
 
 const robotoMono = Roboto_Mono({
@@ -25,7 +25,7 @@ const robotoMono = Roboto_Mono({
   variable: "--font-roboto-mono",
 });
 
-export default function MyApp({ Component, pageProps }) {
+export default function MyApp({ Component, pageProps }: AppProps) {
 
   useEffect(() => {
     // Standard fix to ensure mobile doesn't "jump" down on load
@@ -35,17 +35,26 @@ export default function MyApp({ Component, pageProps }) {
     window.scrollTo(0, 0);
   }, []);
 
+  useEffect(() => {
+    // Retry submissions queued while offline: once on load, then whenever
+    // connectivity returns.
+    flushOfflineQueue();
+    const onOnline = () => flushOfflineQueue();
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
+  }, []);
+
   return (
-    <div className={`${montserrat.className} ${robotoMono.variable}`}>
+    <div className={`${montserrat.className} ${montserrat.variable} ${robotoMono.variable}`}>
       <Head>
         <title>Zelim Maintenance Portal</title>
-        <link rel="icon" href="/favicon/ZelimFavicon_192x192.png" />
+        <link rel="icon" href="/favicon/zelim-favicon-192x192.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#172F36" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Zelim Portal" />
-        <link rel="apple-touch-icon" href="/favicon/ZelimFavicon_192x192.png" />
+        <link rel="apple-touch-icon" href="/favicon/zelim-favicon-192x192.png" />
       </Head>
 
       <Component {...pageProps} />

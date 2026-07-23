@@ -1,9 +1,10 @@
 import Airtable from 'airtable';
+import { errorMessage } from '@/utils/errors';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from '../../lib/session';
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
-import { esc, getClientIp } from '../../utils/api-utils';
+import { esc, getClientIp } from '../../lib/api-utils';
 import { requireEnv } from '../../lib/env';
 
 const redis = new Redis({
@@ -94,7 +95,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   } catch (error) {
     console.error('❌ Mark draft complete error:', error);
-    console.error('Error details:', error.message);
+    console.error('Error details:', errorMessage(error));
     return res.status(500).json({ error: 'Failed to mark draft complete' });
   }
 }

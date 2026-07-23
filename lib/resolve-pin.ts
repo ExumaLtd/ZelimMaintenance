@@ -5,7 +5,7 @@
 import Airtable from 'airtable';
 import { requireEnv } from './env';
 
-export type AccessType = 'maintenance' | 'operator';
+type AccessType = 'maintenance' | 'operator';
 
 export interface ResolvedPin {
   publicToken: string;

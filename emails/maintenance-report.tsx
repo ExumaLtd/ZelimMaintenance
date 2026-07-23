@@ -247,7 +247,7 @@ export const MaintenanceReportEmail = ({
                 </Column>
                 <Column style={{ paddingLeft: '12px', width: '33.33%', verticalAlign: 'top' }} className="mobile-col">
                   <Text style={label}>Location</Text>
-                  <Text style={value} className="status-value">{location && location.includes(',') ? location.split(',').pop().trim() : location}</Text>
+                  <Text style={value} className="status-value">{location && location.includes(',') ? location.split(',').pop()?.trim() : location}</Text>
                 </Column>
               </Row>
             </Section>
@@ -258,7 +258,7 @@ export const MaintenanceReportEmail = ({
                 <Heading as="h2" style={h2}>Pre-disassembly inspection</Heading>
                 
                 <Section>
-                  {parsedEquipmentChecklist.map((item, i) => (
+                  {parsedEquipmentChecklist.map((item: any, i: number) => (
                     <div key={i} style={checklistItemBlock}>
                       <Text style={checklistItemName}>{item.name}</Text>
                       <Row style={{ marginBottom: '12px' }}>
@@ -283,7 +283,7 @@ export const MaintenanceReportEmail = ({
                       
                       {item.images && item.images.length > 0 && (
                         <Section style={imageGallery} className="image-gallery-mobile">
-                          {item.images.map((imageUrl, imgIndex) => {
+                          {item.images.map((imageUrl: any, imgIndex: number) => {
                             const emailSrc = typeof imageUrl === 'string' && imageUrl.includes('/upload/')
                               ? imageUrl.replace('/upload/', '/upload/w_600,c_limit,q_auto/')
                               : imageUrl;
@@ -317,12 +317,12 @@ export const MaintenanceReportEmail = ({
                 <Heading as="h2" style={h2}>Monthly inspection checklist</Heading>
 
                 <Section>
-                  {parsedMaintenanceChecklist.map((group, groupIndex) => (
+                  {parsedMaintenanceChecklist.map((group: any, groupIndex: number) => (
                     <div key={groupIndex} style={{ marginBottom: groupIndex < parsedMaintenanceChecklist.length - 1 ? '32px' : '0' }}>
                       <Text style={monthlyGroupTitle}>{group.title}</Text>
                       <Text style={monthlyGroupDescription}>Please report equipment condition before starting maintenance.</Text>
 
-                      {group.questions && group.questions.map((question, qIndex) => (
+                      {group.questions && group.questions.map((question: any, qIndex: number) => (
                         <div key={qIndex} style={{ ...checklistItemBlock, marginBottom: qIndex === group.questions.length - 1 ? '0' : '8px' }}>
                           <Text style={checklistItemName}>{question.text}</Text>
                           <Row>
@@ -375,7 +375,7 @@ export const MaintenanceReportEmail = ({
                         
                         {images.length > 0 && (
                           <Section style={{...imageGallery, marginTop: shouldSkipNotAnswered ? '8px' : '12px'}} className="image-gallery-mobile">
-                            {images.map((item, imgIndex) => {
+                            {images.map((item: any, imgIndex: number) => {
                               const imgUrl = typeof item === 'string' ? item : item.url;
                               const imgSrc = imgUrl?.includes('/upload/')
                                 ? imgUrl.replace('/upload/', '/upload/w_600,c_limit,q_auto/')

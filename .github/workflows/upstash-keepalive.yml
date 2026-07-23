@@ -1,0 +1,25 @@
+name: Upstash keep-alive
+
+# Free-tier Upstash databases are deleted after sustained inactivity, which
+# would silently disable the portal's rate limiting. A weekly PING keeps the
+# database active. Requires the UPSTASH_REDIS_REST_URL and
+# UPSTASH_REDIS_REST_TOKEN repository secrets.
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Upstash
+        run: |
+          status=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}" \
+            "${{ secrets.UPSTASH_REDIS_REST_URL }}/ping")
+          if [ "$status" != "200" ]; then
+            echo "Upstash ping failed with HTTP $status" >&2
+            exit 1
+          fi
+          echo "Upstash responded to PING"

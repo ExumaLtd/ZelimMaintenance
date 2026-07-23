@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm run typecheck
+
+      - run: npm test
+
+      # Placeholders satisfy the requireEnv module-load assertions during page
+      # data collection; the build never makes live API calls. Real values
+      # exist only in Vercel and the runtime.
+      - run: npm run build
+        env:
+          AIRTABLE_PAT: ci-placeholder
+          AIRTABLE_BASE_ID: ci-placeholder
+          AIRTABLE_SWIFT_TABLE: ci-placeholder
+          CLOUDINARY_API_KEY: ci-placeholder
+          CLOUDINARY_API_SECRET: ci-placeholder
+          RESEND_API_KEY: ci-placeholder
+          SESSION_SECRET: ci-placeholder
+          UPSTASH_REDIS_REST_URL: https://ci-placeholder.upstash.io
+          UPSTASH_REDIS_REST_TOKEN: ci-placeholder

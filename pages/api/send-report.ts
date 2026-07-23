@@ -1,11 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { errorMessage } from '@/utils/errors';
 import { Resend } from 'resend';
 import { MaintenanceReportEmail } from '../../emails/maintenance-report';
 import { TechnicalAlertEmail } from '../../emails/technical-alert';
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
 import { getSession } from '../../lib/session';
-import { getClientIp } from '../../utils/api-utils';
+import { getClientIp } from '../../lib/api-utils';
 import { requireEnv } from '../../lib/env';
 
 const redis = new Redis({
@@ -60,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Helper function to find company name from various possible sources
     const getCompanyName = () => {
-      const getValue = (val) => {
+      const getValue = (val: any) => {
         if (!val) return null;
         if (typeof val === 'string') return val;
         if (Array.isArray(val) && val.length > 0) return val[0];
@@ -178,7 +179,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (error) {
     // Detailed error logging for troubleshooting
     console.error("--- RESEND BATCH ERROR ---");
-    console.error(error.message);
+    console.error(errorMessage(error));
     console.error("--- END ERROR ---");
     
     return res.status(500).json({ error: 'Failed to send report' });

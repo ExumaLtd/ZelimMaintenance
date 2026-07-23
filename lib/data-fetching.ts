@@ -1,5 +1,5 @@
 import Airtable from 'airtable';
-import { esc } from '../utils/api-utils';
+import { esc } from '../lib/api-utils';
 import { requireEnv } from './env';
 
 const AIRTABLE_SWIFT_TABLE = requireEnv('AIRTABLE_SWIFT_TABLE');
@@ -17,7 +17,7 @@ const base = new Airtable({
  * @param {string} publicToken - The public token from URL
  * @returns {Promise<Object|null>} Unit data or null if not found
  */
-export async function fetchUnitByToken(publicToken: string) {
+async function fetchUnitByToken(publicToken: string) {
   try {
     const records = await base(AIRTABLE_SWIFT_TABLE)
       .select({
@@ -72,7 +72,7 @@ export async function fetchUnitByToken(publicToken: string) {
  * @param {string} maintenanceType - Type of maintenance (e.g., 'Monthly', 'Annual')
  * @returns {Promise<Object|null>} Template data or null if not found
  */
-export async function fetchTemplate(maintenanceType: string) {
+async function fetchTemplate(maintenanceType: string) {
   try {
     let templateName;
     
@@ -131,7 +131,7 @@ export async function fetchTemplate(maintenanceType: string) {
       type: maintenanceType,
       // Return BOTH the structured data AND the original format
       questionsData: Array.isArray(parsedJson) ? parsedJson : (parsedJson.questions || []),
-      questions: Array.isArray(parsedJson) ? parsedJson.map(q => q.title) : (parsedJson.questions?.map(q => q.title) || []),
+      questions: Array.isArray(parsedJson) ? parsedJson.map((q: any) => q.title) : (parsedJson.questions?.map((q: any) => q.title) || []),
       // CRITICAL: Also return the raw parsed JSON so forms can access equipment_checklist, maintenance_checklist, etc.
       rawData: parsedJson,
       // Declaration text from Airtable

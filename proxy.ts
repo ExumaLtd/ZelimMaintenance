@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 /**
  * Verify the HMAC signature and decode the session cookie.
  * Uses Web Crypto API (available in Edge Runtime and Node.js 18+).
  */
-async function verifySession(value) {
+async function verifySession(value: string) {
   const secret = process.env.SESSION_SECRET;
   if (!secret) return null;
 
@@ -25,7 +26,7 @@ async function verifySession(value) {
     );
 
     // Convert hex signature to bytes
-    const sigBytes = new Uint8Array(sig.match(/.{2}/g).map(h => parseInt(h, 16)));
+    const sigBytes = new Uint8Array((sig.match(/.{2}/g) ?? []).map(h => parseInt(h, 16)));
     const valid = await crypto.subtle.verify('HMAC', key, sigBytes, encoder.encode(payload));
     if (!valid) return null;
 
@@ -35,7 +36,7 @@ async function verifySession(value) {
   }
 }
 
-export async function proxy(request) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Handle portal routes

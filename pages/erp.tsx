@@ -1,31 +1,31 @@
-import Head from 'next/head';
+import Head from "next/head";
 import { useState } from "react";
 import { Check, X, Minus } from "lucide-react";
+import clsx from "clsx";
+import ArrowButton from "@/components/ui/arrow-button";
 
-// ── ZELIM MAINTENANCE DESIGN SYSTEM ──────────────────────────
-const Z = {
-  pageBg:    "#172F36",
-  cardBg:    "#27454B",
-  inputBg:   "#152A31",
-  hoverBg:   "#1F4450",
-  hoverBg2:  "#324E54",
-  cyan:      "#00FFF6",
-  cyanText:  "#0D3037",
-  text:      "#F7F7F7",
-  textMid:   "#F7F7F7",
-  textDim:   "#7D8F93",
-  link:      "#579BA2",
-  error:     "#FF4D4D",
-  border:    "#425558",
-  green:     "#00FFF6",
-  amber:     "rgb(246,246,94)",
-  red:       "#FF4D4D",
+// Per-platform accent styling. "lead" is the cyan recommendation accent,
+// "alt" the muted teal used by the rest of the shortlist.
+type Accent = "lead" | "alt";
+
+const accents: Record<Accent, { tag: string; text: string; borderTop: string; borderLeft: string; bg: string }> = {
+  lead: {
+    tag: "bg-accent text-accent-ink",
+    text: "text-accent",
+    borderTop: "border-t-accent",
+    borderLeft: "border-l-accent",
+    bg: "bg-accent/5",
+  },
+  alt: {
+    tag: "bg-link text-ink",
+    text: "text-link",
+    borderTop: "border-t-link",
+    borderLeft: "border-l-link",
+    bg: "bg-link/5",
+  },
 };
 
-const font = "'Montserrat', sans-serif";
-
-// ── LOGO ─────────────────────────────────────────────────────
-function Logo({ height = 22 }) {
+function Logo({ height = 22 }: { height?: number }) {
   const aspect = 135 / 28;
   const width = height * aspect;
   return (
@@ -41,10 +41,13 @@ function Logo({ height = 22 }) {
 }
 
 // ── DATA ─────────────────────────────────────────────────────
+type Platform = (typeof platforms)[number];
+type ScoreSet = Platform['scoresWithApi'];
+
 const platforms = [
   {
     id: "odoo", name: "Odoo", subtitle: "Standard / Custom Plan",
-    tag: "LEAD RECOMMENDATION", accent: Z.cyan, accentText: Z.cyanText,
+    tag: "LEAD RECOMMENDATION", accent: "lead" as Accent,
     withApi:    { license: "~£37–45 / user / month", annual10: "~£4,500–5,400 / yr", impl: "£8,000–20,000", year1: "£13,000–25,000", note: "Custom plan required for portal API access" },
     withoutApi: { license: "~£25–30 / user / month", annual10: "~£3,000–3,600 / yr", impl: "£4,000–12,000", year1: "£7,000–16,000", note: "Standard plan — no external API access" },
     scoresWithoutApi: { manufacturing: 5, traceability: 5, crm: 5, accounting: 5, scalability: 5, api: 5, cost: 4, fieldService: 5, ease: 3 },
@@ -71,7 +74,7 @@ const platforms = [
   },
   {
     id: "mrpeasy", name: "MRPeasy", subtitle: "Enterprise Plan (API) / Starter",
-    tag: "STRONG ALTERNATIVE", accent: "#579BA2", accentText: Z.text,
+    tag: "STRONG ALTERNATIVE", accent: "alt" as Accent,
     withApi:    { license: "$149 / user / month (Enterprise)", annual10: "~£14,000 / yr", impl: "£1,500–4,000", year1: "£16,000–18,000", note: "API only on top tier — cost advantage disappears" },
     withoutApi: { license: "$49 / user / month (Starter)",     annual10: "~£4,700 / yr",  impl: "£1,500–3,000", year1: "£6,000–8,000",   note: "Starter plan — no API access to portal" },
     scoresWithoutApi: { manufacturing: 5, traceability: 5, crm: 2, accounting: 2, scalability: 3, api: 2, cost: 3, fieldService: 1, ease: 5 },
@@ -98,7 +101,7 @@ const platforms = [
   },
   {
     id: "cin7", name: "Cin7 Core", subtitle: "Formerly DEAR Systems",
-    tag: "WORTH EVALUATING", accent: "#579BA2", accentText: Z.text,
+    tag: "WORTH EVALUATING", accent: "alt" as Accent,
     withApi:    { license: "~£35–50 / user / month", annual10: "~£4,200–6,000 / yr", impl: "£3,000–8,000", year1: "£7,000–14,000", note: "API included at standard tiers — no premium uplift" },
     withoutApi: { license: "~£35–50 / user / month", annual10: "~£4,200–6,000 / yr", impl: "£2,000–5,000", year1: "£6,000–11,000", note: "Same licensing — implementation simpler without integration" },
     scoresWithoutApi: { manufacturing: 4, traceability: 4, crm: 2, accounting: 2, scalability: 4, api: 4, cost: 4, fieldService: 1, ease: 4 },
@@ -125,7 +128,7 @@ const platforms = [
   },
   {
     id: "erpnext", name: "ERPNext", subtitle: "Open Source",
-    tag: "LOWER PRIORITY", accent: "#579BA2", accentText: Z.text,
+    tag: "LOWER PRIORITY", accent: "alt" as Accent,
     withApi:    { license: "£0 open source / £20–40 hosted", annual10: "£0–4,800 / yr", impl: "£8,000–15,000", year1: "£8,000–15,000", note: "Low licence cost offset by high implementation effort" },
     withoutApi: { license: "£0 open source / £20–40 hosted", annual10: "£0–4,800 / yr", impl: "£6,000–12,000", year1: "£6,000–12,000", note: "Lower scope without portal integration work" },
     scoresWithoutApi: { manufacturing: 4, traceability: 4, crm: 4, accounting: 5, scalability: 4, api: 4, cost: 5, fieldService: 4, ease: 2 },
@@ -183,247 +186,181 @@ const allCaps = [
 
 // ── SHARED COMPONENTS ─────────────────────────────────────────
 
-function Dots({ score }) {
+function Dots({ score }: { score: number }) {
   return (
-    <div style={{ display: "flex", gap: 5 }}>
-      {[1,2,3,4,5].map(i => (
-        <div key={i} style={{
-          width: 9, height: 9, borderRadius: "50%",
-          background: i <= score ? Z.amber : Z.border,
-          transition: "background 0.2s",
-        }} />
+    <div className="flex gap-[5px]">
+      {[1, 2, 3, 4, 5].map(i => (
+        <div key={i} className={clsx("h-[9px] w-[9px] rounded-full", i <= score ? "bg-warn" : "bg-line")} />
       ))}
     </div>
   );
 }
 
-function Icon({ has }) {
-  if (has === true)  return <Check size={15} color={Z.cyan} strokeWidth={2.5} style={{ flexShrink: 0 }} />;
-  if (has === false) return <X size={15} color={Z.error} strokeWidth={2.5} style={{ flexShrink: 0 }} />;
-  return                    <Minus size={15} color={Z.amber} strokeWidth={2.5} style={{ flexShrink: 0 }} />;
+function Icon({ has }: { has: boolean | string }) {
+  if (has === true)  return <Check size={15} strokeWidth={2.5} className="shrink-0 text-accent" />;
+  if (has === false) return <X size={15} strokeWidth={2.5} className="shrink-0 text-danger" />;
+  return                    <Minus size={15} strokeWidth={2.5} className="shrink-0 text-warn" />;
 }
 
-function Tag({ label, accent, accentText }) {
+function Tag({ label, accent }: { label: string; accent: Accent }) {
   return (
-    <span style={{
-      display: "inline-block",
-      background: accent,
-      color: accentText,
-      borderRadius: 4,
-      padding: "3px 10px",
-      fontSize: 9,
-      fontWeight: 700,
-      letterSpacing: 1.8,
-      fontFamily: font,
-      textTransform: "uppercase",
-    }}>{label}</span>
+    <span className={clsx("inline-block rounded px-2.5 py-[3px] text-[9px] font-bold uppercase tracking-[1.8px]", accents[accent].tag)}>
+      {label}
+    </span>
   );
 }
 
-function SectionLabel({ children }) {
-  return (
-    <div style={{
-      fontSize: 12, letterSpacing: "0.4px",
-      color: Z.text, fontFamily: font, fontWeight: 600, marginBottom: 14,
-    }}>{children}</div>
-  );
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <div className="mb-3.5 text-xs font-semibold tracking-[0.4px] text-ink">{children}</div>;
 }
 
-function ArrowBox({ hovered, flip = false }: { hovered: any; flip?: any }) {
+function PillToggle<T extends string | boolean>({
+  options,
+  value,
+  onChange,
+}: {
+  options: [T, string][];
+  value: T;
+  onChange: (value: T) => void;
+}) {
   return (
-    <div style={{
-      display: "flex", justifyContent: "center", alignItems: "center",
-      width: "1.875rem", height: "1.875rem",
-      borderRadius: "0.1875rem",
-      backgroundColor: hovered ? "#172F36" : "rgb(246,246,94)",
-      flexShrink: 0,
-      transition: "background-color 0.5s",
-    }}>
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
-        style={{ transform: flip ? "scaleX(-1)" : undefined }}>
-        <path d="M2 7H12M12 7L7.5 2.5M12 7L7.5 11.5"
-          stroke={hovered ? "rgb(246,246,94)" : "#172F36"}
-          strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
+    <div className="flex gap-[3px] rounded-[0.6rem] border border-warn bg-field p-[3px]">
+      {options.map(([val, label]) => (
+        <button
+          key={String(val)}
+          onClick={() => onChange(val)}
+          className={clsx(
+            "cursor-pointer rounded-[0.4rem] border-none px-[0.9rem] py-[7px] font-mono text-[0.7rem] font-normal uppercase tracking-[0.1em] transition-all duration-150",
+            value === val ? "bg-warn text-field" : "bg-transparent text-ink",
+          )}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   );
 }
 
-function PrimaryBtn({ children, onClick, fullWidth, back = false }: { children: any; onClick: any; fullWidth?: any; back?: any }) {
-  const [hovered, setHovered] = useState(false);
-  const padding = back
-    ? "0.4375rem 1.5rem 0.4375rem 0.75rem"
-    : "0.4375rem 0.75rem 0.4375rem 1.5rem";
-  return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: fullWidth ? "flex" : "inline-flex", width: fullWidth ? "100%" : undefined,
-        alignItems: "center", gap: "0.75rem",
-        fontSize: "0.875rem", fontWeight: 400,
-        fontFamily: "'Roboto Mono', monospace",
-        textTransform: "uppercase", letterSpacing: "0.1em",
-        color: hovered ? "#172F36" : "#ffffff",
-        padding,
-        border: "1px solid rgb(246,246,94)",
-        borderRadius: "0.5rem",
-        backgroundColor: hovered ? "rgb(246,246,94)" : "transparent",
-        cursor: "pointer",
-        transition: "background-color 0.5s, color 0.5s",
-      }}
-    >
-      {back && <ArrowBox hovered={hovered} flip />}
-      <span style={fullWidth ? { flex: 1, textAlign: "center" } : undefined}>{children}</span>
-      {!back && <ArrowBox hovered={hovered} />}
-    </button>
-  );
-}
-
-
 // ── MAIN ─────────────────────────────────────────────────────
 export default function ErpPage() {
   const [view, setView] = useState("cards");
-  const [sel,  setSel]  = useState(null);
+  const [sel,  setSel]  = useState<string | null>(null);
   const [api,  setApi]  = useState(false);
 
   const p  = sel ? platforms.find(x => x.id === sel) : null;
-  const pr = (pl) => api ? pl.withApi    : pl.withoutApi;
-  const sc = (pl) => api ? pl.scoresWithApi : pl.scoresWithoutApi;
+  const pr = (pl: Platform) => api ? pl.withApi       : pl.withoutApi;
+  const sc = (pl: Platform) => api ? pl.scoresWithApi : pl.scoresWithoutApi;
+
+  const sectionPad = "p-[24px_30px] max-[600px]:p-5";
 
   return (
     <>
       <Head>
         <title>ERP Evaluation — Zelim</title>
       </Head>
-      <div style={{ background: "#172F36", minHeight: "100vh", color: Z.text, fontFamily: font, position: "relative" }}>
+      <div className="relative min-h-screen bg-page font-sans text-ink">
 
         {/* Zelim pattern */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- decorative background SVG sized by viewport CSS */}
         <img
           src="/patterns/pattern-left.svg"
           alt=""
           aria-hidden="true"
-          className="erp-pattern"
-          style={{
-            position: "absolute",
-            top: "0.8125rem",
-            right: -20,
-            transform: "scaleX(-1)",
-            width: "max(10rem, 20vw)",
-            height: "auto",
-            zIndex: 0,
-            pointerEvents: "none",
-            opacity: 1,
-          }}
+          className="pointer-events-none absolute top-[13px] -right-5 z-0 h-auto w-[max(10rem,20vw)] -scale-x-100 max-[600px]:hidden"
         />
 
-        <div style={{ maxWidth: 1280, margin: "0 auto", position: "relative", zIndex: 1 }}>
+        <div className="relative z-1 mx-auto max-w-[1280px]">
 
           {/* ── HEADER ── */}
-          <div className="erp-header" style={{ background: "#172F36", padding: "60px 40px 20px", position: "relative", overflow: "hidden" }}>
+          <div className="relative overflow-hidden bg-page px-10 pt-[60px] pb-5 max-[768px]:px-5 max-[768px]:pt-10 max-[768px]:pb-4 max-[600px]:px-4 max-[600px]:pt-[30px] max-[600px]:pb-3.5">
 
-            <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 40 }}>
+            <div className="mb-10 flex items-center gap-4">
               <Logo height={22} />
-              <div style={{ width: 1, height: 20, background: Z.border }} />
-              <span style={{ color: Z.text, fontSize: 9, letterSpacing: "3px", fontFamily: font, fontWeight: 600, textTransform: "uppercase" }}>
+              <div className="h-5 w-px bg-line" />
+              <span className="text-[9px] font-semibold uppercase tracking-[3px] text-ink">
                 ERP Evaluation
               </span>
             </div>
 
-            <h1 className="erp-h1" style={{ margin: "0 0 4px", fontSize: 30, fontWeight: 600, color: Z.text, letterSpacing: "0.5px", fontFamily: font }}>
+            {/* mt-0 needed while preflight is off: UA heading margins still apply */}
+            <h1 className="mt-0 mb-1 text-[30px] font-semibold tracking-[0.5px] text-ink max-[600px]:text-[22px] max-[600px]:leading-[1.3]">
               ERP platform comparison
             </h1>
-            <p style={{ margin: "0 0 20px", color: Z.text, fontSize: 15, fontWeight: 400, fontFamily: font }}>
+            <p className="mt-0 mb-5 text-[15px] text-ink">
               Four shortlisted systems evaluated against Zelim&apos;s operational requirements
             </p>
 
             {/* Controls */}
-            <div className="erp-controls" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
-              <div style={{ display: "flex", background: Z.inputBg, border: `1px solid rgb(246,246,94)`, borderRadius: "0.6rem", padding: 3, gap: 3 }}>
-                {[["cards","Overview"],["grid","Capability Grid"]].map(([id, lbl]) => (
-                  <button key={id} onClick={() => { setView(id); setSel(null); }} style={{
-                    fontFamily: "'Roboto Mono', monospace", fontSize: "0.7rem", fontWeight: 400,
-                    textTransform: "uppercase", letterSpacing: "0.1em",
-                    cursor: "pointer", borderRadius: "0.4rem",
-                    padding: "0.4375rem 0.9rem",
-                    border: "none",
-                    background: view === id ? "rgb(246,246,94)" : "transparent",
-                    color: view === id ? Z.inputBg : Z.text,
-                    transition: "all 0.15s",
-                  }}>{lbl}</button>
-                ))}
-              </div>
-
-              <div style={{ display: "flex", background: Z.inputBg, border: `1px solid rgb(246,246,94)`, borderRadius: "0.6rem", padding: 3, gap: 3 }}>
-                {([[false,"Without Portal API"],[true,"With Portal API"]] as [boolean, string][]).map(([val, lbl]) => (
-                  <button key={String(val)} onClick={() => setApi(val)} style={{
-                    fontFamily: "'Roboto Mono', monospace", fontSize: "0.7rem", fontWeight: 400,
-                    textTransform: "uppercase", letterSpacing: "0.1em",
-                    cursor: "pointer", borderRadius: "0.4rem",
-                    padding: "0.4375rem 0.9rem",
-                    border: "none",
-                    background: api === val ? "rgb(246,246,94)" : "transparent",
-                    color: api === val ? Z.inputBg : Z.text,
-                    transition: "all 0.15s",
-                  }}>{lbl}</button>
-                ))}
-              </div>
+            <div className="flex flex-wrap items-center justify-between gap-2.5 max-[768px]:flex-col max-[768px]:items-start max-[600px]:gap-2">
+              <PillToggle<string>
+                options={[["cards", "Overview"], ["grid", "Capability Grid"]]}
+                value={view}
+                onChange={(v) => { setView(v); setSel(null); }}
+              />
+              <PillToggle<boolean>
+                options={[[false, "Without Portal API"], [true, "With Portal API"]]}
+                value={api}
+                onChange={setApi}
+              />
             </div>
           </div>
 
           {/* API banner */}
-          <div className="erp-api-banner" style={{ padding: "8px 40px", fontFamily: font, fontSize: 14, fontWeight: 400, color: Z.text, display: "flex", gap: 10, alignItems: "center" }}>
-            <span style={{ letterSpacing: "0.4px", fontSize: 12, fontWeight: 600 }}>{api ? "API integration mode" : "Standalone mode"}</span>
-            <span style={{ opacity: 0.4 }}>|</span>
-            <span style={{ fontWeight: 400, opacity: 0.85 }}>
+          <div className="flex items-center gap-2.5 px-10 py-2 text-sm text-ink max-[768px]:flex-wrap max-[768px]:px-5 max-[600px]:px-4 max-[600px]:text-[13px]">
+            <span className="text-xs font-semibold tracking-[0.4px]">{api ? "API integration mode" : "Standalone mode"}</span>
+            <span className="opacity-40">|</span>
+            <span className="opacity-85">
               {api
                 ? "Connecting the Zelim maintenance portal to the ERP creates a single source of truth — recommended long-term architecture."
                 : "Standalone ERP costs only. Portal integration adds significant value and is the recommended end state."}
             </span>
           </div>
 
-          <div className="erp-content" style={{ padding: "24px 40px 60px" }}>
+          <div className="px-10 pt-6 pb-[60px] max-[768px]:px-5 max-[768px]:pt-4 max-[768px]:pb-10 max-[600px]:px-4 max-[600px]:pt-3.5">
 
             {/* ══ CARDS VIEW ══ */}
             {view === "cards" && !sel && (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14 }}>
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-3.5">
                 {platforms.map(pl => (
-                  <div key={pl.id} style={{ background: Z.cardBg, border: "none", borderRadius: 20, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-                    <div className="erp-card-inner" style={{ padding: "24px 30px", flex: 1 }}>
-                      <Tag label={pl.tag} accent={pl.accent} accentText={pl.accentText} />
-                      <div style={{ fontSize: 20, fontWeight: 600, color: Z.text, marginTop: 10, letterSpacing: "0.3px", fontFamily: font }}>{pl.name}</div>
-                      <div style={{ fontSize: 14, color: Z.text, fontWeight: 400, marginTop: 2, fontFamily: font }}>{pl.subtitle}</div>
-                      <div style={{ fontSize: 14, color: pl.accent, fontWeight: 600, marginTop: 4, marginBottom: 16, fontFamily: font }}>{pr(pl).license}</div>
+                  <div key={pl.id} className="flex flex-col overflow-hidden rounded-[20px] bg-card">
+                    <div className="flex-1 p-[24px_30px] max-[600px]:p-5">
+                      <Tag label={pl.tag} accent={pl.accent} />
+                      <div className="mt-2.5 text-xl font-semibold tracking-[0.3px] text-ink">{pl.name}</div>
+                      <div className="mt-0.5 text-sm text-ink">{pl.subtitle}</div>
+                      <div className={clsx("mt-1 mb-4 text-sm font-semibold", accents[pl.accent].text)}>{pr(pl).license}</div>
                       {Object.entries(scoreLabels).map(([k, lbl]) => (
-                        <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>
-                          <span style={{ fontSize: 14, color: Z.text, fontWeight: 400, fontFamily: font }}>{lbl}</span>
-                          <Dots score={sc(pl)[k]} />
+                        <div key={k} className="mb-[9px] flex items-center justify-between">
+                          <span className="text-sm text-ink">{lbl}</span>
+                          <Dots score={sc(pl)[k as keyof ScoreSet]} />
                         </div>
                       ))}
-                      <div style={{ marginTop: 14, paddingTop: 12 }}>
-                        <Tag label="Key strengths" accent={pl.accent} accentText={pl.accentText} />
-                        <div style={{ marginTop: 10 }}>
-                        {pl.pros.slice(0, 3).map((pro, i) => (
-                          <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6, alignItems: "flex-start" }}>
-                            <Check size={13} color={pl.accent} strokeWidth={2.5} style={{ marginTop: 2, flexShrink: 0 }} />
-                            <span style={{ fontSize: 14, color: Z.text, fontWeight: 400, lineHeight: 1.5, fontFamily: font }}>{pro}</span>
-                          </div>
-                        ))}
+                      <div className="mt-3.5 pt-3">
+                        <Tag label="Key strengths" accent={pl.accent} />
+                        <div className="mt-2.5">
+                          {pl.pros.slice(0, 3).map((pro, i) => (
+                            <div key={i} className="mb-1.5 flex items-start gap-2">
+                              <Check size={13} strokeWidth={2.5} className={clsx("mt-0.5 shrink-0", accents[pl.accent].text)} />
+                              <span className="text-sm leading-normal text-ink">{pro}</span>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                      <div style={{ marginTop: 14, paddingTop: 12 }}>
-                        <div style={{ fontSize: 12, color: Z.textMid, letterSpacing: "0.4px", fontWeight: 600, marginBottom: 4, fontFamily: font }}>
+                      <div className="mt-3.5 pt-3">
+                        <div className="mb-1 text-xs font-semibold tracking-[0.4px] text-ink">
                           Year 1 est. {api ? "(with API)" : "(without API)"}
                         </div>
-                        <div style={{ fontSize: 20, fontWeight: 600, color: pl.accent, fontFamily: font }}>{pr(pl).year1}</div>
+                        <div className={clsx("text-xl font-semibold", accents[pl.accent].text)}>{pr(pl).year1}</div>
                       </div>
-                      <div style={{ marginTop: 10, padding: "9px 11px", background: `${pl.accent}0c`, borderLeft: `2px solid ${pl.accent}`, fontSize: 14, color: Z.text, fontWeight: 400, lineHeight: 1.6, borderRadius: "0 4px 4px 0", fontFamily: font }}>
+                      <div className={clsx(
+                        "mt-2.5 rounded-r border-l-2 p-[9px_11px] text-sm leading-relaxed text-ink",
+                        accents[pl.accent].borderLeft,
+                        accents[pl.accent].bg,
+                      )}>
                         {pl.verdict.split(".")[0]}.
                       </div>
                     </div>
-                    <div className="erp-card-footer" style={{ padding: "0 30px 24px" }}>
-                      <PrimaryBtn onClick={() => setSel(pl.id)} fullWidth>Learn more</PrimaryBtn>
+                    <div className="px-[30px] pb-6 max-[600px]:px-5 max-[600px]:pb-5">
+                      <ArrowButton onClick={() => setSel(pl.id)} fullWidth>Learn more</ArrowButton>
                     </div>
                   </div>
                 ))}
@@ -433,65 +370,67 @@ export default function ErpPage() {
             {/* ══ DETAIL VIEW ══ */}
             {view === "cards" && sel && p && (
               <div>
-                <div style={{ marginBottom: 18 }}>
-                  <PrimaryBtn onClick={() => setSel(null)} back>Back</PrimaryBtn>
+                <div className="mb-[18px]">
+                  <ArrowButton onClick={() => setSel(null)} direction="back">Back</ArrowButton>
                 </div>
-                <div style={{ background: Z.cardBg, borderRadius: 20, overflow: "hidden" }}>
-                  <div className="erp-section-pad" style={{ padding: "24px 30px", position: "relative", overflow: "hidden", background: Z.cardBg }}>
-                    <Tag label={p.tag} accent={p.accent} accentText={p.accentText} />
-                    <div style={{ fontSize: 28, fontWeight: 600, color: Z.text, marginTop: 8, fontFamily: font }}>{p.name}</div>
-                    <div style={{ fontSize: 15, color: Z.text, fontWeight: 400, marginTop: 3, fontFamily: font }}>{p.subtitle}</div>
+                <div className="overflow-hidden rounded-[20px] bg-card">
+                  <div className={clsx("relative overflow-hidden bg-card", sectionPad)}>
+                    <Tag label={p.tag} accent={p.accent} />
+                    <div className="mt-2 text-[28px] font-semibold text-ink">{p.name}</div>
+                    <div className="mt-[3px] text-[15px] text-ink">{p.subtitle}</div>
                   </div>
-                  <div className="erp-detail-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
+                  <div className="grid grid-cols-3 max-[600px]:grid-cols-1">
                     {[
                       { heading: "Scores", content: (
                         Object.entries(scoreLabels).map(([k, lbl]) => (
-                          <div key={k} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                            <span style={{ fontSize: 14, color: Z.text, fontWeight: 400, fontFamily: font }}>{lbl}</span>
-                            <Dots score={sc(p)[k]} />
+                          <div key={k} className="mb-3 flex items-center justify-between">
+                            <span className="text-sm text-ink">{lbl}</span>
+                            <Dots score={sc(p)[k as keyof ScoreSet]} />
                           </div>
                         ))
                       )},
                       { heading: "Strengths", content: (
                         p.pros.map((pro, i) => (
-                          <div key={i} style={{ display: "flex", gap: 9, marginBottom: 10, alignItems: "flex-start" }}>
-                            <Check size={14} color={Z.cyan} strokeWidth={2.5} style={{ marginTop: 2, flexShrink: 0 }} />
-                            <span style={{ fontSize: 14, color: Z.text, fontWeight: 400, lineHeight: 1.55, fontFamily: font }}>{pro}</span>
+                          <div key={i} className="mb-2.5 flex items-start gap-[9px]">
+                            <Check size={14} strokeWidth={2.5} className="mt-0.5 shrink-0 text-accent" />
+                            <span className="text-sm leading-normal text-ink">{pro}</span>
                           </div>
                         ))
                       )},
                       { heading: "Risks", content: (
                         p.cons.map((con, i) => (
-                          <div key={i} style={{ display: "flex", gap: 9, marginBottom: 10, alignItems: "flex-start" }}>
-                            <X size={14} color={Z.error} strokeWidth={2.5} style={{ marginTop: 2, flexShrink: 0 }} />
-                            <span style={{ fontSize: 14, color: Z.text, fontWeight: 400, lineHeight: 1.55, fontFamily: font }}>{con}</span>
+                          <div key={i} className="mb-2.5 flex items-start gap-[9px]">
+                            <X size={14} strokeWidth={2.5} className="mt-0.5 shrink-0 text-danger" />
+                            <span className="text-sm leading-normal text-ink">{con}</span>
                           </div>
                         ))
                       )},
                     ].map(({ heading, content }) => (
-                      <div key={heading} className="erp-section-pad" style={{ padding: "24px 30px" }}>
+                      <div key={heading} className={sectionPad}>
                         <SectionLabel>{heading}</SectionLabel>
                         {content}
                       </div>
                     ))}
                   </div>
-                  <div className="erp-section-pad" style={{ padding: "24px 30px" }}>
+                  <div className={sectionPad}>
                     <SectionLabel>Capability checklist</SectionLabel>
-                    <div className="erp-capability-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px 16px" }}>
+                    <div className="grid grid-cols-3 gap-[10px_16px] max-[600px]:grid-cols-2 max-[600px]:gap-[10px_12px]">
                       {p.capabilities.map((cap, i) => (
-                        <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 9 }}>
+                        <div key={i} className="flex items-start gap-[9px]">
                           <Icon has={cap.has} />
                           <div>
-                            <div style={{ fontSize: 14, color: Z.text, fontWeight: 400, lineHeight: 1.4, fontFamily: font }}>{cap.label}</div>
-                            {cap.note && <div style={{ fontSize: 13, color: Z.text, fontWeight: 400, marginTop: 1, fontFamily: font }}>{cap.note}</div>}
+                            <div className="text-sm leading-snug text-ink">{cap.label}</div>
+                            {cap.note && <div className="mt-px text-[13px] text-ink">{cap.note}</div>}
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
-                  <div className="erp-section-pad" style={{ padding: "24px 30px" }}>
+                  <div className={sectionPad}>
                     <SectionLabel>Assessment</SectionLabel>
-                    <div style={{ borderLeft: `3px solid ${p.accent}`, paddingLeft: 14, fontSize: 14, color: Z.text, fontWeight: 400, lineHeight: 1.75, fontFamily: font }}>{p.verdict}</div>
+                    <div className={clsx("border-l-[3px] pl-3.5 text-sm leading-[1.75] text-ink", accents[p.accent].borderLeft)}>
+                      {p.verdict}
+                    </div>
                   </div>
 
                 </div>
@@ -501,42 +440,44 @@ export default function ErpPage() {
             {/* ══ GRID VIEW ══ */}
             {view === "grid" && (
               <div>
-                <div style={{ display: "flex", gap: 24, marginBottom: 14, fontSize: 14, color: Z.text, fontWeight: 400, fontFamily: font }}>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><Check size={13} color={Z.cyan} strokeWidth={2.5} /> Supported</span>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><Minus size={13} color={Z.amber} strokeWidth={2.5} /> Partial / limited</span>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><X size={13} color={Z.error} strokeWidth={2.5} /> Not supported</span>
+                <div className="mb-3.5 flex gap-6 text-sm text-ink">
+                  <span className="inline-flex items-center gap-[5px]"><Check size={13} strokeWidth={2.5} className="text-accent" /> Supported</span>
+                  <span className="inline-flex items-center gap-[5px]"><Minus size={13} strokeWidth={2.5} className="text-warn" /> Partial / limited</span>
+                  <span className="inline-flex items-center gap-[5px]"><X size={13} strokeWidth={2.5} className="text-danger" /> Not supported</span>
                 </div>
-                <div style={{ overflowX: "auto" }}>
-                  <table className="erp-grid-table" style={{ width: "100%", minWidth: 680, borderCollapse: "collapse", background: Z.cardBg, borderRadius: 8 }}>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[680px] border-collapse rounded-lg bg-card">
                     <thead>
-                      <tr style={{ background: "#172F36" }}>
-                        <th style={{ padding: "13px 18px", textAlign: "left", color: Z.text, fontWeight: 600, fontSize: 12, letterSpacing: "0.4px", width: "28%", fontFamily: font, position: "sticky", left: 0, background: "#172F36", zIndex: 2 }}>Capability</th>
+                      <tr className="bg-page">
+                        <th className="sticky left-0 z-2 w-[28%] bg-page p-[13px_18px] text-left text-xs font-semibold tracking-[0.4px] text-ink shadow-[2px_0_6px_rgba(0,0,0,0.25)]">
+                          Capability
+                        </th>
                         {platforms.map(pl => (
-                          <th key={pl.id} style={{ padding: "13px 14px", textAlign: "center", color: Z.text, fontWeight: 600, fontSize: 14, borderTop: `3px solid ${pl.accent}`, fontFamily: font }}>
+                          <th key={pl.id} className={clsx("border-t-[3px] p-[13px_14px] text-center text-sm font-semibold text-ink", accents[pl.accent].borderTop)}>
                             {pl.name}
-                            <div style={{ fontSize: 12, color: pl.accent, fontWeight: 600, marginTop: 3, letterSpacing: "1px", textTransform: "uppercase" }}>{pl.tag}</div>
+                            <div className={clsx("mt-[3px] text-xs font-semibold uppercase tracking-[1px]", accents[pl.accent].text)}>{pl.tag}</div>
                           </th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {allCaps.map((lbl, i) => {
-                        const rowBg = i % 2 === 0 ? Z.cardBg : "#172F36";
+                        const rowBg = i % 2 === 0 ? "bg-card" : "bg-page";
                         return (
-                        <tr key={i} style={{ background: rowBg }}>
-                          <td style={{ padding: "11px 18px", color: Z.text, fontWeight: 400, fontSize: 14, fontFamily: font, position: "sticky", left: 0, background: rowBg, zIndex: 1 }}>{lbl}</td>
-                          {platforms.map(pl => {
-                            const cap = pl.capabilities.find(c => c.label === lbl);
-                            return (
-                              <td key={pl.id} style={{ padding: "11px 14px", textAlign: "center" }}>
-                                {cap?.note
-                                  ? <div style={{ fontSize: 13, color: Z.textMid, maxWidth: 110, textAlign: "center", lineHeight: 1.3, fontFamily: font, margin: "0 auto" }}>{cap.note}</div>
-                                  : <Icon has={cap ? cap.has : false} />
-                                }
-                              </td>
-                            );
-                          })}
-                        </tr>
+                          <tr key={i} className={rowBg}>
+                            <td className={clsx("sticky left-0 z-1 p-[11px_18px] text-sm text-ink shadow-[2px_0_6px_rgba(0,0,0,0.25)]", rowBg)}>{lbl}</td>
+                            {platforms.map(pl => {
+                              const cap = pl.capabilities.find(c => c.label === lbl);
+                              return (
+                                <td key={pl.id} className="p-[11px_14px] text-center">
+                                  {cap?.note
+                                    ? <div className="mx-auto max-w-[110px] text-center text-[13px] leading-[1.3] text-ink">{cap.note}</div>
+                                    : <div className="flex justify-center"><Icon has={cap ? cap.has : false} /></div>
+                                  }
+                                </td>
+                              );
+                            })}
+                          </tr>
                         );
                       })}
                     </tbody>
@@ -544,7 +485,6 @@ export default function ErpPage() {
                 </div>
               </div>
             )}
-
 
           </div>
         </div>
