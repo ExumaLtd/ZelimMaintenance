@@ -24,7 +24,7 @@ High-level request flow:
    issues a signed session cookie. The unit token and access level written into
    the session are always derived from Airtable, never taken from the client.
 4. The user is sent to `/portal/swift`. A proxy (Next.js middleware, in
-   `proxy.js`) validates the session and rewrites the request to the internal
+   `proxy.ts`) validates the session and rewrites the request to the internal
    `/swift/<token>/...` route using the token stored in the session.
 5. Each form page loads its unit and checklist data in `getServerSideProps`,
    re-checking the session and confirming the URL token matches the session.
@@ -64,8 +64,8 @@ Supporting integrations:
 - `lib/` server-side helpers (`session.ts`, `resolve-pin.ts`, `data-fetching.ts`)
 - `components/` shared client components (uploader, signature pad, voice input)
 - `emails/` react-email templates
-- `utils/` small shared helpers (`api-utils.ts` holds `esc` and `getClientIp`)
-- `proxy.js` session-checking middleware for portal routes
+- `utils/` small shared client-safe helpers; `lib/api-utils.ts` holds the server-side `esc` and `getClientIp`
+- `proxy.ts` session-checking middleware for portal routes
 - `scripts/` backup jobs run by the GitHub Action
 - `.github/workflows/dropbox-backup.yml` the daily backup workflow
 

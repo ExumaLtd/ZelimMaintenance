@@ -4,7 +4,7 @@ import Airtable from "airtable";
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { Redis } from "@upstash/redis";
 import { Ratelimit } from "@upstash/ratelimit";
-import { getClientIp } from "../../utils/api-utils";
+import { getClientIp } from "../../lib/api-utils";
 import { requireEnv } from "../../lib/env";
 
 const redis = new Redis({

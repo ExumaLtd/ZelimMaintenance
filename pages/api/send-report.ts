@@ -5,7 +5,7 @@ import { TechnicalAlertEmail } from '../../emails/technical-alert';
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
 import { getSession } from '../../lib/session';
-import { getClientIp } from '../../utils/api-utils';
+import { getClientIp } from '../../lib/api-utils';
 import { requireEnv } from '../../lib/env';
 
 const redis = new Redis({

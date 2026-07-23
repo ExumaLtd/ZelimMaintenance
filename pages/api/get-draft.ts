@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from '../../lib/session';
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
-import { esc, getClientIp } from '../../utils/api-utils';
+import { esc, getClientIp } from '../../lib/api-utils';
 import { requireEnv } from '../../lib/env';
 
 const redis = new Redis({

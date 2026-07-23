@@ -4,7 +4,7 @@ import Image from "next/image";
 import Airtable from "airtable";
 import clsx from "clsx";
 import { getSession } from "../../../lib/session";
-import { esc } from "../../../utils/api-utils";
+import { esc } from "../../../lib/api-utils";
 import { requireEnv } from "../../../lib/env";
 import { ArrowIcon, arrowLinkClasses } from "@/components/ui/arrow-button";
 

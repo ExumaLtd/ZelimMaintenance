@@ -1,6 +1,8 @@
-/** @type {import('next').NextConfig} */
-const { withSentryConfig } = require("@sentry/nextjs");
-const withPWA = require("@ducanh2912/next-pwa").default({
+import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
+import withPWAInit from "@ducanh2912/next-pwa";
+
+const withPWA = withPWAInit({
   dest: "public",
   cacheOnFrontEndNav: true,
   aggressiveFrontEndNavCaching: true,
@@ -11,7 +13,7 @@ const withPWA = require("@ducanh2912/next-pwa").default({
   },
 });
 
-const nextConfig = {
+const nextConfig: NextConfig = {
   reactStrictMode: true,
 
   turbopack: {
@@ -167,7 +169,7 @@ const nextConfig = {
   },
 };
 
-module.exports = withSentryConfig(withPWA(nextConfig), {
+export default withSentryConfig(withPWA(nextConfig), {
   silent: true,
   org: "exuma",
   project: "zelim-maintenance",

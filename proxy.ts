@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 /**
  * Verify the HMAC signature and decode the session cookie.
  * Uses Web Crypto API (available in Edge Runtime and Node.js 18+).
  */
-async function verifySession(value) {
+async function verifySession(value: string) {
   const secret = process.env.SESSION_SECRET;
   if (!secret) return null;
 
@@ -35,7 +36,7 @@ async function verifySession(value) {
   }
 }
 
-export async function proxy(request) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Handle portal routes

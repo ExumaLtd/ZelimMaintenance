@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { esc, getClientIp } from '@/utils/api-utils';
+import { esc, getClientIp } from '@/lib/api-utils';
 import { encodeSession, getSession } from '@/lib/session';
 
 describe('esc', () => {

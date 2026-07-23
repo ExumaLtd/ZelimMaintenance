@@ -1,5 +1,5 @@
 import Airtable from 'airtable';
-import { esc } from '../utils/api-utils';
+import { esc } from '../lib/api-utils';
 import { requireEnv } from './env';
 
 const AIRTABLE_SWIFT_TABLE = requireEnv('AIRTABLE_SWIFT_TABLE');
