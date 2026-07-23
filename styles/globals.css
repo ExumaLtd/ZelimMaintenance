@@ -1,5 +1,5 @@
 /* globals.css */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap'); 
+/* Montserrat is loaded via next/font in _app.tsx; no CSS import needed. */
 
 html {
   height: -webkit-fill-available;
