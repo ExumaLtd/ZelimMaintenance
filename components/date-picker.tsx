@@ -75,11 +75,14 @@ export default function DatePicker({ value, onChange, max, disabled = false }: D
               formatWeekdayName: (date: Date) => format(date, 'EEEEE', { locale: enGB })
             }}
             components={{
-              Chevron: ({ orientation, ...props }: { orientation?: string; [key: string]: any }) =>
+              /* Size 14 matches the historical rendering: the old markup
+                 squeezed two 20px icons into the 28px nav button, so each
+                 displayed at about 14px with a correspondingly thin stroke. */
+              Chevron: ({ orientation }: { orientation?: string; [key: string]: any }) =>
                 orientation === 'left' ? (
-                  <ChevronLeft size={20} strokeWidth={1.5} />
+                  <ChevronLeft size={14} strokeWidth={1.5} />
                 ) : (
-                  <ChevronRight size={20} strokeWidth={1.5} />
+                  <ChevronRight size={14} strokeWidth={1.5} />
                 ),
             }}
           />

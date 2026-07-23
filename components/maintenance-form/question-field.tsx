@@ -28,13 +28,17 @@ export default function QuestionField({
 
   return (
     <div style={{ marginTop: isFirst ? "0" : "24px" }}>
-      {/* compact keeps the label out of view; single-step forms show the
-          question text in the template's textarea flow instead */}
-      <label className={clsx("checklist-label", compact && "hidden")}>
-        {q.title}
-      </label>
-      {q.instruction && (
-        <p className={clsx("question-instruction", compact && "hidden")}>{q.instruction}</p>
+      {/* Single-step forms (compact) do not show the per-question label and
+          instruction; the card heading carries the context. Conditional
+          rendering rather than a hidden class, because the legacy
+          .checklist-label display rule outranks utility classes. */}
+      {!compact && (
+        <label className="checklist-label">
+          {q.title}
+        </label>
+      )}
+      {!compact && q.instruction && (
+        <p className="question-instruction">{q.instruction}</p>
       )}
 
       <div className="question-with-upload">
