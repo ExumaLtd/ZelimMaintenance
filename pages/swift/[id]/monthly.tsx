@@ -10,6 +10,7 @@ import { useAutoSave } from '@/hooks/use-auto-save';
 import { fetchFormData } from '@/lib/data-fetching';
 import { getSession } from '@/lib/session';
 import FormShell from '@/components/maintenance-form/form-shell';
+import ArrowButton from '@/components/ui/arrow-button';
 import { useAdminFields, AdminCard } from '@/components/maintenance-form/admin-card';
 import DeclarationCard from '@/components/maintenance-form/declaration-card';
 import { useGeolocation, useMicPreflight } from '@/components/maintenance-form/device-hooks';
@@ -710,14 +711,9 @@ export default function Monthly({ unit, template, companies = [], engineers = []
               </div>
 
               {errorMsg && <p className="error-message">{errorMsg}</p>}
-              <button type="button" className="checklist-submit" onClick={handleContinue}>
-                <span className="left">Continue</span>
-                <span className="right">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <path d="M10.1458 7.5L0 7.5L0 5.83333L10.1458 5.83333L5.47917 1.16667L6.66667 0L13.3333 6.66667L6.66667 13.3333L5.47917 12.1667L10.1458 7.5Z" fill="#172F36"/>
-                  </svg>
-                </span>
-              </button>
+              <ArrowButton onClick={handleContinue} className="mt-[34px] max-[600px]:mt-[30px]">
+                Continue
+              </ArrowButton>
             </>
           )}
 
@@ -834,14 +830,9 @@ export default function Monthly({ unit, template, companies = [], engineers = []
               {!isLastStep && (
                 <>
                   {errorMsg && <p className="error-message">{errorMsg}</p>}
-                  <button type="button" className="checklist-submit" onClick={handleContinue}>
-                    <span className="left">Continue</span>
-                    <span className="right">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M10.1458 7.5L0 7.5L0 5.83333L10.1458 5.83333L5.47917 1.16667L6.66667 0L13.3333 6.66667L6.66667 13.3333L5.47917 12.1667L10.1458 7.5Z" fill="#172F36"/>
-                      </svg>
-                    </span>
-                  </button>
+                  <ArrowButton onClick={handleContinue} className="mt-[34px] max-[600px]:mt-[30px]">
+                    Continue
+                  </ArrowButton>
                 </>
               )}
             </>

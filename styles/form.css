@@ -74,7 +74,7 @@
 }
 
 .form-scope .checklist-form-card {
-  background: #152a31 !important;
+  background: var(--color-field) !important;
   padding: 38px;
   border-radius: 20px;
   width: 100%;
@@ -134,7 +134,7 @@
 
 /* Question instruction styling (between label and textarea) - ONLY for questions */
 .form-scope .question-instruction {
-  color: #7d8f93;
+  color: var(--color-ink-dim);
   font-size: 14px;
   margin: 2px 0 10px 0;
   line-height: 1.4;
@@ -158,12 +158,12 @@
   align-items: center;
   justify-content: center;
   line-height: 0;
-  color: #f7f7f7;
+  color: var(--color-ink);
 }
 
 .form-scope .field-icon-wrapper .field-icon-inside svg {
   display: block;
-  stroke: #f7f7f7;
+  stroke: var(--color-ink);
   margin: 0;
   padding: 0;
 }
@@ -178,8 +178,8 @@
   top: calc(100% + 8px);
   left: 0;
   right: 0;
-  background: #27454B;
-  border: 1px solid #00FFF6 !important;
+  background: var(--color-card);
+  border: 1px solid var(--color-accent) !important;
   border-radius: 8px;
   box-shadow: 0 10px 25px rgba(21, 42, 49, 0.4);
   margin: 0;
@@ -191,7 +191,7 @@
 }
 
 .form-scope .custom-dropdown-list.has-error {
-  border-color: rgb(255, 77, 77) !important;
+  border-color: var(--color-danger) !important;
 }
 
 .form-scope .field-hint {
@@ -202,7 +202,7 @@
 
 .form-scope .custom-dropdown-item {
   padding: 6px 16px;
-  color: #F7F7F7;
+  color: var(--color-ink);
   cursor: pointer;
   font-size: 16px;
   font-weight: 400;
@@ -213,20 +213,20 @@
 .form-scope .custom-dropdown-item:hover,
 .form-scope .custom-dropdown-item.active {
   background: #476166;
-  color: #F7F7F7;
+  color: var(--color-ink);
 }
 
 /* Dynamic States */
 .form-scope .checklist-input.is-placeholder {
-  color: #7d8f93 !important;
+  color: var(--color-ink-dim) !important;
 }
 
 .form-scope .checklist-input.is-active {
-  color: #F7F7F7 !important;
+  color: var(--color-ink) !important;
 }
 
 .form-scope .checklist-input.is-focused {
-  border-color: #00FFF6 !important;
+  border-color: var(--color-accent) !important;
 }
 
 /* Inputs & Icons */
@@ -254,24 +254,24 @@
 /* Input and Textarea base styles - PREVENTS MOBILE ZOOM */
 .form-scope .checklist-input::selection,
 .form-scope .checklist-textarea::selection {
-  background-color: #152a31;
-  color: #F7F7F7;
+  background-color: var(--color-field);
+  color: var(--color-ink);
 }
 
 .form-scope .checklist-input::-moz-selection,
 .form-scope .checklist-textarea::-moz-selection {
-  background-color: #152a31;
-  color: #F7F7F7;
+  background-color: var(--color-field);
+  color: var(--color-ink);
 }
 
 /* Input and Textarea base styles - PREVENTS MOBILE ZOOM */
 .form-scope .checklist-input,
 .form-scope .checklist-textarea {
   width: 100%;
-  background-color: #27454b !important;
+  background-color: var(--color-card) !important;
   border: 1px solid transparent !important;
   padding: 14px 16px !important;
-  color: #F7F7F7 !important;
+  color: var(--color-ink) !important;
   font-size: 16px !important;
   font-family: "Montserrat", sans-serif;
   border-radius: 8px !important;
@@ -308,8 +308,8 @@
 .form-scope .checklist-input:-webkit-autofill,
 .form-scope .checklist-input:-webkit-autofill:hover,
 .form-scope .checklist-input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 50px #27454b inset !important;
-  -webkit-text-fill-color: #F7F7F7 !important;
+  -webkit-box-shadow: 0 0 0 50px var(--color-card) inset !important;
+  -webkit-text-fill-color: var(--color-ink) !important;
   transition: background-color 5000s ease-in-out 0s;
 }
 
@@ -322,7 +322,7 @@
 
 .form-scope .checklist-input:focus,
 .form-scope .checklist-textarea:focus {
-  border-color: #00FFF6 !important;
+  border-color: var(--color-accent) !important;
 }
 
 
@@ -352,7 +352,7 @@
 
 .form-scope .checklist-input::placeholder,
 .form-scope .checklist-textarea::placeholder {
-  color: #7d8f93;
+  color: var(--color-ink-dim);
   opacity: 1;
 }
 
@@ -370,72 +370,9 @@
   }
 }
 
-/* Submit Button */
-.form-scope .checklist-submit {
-  display: inline-flex;
-  align-self: flex-start;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 0.875rem;
-  font-weight: 400;
-  font-family: var(--font-roboto-mono), "Roboto Mono", monospace;
-  line-height: normal;
-  color: #ffffff;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  padding: 0.4375rem 0.75rem 0.4375rem 1.5rem;
-  border: 1px solid rgb(246, 246, 94);
-  border-radius: 0.5rem;
-  transition: background-color 0.5s, color 0.5s;
-  background-color: transparent;
-  cursor: pointer;
-  margin: 30px 0 0 0;
-  text-decoration: none;
-}
-
-.form-scope .checklist-submit:hover {
-  background-color: rgb(246, 246, 94);
-  color: #172F36;
-}
-
-.form-scope .checklist-submit:hover .right {
-  background-color: #172F36;
-}
-
-.form-scope .checklist-submit:hover .right svg path {
-  fill: rgb(246, 246, 94);
-}
-
-.form-scope .checklist-submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.form-scope .checklist-submit .left {
-  flex: 1;
-  min-width: 0;
-  white-space: normal;
-}
-
-.form-scope .checklist-submit .right {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 1.875rem;
-  height: 1.875rem;
-  border-radius: 0.1875rem;
-  background-color: rgb(246, 246, 94);
-  transition: background-color 0.5s;
-  flex-shrink: 0;
-}
-
-.form-scope .checklist-submit .right svg path {
-  transition: fill 0.5s;
-}
-
 /* Error Message Styling */
 .form-scope .error-message {
-  color: rgb(255, 77, 77);
+  color: var(--color-danger);
   margin-top: 16px;
   font-weight: 400;
   font-size: 14px;
@@ -445,17 +382,17 @@
 /* Error Field Border */
 .form-scope .checklist-input.has-error,
 .form-scope .checklist-textarea.has-error {
-  border-color: rgb(255, 77, 77) !important;
+  border-color: var(--color-danger) !important;
 }
 
 .form-scope .checklist-input.has-error:focus,
 .form-scope .checklist-textarea.has-error:focus {
-  border-color: rgb(255, 77, 77) !important;
+  border-color: var(--color-danger) !important;
 }
 
 /* Image uploader error state */
 .form-scope .image-drop-zone.has-error {
-  border-color: rgb(255, 77, 77) !important;
+  border-color: var(--color-danger) !important;
 }
 
 /* Footer */
@@ -557,10 +494,6 @@
   .form-scope .checklist-form-card {
     padding: 26px 24px 30px 24px !important;
   }
-
-  .form-scope .checklist-submit {
-    margin: 30px 0 0 0 !important;
-  }
 }
 
 /* =========================================================================
@@ -619,7 +552,7 @@
 }
 
 .form-scope .image-drop-zone {
-  border: 1px dashed #425558;
+  border: 1px dashed var(--color-line);
   border-radius: 8px;
   text-align: center;
   transition: all 0.2s ease;
@@ -641,7 +574,7 @@
 }
 
 .form-scope .image-drop-zone:hover {
-  border-color: #00FFF6;
+  border-color: var(--color-accent);
   background-color: rgba(0, 255, 246, 0.05);
 }
 
@@ -667,8 +600,8 @@
 }
 
 .form-scope .upload-icon-circle svg {
-  color: #00FFF6;
-  stroke: #00FFF6;
+  color: var(--color-accent);
+  stroke: var(--color-accent);
   display: block;
   margin: 0;
   padding: 0;
@@ -708,12 +641,12 @@
   aspect-ratio: 1 / 1; /* Keep square */
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid #27454b;
+  border: 1px solid var(--color-card);
   transition: border-color 0.2s;
 }
 
 .form-scope .thumbnail-item:hover {
-  border-color: #00FFF6;
+  border-color: var(--color-accent);
 }
 
 .form-scope .thumbnail-item img {
@@ -802,7 +735,7 @@
 
 .checklist-step-subtitle {
   font-size: 16px;
-  color: #a0acaf;
+  color: var(--color-ink-muted);
   text-align: center;
   margin-bottom: 30px;
   font-family: "Montserrat", sans-serif;
@@ -810,7 +743,7 @@
 
 /* Equipment Table */
 .equipment-table {
-  background: #152a31;
+  background: var(--color-field);
   border-radius: 12px;
   padding: 24px;
   margin: 0 0 30px;
@@ -841,7 +774,7 @@
   padding: 10px 20px 10px 20px;
   border-radius: 10px;
   transition: background 0.2s;
-  background: #27454b !important;
+  background: var(--color-card) !important;
 }
 
 .equipment-row:last-child {
@@ -949,7 +882,7 @@
 
 .item-number {
   font-weight: 600;
-  color: #a0acaf;
+  color: var(--color-ink-muted);
   font-size: 14px;
   font-family: "Montserrat", sans-serif;
 }
@@ -974,10 +907,10 @@
 
 .toggle-btn {
   padding: 7px 14px;
-  background: #152a31 !important;
+  background: var(--color-field) !important;
   border: 1px solid transparent;
   border-radius: 6px;
-  color: #7d8f93;
+  color: var(--color-ink-dim);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -989,20 +922,20 @@
 }
 
 .toggle-btn:hover {
-  background: #1f4450;
+  background: var(--color-hover);
 }
 
 .toggle-btn.active {
-  background: #00fff6 !important;
-  color: #0d3037;
-  border-color: #00fff6;
+  background: var(--color-accent) !important;
+  color: var(--color-accent-ink);
+  border-color: var(--color-accent);
   font-weight: 600;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: auto;
 }
 
 .toggle-btn.has-error {
-  border-color: rgb(255, 77, 77) !important;
+  border-color: var(--color-danger) !important;
 }
 
 .toggle-btn:disabled {
@@ -1016,8 +949,8 @@
   width: max-content;
   padding: 12px 32px;
   margin: 0 auto;
-  background: #00fff6;
-  color: #0d3037;
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
   font-size: 16px;
   font-weight: 600;
   border: none;
@@ -1071,7 +1004,7 @@
   
   .checklist-section-subtitle {
     text-align: left;
-    color: rgb(160, 172, 175);
+    color: var(--color-ink-muted);
     margin: 0px 0px 20px;
     padding: 0px !important;
   }
@@ -1192,15 +1125,6 @@
 }
 
 /* Section Titles for within form card */
-.form-scope .checklist-form-card {
-  background: #152a31 !important;
-  padding: 38px;
-  border-radius: 20px;
-  width: 100%;
-  text-align: left;
-  box-sizing: border-box;
-}
-
 .checklist-section-title {
   font-size: 18px;
   line-height: 26px;
@@ -1212,7 +1136,7 @@
 }
 
 .checklist-section-subtitle {
-  color: #a0acaf;
+  color: var(--color-ink-muted);
   margin: 0 0 30px;
   font-family: "Montserrat", sans-serif;
   font-size: 14px;
@@ -1220,20 +1144,6 @@
   padding: 0 !important;
   letter-spacing: 0.05em;
   font-weight: 300;
-}
-
-/* Submit Button (duplicate selector - margin override only) */
-.form-scope .checklist-submit {
-  margin: 34px 0 0;
-}
-
-/* Question Instruction */
-.form-scope .question-instruction {
-  color: #a0acaf;
-  font-size: 14px;
-  margin: 2px 0 10px;
-  line-height: 1.4;
-  font-family: "Montserrat", sans-serif;
 }
 
 /* Reduce equipment table padding when inside form card */
@@ -1245,11 +1155,11 @@
 }
 
 /* =========================================================================
-   MONTHLY CHECKLIST - Multiple questions in one #27454b box
+   MONTHLY CHECKLIST - Multiple questions in one var(--color-card) box
 ========================================================================= */
 
 .equipment-questions-wrapper {
-  background: #27454b;
+  background: var(--color-card);
   border-radius: 10px;
   padding: 10px 20px;
 }
@@ -1348,7 +1258,7 @@
 
 @media (max-width: 768px) {
   .checklist-section-subtitle {
-    color: #a0acaf;
+    color: var(--color-ink-muted);
     margin: 0 0 20px;
     padding: 0 !important;
   }
@@ -1402,15 +1312,6 @@
   }
 }
 /* =========================================================================
-   UNSCHEDULED MAINTENANCE - Hide question labels
-========================================================================= */
-
-.form-scope .unscheduled-question-label,
-.form-scope .unscheduled-question-instruction {
-  display: none;
-}
-
-/* =========================================================================
    DATE PICKER STYLES
 ========================================================================= */
 
@@ -1424,8 +1325,8 @@
   top: calc(100% + 8px);
   left: 0;
   z-index: 1000;
-  background: #27454b !important;
-  border: 1px solid #00FFF6 !important;
+  background: var(--color-card) !important;
+  border: 1px solid var(--color-accent) !important;
   border-radius: 10px;
   padding: 16px;
   box-shadow: 0 10px 25px rgba(21, 42, 49, 0.6);
@@ -1434,8 +1335,8 @@
 
 /* Override default CSS variables */
 .form-scope .rdp-root {
-  --rdp-accent-color: #00FFF6 !important;
-  --rdp-accent-background-color: #00FFF6 !important;
+  --rdp-accent-color: var(--color-accent) !important;
+  --rdp-accent-background-color: var(--color-accent) !important;
   --rdp-day-height: 40px !important;
   --rdp-day-width: 40px !important;
   --rdp-day_button-height: 36px !important;
@@ -1465,7 +1366,7 @@
 }
 
 .form-scope .rdp-caption_label {
-  color: #F7F7F7 !important;
+  color: var(--color-ink) !important;
   font-weight: 600 !important;
   font-size: 14px !important;
   text-align: left !important;
@@ -1624,14 +1525,14 @@
 
 /* Selected day */
 .form-scope .rdp-day.rdp-selected .rdp-day_button {
-  background: #00FFF6 !important;
-  color: #0d3037 !important;
+  background: var(--color-accent) !important;
+  color: var(--color-accent-ink) !important;
   font-weight: 600 !important;
 }
 
 .form-scope .rdp-day.rdp-selected .rdp-day_button:hover {
-  background: #00FFF6 !important;
-  color: #0d3037 !important;
+  background: var(--color-accent) !important;
+  color: var(--color-accent-ink) !important;
 }
 
 /* Today (not selected) */
@@ -1712,17 +1613,17 @@
   flex-shrink: 0;
   width: 22px;
   height: 22px;
-  border: 1px solid #27454b;
+  border: 1px solid var(--color-card);
   border-radius: 4px;
   transition: all 0.15s ease;
   position: relative;
-  background: #27454b;
+  background: var(--color-card);
   cursor: pointer;
 }
 
 .form-scope .declaration-checkbox input[type="checkbox"]:checked ~ .declaration-checkmark {
-  background-color: #00FFF6;
-  border-color: #00FFF6;
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .form-scope .declaration-checkmark::after {
@@ -1743,7 +1644,7 @@
 }
 
 .form-scope .declaration-text {
-  color: #a0acaf;
+  color: var(--color-ink-muted);
   font-family: "Montserrat", sans-serif;
   font-size: 13px;
   font-weight: 300;
@@ -1752,7 +1653,7 @@
 }
 
 .form-scope .declaration-checkbox.has-error .declaration-checkmark {
-  border-color: rgb(255, 77, 77) !important;
+  border-color: var(--color-danger) !important;
 }
 
 @media (max-width: 767px) {

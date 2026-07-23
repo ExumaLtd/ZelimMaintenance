@@ -28,11 +28,13 @@ export default function QuestionField({
 
   return (
     <div style={{ marginTop: isFirst ? "0" : "24px" }}>
-      <label className={clsx("checklist-label", compact && "unscheduled-question-label")}>
+      {/* compact keeps the label out of view; single-step forms show the
+          question text in the template's textarea flow instead */}
+      <label className={clsx("checklist-label", compact && "hidden")}>
         {q.title}
       </label>
       {q.instruction && (
-        <p className={clsx("question-instruction", compact && "unscheduled-question-instruction")}>{q.instruction}</p>
+        <p className={clsx("question-instruction", compact && "hidden")}>{q.instruction}</p>
       )}
 
       <div className="question-with-upload">
