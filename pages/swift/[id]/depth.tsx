@@ -4,6 +4,7 @@ import { z } from "zod";
 import ImageUploader from '@/components/image-uploader';
 import { getCompanyLogoUrl } from '@/utils/get-company-logo';
 import { submitOrQueue } from '@/utils/offline-queue';
+import { buildDepthPayload } from '@/components/maintenance-form/checklist-payloads';
 import { autoGrow } from '@/utils/form-utils';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { errorMessage } from '@/utils/errors';
@@ -690,45 +691,10 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
       };
     });
 
-    const payload = {
-      maintained_by: admin.selectedCompany,
-      location_display: admin.locationDisplay,
-      location_country: admin.locationCountry,
-      location_what3words: admin.what3words,
-      maintenance_type: template?.type || "Depth",
-      date_of_maintenance: admin.maintenanceDate,
-      engineer_name: admin.engName,
-      engineer_email: admin.engEmail,
-      engineer_phone: admin.engPhone,
-      engineer_record_id: admin.engId,
-      // Operator fields (operator logins)
-      operator_name: admin.operatorName,
-      operator_email: admin.operatorEmail,
-      operator_phone: admin.operatorPhone,
-      operator_record_id: admin.operatorId,
-      operating_company_id: unit?.operating_company_id,
-      unit_record_id: unit?.record_id,
-      checklist_template_id: template?.id,
-      serial_number: unit?.serial_number,
-      declaration_text: template?.declarationText || "",
-      signature: signatureData,
-      equipment_checklist: JSON.stringify(
-        checklistData.map(item => ({
-          ...item,
-          images: checklistImages[`item_${item.id}`]?.map(img => img.url) || []
-        }))
-      ),
-      // Keys keep their original template position: filtering before keying
-      // would shift q20-q25 onto the skipped winch keys and lose answers.
-      answers: (template?.questionsData || [])
-        .map((q, i) => ({ q, questionKey: `q${i + 1}` }))
-        .filter(({ q }) => !(!isWinchReturned && q.id >= 14 && q.id <= 19))
-        .map(({ questionKey }) => ({
-          question: questionKey,
-          answer: answers[questionKey] || "",
-          images: (questionImages[questionKey] || []).map(img => ({ url: img.url, fileType: img.fileType || 'image' }))
-        })),
-    };
+    const payload = buildDepthPayload({
+      unit, template, admin, signatureData,
+      answers, questionImages, checklistData, checklistImages, isWinchReturned,
+    });
 
     try {
       const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);

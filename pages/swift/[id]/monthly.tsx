@@ -4,6 +4,7 @@ import { z } from "zod";
 import clsx from "clsx";
 import { getCompanyLogoUrl } from '@/utils/get-company-logo';
 import { submitOrQueue } from '@/utils/offline-queue';
+import { buildMonthlyPayload } from '@/components/maintenance-form/checklist-payloads';
 import { autoGrow } from '@/utils/form-utils';
 import ImageUploader from '@/components/image-uploader';
 import VoiceInput from '@/components/voice-input';
@@ -532,61 +533,10 @@ export default function Monthly({ unit, template, companies = [], engineers = []
 
     setSubmitting(true);
 
-    const answers: { question: string; answer: string; images: { url: string; fileType: string }[] }[] = [];
-    if (photographImages.length > 0 || photographComments) {
-      answers.push({
-        question: "Photograph Swift",
-        answer: photographComments || "",
-        images: photographImages.map(img => ({ url: img.url, fileType: img.fileType || 'image' }))
-      });
-    }
-    checklistData.forEach((group, groupIndex) => {
-      const comment = stepComments[groupIndex];
-      const images = stepCommentImages[groupIndex] || [];
-      if (comment || images.length > 0) {
-        answers.push({
-          question: `Further comments (${group.title})`,
-          answer: comment || "",
-          images: images.map(img => ({ url: img.url, fileType: img.fileType || 'image' }))
-        });
-      }
+    const payload = buildMonthlyPayload({
+      unit, template, admin, signatureData,
+      checklistData, photographImages, photographComments, stepComments, stepCommentImages,
     });
-
-    const payload = {
-      maintained_by: admin.selectedCompany,
-      location_display: admin.locationDisplay,
-      location_country: admin.locationCountry,
-      location_what3words: admin.what3words,
-      maintenance_type: "Monthly",
-      date_of_maintenance: admin.maintenanceDate,
-      engineer_name: admin.engName,
-      engineer_email: admin.engEmail,
-      engineer_phone: admin.engPhone,
-      engineer_record_id: admin.engId,
-      // Operator fields (operator logins)
-      operator_name: admin.operatorName,
-      operator_email: admin.operatorEmail,
-      operator_phone: admin.operatorPhone,
-      operator_record_id: admin.operatorId,
-      operating_company_id: unit?.operating_company_id,
-      unit_record_id: unit?.record_id,
-      checklist_template_id: template?.id,
-      serial_number: unit?.serial_number,
-      declaration_text: template?.declarationText || "",
-      signature: signatureData,
-      maintenance_checklist: JSON.stringify(
-        checklistData.map(group => ({
-          id: group.id,
-          title: group.title,
-          questions: group.questions.map(q => ({
-            id: q.id,
-            text: q.text,
-            answer: q.answer === true ? 'Yes' : q.answer === false ? 'No' : 'Not answered'
-          }))
-        }))
-      ),
-      answers: answers,
-    };
 
     try {
       const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
