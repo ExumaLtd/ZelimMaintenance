@@ -105,6 +105,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
   const signatureRef = useRef<any>(null);
 
   const [submitting, setSubmitting] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [declarationChecked, setDeclarationChecked] = useState(false);
   const [signatureData, setSignatureData] = useState<string | null>(null);
@@ -140,7 +141,6 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
 
   // Refs to prevent duplicate operations
   const hasLoadedDraftRef = useRef(false);
-  const hasSubmittedRef = useRef(false);
   const checklistInitialisedRef = useRef(false);
 
   // Check if winch was returned (item id: 3)
@@ -174,7 +174,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
     }
   },
     !submitting &&
-    !hasSubmittedRef.current &&
+    !hasSubmitted &&
     (
       (checklistData && checklistData.length > 0 && checklistData.some(item =>
         item.returned !== null || item.condition !== null
@@ -278,12 +278,9 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
   const currentSection = sections.find(s => s.step === currentStep);
 
   // Get questions for current step
-  const currentQuestions = useMemo(() => {
-    if (!currentSection || !currentSection.questionIds || !template?.questionsData) return [];
-    return template.questionsData.filter(q =>
-      currentSection.questionIds.includes(q.id)
-    );
-  }, [currentSection, template?.questionsData]);
+  const currentQuestions = (!currentSection || !currentSection.questionIds || !template?.questionsData)
+    ? []
+    : template.questionsData.filter(q => currentSection.questionIds!.includes(q.id));
 
   // Handle continue to next step with winch skip logic
   const handleContinueToNextStep = () => {
@@ -501,6 +498,8 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
       if (data.engineer_phone) admin.setEngPhone(data.engineer_phone);
 
       if (data.checklist_data && Array.isArray(data.checklist_data)) {
+        // Restoring the localStorage draft after mount requires state here.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setChecklistData(data.checklist_data);
       }
 
@@ -513,6 +512,9 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
     } catch (e) {
       console.error("Draft load error:", e);
     }
+    // Load-once semantics: admin setters are stable; the admin object identity
+    // changes every render and must not retrigger a draft load.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storageKey]);
 
   // Load draft from Airtable - ONLY when coming from "Continue maintenance"
@@ -571,6 +573,8 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
     };
 
     loadDraft();
+    // Load-once semantics, as above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unit?.record_id]);
 
   useGeolocation(admin);
@@ -590,7 +594,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
       ...answers,
     };
     localStorage.setItem(storageKey, JSON.stringify(draftData));
-  }, [admin.selectedCompany, admin.locationDisplay, admin.locationCountry, admin.engName, admin.engEmail, admin.engPhone, checklistData, answers, storageKey]);
+  }, [admin.selectedCompany, admin.locationDisplay, admin.locationCountry, admin.engName, admin.engEmail, admin.engPhone, admin.engId, checklistData, answers, storageKey]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -651,7 +655,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
     }
 
     setSubmitting(true);
-    hasSubmittedRef.current = true;
+    setHasSubmitted(true);
 
     const emailFriendlyAnswers: Record<string, any> = {};
     (template?.questionsData || []).forEach((q, i) => {
@@ -770,7 +774,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
     } catch (err) {
       setErrorMsg(errorMessage(err));
       setSubmitting(false);
-      hasSubmittedRef.current = false;
+      setHasSubmitted(false);
     }
   };
 

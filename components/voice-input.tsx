@@ -105,7 +105,8 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }: 
   const isStoppingRef = useRef(false);
 
   useEffect(() => {
-    // Detect mobile
+    // Detect mobile after mount; navigator is unavailable during SSR.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
 
     if (typeof window !== 'undefined') {

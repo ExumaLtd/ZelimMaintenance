@@ -22,10 +22,13 @@ export function useAutoSave(config: AutoSaveConfig, shouldSave: unknown) {
   const configRef = useRef(config);
   const shouldSaveRef = useRef(shouldSave);
 
-  // Update refs synchronously during render so beforeunload/pagehide always
-  // sees the current value without waiting for a useEffect flush
-  configRef.current = config;
-  shouldSaveRef.current = shouldSave;
+  // Latest-ref pattern: refs update after every commit, so beforeunload and
+  // the debounce timer always read the current values. Events can only fire
+  // between commits, so an effect is as safe as a render-phase write here.
+  useEffect(() => {
+    configRef.current = config;
+    shouldSaveRef.current = shouldSave;
+  });
 
   // Save function using refs
   const saveDraft = async (force = false) => {
@@ -85,6 +88,9 @@ export function useAutoSave(config: AutoSaveConfig, shouldSave: unknown) {
         clearTimeout(saveTimeoutRef.current);
       }
     };
+    // Retriggers only when the serialized draft changes; shouldSave gates the
+    // body but must not restart the debounce timer on every gate flip.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftDataString]);
 
   // Save on page unload

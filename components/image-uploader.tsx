@@ -352,6 +352,7 @@ export default function ImageUploader({
         <div className="image-thumbnails">
           {images.map((img, index) => (
             <div key={`${img.publicId}-${index}`} className="thumbnail-item">
+              {/* eslint-disable-next-line @next/next/no-img-element -- thumbnails include transient blob and data URLs that next/image cannot optimise */}
               <img src={img.thumbnail} alt={`Upload ${index + 1}`} />
               <button
                 type="button"

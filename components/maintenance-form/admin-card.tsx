@@ -49,6 +49,9 @@ export function useAdminFields({ unit, accessType, engineers, operators, setFiel
   const [showOperatorDropdown, setShowOperatorDropdown] = useState(false);
 
   useEffect(() => {
+    // Set after mount so the server-rendered value cannot mismatch a client
+    // in a different timezone (hydration safety).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setToday(new Date().toISOString().split('T')[0]);
   }, []);
 

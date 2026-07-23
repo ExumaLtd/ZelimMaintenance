@@ -22,9 +22,12 @@ export default function MaintenanceComplete({ defaultType = "Maintenance", isFau
   const [maintenanceType, setMaintenanceType] = useState(defaultType);
 
   useEffect(() => {
+    // Reads the submitting form's hand-off from localStorage after mount;
+    // localStorage does not exist during server rendering.
     const savedSN = localStorage.getItem("last_submitted_sn");
     const savedType = localStorage.getItem("last_maintenance_type");
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (savedSN) setUnitSN(savedSN);
     if (savedType && !isFaultReport) setMaintenanceType(savedType);
 

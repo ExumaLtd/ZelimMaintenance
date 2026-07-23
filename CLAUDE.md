@@ -19,7 +19,7 @@ Standing conventions for the Zelim maintenance portal. Follow these in every ses
 - Prefer complete files over partial snippets when presenting changes.
 - TypeScript strict mode is on and the build must stay clean under it. Prefer real types over assertions; explicit `any` is acceptable only at genuinely dynamic boundaries (draft JSON, third party callbacks).
 - The five maintenance forms are safety-critical. Their shared machinery lives in `components/maintenance-form/` (admin card, question field, declaration card, persistence, submit plumbing, single- and multi-step engines); annual, unscheduled and fault-reporting are thin config wrappers, while monthly and depth keep their unique checklist logic in the page. Behaviour changes need explicit instruction, and the persistence strings in the configs (draft slugs, upload slugs, Airtable type labels) must never change since live drafts depend on them.
-- The react-hooks v6 lint warnings (about 45) are accepted tech debt, deliberately set to warn. Do not silence them or refactor to clear them.
+- Lint runs at zero warnings and CI enforces it. Every eslint-disable in the codebase carries a one-line reason (mount-only effects, SSR-safe state init, blob-URL thumbnails); do not add a disable without one.
 
 ## Tests and CI
 
@@ -32,7 +32,7 @@ Standing conventions for the Zelim maintenance portal. Follow these in every ses
 - Fonts are declared in `@theme inline` because next/font sets its variables on a wrapper div, not `:root`. Keep them there.
 - Tailwind preflight and cascade layers are deliberately not imported: the remaining plain CSS is unlayered, and unlayered rules always beat layered ones, which would disable every utility. globals.css provides the base reset instead.
 - Shared UI primitives live in `components/ui/` (PortalShell, MessageCard, ArrowButton). Reuse them instead of re-styling cards and buttons per page. All arrow buttons across the portal are ArrowButton or its exported classes.
-- Three plain CSS files remain by design, all referencing the theme tokens: `globals.css` (site-wide base), `scanner.css` (DOM injected by html5-qrcode inside `#reader`), and `form.css` (react-day-picker theming, pseudo-element mobile labels on the equipment tables, autofill and appearance hacks, and the imperative has-error states the form validation toggles via classList). Do not try to convert these to utilities; they cover things utilities cannot reach.
+- Three plain CSS files remain by design, all referencing the theme tokens: `globals.css` (site-wide base), `scanner.css` (DOM injected by html5-qrcode inside `#reader`), and `form.css` (react-day-picker theming, pseudo-element mobile labels on the equipment tables, autofill and appearance hacks, and the has-error state styling). Do not try to convert these to utilities; they cover things utilities cannot reach.
 
 ## Held major upgrades
 

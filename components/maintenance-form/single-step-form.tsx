@@ -32,9 +32,9 @@ export default function SingleStepForm({ config, unit, template, companies = [],
   const router = useRouter();
 
   const signatureRef = useRef(null);
-  const hasSubmittedRef = useRef(false);
 
   const [submitting, setSubmitting] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [declarationChecked, setDeclarationChecked] = useState(false);
   const [signatureData, setSignatureData] = useState<string | null>(null);
@@ -83,7 +83,7 @@ export default function SingleStepForm({ config, unit, template, companies = [],
     }
   },
     !submitting &&
-    !hasSubmittedRef.current &&
+    !hasSubmitted &&
     (
       Object.keys(answers).some(key => answers[key]?.trim()) ||
       Object.keys(questionImages).length > 0 ||
@@ -222,7 +222,7 @@ export default function SingleStepForm({ config, unit, template, companies = [],
     }
 
     setSubmitting(true);
-    hasSubmittedRef.current = true; // Block all future auto-saves
+    setHasSubmitted(true); // Block all future auto-saves
 
     try {
       await performSubmission({
@@ -232,7 +232,7 @@ export default function SingleStepForm({ config, unit, template, companies = [],
     } catch (err) {
       setErrorMsg(errorMessage(err));
       setSubmitting(false);
-      hasSubmittedRef.current = false; // Reset on error
+      setHasSubmitted(false); // Reset on error
     }
   };
 

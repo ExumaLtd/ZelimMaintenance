@@ -51,9 +51,9 @@ export default function Monthly({ unit, template, companies = [], engineers = []
   const card1Ref = useRef<HTMLDivElement | null>(null);
   const card2Ref = useRef<HTMLDivElement | null>(null);
   const signatureRef = useRef<any>(null);
-  const hasSubmittedRef = useRef(false);
 
   const [submitting, setSubmitting] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [declarationChecked, setDeclarationChecked] = useState(false);
   const [signatureData, setSignatureData] = useState<string | null>(null);
@@ -115,7 +115,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
     }
   },
     !submitting &&
-    !hasSubmittedRef.current &&
+    !hasSubmitted &&
     (
       (checklistData && checklistData.length > 0 && checklistData.some(group =>
         group.questions.some(q => q.answer !== null)
@@ -362,14 +362,14 @@ export default function Monthly({ unit, template, companies = [], engineers = []
       step_comments: stepComments,
     };
     localStorage.setItem(storageKey, JSON.stringify(draftData));
-  }, [admin.selectedCompany, admin.locationDisplay, admin.locationCountry, admin.engName, admin.engEmail, admin.engPhone, checklistData, stepComments, storageKey]);
+  }, [admin.selectedCompany, admin.locationDisplay, admin.locationCountry, admin.engName, admin.engEmail, admin.engPhone, admin.engId, checklistData, stepComments, storageKey]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMsg("");
     if (submitting) return;
 
-    hasSubmittedRef.current = true;
+    setHasSubmitted(true);
 
     const newFieldErrors: FieldErrors = {
       company: false,
@@ -510,7 +510,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
           }, 300);
         }
       }
-      hasSubmittedRef.current = false;
+      setHasSubmitted(false);
       return;
     }
 
@@ -643,7 +643,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
     } catch (err) {
       setErrorMsg(errorMessage(err));
       setSubmitting(false);
-      hasSubmittedRef.current = false;
+      setHasSubmitted(false);
     }
   };
 

@@ -86,6 +86,9 @@ export function useGeolocation({ locationDisplay, setLocationDisplay, setLocatio
     } else {
       doGetLocation();
     }
+    // Mount-only by design: geolocation must not refire when the user edits
+    // the location field, or it would overwrite manual input.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 }
 

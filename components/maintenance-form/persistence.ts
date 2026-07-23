@@ -77,6 +77,9 @@ export function useDraftLoader({ unit, typeLabel, storageKey, applyAirtableDraft
     };
 
     loadDraft();
+    // Load-once semantics: the apply callbacks are recreated every render but
+    // must not retrigger a draft load, which would clobber user input.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unit?.record_id, storageKey]);
 }
 
@@ -110,7 +113,7 @@ export function useLocalDraftMirror({ storageKey, selectedCompany, locationDispl
       ...answers,
     };
     localStorage.setItem(storageKey, JSON.stringify(draftData));
-  }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, answers, storageKey]);
+  }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, engId, answers, storageKey]);
 }
 
 /**

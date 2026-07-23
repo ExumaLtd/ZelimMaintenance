@@ -258,6 +258,7 @@ export default function ErpPage() {
       <div className="relative min-h-screen bg-page font-sans text-ink">
 
         {/* Zelim pattern */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- decorative background SVG sized by viewport CSS */}
         <img
           src="/patterns/pattern-left.svg"
           alt=""

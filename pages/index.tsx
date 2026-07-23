@@ -279,6 +279,7 @@ const handleQrCodeDetected = async (decodedText: string, html5QrCode: any) => {
         </div>
 
         <div className="relative flex flex-[50%] flex-col items-center justify-between overflow-hidden px-14 pt-8 pb-[60px] max-[1024px]:px-10 max-[900px]:px-6">
+          {/* eslint-disable-next-line @next/next/no-img-element -- decorative background SVG sized by viewport CSS */}
           <img
             src="/patterns/pattern-left.svg"
             alt=""
