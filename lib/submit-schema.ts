@@ -3,8 +3,9 @@ import { z } from 'zod';
 /**
  * Server-side shape validation for the submit-maintenance API payload.
  *
- * The schema is a gate, not a transformer: the handler still reads req.body
- * directly, so parsing must never change values. It is deliberately loose
+ * The handler destructures the parsed result so the schema doubles as the
+ * handler's type source; it has no transforms or defaults, so values pass
+ * through unchanged. It is deliberately loose
  * (unknown keys pass, optional fields accept null or undefined) because five
  * form variants share this endpoint: the engine forms send the
  * buildSubmitPayload field set, monthly adds a maintenance_checklist JSON

@@ -87,6 +87,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const isOperator = session.access === 'operator';
   const userType = isOperator ? 'Operator' : 'Engineer';
 
+  // Validate the shape and consume the parsed result, so the destructured
+  // fields carry real types and the schema and handler cannot disagree. The
+  // schema has no transforms or defaults, so values pass through unchanged.
+  const parsed = submitMaintenanceSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'Missing or invalid required fields' });
+  }
   const {
     unit_record_id,
     maintained_by,
@@ -111,14 +118,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     checklist_template_id,
     declaration_text,
     signature,
-  } = req.body;
-
-  // Shape gate only; the handler keeps reading req.body so parsing never
-  // changes values. See lib/submit-schema.ts before tightening any field.
-  // Array.isArray is redundant at runtime but narrows answers for TypeScript.
-  if (!submitMaintenanceSchema.safeParse(req.body).success || !Array.isArray(answers)) {
-    return res.status(400).json({ error: 'Missing or invalid required fields' });
-  }
+  } = parsed.data;
 
   const apiKey = AIRTABLE_PAT;
   const baseId = AIRTABLE_BASE_ID;
@@ -138,7 +138,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     // Generate record reference
-    const recordRef = await generateRecordRef(serial_number, maintenance_type);
+    const recordRef = await generateRecordRef(serial_number ?? '', maintenance_type);
 
     let companyRecordId = null;
     let engineerRecordId = null;
@@ -287,7 +287,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    const formattedAnswers = answers.reduce((acc, item) => {
+    const formattedAnswers = answers.reduce<Record<string, { text: string; images: unknown[] }>>((acc, item) => {
       acc[item.question] = {
         text: item.answer,
         images: item.images || []
