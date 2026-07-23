@@ -1,6 +1,6 @@
 // pages/api/create-session.ts
 import { randomUUID } from 'crypto';
-import { serialize } from 'cookie';
+import { stringifySetCookie } from 'cookie';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { encodeSession } from '../../lib/session';
 import { resolvePin, isValidPinFormat } from '../../lib/resolve-pin';
@@ -43,7 +43,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const encodedSession = encodeSession(sessionData);
 
     // Set HTTP-only cookie
-    const cookie = serialize('portal_session', encodedSession, {
+    const cookie = stringifySetCookie({
+      name: 'portal_session',
+      value: encodedSession,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
