@@ -79,7 +79,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
 
   // Further comments, one per checklist group, keyed by groupIndex
   const [stepComments, setStepComments] = useState<Record<string, string>>({});
-  const [stepCommentImages, setStepCommentImages] = useState<Record<string, any[]>>({});
+  const [stepCommentImages, setStepCommentImages] = useState<Record<string, UploadedImage[]>>({});
 
   const admin = useAdminFields({ unit, accessType, engineers, operators, setFieldErrors });
 

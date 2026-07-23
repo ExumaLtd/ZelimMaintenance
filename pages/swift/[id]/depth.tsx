@@ -227,7 +227,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
     }));
   };
 
-  const updateChecklist = (index: number, field: 'returned' | 'condition', value: any) => {
+  const updateChecklist = (index: number, field: 'returned' | 'condition', value: boolean | string) => {
     setChecklistErrors(prev => {
       if (!prev[index]) return prev;
       const next = { ...prev };

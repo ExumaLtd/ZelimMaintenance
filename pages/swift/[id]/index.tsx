@@ -6,6 +6,7 @@ import clsx from "clsx";
 import { getSession } from "../../../lib/session";
 import { esc } from "../../../lib/api-utils";
 import { requireEnv } from "../../../lib/env";
+import { errorMessage } from "../../../utils/errors";
 import { ArrowIcon, arrowLinkClasses } from "@/components/ui/arrow-button";
 import type { GetServerSidePropsContext } from "next";
 
@@ -114,8 +115,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       try {
         const companyRecord = await base('operating_companies').find(operatingCompanyIds[0]);
         companyName = (companyRecord.get('company_name') as string) || "Client Unit";
-      } catch (e: any) {
-        console.warn('Could not resolve operating company name:', e.message);
+      } catch (e) {
+        console.warn('Could not resolve operating company name:', errorMessage(e));
       }
     }
 
@@ -132,7 +133,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
 
     // Check for active drafts - FILTERED BY ACCESS PIN
-    let activeDrafts: { type: any; lastUpdated: any; engineerEmail: any }[] = [];
+    let activeDrafts: { type: string; lastUpdated: string; engineerEmail: string }[] = [];
     try {
       const allDrafts = await base('maintenance_drafts')
         .select({
@@ -150,9 +151,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       });
 
       activeDrafts = matchingDrafts.map(d => ({
-        type: d.get('maintenance_type'),
-        lastUpdated: d.get('last_updated'),
-        engineerEmail: d.get('engineer_email'),
+        type: d.get('maintenance_type') as string,
+        lastUpdated: d.get('last_updated') as string,
+        engineerEmail: d.get('engineer_email') as string,
       }));
     } catch (draftError) {
       console.error('Error fetching drafts:', draftError);

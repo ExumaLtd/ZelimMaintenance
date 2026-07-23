@@ -41,6 +41,9 @@ function Logo({ height = 22 }: { height?: number }) {
 }
 
 // ── DATA ─────────────────────────────────────────────────────
+type Platform = (typeof platforms)[number];
+type ScoreSet = Platform['scoresWithApi'];
+
 const platforms = [
   {
     id: "odoo", name: "Odoo", subtitle: "Standard / Custom Plan",
@@ -245,8 +248,8 @@ export default function ErpPage() {
   const [api,  setApi]  = useState(false);
 
   const p  = sel ? platforms.find(x => x.id === sel) : null;
-  const pr = (pl: any) => api ? pl.withApi       : pl.withoutApi;
-  const sc = (pl: any) => api ? pl.scoresWithApi : pl.scoresWithoutApi;
+  const pr = (pl: Platform) => api ? pl.withApi       : pl.withoutApi;
+  const sc = (pl: Platform) => api ? pl.scoresWithApi : pl.scoresWithoutApi;
 
   const sectionPad = "p-[24px_30px] max-[600px]:p-5";
 
@@ -328,7 +331,7 @@ export default function ErpPage() {
                       {Object.entries(scoreLabels).map(([k, lbl]) => (
                         <div key={k} className="mb-[9px] flex items-center justify-between">
                           <span className="text-sm text-ink">{lbl}</span>
-                          <Dots score={sc(pl)[k]} />
+                          <Dots score={sc(pl)[k as keyof ScoreSet]} />
                         </div>
                       ))}
                       <div className="mt-3.5 pt-3">
@@ -382,7 +385,7 @@ export default function ErpPage() {
                         Object.entries(scoreLabels).map(([k, lbl]) => (
                           <div key={k} className="mb-3 flex items-center justify-between">
                             <span className="text-sm text-ink">{lbl}</span>
-                            <Dots score={sc(p)[k]} />
+                            <Dots score={sc(p)[k as keyof ScoreSet]} />
                           </div>
                         ))
                       )},

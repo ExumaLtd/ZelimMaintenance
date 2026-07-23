@@ -1,4 +1,4 @@
-export type FormSection = {
+type FormSection = {
   step: number;
   title: string;
   subtitle: string | null;

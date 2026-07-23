@@ -41,11 +41,3 @@ export const getClientLogo = (companyName?: string, serialNumber?: string) => {
   const client = findClient(companyName, serialNumber);
   return client ? { src: client.logoSvg, alt: `${companyName} Logo` } : null;
 };
-
-/**
- * Get just the logo path (if you're already constructing the base URL elsewhere)
- */
-export const getCompanyLogoPath = (companyName?: string, serialNumber?: string) => {
-  const client = findClient(companyName, serialNumber);
-  return client ? client.logoPng : null;
-};

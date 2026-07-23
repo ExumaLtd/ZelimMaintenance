@@ -66,7 +66,3 @@ export function getSession(req: { cookies?: Partial<Record<string, string>> }) {
     return null;
   }
 }
-
-export function clearSession(res: { setHeader: (name: string, value: string) => void }) {
-  res.setHeader('Set-Cookie', 'portal_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly');
-}

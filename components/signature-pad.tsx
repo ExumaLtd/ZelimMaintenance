@@ -15,7 +15,7 @@ interface SignaturePadProps {
   hasError?: boolean;
 }
 
-export interface SignaturePadHandle {
+interface SignaturePadHandle {
   clear: () => void;
   isEmpty: () => boolean;
   toDataURL: (type?: string) => string | null;
