@@ -48,12 +48,26 @@ Two major upgrades are held pending upstream support. Both unblock when `eslint-
 - User input used in an Airtable `filterByFormula` must go through the `esc()` helper.
 - Required environment variables are asserted at module load via `requireEnv` in `lib/env.ts`. New required vars follow the same pattern.
 - Rate limiting: fail loud on missing configuration, fail open on runtime outage. Do not change without discussion.
-- `ELEVENLABS_API_KEY` is deliberately guarded in-handler, not at module load, so voice input degrades gracefully to manual text entry. Do not promote it to a module-load guard.
+- `ELEVENLABS_API_KEY` is deliberately guarded in-handler, not at module load, so voice input degrades gracefully to manual text entry. Do not promote it to a module-load guard. `W3W_API_KEY` follows the same pattern in reverse-geocode: optional, and submissions simply omit what3words when unset.
+- submit-maintenance payloads are shape-validated by the loose zod schema in `lib/submit-schema.ts`. It is a gate, not a transformer: the handler still reads `req.body`. All five form payload variants are contract-tested in `tests/submit-schema.test.ts`; never tighten a field without those tests proving the live forms still pass.
+
+## Offline submissions
+
+- `utils/offline-queue.ts` queues a submission in localStorage when the device is offline or the submit fetch dies at the network level, and flushes oldest-first on app load and on the browser online event (wired in `_app`). All three submit paths (form engine, monthly, depth) go through `submitWithOfflineQueue`.
+- Report email bodies are built before submitting; only recordRef comes from the submit response and is patched in at send time. Keep it that way or offline queueing breaks.
+- The flusher dequeues an entry before sending its report email so a mid-flush failure can never submit the same record twice. A failed report email after a successful save is deliberately swallowed: surfacing it makes users resubmit and duplicate records.
+
+## Tests
+
+- `npm test` runs the vitest suite: persistence-string tripwires, exact payload shape, the submit schema contract, security helpers, and the offline queue. Do not loosen these without a migration.
+- `npm run e2e` runs Playwright against a deployed URL: set `E2E_BASE_URL` and `E2E_ACCESS_PIN`. Login happens once in `e2e/global-setup.ts` because the login endpoint allows five attempts per five minutes; tests must never log in individually. The suite is read-only and never completes a submission.
+- CI runs lint, typecheck, tests, and build on every push. The E2E workflow is manual (workflow_dispatch) and needs the `E2E_ACCESS_PIN` repository secret plus a deployment URL input.
 
 ## Operational notes
 
 - `AIRTABLE_PAT` names two independent credentials: the Vercel runtime token and the GitHub Actions backup secret. Different scopes, must not be interchanged.
-- Upstash free-tier databases can be deleted for inactivity. If rate limiting silently stops working, check the database still exists.
+- Upstash free-tier databases can be deleted for inactivity. The weekly keep-alive workflow pings it (needs the `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` repository secrets). If rate limiting silently stops working, check the database still exists.
+- Staging: duplicate the Airtable base and point Vercel's Preview environment `AIRTABLE_BASE_ID` at the copy so QA and e2e runs never write production data. `.env.example` documents every variable.
 - The portal has live users on vessels. Test on a Vercel preview before merging to main.
 - Never push, merge, or open a pull request without being asked explicitly.
 - Never print or echo secret values, including in error messages or logs.
