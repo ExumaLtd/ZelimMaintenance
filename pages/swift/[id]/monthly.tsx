@@ -105,6 +105,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
       selectedCompany: admin.selectedCompany,
       locationDisplay: admin.locationDisplay,
       locationCountry: admin.locationCountry,
+      what3words: admin.what3words,
       engName: admin.engName,
       engEmail: admin.engEmail,
       engPhone: admin.engPhone,
@@ -299,7 +300,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  useDraftLoader({
+  const { draftLoadedRef } = useDraftLoader({
     unit,
     typeLabel: 'Monthly',
     storageKey,
@@ -319,6 +320,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
       if (draft.selectedCompany) admin.setSelectedCompany(draft.selectedCompany);
       if (draft.locationDisplay) admin.setLocationDisplay(draft.locationDisplay);
       if (draft.locationCountry) admin.setLocationCountry(draft.locationCountry);
+      if (draft.what3words) admin.setWhat3words(draft.what3words);
       if (draft.engName) admin.setEngName(draft.engName);
       if (draft.engEmail) admin.setEngEmail(draft.engEmail);
       if (draft.engPhone) admin.setEngPhone(draft.engPhone);
@@ -335,10 +337,18 @@ export default function Monthly({ unit, template, companies = [], engineers = []
         admin.setLocationDisplay(data.location_display);
       }
       if (data.location_country) admin.setLocationCountry(data.location_country);
+      if (data.what3words) admin.setWhat3words(data.what3words);
       if (data.engineer_name) admin.setEngName(data.engineer_name);
       if (data.engineer_email) admin.setEngEmail(data.engineer_email);
       if (data.engineer_phone) admin.setEngPhone(data.engineer_phone);
-      if (data.further_comments) setStepComments({ [checklistData.length - 1]: data.further_comments });
+      // The mirror writes step_comments; the legacy further_comments key is
+      // mapped onto the last group of the mirrored checklist, not the stale
+      // mount-time state.
+      if (data.step_comments) {
+        setStepComments(data.step_comments);
+      } else if (data.further_comments && Array.isArray(data.checklist_data) && data.checklist_data.length > 0) {
+        setStepComments({ [data.checklist_data.length - 1]: data.further_comments });
+      }
 
       if (data.checklist_data && Array.isArray(data.checklist_data)) {
         setChecklistData(data.checklist_data);
@@ -349,12 +359,15 @@ export default function Monthly({ unit, template, companies = [], engineers = []
   useGeolocation(admin);
   useMicPreflight();
 
-  // Save draft to localStorage (refresh protection)
+  // Save draft to localStorage (refresh protection). Held until the draft
+  // load finished so the initial empty state cannot clobber a saved mirror.
   useEffect(() => {
+    if (!draftLoadedRef.current) return;
     const draftData = {
       maintained_by: admin.selectedCompany,
       location_display: admin.locationDisplay,
       location_country: admin.locationCountry,
+      what3words: admin.what3words,
       engineer_name: admin.engName,
       engineer_email: admin.engEmail,
       engineer_phone: admin.engPhone,
@@ -363,7 +376,9 @@ export default function Monthly({ unit, template, companies = [], engineers = []
       step_comments: stepComments,
     };
     localStorage.setItem(storageKey, JSON.stringify(draftData));
-  }, [admin.selectedCompany, admin.locationDisplay, admin.locationCountry, admin.engName, admin.engEmail, admin.engPhone, admin.engId, checklistData, stepComments, storageKey]);
+    // draftLoadedRef is a ref by design: it gates the write, not the deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [admin.selectedCompany, admin.locationDisplay, admin.locationCountry, admin.what3words, admin.engName, admin.engEmail, admin.engPhone, admin.engId, checklistData, stepComments, storageKey]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();

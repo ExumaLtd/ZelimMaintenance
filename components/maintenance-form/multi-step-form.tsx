@@ -84,6 +84,7 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
       selectedCompany: admin.selectedCompany,
       locationDisplay: admin.locationDisplay,
       locationCountry: admin.locationCountry,
+      what3words: admin.what3words,
       engName: admin.engName,
       engEmail: admin.engEmail,
       engPhone: admin.engPhone,
@@ -271,7 +272,7 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
     }
   }, [currentStep, storageKey]);
 
-  useDraftLoader({
+  const { draftLoadedRef } = useDraftLoader({
     unit,
     typeLabel: config.typeLabel,
     storageKey,
@@ -303,9 +304,11 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
 
   useLocalDraftMirror({
     storageKey,
+    readyRef: draftLoadedRef,
     selectedCompany: admin.selectedCompany,
     locationDisplay: admin.locationDisplay,
     locationCountry: admin.locationCountry,
+    what3words: admin.what3words,
     engName: admin.engName,
     engEmail: admin.engEmail,
     engPhone: admin.engPhone,

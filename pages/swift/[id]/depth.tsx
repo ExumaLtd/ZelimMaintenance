@@ -143,6 +143,9 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
   // Refs to prevent duplicate operations
   const hasLoadedDraftRef = useRef(false);
   const checklistInitialisedRef = useRef(false);
+  // Mirror writes are held until the draft restore has finished, or the
+  // initial empty state would destroy the saved mirror before it is read.
+  const draftRestoredRef = useRef(false);
 
   // Check if winch was returned (item id: 3)
   const isWinchReturned = useMemo(() => {
@@ -164,6 +167,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
       selectedCompany: admin.selectedCompany,
       locationDisplay: admin.locationDisplay,
       locationCountry: admin.locationCountry,
+      what3words: admin.what3words,
       engName: admin.engName,
       engEmail: admin.engEmail,
       engPhone: admin.engPhone,
@@ -482,10 +486,13 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const isDraft = urlParams.get('draft') === 'true';
-    if (isDraft) return;
+    if (isDraft) return; // the Airtable loader marks draftRestoredRef instead
 
     const savedDraft = localStorage.getItem(storageKey);
-    if (!savedDraft) return;
+    if (!savedDraft) {
+      draftRestoredRef.current = true;
+      return;
+    }
 
     try {
       const data = JSON.parse(savedDraft);
@@ -494,6 +501,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
         admin.setLocationDisplay(data.location_display);
       }
       if (data.location_country) admin.setLocationCountry(data.location_country);
+      if (data.what3words) admin.setWhat3words(data.what3words);
       if (data.engineer_name) admin.setEngName(data.engineer_name);
       if (data.engineer_email) admin.setEngEmail(data.engineer_email);
       if (data.engineer_phone) admin.setEngPhone(data.engineer_phone);
@@ -513,6 +521,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
     } catch (e) {
       console.error("Draft load error:", e);
     }
+    draftRestoredRef.current = true;
     // Load-once semantics: admin setters are stable; the admin object identity
     // changes every render and must not retrigger a draft load.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -546,6 +555,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
           if (data.draft.selectedCompany) admin.setSelectedCompany(data.draft.selectedCompany);
           if (data.draft.locationDisplay) admin.setLocationDisplay(data.draft.locationDisplay);
           if (data.draft.locationCountry) admin.setLocationCountry(data.draft.locationCountry);
+          if (data.draft.what3words) admin.setWhat3words(data.draft.what3words);
           if (data.draft.engName) admin.setEngName(data.draft.engName);
           if (data.draft.engEmail) admin.setEngEmail(data.draft.engEmail);
           if (data.draft.engPhone) admin.setEngPhone(data.draft.engPhone);
@@ -573,7 +583,9 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
       }
     };
 
-    loadDraft();
+    loadDraft().finally(() => {
+      draftRestoredRef.current = true;
+    });
     // Load-once semantics, as above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unit?.record_id]);
@@ -581,12 +593,15 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
   useGeolocation(admin);
   useMicPreflight();
 
-  // Save draft to localStorage (refresh protection)
+  // Save draft to localStorage (refresh protection). Held until the draft
+  // restore finished so the initial empty state cannot clobber the mirror.
   useEffect(() => {
+    if (!draftRestoredRef.current) return;
     const draftData = {
       maintained_by: admin.selectedCompany,
       location_display: admin.locationDisplay,
       location_country: admin.locationCountry,
+      what3words: admin.what3words,
       engineer_name: admin.engName,
       engineer_email: admin.engEmail,
       engineer_phone: admin.engPhone,
@@ -595,7 +610,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
       ...answers,
     };
     localStorage.setItem(storageKey, JSON.stringify(draftData));
-  }, [admin.selectedCompany, admin.locationDisplay, admin.locationCountry, admin.engName, admin.engEmail, admin.engPhone, admin.engId, checklistData, answers, storageKey]);
+  }, [admin.selectedCompany, admin.locationDisplay, admin.locationCountry, admin.what3words, admin.engName, admin.engEmail, admin.engPhone, admin.engId, checklistData, answers, storageKey]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
