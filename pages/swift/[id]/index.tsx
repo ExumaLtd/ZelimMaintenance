@@ -381,7 +381,7 @@ export default function SwiftUnitPage({
                       className="flex max-w-[calc(50%-7.5px)] flex-1 cursor-pointer flex-row items-center gap-[15px] rounded-lg bg-card p-3 no-underline transition-colors duration-200 hover:bg-hover-light max-[600px]:w-full max-[600px]:max-w-none max-[600px]:text-left"
                     >
                       <Image
-                        src="/Icons/PDF_Icon.svg"
+                        src="/icons/pdf-icon.svg"
                         width={40}
                         height={40}
                         alt="PDF Icon"

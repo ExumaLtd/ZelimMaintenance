@@ -48,13 +48,13 @@ export default function MyApp({ Component, pageProps }: AppProps) {
     <div className={`${montserrat.className} ${montserrat.variable} ${robotoMono.variable}`}>
       <Head>
         <title>Zelim Maintenance Portal</title>
-        <link rel="icon" href="/favicon/ZelimFavicon_192x192.png" />
+        <link rel="icon" href="/favicon/zelim-favicon-192x192.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#172F36" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Zelim Portal" />
-        <link rel="apple-touch-icon" href="/favicon/ZelimFavicon_192x192.png" />
+        <link rel="apple-touch-icon" href="/favicon/zelim-favicon-192x192.png" />
       </Head>
 
       <Component {...pageProps} />
