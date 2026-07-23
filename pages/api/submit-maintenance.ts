@@ -6,6 +6,7 @@ import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
 import { esc, getClientIp } from '../../lib/api-utils';
 import { requireEnv } from '../../lib/env';
+import { submitMaintenanceSchema } from '../../lib/submit-schema';
 
 const redis = new Redis({
   url: requireEnv('UPSTASH_REDIS_REST_URL'),
@@ -111,7 +112,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     signature,
   } = req.body;
 
-  if (!unit_record_id || !date_of_maintenance || !maintenance_type || !Array.isArray(answers)) {
+  // Shape gate only; the handler keeps reading req.body so parsing never
+  // changes values. See lib/submit-schema.ts before tightening any field.
+  // Array.isArray is redundant at runtime but narrows answers for TypeScript.
+  if (!submitMaintenanceSchema.safeParse(req.body).success || !Array.isArray(answers)) {
     return res.status(400).json({ error: 'Missing or invalid required fields' });
   }
 
