@@ -35,7 +35,7 @@ jobs:
           E2E_BASE_URL: ${{ inputs.base_url }}
           E2E_ACCESS_PIN: ${{ secrets.E2E_ACCESS_PIN }}
           E2E_OPERATOR_PIN: ${{ secrets.E2E_OPERATOR_PIN }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-traces
