@@ -1,6 +1,3 @@
-// pages/swift/[id]/annual.js
-// ✅ UPDATED with all recent fixes + declaration checkbox (div/label htmlFor pattern)
-
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
