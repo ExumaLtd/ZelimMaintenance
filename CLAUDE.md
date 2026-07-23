@@ -67,7 +67,7 @@ Two major upgrades are held pending upstream support. Both unblock when `eslint-
 
 - `AIRTABLE_PAT` names two independent credentials: the Vercel runtime token and the GitHub Actions backup secret. Different scopes, must not be interchanged.
 - Upstash free-tier databases can be deleted for inactivity. The weekly keep-alive workflow pings it (needs the `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` repository secrets). If rate limiting silently stops working, check the database still exists.
-- Staging: duplicate the Airtable base and point Vercel's Preview environment `AIRTABLE_BASE_ID` at the copy so QA and e2e runs never write production data. `.env.example` documents every variable.
+- Staging: the Swift Maintenance Staging base (appAPER9EoiG6xIQb) mirrors the production schema and holds QA unit SWI999 (engineer pin SWI999, operator pin OPE999). Vercel's Preview environment `AIRTABLE_BASE_ID` points at it so QA and e2e runs never write production data. The PAT must be granted access to both bases. Known staging divergences, all invisible to the app: maintenance_checks.id is plain text instead of autoNumber, submitted_at fields are plain dateTime instead of createdTime, and the display-only lookup fields are not replicated.
 - The portal has live users on vessels. Test on a Vercel preview before merging to main.
 - Never push, merge, or open a pull request without being asked explicitly.
 - Never print or echo secret values, including in error messages or logs.
