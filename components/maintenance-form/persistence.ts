@@ -1,0 +1,128 @@
+import { useEffect, useRef } from 'react';
+import { dlog } from './debug';
+
+/**
+ * Load a saved draft once per page load: the Airtable draft wins, with the
+ * localStorage mirror as fallback. The applyAirtableDraft and
+ * applyLocalDraft callbacks push the values into the owning form's state
+ * (multi-step forms also restore the current step there).
+ */
+export function useDraftLoader({ unit, typeLabel, storageKey, applyAirtableDraft, applyLocalDraft }) {
+  const hasLoadedDraftRef = useRef(false);
+
+  useEffect(() => {
+    const loadDraft = async () => {
+      // Only load once per session
+      if (hasLoadedDraftRef.current) {
+        dlog('⏭️ Draft already loaded, skipping...');
+        return;
+      }
+
+      // PRIORITY 1: ALWAYS check Airtable first
+      if (unit?.record_id) {
+        try {
+          dlog('🔍 Checking Airtable for draft...');
+          const res = await fetch(
+            `/api/get-draft?unitId=${unit.record_id}&maintenanceType=${typeLabel}`
+          );
+          const data = await res.json();
+
+          if (data.draft) {
+            dlog('📦 Draft found in Airtable');
+
+            applyAirtableDraft(data.draft);
+
+            // Clear stale localStorage
+            localStorage.removeItem(storageKey);
+
+            hasLoadedDraftRef.current = true;
+            dlog('✅ Draft loaded from Airtable:', new Date(data.lastUpdated).toLocaleString());
+            return;
+          } else {
+            dlog('ℹ️ No draft found in Airtable');
+          }
+        } catch (error) {
+          console.error('❌ Failed to load Airtable draft:', error);
+        }
+      }
+
+      // PRIORITY 2: localStorage fallback (only if Airtable had nothing)
+      dlog('🔍 Checking localStorage for draft...');
+      const savedDraft = localStorage.getItem(storageKey);
+      if (savedDraft) {
+        try {
+          const data = JSON.parse(savedDraft);
+          applyLocalDraft(data);
+
+          hasLoadedDraftRef.current = true;
+          dlog('✅ Draft loaded from localStorage');
+        } catch (e) {
+          console.error("❌ localStorage draft load error:", e);
+        }
+      } else {
+        dlog('ℹ️ No draft found in localStorage - fresh start');
+      }
+    };
+
+    loadDraft();
+  }, [unit?.record_id, storageKey]);
+}
+
+/**
+ * Mirror the admin fields and answers to localStorage on every change as
+ * refresh protection. Restore reads engineer_* and q* keys only, so the
+ * engineer_record_id written here is informational.
+ */
+export function useLocalDraftMirror({ storageKey, selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, engId, answers }) {
+  useEffect(() => {
+    const draftData = {
+      maintained_by: selectedCompany,
+      location_display: locationDisplay,
+      location_country: locationCountry,
+      engineer_name: engName,
+      engineer_email: engEmail,
+      engineer_phone: engPhone,
+      engineer_record_id: engId,
+      ...answers,
+    };
+    localStorage.setItem(storageKey, JSON.stringify(draftData));
+  }, [selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, answers, storageKey]);
+}
+
+/**
+ * The values every form restores from an Airtable draft. Step restoration
+ * for multi-step forms happens in the caller before this runs.
+ */
+export function applyCommonAirtableDraft(draft, admin, setAnswers, setQuestionImages) {
+  if (draft.answers) setAnswers(draft.answers);
+  if (draft.questionImages) setQuestionImages(draft.questionImages);
+  if (draft.selectedCompany) admin.setSelectedCompany(draft.selectedCompany);
+  if (draft.locationDisplay) admin.setLocationDisplay(draft.locationDisplay);
+  if (draft.locationCountry) admin.setLocationCountry(draft.locationCountry);
+  if (draft.engName) admin.setEngName(draft.engName);
+  if (draft.engEmail) admin.setEngEmail(draft.engEmail);
+  if (draft.engPhone) admin.setEngPhone(draft.engPhone);
+  if (draft.engId) admin.setEngId(draft.engId);
+  if (draft.operatorName) admin.setOperatorName(draft.operatorName);
+  if (draft.operatorEmail) admin.setOperatorEmail(draft.operatorEmail);
+  if (draft.operatorPhone) admin.setOperatorPhone(draft.operatorPhone);
+  if (draft.operatorId) admin.setOperatorId(draft.operatorId);
+}
+
+/** The values every form restores from the localStorage mirror. */
+export function applyCommonLocalDraft(data, admin, setAnswers) {
+  if (data.maintained_by) admin.setSelectedCompany(data.maintained_by);
+  if (data.location_display && data.location_display.trim()) {
+    admin.setLocationDisplay(data.location_display);
+  }
+  if (data.location_country) admin.setLocationCountry(data.location_country);
+  if (data.engineer_name) admin.setEngName(data.engineer_name);
+  if (data.engineer_email) admin.setEngEmail(data.engineer_email);
+  if (data.engineer_phone) admin.setEngPhone(data.engineer_phone);
+
+  const draftAnswers = {};
+  Object.keys(data).forEach((key) => {
+    if (key.startsWith("q")) draftAnswers[key] = data[key];
+  });
+  setAnswers(draftAnswers);
+}
