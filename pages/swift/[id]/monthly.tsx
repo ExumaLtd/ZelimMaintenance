@@ -5,7 +5,7 @@ import clsx from "clsx";
 import { getCompanyLogoUrl } from '@/utils/get-company-logo';
 import { submitOrQueue } from '@/utils/offline-queue';
 import { buildMonthlyPayload } from '@/components/maintenance-form/checklist-payloads';
-import { autoGrow } from '@/utils/form-utils';
+import { autoGrow, focusFirstError } from '@/utils/form-utils';
 import ImageUploader from '@/components/image-uploader';
 import VoiceInput from '@/components/voice-input';
 import { useAutoSave } from '@/hooks/use-auto-save';
@@ -36,12 +36,7 @@ const monthlyAdminSchema = z.object({
   engineerPhone: z.string().min(1, 'Please provide an operators phone number.').max(20, 'Phone number must be 20 characters or less.'),
 });
 
-const monthlySchema = z.object({
-  company: z.string().min(1, 'Operator is required.'),
-  location: z.string().min(1, 'Please provide a location.'),
-  engineerName: z.string().min(1, 'Please provide an operators name.'),
-  engineerEmail: z.string().email('Please provide a valid operators email.'),
-  engineerPhone: z.string().min(1, 'Please provide an operators phone number.').max(20, 'Phone number must be 20 characters or less.'),
+const monthlySchema = monthlyAdminSchema.extend({
   declaration: z.boolean().refine(val => val === true, { message: 'Please accept the declaration before submitting.' }),
   signature: z.string().min(1, 'Please sign before submitting.'),
 });
@@ -415,7 +410,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
     });
 
     const errors: { field: string; message: string }[] = [];
-    let firstErrorField: { current: any } | null = null;
+    let firstErrorEl: Element | null = null;
 
     if (!result.success) {
       result.error.issues.forEach(issue => {
@@ -423,13 +418,13 @@ export default function Monthly({ unit, template, companies = [], engineers = []
         errors.push({ field, message: issue.message });
         if (field === 'company') {
           newFieldErrors.company = true;
-          if (!firstErrorField) firstErrorField = admin.companyFieldRef;
+          if (!firstErrorEl) firstErrorEl = admin.companyFieldRef.current;
         } else if (field === 'location') {
           newFieldErrors.location = true;
-          if (!firstErrorField) firstErrorField = admin.locationFieldRef;
+          if (!firstErrorEl) firstErrorEl = admin.locationFieldRef.current;
         } else if (field === 'engineerName') {
           newFieldErrors.engineerName = true;
-          if (!firstErrorField) firstErrorField = admin.engineerFieldRef;
+          if (!firstErrorEl) firstErrorEl = admin.engineerFieldRef.current;
         } else if (field === 'engineerEmail') {
           newFieldErrors.engineerEmail = true;
         } else if (field === 'engineerPhone') {
@@ -514,19 +509,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
         setErrorMsg("");
       }
 
-      // Read through a typed alias: the assignments happen inside the zod
-      // issue callback, which the compiler's flow analysis cannot see.
-      const errorFieldRef = firstErrorField as { current: any } | null;
-      if (errorFieldRef) {
-        if (errorFieldRef.current) {
-          errorFieldRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-          setTimeout(() => {
-            if (errorFieldRef.current.focus) {
-              errorFieldRef.current.focus();
-            }
-          }, 300);
-        }
-      }
+      focusFirstError(firstErrorEl);
       setHasSubmitted(false);
       return;
     }
@@ -602,7 +585,6 @@ export default function Monthly({ unit, template, companies = [], engineers = []
 
       localStorage.setItem("last_submitted_sn", unit?.serial_number);
       localStorage.setItem("last_maintenance_type", "Monthly");
-      localStorage.setItem("last_public_token", unit?.public_token);
       localStorage.removeItem(storageKey);
       router.push(queued ? `/portal/swift/monthly-complete?queued=true` : `/portal/swift/monthly-complete`);
     } catch (err) {

@@ -1,8 +1,7 @@
 type FormSection = {
   step: number;
   title: string;
-  subtitle: string | null;
-  questionIds: number[];
+    questionIds: number[];
 };
 
 export type MaintenanceFormConfig = {
@@ -44,14 +43,14 @@ export const annualConfig: MaintenanceFormConfig = {
   completeRoute: '/portal/swift/annual-complete',
   requireSwiftPhoto: true,
   sections: [
-    { step: 1, title: "Photograph Swift", subtitle: null, questionIds: [1] },
-    { step: 2, title: "Records and visual checks", subtitle: null, questionIds: [2, 3] },
-    { step: 3, title: "Lubrication and mechanical checks", subtitle: null, questionIds: [4, 5, 6] },
-    { step: 4, title: "Conveyor belt checks", subtitle: null, questionIds: [7, 8, 9, 10] },
-    { step: 5, title: "Functional and control tests", subtitle: null, questionIds: [11, 12, 13, 14, 15] },
-    { step: 6, title: "Deployment and winch checks", subtitle: null, questionIds: [16, 17, 18, 19, 20, 21, 22, 23] },
-    { step: 7, title: "Electrical checks", subtitle: null, questionIds: [24, 25] },
-    { step: 8, title: "Verification trial and notes", subtitle: null, questionIds: [26, 27] }
+    { step: 1, title: "Photograph Swift", questionIds: [1] },
+    { step: 2, title: "Records and visual checks", questionIds: [2, 3] },
+    { step: 3, title: "Lubrication and mechanical checks", questionIds: [4, 5, 6] },
+    { step: 4, title: "Conveyor belt checks", questionIds: [7, 8, 9, 10] },
+    { step: 5, title: "Functional and control tests", questionIds: [11, 12, 13, 14, 15] },
+    { step: 6, title: "Deployment and winch checks", questionIds: [16, 17, 18, 19, 20, 21, 22, 23] },
+    { step: 7, title: "Electrical checks", questionIds: [24, 25] },
+    { step: 8, title: "Verification trial and notes", questionIds: [26, 27] }
   ],
 };
 

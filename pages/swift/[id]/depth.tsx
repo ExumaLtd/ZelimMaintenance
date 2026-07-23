@@ -5,7 +5,7 @@ import ImageUploader from '@/components/image-uploader';
 import { getCompanyLogoUrl } from '@/utils/get-company-logo';
 import { submitOrQueue } from '@/utils/offline-queue';
 import { buildDepthPayload } from '@/components/maintenance-form/checklist-payloads';
-import { autoGrow } from '@/utils/form-utils';
+import { autoGrow, focusFirstError } from '@/utils/form-utils';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { errorMessage } from '@/utils/errors';
 import { fetchFormData } from '@/lib/data-fetching';
@@ -635,7 +635,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
     }
 
     const errors: { field: string; message: string }[] = [];
-    let firstErrorField: { current: any } | null = null;
+    let firstErrorEl: Element | null = null;
 
     setQuestionErrors({});
 
@@ -649,7 +649,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
         errors.push({ field: `q${questionIndex}`, message: `Please answer: ${q.title}.` });
         setQuestionErrors(prev => ({ ...prev, [`q${questionIndex}`]: true }));
         const questionElement = document.querySelector(`[name="q${questionIndex}"]`);
-        if (questionElement && !firstErrorField) firstErrorField = { current: questionElement };
+        if (questionElement && !firstErrorEl) firstErrorEl = questionElement;
       }
     }
 
@@ -660,14 +660,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
         setErrorMsg("Please check for multiple errors.");
       }
 
-      if (firstErrorField?.current) {
-        firstErrorField.current.scrollIntoView({ behavior: "smooth", block: "center" });
-        setTimeout(() => {
-          if (firstErrorField.current.focus) {
-            firstErrorField.current.focus();
-          }
-        }, 300);
-      }
+      focusFirstError(firstErrorEl);
       return;
     }
 
@@ -737,7 +730,6 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
 
       localStorage.setItem("last_submitted_sn", unit?.serial_number);
       localStorage.setItem("last_maintenance_type", template?.type || "Depth");
-      localStorage.setItem("last_public_token", unit?.public_token);
       localStorage.removeItem(storageKey);
       localStorage.removeItem(`${storageKey}_step`);
       router.push(queued ? '/portal/swift/depth-complete?queued=true' : '/portal/swift/depth-complete');

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { focusFirstError } from '@/utils/form-utils';
 import { useRouter } from "next/router";
 import { z } from "zod";
 import FormShell from './form-shell';
@@ -43,7 +44,6 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
   const card2Ref = useRef<HTMLDivElement | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
-  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [declarationChecked, setDeclarationChecked] = useState(false);
   const [signatureData, setSignatureData] = useState<string | null>(null);
@@ -96,7 +96,6 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
     }
   },
     !submitting &&
-    !hasSubmitted &&
     (
       Object.keys(answers).some(key => answers[key]?.trim()) ||
       Object.keys(questionImages).length > 0 ||
@@ -146,7 +145,7 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
 
   // Handle continue to next step
   const handleContinueToNextStep = () => {
-    const errors: string[] = [];
+    const errors: { field: PropertyKey; message: string }[] = [];
     const newFieldErrors = {
       company: false,
       location: false,
@@ -175,22 +174,12 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
       if (!adminResult.success) {
         adminResult.error.issues.forEach(issue => {
           const field = issue.path[0];
-          if (field === 'company') {
-            errors.push('company');
-            newFieldErrors.company = true;
-          } else if (field === 'location') {
-            errors.push('location');
-            newFieldErrors.location = true;
-          } else if (field === 'engineerName') {
-            errors.push('engineer');
-            newFieldErrors.engineerName = true;
-          } else if (field === 'engineerEmail') {
-            errors.push('email');
-            newFieldErrors.engineerEmail = true;
-          } else if (field === 'engineerPhone') {
-            errors.push('phone');
-            newFieldErrors.engineerPhone = true;
-          }
+          errors.push({ field, message: issue.message });
+          if (field === 'company') newFieldErrors.company = true;
+          else if (field === 'location') newFieldErrors.location = true;
+          else if (field === 'engineerName') newFieldErrors.engineerName = true;
+          else if (field === 'engineerEmail') newFieldErrors.engineerEmail = true;
+          else if (field === 'engineerPhone') newFieldErrors.engineerPhone = true;
         });
       }
 
@@ -200,7 +189,7 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
           const questionIndex = (template?.questionsData || []).indexOf(photographQuestion) + 1;
           const images = questionImages[`q${questionIndex}`] || [];
           if (images.length === 0) {
-            errors.push('photograph_images');
+            errors.push({ field: 'photograph_images', message: 'Please upload at least one photo of the Swift.' });
             newFieldErrors.photographImages = true;
             setErrorMsg("Please upload at least one photo of the Swift.");
           }
@@ -216,28 +205,22 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
       const answer = answers[`q${questionIndex}`];
 
       if (!answer || !answer.trim()) {
-        errors.push(`q${questionIndex}`);
+        errors.push({ field: `q${questionIndex}`, message: 'Please complete all required questions.' });
         setQuestionErrors(prev => ({ ...prev, [`q${questionIndex}`]: true }));
       }
     }
 
     setFieldErrors(newFieldErrors);
 
-    if (errors.length > 0 && !errors.includes('photograph_images')) {
-      if (errors.length === 1) {
-        if (errors.includes('company')) setErrorMsg("Please select a maintenance company.");
-        else if (errors.includes('location')) setErrorMsg("Please provide a location.");
-        else if (errors.includes('engineer')) setErrorMsg("Please select or enter an engineer name.");
-        else if (errors.includes('email')) setErrorMsg("Please provide an engineer email.");
-        else if (errors.includes('phone')) setErrorMsg("Please provide an engineer phone number.");
-        else setErrorMsg("Please complete all required questions.");
-      } else {
-        setErrorMsg("Please check for multiple errors.");
-      }
+    const hasPhotoError = errors.some(e => e.field === 'photograph_images');
+    if (errors.length > 0 && !hasPhotoError) {
+      // Single error: show the schema's own message, so the Continue path
+      // and the final submit path can never disagree on copy.
+      setErrorMsg(errors.length === 1 ? errors[0].message : "Please check for multiple errors.");
       return;
     }
 
-    if (errors.includes('photograph_images')) {
+    if (hasPhotoError) {
       return;
     }
 
@@ -336,7 +319,7 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
     }
 
     const errors: { field: string; message: string }[] = [];
-    let firstErrorField: { current: any } | null = null;
+    let firstErrorEl: Element | null = null;
 
     setQuestionErrors({});
 
@@ -350,7 +333,7 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
         errors.push({ field: `q${questionIndex}`, message: `Please answer: ${q.title}.` });
         setQuestionErrors(prev => ({ ...prev, [`q${questionIndex}`]: true }));
         const questionElement = document.querySelector(`[name="q${questionIndex}"]`);
-        if (questionElement && !firstErrorField) firstErrorField = { current: questionElement };
+        if (questionElement && !firstErrorEl) firstErrorEl = questionElement;
       }
     }
 
@@ -361,19 +344,11 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
         setErrorMsg("Please check for multiple errors.");
       }
 
-      if (firstErrorField?.current) {
-        firstErrorField.current.scrollIntoView({ behavior: "smooth", block: "center" });
-        setTimeout(() => {
-          if (firstErrorField.current.focus) {
-            firstErrorField.current.focus();
-          }
-        }, 300);
-      }
+      focusFirstError(firstErrorEl);
       return;
     }
 
     setSubmitting(true);
-    setHasSubmitted(true); // Block all future auto-saves
 
     try {
       await performSubmission({
@@ -385,7 +360,6 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
     } catch (err) {
       setErrorMsg(errorMessage(err));
       setSubmitting(false);
-      setHasSubmitted(false); // Reset on error
     }
   };
 

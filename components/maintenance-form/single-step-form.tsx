@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from "react";
+import { focusFirstError } from '@/utils/form-utils';
 import { useRouter } from "next/router";
 import { z } from "zod";
 import FormShell from './form-shell';
@@ -34,7 +35,6 @@ export default function SingleStepForm({ config, unit, template, companies = [],
   const signatureRef = useRef(null);
 
   const [submitting, setSubmitting] = useState(false);
-  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [declarationChecked, setDeclarationChecked] = useState(false);
   const [signatureData, setSignatureData] = useState<string | null>(null);
@@ -84,7 +84,6 @@ export default function SingleStepForm({ config, unit, template, companies = [],
     }
   },
     !submitting &&
-    !hasSubmitted &&
     (
       Object.keys(answers).some(key => answers[key]?.trim()) ||
       Object.keys(questionImages).length > 0 ||
@@ -161,7 +160,7 @@ export default function SingleStepForm({ config, unit, template, companies = [],
     });
 
     const errors: { field: PropertyKey; message: string }[] = [];
-    let firstErrorField: { current: any } | null = null;
+    let firstErrorEl: Element | null = null;
 
     if (!result.success) {
       result.error.issues.forEach(issue => {
@@ -169,13 +168,13 @@ export default function SingleStepForm({ config, unit, template, companies = [],
         errors.push({ field, message: issue.message });
         if (field === 'company') {
           newFieldErrors.company = true;
-          if (!firstErrorField) firstErrorField = admin.companyFieldRef;
+          if (!firstErrorEl) firstErrorEl = admin.companyFieldRef.current;
         } else if (field === 'location') {
           newFieldErrors.location = true;
-          if (!firstErrorField) firstErrorField = admin.locationFieldRef;
+          if (!firstErrorEl) firstErrorEl = admin.locationFieldRef.current;
         } else if (field === 'engineerName') {
           newFieldErrors.engineerName = true;
-          if (!firstErrorField) firstErrorField = admin.engineerFieldRef;
+          if (!firstErrorEl) firstErrorEl = admin.engineerFieldRef.current;
         } else if (field === 'engineerEmail') {
           newFieldErrors.engineerEmail = true;
         } else if (field === 'engineerPhone') {
@@ -198,7 +197,7 @@ export default function SingleStepForm({ config, unit, template, companies = [],
         errors.push({ field: `q${questionIndex}`, message: `Please answer: ${q.title}.` });
         setQuestionErrors(prev => ({ ...prev, [`q${questionIndex}`]: true }));
         const questionElement = document.querySelector(`[name="q${questionIndex}"]`);
-        if (questionElement && !firstErrorField) firstErrorField = { current: questionElement };
+        if (questionElement && !firstErrorEl) firstErrorEl = questionElement;
       }
     }
 
@@ -211,21 +210,11 @@ export default function SingleStepForm({ config, unit, template, companies = [],
         setErrorMsg("Please check for multiple errors.");
       }
 
-      if (firstErrorField) {
-        if (firstErrorField.current) {
-          firstErrorField.current.scrollIntoView({ behavior: "smooth", block: "center" });
-          setTimeout(() => {
-            if (firstErrorField!.current.focus) {
-              firstErrorField!.current.focus();
-            }
-          }, 300);
-        }
-      }
+      focusFirstError(firstErrorEl);
       return;
     }
 
     setSubmitting(true);
-    setHasSubmitted(true); // Block all future auto-saves
 
     try {
       await performSubmission({
@@ -235,7 +224,6 @@ export default function SingleStepForm({ config, unit, template, companies = [],
     } catch (err) {
       setErrorMsg(errorMessage(err));
       setSubmitting(false);
-      setHasSubmitted(false); // Reset on error
     }
   };
 

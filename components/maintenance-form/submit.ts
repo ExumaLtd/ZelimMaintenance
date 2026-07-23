@@ -145,7 +145,6 @@ export async function performSubmission({
 
   localStorage.setItem("last_submitted_sn", unit?.serial_number);
   localStorage.setItem("last_maintenance_type", config.typeLabel);
-  localStorage.setItem("last_public_token", unit?.public_token);
   extraLocalKeys.forEach((key) => localStorage.removeItem(key));
   localStorage.removeItem(storageKey);
   router.push(queued ? `${config.completeRoute}?queued=true` : config.completeRoute);
