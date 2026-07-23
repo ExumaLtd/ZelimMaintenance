@@ -17,7 +17,7 @@ import { requireEnv } from './env';
 // technician's first login attempt.
 const SESSION_SECRET = requireEnv('SESSION_SECRET');
 
-function sign(payload) {
+function sign(payload: string) {
   return crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
 }
 
@@ -25,13 +25,13 @@ function sign(payload) {
  * Encode and sign session data for use in a cookie.
  * Format: base64(json).hmac-sha256-hex
  */
-export function encodeSession(data) {
+export function encodeSession(data: Record<string, any>) {
   const payload = Buffer.from(JSON.stringify(data)).toString('base64');
   const sig = sign(payload);
   return `${payload}.${sig}`;
 }
 
-function verifyAndDecode(value) {
+function verifyAndDecode(value: string) {
   const dotIndex = value.lastIndexOf('.');
   if (dotIndex === -1) return null;
 
@@ -52,7 +52,7 @@ function verifyAndDecode(value) {
 /**
  * Get session from server-side (API routes, getServerSideProps)
  */
-export function getSession(req) {
+export function getSession(req: { cookies?: Partial<Record<string, string>> }) {
   const cookie = req.cookies?.portal_session;
   if (!cookie) return null;
 
@@ -67,6 +67,6 @@ export function getSession(req) {
   }
 }
 
-export function clearSession(res) {
+export function clearSession(res: { setHeader: (name: string, value: string) => void }) {
   res.setHeader('Set-Cookie', 'portal_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly');
 }

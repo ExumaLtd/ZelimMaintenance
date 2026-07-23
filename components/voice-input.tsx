@@ -118,7 +118,7 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }: 
         recognitionRef.current.interimResults = true;
         recognitionRef.current.lang = 'en-GB';
 
-        recognitionRef.current.onresult = (event) => {
+        recognitionRef.current.onresult = (event: any) => {
           let finalTranscript = '';
           for (let i = event.resultIndex; i < event.results.length; i++) {
             if (event.results[i].isFinal) {
@@ -131,7 +131,7 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }: 
           }
         };
 
-        recognitionRef.current.onerror = (event) => {
+        recognitionRef.current.onerror = (event: any) => {
           console.error('Speech recognition error:', event.error);
         };
       }
@@ -373,7 +373,7 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }: 
 
         mediaRecorderRef.current = mediaRecorder;
 
-        mediaRecorder.ondataavailable = (event) => {
+        mediaRecorder.ondataavailable = (event: any) => {
           if (event.data && event.data.size > 0) {
             audioChunksRef.current.push(event.data);
           }
@@ -554,7 +554,7 @@ export default function VoiceInput({ onTranscript, onError, disabled = false }: 
 
   if (!isSupported) return null;
 
-  const getBarHeightPx = (lvl, idx) => {
+  const getBarHeightPx = (lvl: number, idx: number) => {
     const w = CENTER_WEIGHTS[idx] || 1;
     const h = MIN_BAR_HEIGHT_PX + (MAX_BAR_HEIGHT_PX - MIN_BAR_HEIGHT_PX) * Math.min(1, lvl * 1.25) * w;
     return Math.max(MIN_BAR_HEIGHT_PX, Math.min(MAX_BAR_HEIGHT_PX, h));

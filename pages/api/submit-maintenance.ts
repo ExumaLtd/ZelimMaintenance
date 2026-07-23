@@ -35,8 +35,8 @@ export const config = {
 // Generate a human-readable record reference
 // Format: RI/SWI005/A/060226/1
 // Uses Redis INCR for an atomic daily counter, so there is no race condition under concurrent submissions.
-async function generateRecordRef(serialNumber, maintenanceType) {
-  const typeMap = {
+async function generateRecordRef(serialNumber: string, maintenanceType: string) {
+  const typeMap: Record<string, string> = {
     'Monthly': 'M',
     'Annual': 'A',
     '30-month depth': 'D',
@@ -300,7 +300,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const submitterName = isOperator ? operator_name : engineer_name;
     const submitterEmail = isOperator ? operator_email : engineer_email;
 
-    const logFields = {
+    const logFields: Record<string, any> = {
       "unit_link": [unit_record_id],
       "date_of_maintenance": trimmedDate,
       "maintenance_type": maintenance_type,
@@ -326,7 +326,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const finalTown = location_town || location_display || "";
-    const checkFields = {
+    const checkFields: Record<string, any> = {
       "unit": [unit_record_id],
       "date_of_maintenance": trimmedDate,
       "maintenance_type": maintenance_type,

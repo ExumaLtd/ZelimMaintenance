@@ -61,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Helper function to find company name from various possible sources
     const getCompanyName = () => {
-      const getValue = (val) => {
+      const getValue = (val: any) => {
         if (!val) return null;
         if (typeof val === 'string') return val;
         if (Array.isArray(val) && val.length > 0) return val[0];

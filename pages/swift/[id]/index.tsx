@@ -7,13 +7,14 @@ import { getSession } from "../../../lib/session";
 import { esc } from "../../../lib/api-utils";
 import { requireEnv } from "../../../lib/env";
 import { ArrowIcon, arrowLinkClasses } from "@/components/ui/arrow-button";
+import type { GetServerSidePropsContext } from "next";
 
 const AIRTABLE_PAT = requireEnv('AIRTABLE_PAT');
 const AIRTABLE_BASE_ID = requireEnv('AIRTABLE_BASE_ID');
 const AIRTABLE_SWIFT_TABLE = requireEnv('AIRTABLE_SWIFT_TABLE');
 
 // Client logo resolver - KEEP THIS
-const getClientLogo = (companyName, serialNumber) => {
+const getClientLogo = (companyName?: string, serialNumber?: string) => {
   const logoMap = {
     changi: {
       serials: ["SWI001", "SWI002"],
@@ -42,9 +43,9 @@ const getClientLogo = (companyName, serialNumber) => {
 };
 
 // Fetch unit data from Airtable
-export async function getServerSideProps(context) {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
   // MOVE getFileSize function HERE (inside getServerSideProps)
-  const getFileSize = (filePath) => {
+  const getFileSize = (filePath: string) => {
     try {
       const fs = require('fs');
       const path = require('path');
@@ -131,7 +132,7 @@ export async function getServerSideProps(context) {
     };
 
     // Check for active drafts - FILTERED BY ACCESS PIN
-    let activeDrafts = [];
+    let activeDrafts: { type: any; lastUpdated: any; engineerEmail: any }[] = [];
     try {
       const allDrafts = await base('maintenance_drafts')
         .select({
@@ -174,6 +175,16 @@ export async function getServerSideProps(context) {
 }
 
 // Main component
+type DashboardProps = {
+  unit: { record_id: string; serial_number: string; company: string; annualDue: string; depthDue: string };
+  publicToken: string;
+  activeDrafts?: { type: string; lastUpdated: string; engineerEmail: string }[];
+  accessType?: string;
+  maintenanceManualSize: string;
+  installationGuideSize: string;
+  operatorsManualSize: string;
+};
+
 export default function SwiftUnitPage({
   unit,
   publicToken,
@@ -182,7 +193,7 @@ export default function SwiftUnitPage({
   maintenanceManualSize,
   installationGuideSize,
   operatorsManualSize,
-}) {
+}: DashboardProps) {
   const { serial_number: serialNumber, company: companyName } = unit;
   const logoProps = getClientLogo(companyName, serialNumber);
 

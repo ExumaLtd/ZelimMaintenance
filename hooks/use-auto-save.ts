@@ -6,7 +6,14 @@ import { useEffect, useRef } from 'react';
  * - Uses refs to prevent unnecessary re-renders
  * - Saves on page unload
  */
-export function useAutoSave(config, shouldSave) {
+type AutoSaveConfig = {
+  unitId?: string;
+  maintenanceType: string;
+  engineerEmail?: string;
+  draftData: Record<string, any>;
+};
+
+export function useAutoSave(config: AutoSaveConfig, shouldSave: unknown) {
   const { unitId, maintenanceType, engineerEmail, draftData } = config;
   const saveTimeoutRef = useRef(null);
   const lastSavedRef = useRef(null);

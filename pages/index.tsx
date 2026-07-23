@@ -21,7 +21,7 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [rateLimitCountdown]);
 
-  const formatCountdown = (secs) => {
+  const formatCountdown = (secs: number) => {
     const m = Math.floor(secs / 60);
     const s = secs % 60;
     if (m > 0) return `${m} minute${m !== 1 ? 's' : ''} ${s} second${s !== 1 ? 's' : ''}`;
@@ -51,7 +51,7 @@ export default function Home() {
     return { facingMode: "environment" };
   };
 
-  const lockZoom = useCallback(async (videoEl) => {
+  const lockZoom = useCallback(async (videoEl: any) => {
     if (!videoEl) return;
     const track = videoEl.srcObject?.getVideoTracks?.()?.[0];
     if (!track) return;
@@ -62,7 +62,7 @@ export default function Home() {
     } catch {}
   }, []);
 
-  const resolveAndNavigate = async (code) => {
+  const resolveAndNavigate = async (code: string) => {
     abortControllerRef.current = new AbortController();
     let timedOut = false;
     const timeoutId = setTimeout(() => {
@@ -116,7 +116,7 @@ export default function Home() {
     }
   };
 
-  const handleFormSubmit = async (e, codeOverride = null) => {
+  const handleFormSubmit = async (e: React.FormEvent | null, codeOverride: string | null = null) => {
     if (e) e.preventDefault();
     if (isSubmitting) return;
 
@@ -147,7 +147,7 @@ export default function Home() {
     }
   };
 
-const handleQrCodeDetected = async (decodedText, html5QrCode) => {
+const handleQrCodeDetected = async (decodedText: string, html5QrCode: any) => {
   if (hasNavigatedRef.current) return;
   hasNavigatedRef.current = true;
 

@@ -245,8 +245,8 @@ export default function ErpPage() {
   const [api,  setApi]  = useState(false);
 
   const p  = sel ? platforms.find(x => x.id === sel) : null;
-  const pr = (pl) => api ? pl.withApi       : pl.withoutApi;
-  const sc = (pl) => api ? pl.scoresWithApi : pl.scoresWithoutApi;
+  const pr = (pl: any) => api ? pl.withApi       : pl.withoutApi;
+  const sc = (pl: any) => api ? pl.scoresWithApi : pl.scoresWithoutApi;
 
   const sectionPad = "p-[24px_30px] max-[600px]:p-5";
 

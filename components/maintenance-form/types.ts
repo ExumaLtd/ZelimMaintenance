@@ -51,6 +51,7 @@ export type UploadedImage = {
   url: string;
   thumbnail?: string;
   fileType?: string;
+  publicId?: string;
 };
 
 export type Answers = Record<string, string>;

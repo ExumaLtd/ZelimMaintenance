@@ -6,6 +6,7 @@ import "../styles/form.css";
 import Head from "next/head";
 import { Montserrat, Roboto_Mono } from "next/font/google";
 import { useEffect } from "react";
+import type { AppProps } from "next/app";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
 
@@ -23,7 +24,7 @@ const robotoMono = Roboto_Mono({
   variable: "--font-roboto-mono",
 });
 
-export default function MyApp({ Component, pageProps }) {
+export default function MyApp({ Component, pageProps }: AppProps) {
 
   useEffect(() => {
     // Standard fix to ensure mobile doesn't "jump" down on load

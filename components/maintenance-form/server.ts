@@ -1,4 +1,5 @@
 import { getSession } from '@/lib/session';
+import type { GetServerSidePropsContext } from 'next';
 import { fetchFormData } from '@/lib/data-fetching';
 
 /**
@@ -7,8 +8,8 @@ import { fetchFormData } from '@/lib/data-fetching';
  * load another unit's data, then fetches the form data for the given type.
  */
 export function makeFormServerSideProps(typeLabel: string, logLabel: string) {
-  return async function getServerSideProps({ params, req }) {
-    const token = params.id;
+  return async function getServerSideProps({ params, req }: GetServerSidePropsContext) {
+    const token = String(params?.id ?? '');
     const session = getSession(req);
     if (!session || !session.pin || token !== session.token) {
       return { redirect: { destination: '/', permanent: false } };

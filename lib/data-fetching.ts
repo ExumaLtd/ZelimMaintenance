@@ -131,7 +131,7 @@ export async function fetchTemplate(maintenanceType: string) {
       type: maintenanceType,
       // Return BOTH the structured data AND the original format
       questionsData: Array.isArray(parsedJson) ? parsedJson : (parsedJson.questions || []),
-      questions: Array.isArray(parsedJson) ? parsedJson.map(q => q.title) : (parsedJson.questions?.map(q => q.title) || []),
+      questions: Array.isArray(parsedJson) ? parsedJson.map((q: any) => q.title) : (parsedJson.questions?.map((q: any) => q.title) || []),
       // CRITICAL: Also return the raw parsed JSON so forms can access equipment_checklist, maintenance_checklist, etc.
       rawData: parsedJson,
       // Declaration text from Airtable
