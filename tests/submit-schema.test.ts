@@ -28,6 +28,7 @@ const template = {
 
 const admin = {
   selectedCompany: 'Zelim Service Ltd',
+  maintenanceDate: '2026-07-23',
   locationDisplay: 'Leith, UK',
   locationCountry: 'United Kingdom',
   what3words: 'filled.count.soap',

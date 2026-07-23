@@ -67,6 +67,7 @@ export type FieldErrors = {
     AdminFields (the full hook result) satisfies this structurally. */
 export type AdminValues = {
   selectedCompany: string;
+  maintenanceDate: string;
   locationDisplay: string;
   locationCountry: string;
   what3words: string;

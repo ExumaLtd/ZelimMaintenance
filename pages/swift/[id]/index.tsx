@@ -8,6 +8,7 @@ import { esc } from "../../../lib/api-utils";
 import { requireEnv } from "../../../lib/env";
 import { errorMessage } from "../../../utils/errors";
 import { ArrowIcon, arrowLinkClasses } from "@/components/ui/arrow-button";
+import OfflineQueueBanner from "@/components/offline-queue-banner";
 import type { GetServerSidePropsContext } from "next";
 
 const AIRTABLE_PAT = requireEnv('AIRTABLE_PAT');
@@ -321,6 +322,8 @@ export default function SwiftUnitPage({
 
             {/* Right Panel - Actions */}
             <div className="flex w-full flex-col gap-5 text-left max-[600px]:text-center">
+
+              <OfflineQueueBanner />
 
               {/* Maintenance Cards */}
               <div className="flex w-full flex-wrap gap-5 rounded-[20px] bg-field p-5 max-[1200px]:flex-col">

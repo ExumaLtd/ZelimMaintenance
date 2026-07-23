@@ -1,5 +1,5 @@
 import { getCompanyLogoUrl } from '@/utils/get-company-logo';
-import { submitWithOfflineQueue } from '@/utils/offline-queue';
+import { submitOrQueue } from '@/utils/offline-queue';
 import type { NextRouter } from 'next/router';
 import type { MaintenanceFormConfig } from './config';
 import type { Unit, ChecklistTemplate, Answers, QuestionImages, AdminValues } from './types';
@@ -40,7 +40,7 @@ export function buildSubmitPayload({ typeLabel, unit, template, admin, signature
     location_country: admin.locationCountry,
     location_what3words: admin.what3words,
     maintenance_type: typeLabel,
-    date_of_maintenance: new Date().toISOString(),
+    date_of_maintenance: admin.maintenanceDate,
     // Engineer fields (engineer logins)
     engineer_name: admin.engName,
     engineer_email: admin.engEmail,
@@ -69,12 +69,14 @@ export function buildSubmitPayload({ typeLabel, unit, template, admin, signature
 }
 
 /**
- * Save the submission, send the report email, clear the local draft and
- * uploader caches, then navigate to the confirmation page. Throws when the
- * database save fails so the form can surface the error and re-enable
- * submission; throws OfflineQueuedError when the network is down and the
- * submission was queued on-device instead. The signature (base64 data URL)
- * is uploaded server-side so record_ref can be used as the filename.
+ * Save the submission (directly, or into the offline queue when the network
+ * is down), send the report email, clear the local draft and uploader
+ * caches, then navigate to the confirmation page; a queued submission lands
+ * on the same page with queued messaging. Throws when the database save
+ * fails, or OfflineSaveError when offline and the queue write failed, so
+ * the form can surface the error and re-enable submission. The signature
+ * (base64 data URL) is uploaded server-side so record_ref can be used as
+ * the filename.
  */
 type PerformSubmissionArgs = {
   config: MaintenanceFormConfig;
@@ -128,7 +130,7 @@ export async function performSubmission({
       maintenance_company: accessType === 'operator' ? unit?.company : admin.selectedCompany,
       engineer_name: accessType === 'operator' ? admin.operatorName : admin.engName,
       location_display: admin.locationDisplay,
-      date_of_maintenance: new Date().toISOString().split('T')[0],
+      date_of_maintenance: admin.maintenanceDate,
       time_of_maintenance: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
     },
   };
@@ -137,12 +139,7 @@ export async function performSubmission({
     (_, i) => `images_${config.uploadSlug}_${unit?.serial_number}_q${i + 1}`
   );
 
-  await submitWithOfflineQueue({
-    queueKey: storageKey,
-    submitPayload: payload,
-    reportBody,
-    clearKeys: [...imageKeys, storageKey, ...extraLocalKeys],
-  });
+  const { queued } = await submitOrQueue({ submitPayload: payload, reportBody });
 
   imageKeys.forEach((key) => localStorage.removeItem(key));
 
@@ -151,5 +148,5 @@ export async function performSubmission({
   localStorage.setItem("last_public_token", unit?.public_token);
   extraLocalKeys.forEach((key) => localStorage.removeItem(key));
   localStorage.removeItem(storageKey);
-  router.push(config.completeRoute);
+  router.push(queued ? `${config.completeRoute}?queued=true` : config.completeRoute);
 }

@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { z } from "zod";
 import ImageUploader from '@/components/image-uploader';
 import { getCompanyLogoUrl } from '@/utils/get-company-logo';
-import { submitWithOfflineQueue } from '@/utils/offline-queue';
+import { submitOrQueue } from '@/utils/offline-queue';
 import { autoGrow } from '@/utils/form-utils';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { errorMessage } from '@/utils/errors';
@@ -681,7 +681,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
       location_country: admin.locationCountry,
       location_what3words: admin.what3words,
       maintenance_type: template?.type || "Depth",
-      date_of_maintenance: new Date().toISOString(),
+      date_of_maintenance: admin.maintenanceDate,
       engineer_name: admin.engName,
       engineer_email: admin.engEmail,
       engineer_phone: admin.engPhone,
@@ -703,21 +703,16 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
           images: checklistImages[`item_${item.id}`]?.map(img => img.url) || []
         }))
       ),
+      // Keys keep their original template position: filtering before keying
+      // would shift q20-q25 onto the skipped winch keys and lose answers.
       answers: (template?.questionsData || [])
-        .filter((q) => {
-          if (!isWinchReturned && q.id >= 14 && q.id <= 19) {
-            return false;
-          }
-          return true;
-        })
-        .map((_, i) => {
-          const questionKey = `q${i + 1}`;
-          return {
-            question: questionKey,
-            answer: answers[questionKey] || "",
-            images: (questionImages[questionKey] || []).map(img => ({ url: img.url, fileType: img.fileType || 'image' }))
-          };
-        }),
+        .map((q, i) => ({ q, questionKey: `q${i + 1}` }))
+        .filter(({ q }) => !(!isWinchReturned && q.id >= 14 && q.id <= 19))
+        .map(({ questionKey }) => ({
+          question: questionKey,
+          answer: answers[questionKey] || "",
+          images: (questionImages[questionKey] || []).map(img => ({ url: img.url, fileType: img.fileType || 'image' }))
+        })),
     };
 
     try {
@@ -744,22 +739,19 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
           maintenance_company: accessType === 'operator' ? unit?.company : admin.selectedCompany,
           engineer_name: accessType === 'operator' ? admin.operatorName : admin.engName,
           location_display: admin.locationDisplay,
-          date_of_maintenance: new Date().toISOString().split('T')[0],
+          date_of_maintenance: admin.maintenanceDate,
           time_of_maintenance: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
         },
       };
 
-      const imageKeys = (template?.questionsData || []).map(
-        (_, i) => `images_depth_${unit?.serial_number}_q${i + 1}`
-      );
+      const { queued } = await submitOrQueue({ submitPayload: payload, reportBody });
 
-      await submitWithOfflineQueue({
-        queueKey: storageKey,
-        submitPayload: payload,
-        reportBody,
-        clearKeys: [...imageKeys, storageKey, `${storageKey}_step`],
-      });
-
+      // Includes the equipment checklist uploaders, or their photos would
+      // restore into the next depth form for this unit.
+      const imageKeys = [
+        ...(template?.questionsData || []).map((_, i) => `images_depth_${unit?.serial_number}_q${i + 1}`),
+        ...checklistData.map(item => `images_depth_${unit?.serial_number}_checklist_item_${item.id}`),
+      ];
       imageKeys.forEach((key) => localStorage.removeItem(key));
 
       localStorage.setItem("last_submitted_sn", unit?.serial_number);
@@ -767,7 +759,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
       localStorage.setItem("last_public_token", unit?.public_token);
       localStorage.removeItem(storageKey);
       localStorage.removeItem(`${storageKey}_step`);
-      router.push('/portal/swift/depth-complete');
+      router.push(queued ? '/portal/swift/depth-complete?queued=true' : '/portal/swift/depth-complete');
     } catch (err) {
       setErrorMsg(errorMessage(err));
       setSubmitting(false);

@@ -1,6 +1,7 @@
 import Head from "next/head";
 import { useEffect, useState } from "react";
-import { ThumbsUp } from "lucide-react";
+import { useRouter } from "next/router";
+import { ThumbsUp, CloudUpload } from "lucide-react";
 import PortalShell from "./ui/portal-shell";
 import MessageCard from "./ui/message-card";
 import ArrowButton from "./ui/arrow-button";
@@ -18,6 +19,9 @@ type Props = {
  * type in localStorage; both keys are consumed and cleared on mount.
  */
 export default function MaintenanceComplete({ defaultType = "Maintenance", isFaultReport = false }: Props) {
+  const router = useRouter();
+  // Set when the submission was stored offline rather than sent directly.
+  const queued = router.query.queued === "true";
   const [unitSN, setUnitSN] = useState("");
   const [maintenanceType, setMaintenanceType] = useState(defaultType);
 
@@ -50,20 +54,28 @@ export default function MaintenanceComplete({ defaultType = "Maintenance", isFau
       </Head>
 
       <MessageCard
-        icon={<ThumbsUp size={26} strokeWidth={1.5} className="max-[600px]:h-6 max-[600px]:w-6" />}
+        icon={
+          queued
+            ? <CloudUpload size={26} strokeWidth={1.5} className="max-[600px]:h-6 max-[600px]:w-6" />
+            : <ThumbsUp size={26} strokeWidth={1.5} className="max-[600px]:h-6 max-[600px]:w-6" />
+        }
         title={
           <>
             {/* Inline on mobile so the title wraps as one sentence, stacked lines on desktop. */}
             <span className="inline min-[769px]:block">
               {isFaultReport ? "Fault report" : `${maintenanceType} maintenance`}
             </span>{" "}
-            <span className="inline min-[769px]:block">submitted for {unitSN || "unit"}</span>
+            <span className="inline min-[769px]:block">
+              {queued ? `saved for ${unitSN || "unit"}` : `submitted for ${unitSN || "unit"}`}
+            </span>
           </>
         }
         text={
-          isFaultReport
-            ? "Your fault report has been successfully submitted and sent to the maintenance facility for review and follow-up. You will receive email confirmation shortly."
-            : `Your ${maintenanceType.toLowerCase()} maintenance has successfully been recorded. You will receive email confirmation shortly.`
+          queued
+            ? `Your ${isFaultReport ? "fault report" : "completed form"} is saved on this device and will be submitted automatically when a connection is available. Keep using this device with the portal open; you will receive email confirmation once it has been sent.`
+            : isFaultReport
+              ? "Your fault report has been successfully submitted and sent to the maintenance facility for review and follow-up. You will receive email confirmation shortly."
+              : `Your ${maintenanceType.toLowerCase()} maintenance has successfully been recorded. You will receive email confirmation shortly.`
         }
         action={<ArrowButton href="/portal/swift">Return to dashboard</ArrowButton>}
       />

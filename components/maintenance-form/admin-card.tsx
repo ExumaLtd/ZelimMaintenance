@@ -4,6 +4,7 @@ import type { Unit, Engineer, Operator, FieldErrors, SetState } from './types';
 import clsx from 'clsx';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import DatePicker from '../date-picker';
+import { localDateString } from '@/utils/form-utils';
 
 /**
  * State and handlers for the admin card: maintenance company, location,
@@ -28,7 +29,7 @@ export function useAdminFields({ unit, accessType, engineers, operators, setFiel
   const operatorDropdownRef = useRef<HTMLDivElement | null>(null);
 
   const [today, setToday] = useState('');
-  const [maintenanceDate, setMaintenanceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [maintenanceDate, setMaintenanceDate] = useState(localDateString());
 
   const [locationDisplay, setLocationDisplay] = useState('');
   const [locationCountry, setLocationCountry] = useState('');
@@ -53,7 +54,7 @@ export function useAdminFields({ unit, accessType, engineers, operators, setFiel
     // Set after mount so the server-rendered value cannot mismatch a client
     // in a different timezone (hydration safety).
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setToday(new Date().toISOString().split('T')[0]);
+    setToday(localDateString());
   }, []);
 
   const filteredEngineers = useMemo(() => {

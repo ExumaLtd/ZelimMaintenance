@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { z } from "zod";
 import clsx from "clsx";
 import { getCompanyLogoUrl } from '@/utils/get-company-logo';
-import { submitWithOfflineQueue } from '@/utils/offline-queue';
+import { submitOrQueue } from '@/utils/offline-queue';
 import { autoGrow } from '@/utils/form-utils';
 import ImageUploader from '@/components/image-uploader';
 import VoiceInput from '@/components/voice-input';
@@ -543,7 +543,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
       location_country: admin.locationCountry,
       location_what3words: admin.what3words,
       maintenance_type: "Monthly",
-      date_of_maintenance: new Date().toISOString(),
+      date_of_maintenance: admin.maintenanceDate,
       engineer_name: admin.engName,
       engineer_email: admin.engEmail,
       engineer_phone: admin.engPhone,
@@ -620,23 +620,26 @@ export default function Monthly({ unit, template, companies = [], engineers = []
           maintenance_company: accessType === 'operator' ? unit?.company : admin.selectedCompany,
           engineer_name: accessType === 'operator' ? admin.operatorName : admin.engName,
           location_display: admin.locationDisplay,
-          date_of_maintenance: new Date().toISOString().split('T')[0],
+          date_of_maintenance: admin.maintenanceDate,
           time_of_maintenance: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
         },
       };
 
-      await submitWithOfflineQueue({
-        queueKey: storageKey,
-        submitPayload: payload,
-        reportBody,
-        clearKeys: [storageKey],
-      });
+      const { queued } = await submitOrQueue({ submitPayload: payload, reportBody });
+
+      // Clear the uploader caches too, or last month's photos would restore
+      // into the next monthly form and satisfy the photo validation.
+      const imageKeys = [
+        `images_monthly_${unit?.serial_number}_photograph_swift`,
+        ...checklistData.map((_, gi) => `images_monthly_${unit?.serial_number}_further_comments_${gi}`),
+      ];
+      imageKeys.forEach((key) => localStorage.removeItem(key));
 
       localStorage.setItem("last_submitted_sn", unit?.serial_number);
       localStorage.setItem("last_maintenance_type", "Monthly");
       localStorage.setItem("last_public_token", unit?.public_token);
       localStorage.removeItem(storageKey);
-      router.push(`/portal/swift/monthly-complete`);
+      router.push(queued ? `/portal/swift/monthly-complete?queued=true` : `/portal/swift/monthly-complete`);
     } catch (err) {
       setErrorMsg(errorMessage(err));
       setSubmitting(false);
