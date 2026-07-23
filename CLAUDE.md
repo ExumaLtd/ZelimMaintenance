@@ -21,11 +21,6 @@ Standing conventions for the Zelim maintenance portal. Follow these in every ses
 - The five maintenance forms are safety-critical. Their shared machinery lives in `components/maintenance-form/` (admin card, question field, declaration card, persistence, submit plumbing, single- and multi-step engines); annual, unscheduled and fault-reporting are thin config wrappers, while monthly and depth keep their unique checklist logic in the page. Behaviour changes need explicit instruction, and the persistence strings in the configs (draft slugs, upload slugs, Airtable type labels) must never change since live drafts depend on them.
 - Lint runs at zero warnings and CI enforces it. Every eslint-disable in the codebase carries a one-line reason (mount-only effects, SSR-safe state init, blob-URL thumbnails); do not add a disable without one.
 
-## Tests and CI
-
-- `npm test` runs the vitest suite in `tests/`. The payload and form-config tests encode live contracts (Airtable payload shape, draft and upload slugs, type labels). A failure there means a breaking change for live drafts or the API; do not update the assertion without a migration plan.
-- CI (`.github/workflows/ci.yml`) runs lint, typecheck, tests and a production build on pushes to main and pull requests.
-
 ## Styling
 
 - New and migrated UI uses Tailwind v4. Design tokens (brand colors, fonts) live in `styles/tailwind.css` and are the single source of truth; do not hardcode brand hex values in components.
@@ -60,9 +55,9 @@ Two major upgrades are held pending upstream support. Both unblock when `eslint-
 - The flusher dequeues an entry before sending its report email so a mid-flush failure can never submit the same record twice. A failed report email after a successful save is deliberately swallowed: surfacing it makes users resubmit and duplicate records.
 - Draft mirrors (`useLocalDraftMirror` and the page-local copies in monthly and depth) hold their writes until the draft loader's ready ref flips, or the initial empty state destroys the saved mirror before the localStorage fallback can read it.
 
-## Tests
+## Tests and CI
 
-- `npm test` runs the vitest suite: persistence-string tripwires, exact payload shape, the submit schema contract, security helpers, and the offline queue. Do not loosen these without a migration.
+- `npm test` runs the vitest suite in `tests/`: persistence-string tripwires, exact payload shape, the submit schema contract, security helpers, and the offline queue. These encode live contracts (Airtable payload shape, draft and upload slugs, type labels); a failure means a breaking change for live drafts or the API, so do not loosen an assertion without a migration plan.
 - `npm run e2e` runs Playwright against a deployed URL: set `E2E_BASE_URL` and `E2E_ACCESS_PIN`. Login happens once in `e2e/global-setup.ts` because the login endpoint allows five attempts per five minutes; tests must never log in individually. The suite is read-only and never completes a submission.
 - CI runs lint, typecheck, tests, and build on every push. The E2E workflow is manual (workflow_dispatch) and needs the `E2E_ACCESS_PIN` repository secret plus a deployment URL input.
 
