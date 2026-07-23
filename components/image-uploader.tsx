@@ -40,12 +40,12 @@ export default function ImageUploader({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [isMobile, setIsMobile] = useState(false);
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const isInitialMount = useRef(true);
   // Track if user has made changes (upload/delete) - if so, don't reload from initialImages
   const userHasModifiedImages = useRef(false);
   // Track the last initialImages we loaded to detect actual changes
-  const lastLoadedInitialImages = useRef(null);
+  const lastLoadedInitialImages = useRef<UploaderImage[] | null>(null);
 
   const storageKey = `images_${maintenanceType}_${serialNumber}_${questionKey}`;
 

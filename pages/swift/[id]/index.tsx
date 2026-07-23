@@ -34,7 +34,7 @@ const getClientLogo = (companyName?: string, serialNumber?: string) => {
   };
 
   for (const client of Object.values(logoMap)) {
-    if (client.serials.includes(serialNumber) || companyName?.includes(client.nameMatch)) {
+    if (client.serials.includes(serialNumber ?? '') || companyName?.includes(client.nameMatch)) {
       return { src: client.src, alt: `${companyName} Logo` };
     }
   }
@@ -64,7 +64,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     }
   };
 
-  const publicToken = context.params.id;
+  const publicToken = String(context.params?.id ?? '');
   
   // Get session to extract PIN
   const session = getSession(context.req);

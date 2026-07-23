@@ -48,15 +48,15 @@ const monthlySchema = z.object({
 export default function Monthly({ unit, template, companies = [], engineers = [], operators = [], accessType = 'operator' }: FormPageProps) {
   const router = useRouter();
 
-  const card1Ref = useRef(null);
-  const card2Ref = useRef(null);
-  const signatureRef = useRef(null);
+  const card1Ref = useRef<HTMLDivElement | null>(null);
+  const card2Ref = useRef<HTMLDivElement | null>(null);
+  const signatureRef = useRef<any>(null);
   const hasSubmittedRef = useRef(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [declarationChecked, setDeclarationChecked] = useState(false);
-  const [signatureData, setSignatureData] = useState(null);
+  const [signatureData, setSignatureData] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [photographImages, setPhotographImages] = useState<UploadedImage[]>([]);
   const [photographComments, setPhotographComments] = useState("");
@@ -499,12 +499,15 @@ export default function Monthly({ unit, template, companies = [], engineers = []
         setErrorMsg("");
       }
 
-      if (firstErrorField) {
-        if (firstErrorField.current) {
-          firstErrorField.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      // Read through a typed alias: the assignments happen inside the zod
+      // issue callback, which the compiler's flow analysis cannot see.
+      const errorFieldRef = firstErrorField as { current: any } | null;
+      if (errorFieldRef) {
+        if (errorFieldRef.current) {
+          errorFieldRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
           setTimeout(() => {
-            if (firstErrorField.current.focus) {
-              firstErrorField.current.focus();
+            if (errorFieldRef.current.focus) {
+              errorFieldRef.current.focus();
             }
           }, 300);
         }

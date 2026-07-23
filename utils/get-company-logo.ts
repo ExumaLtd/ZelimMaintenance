@@ -23,7 +23,7 @@ const CLIENTS = [
 const BASE_URL = "https://maintenance.exuma.co.uk";
 
 const findClient = (companyName?: string, serialNumber?: string) =>
-  CLIENTS.find(c => c.serials.includes(serialNumber) || companyName?.includes(c.nameMatch)) ?? null;
+  CLIENTS.find(c => c.serials.includes(serialNumber ?? '') || companyName?.includes(c.nameMatch)) ?? null;
 
 /**
  * Get the company logo URL for emails based on company name or serial number

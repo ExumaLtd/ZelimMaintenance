@@ -20,12 +20,12 @@ type AdminFieldsArgs = {
 };
 
 export function useAdminFields({ unit, accessType, engineers, operators, setFieldErrors }: AdminFieldsArgs) {
-  const companyFieldRef = useRef(null);
-  const locationFieldRef = useRef(null);
-  const engineerFieldRef = useRef(null);
-  const companyDropdownRef = useRef(null);
-  const engineerDropdownRef = useRef(null);
-  const operatorDropdownRef = useRef(null);
+  const companyFieldRef = useRef<HTMLDivElement | null>(null);
+  const locationFieldRef = useRef<HTMLDivElement | null>(null);
+  const engineerFieldRef = useRef<HTMLDivElement | null>(null);
+  const companyDropdownRef = useRef<HTMLDivElement | null>(null);
+  const engineerDropdownRef = useRef<HTMLDivElement | null>(null);
+  const operatorDropdownRef = useRef<HTMLDivElement | null>(null);
 
   const [today, setToday] = useState('');
   const [maintenanceDate, setMaintenanceDate] = useState(new Date().toISOString().split('T')[0]);

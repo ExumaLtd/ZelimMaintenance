@@ -39,8 +39,8 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
   const router = useRouter();
   const sections = config.sections!;
 
-  const signatureRef = useRef(null);
-  const card2Ref = useRef(null);
+  const signatureRef = useRef<any>(null);
+  const card2Ref = useRef<HTMLDivElement | null>(null);
   const hasSubmittedRef = useRef(false);
 
   const [submitting, setSubmitting] = useState(false);

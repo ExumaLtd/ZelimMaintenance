@@ -212,8 +212,8 @@ export default function SingleStepForm({ config, unit, template, companies = [],
         if (firstErrorField.current) {
           firstErrorField.current.scrollIntoView({ behavior: "smooth", block: "center" });
           setTimeout(() => {
-            if (firstErrorField.current.focus) {
-              firstErrorField.current.focus();
+            if (firstErrorField!.current.focus) {
+              firstErrorField!.current.focus();
             }
           }, 300);
         }

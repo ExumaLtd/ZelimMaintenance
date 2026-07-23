@@ -17,7 +17,7 @@ Standing conventions for the Zelim maintenance portal. Follow these in every ses
 
 - One logical change per commit, conventional-style message (`security:`, `chore:`, `docs:`, `fix:`).
 - Prefer complete files over partial snippets when presenting changes.
-- TypeScript strict mode is off. Do not enable it without being asked.
+- TypeScript strict mode is on and the build must stay clean under it. Prefer real types over assertions; explicit `any` is acceptable only at genuinely dynamic boundaries (draft JSON, third party callbacks).
 - The five maintenance forms are safety-critical. Their shared machinery lives in `components/maintenance-form/` (admin card, question field, declaration card, persistence, submit plumbing, single- and multi-step engines); annual, unscheduled and fault-reporting are thin config wrappers, while monthly and depth keep their unique checklist logic in the page. Behaviour changes need explicit instruction, and the persistence strings in the configs (draft slugs, upload slugs, Airtable type labels) must never change since live drafts depend on them.
 - The react-hooks v6 lint warnings (about 45) are accepted tech debt, deliberately set to warn. Do not silence them or refactor to clear them.
 

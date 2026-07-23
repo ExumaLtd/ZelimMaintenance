@@ -28,9 +28,9 @@ export default function Home() {
     return `${s} second${s !== 1 ? 's' : ''}`;
   };
 
-  const scannerRef = useRef(null);
+  const scannerRef = useRef<any>(null);
   const hasNavigatedRef = useRef(false);
-  const abortControllerRef = useRef(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const isIOS = () => typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
   const isAndroid = () => typeof navigator !== "undefined" && /Android/.test(navigator.userAgent);
@@ -63,16 +63,17 @@ export default function Home() {
   }, []);
 
   const resolveAndNavigate = async (code: string) => {
-    abortControllerRef.current = new AbortController();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
     let timedOut = false;
     const timeoutId = setTimeout(() => {
       timedOut = true;
-      abortControllerRef.current.abort();
+      controller.abort();
     }, 8000);
 
     try {
       const res = await fetch(`/api/swift-resolve-pin?pin=${encodeURIComponent(code)}`, {
-        signal: abortControllerRef.current.signal
+        signal: controller.signal
       });
       clearTimeout(timeoutId);
 
@@ -96,7 +97,7 @@ export default function Home() {
             accessType: data.accessType,
             accessPin: code
           }),
-          signal: abortControllerRef.current.signal
+          signal: controller.signal
         });
 
         if (sessionRes.ok) {
@@ -166,7 +167,7 @@ const handleQrCodeDetected = async (decodedText: string, html5QrCode: any) => {
   const code = decodedText.includes('/') ? decodedText.split('/').filter(Boolean).pop() : decodedText;
 
   // Use resolveAndNavigate to properly create session
-  const data = await resolveAndNavigate(code);
+  const data = await resolveAndNavigate(code ?? '');
   
   if (data?.success) {
     window.location.href = '/portal/swift';

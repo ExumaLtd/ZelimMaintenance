@@ -241,7 +241,7 @@ function PillToggle<T extends string | boolean>({
 // ── MAIN ─────────────────────────────────────────────────────
 export default function ErpPage() {
   const [view, setView] = useState("cards");
-  const [sel,  setSel]  = useState(null);
+  const [sel,  setSel]  = useState<string | null>(null);
   const [api,  setApi]  = useState(false);
 
   const p  = sel ? platforms.find(x => x.id === sel) : null;

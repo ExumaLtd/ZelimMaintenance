@@ -26,7 +26,7 @@ async function verifySession(value: string) {
     );
 
     // Convert hex signature to bytes
-    const sigBytes = new Uint8Array(sig.match(/.{2}/g).map(h => parseInt(h, 16)));
+    const sigBytes = new Uint8Array((sig.match(/.{2}/g) ?? []).map(h => parseInt(h, 16)));
     const valid = await crypto.subtle.verify('HMAC', key, sigBytes, encoder.encode(payload));
     if (!valid) return null;
 

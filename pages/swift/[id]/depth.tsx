@@ -101,13 +101,13 @@ const sections = [
 export default function Depth({ unit, template, companies = [], engineers = [], operators = [], accessType = 'maintenance' }: FormPageProps) {
   const router = useRouter();
 
-  const card2Ref = useRef(null);
-  const signatureRef = useRef(null);
+  const card2Ref = useRef<HTMLDivElement | null>(null);
+  const signatureRef = useRef<any>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [declarationChecked, setDeclarationChecked] = useState(false);
-  const [signatureData, setSignatureData] = useState(null);
+  const [signatureData, setSignatureData] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({
     company: false,
     location: false,
@@ -806,7 +806,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
           {/* STEP 1: EQUIPMENT CHECKLIST */}
           {currentStep === 1 && (
             <div>
-              <h3 className="checklist-section-title">{currentSection.title}</h3>
+              <h3 className="checklist-section-title">{currentSection!.title}</h3>
               <p className="checklist-section-subtitle">
                 Please report equipment condition before starting maintenance.
               </p>
@@ -901,8 +901,8 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
             <div>
               {currentStep === 2 && (
                 <>
-                  <h3 className="checklist-section-title">{currentSection.title}</h3>
-                  <p className="checklist-section-subtitle">{currentSection.subtitle}</p>
+                  <h3 className="checklist-section-title">{currentSection!.title}</h3>
+                  <p className="checklist-section-subtitle">{currentSection!.subtitle}</p>
                 </>
               )}
 

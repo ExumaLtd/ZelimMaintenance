@@ -15,9 +15,9 @@ type AutoSaveConfig = {
 
 export function useAutoSave(config: AutoSaveConfig, shouldSave: unknown) {
   const { unitId, maintenanceType, engineerEmail, draftData } = config;
-  const saveTimeoutRef = useRef(null);
-  const lastSavedRef = useRef(null);
-  const draftRecordIdRef = useRef(null);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedRef = useRef<string | null>(null);
+  const draftRecordIdRef = useRef<string | null>(null);
   const isSavingRef = useRef(false);
   const configRef = useRef(config);
   const shouldSaveRef = useRef(shouldSave);

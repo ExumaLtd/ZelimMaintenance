@@ -39,7 +39,7 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(function 
 
     canvas.width = canvas.offsetWidth * ratio;
     canvas.height = canvas.offsetHeight * ratio;
-    canvas.getContext('2d').scale(ratio, ratio);
+    canvas.getContext('2d')?.scale(ratio, ratio);
 
     pad.clear();
     if (savedData && savedData.length > 0) {
@@ -60,7 +60,7 @@ const SignaturePad = forwardRef<SignaturePadHandle, SignaturePadProps>(function 
       const ratio = Math.max(window.devicePixelRatio || 1, 1);
       canvas.width = canvas.offsetWidth * ratio;
       canvas.height = canvas.offsetHeight * ratio;
-      canvas.getContext('2d').scale(ratio, ratio);
+      canvas.getContext('2d')?.scale(ratio, ratio);
 
       pad = new SignaturePadLib(canvas, {
         backgroundColor: 'rgba(0,0,0,0)',
