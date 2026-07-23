@@ -83,6 +83,10 @@ export default function Home() {
         return { rateLimited: true };
       }
 
+      // 400 (bad format) and 404 (code not recognised) are the user's code
+      // being wrong, not the service being down; null routes to the
+      // invalid-code message.
+      if (res.status === 400 || res.status === 404) return null;
       if (!res.ok) return { serverError: true };
 
       const data = await res.json();
