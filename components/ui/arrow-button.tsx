@@ -7,7 +7,7 @@ const baseClasses =
   "transition-colors duration-500 hover:bg-warn hover:text-page " +
   "disabled:cursor-default disabled:opacity-60";
 
-function ArrowIcon({ back }: { back?: boolean }) {
+export function ArrowIcon({ back }: { back?: boolean }) {
   return (
     <span className="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-[3px] bg-warn transition-colors duration-500 group-hover:bg-page">
       <svg
@@ -26,6 +26,9 @@ function ArrowIcon({ back }: { back?: boolean }) {
     </span>
   );
 }
+
+/** Class string for building the same button on other elements, e.g. next/link. */
+export const arrowLinkClasses = clsx(baseClasses, "inline-flex py-[7px] pr-[7px] pl-6");
 
 type Props = {
   children: ReactNode;

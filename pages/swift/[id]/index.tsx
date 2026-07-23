@@ -2,10 +2,11 @@ import Head from "next/head";
 import Link from "next/link";
 import Image from "next/image";
 import Airtable from "airtable";
-import { useRouter } from "next/router";
+import clsx from "clsx";
 import { getSession } from "../../../lib/session";
 import { esc } from "../../../utils/api-utils";
 import { requireEnv } from "../../../lib/env";
+import { ArrowIcon, arrowLinkClasses } from "@/components/ui/arrow-button";
 
 const AIRTABLE_PAT = requireEnv('AIRTABLE_PAT');
 const AIRTABLE_BASE_ID = requireEnv('AIRTABLE_BASE_ID');
@@ -182,8 +183,6 @@ export default function SwiftUnitPage({
   installationGuideSize,
   operatorsManualSize,
 }) {
-  const router = useRouter();
-
   const { serial_number: serialNumber, company: companyName } = unit;
   const logoProps = getClientLogo(companyName, serialNumber);
 
@@ -262,60 +261,63 @@ export default function SwiftUnitPage({
       ];
 
   return (
-    <div className="dashboard-scope">
+    <div className="font-sans">
       <Head>
         <title>{companyName} Maintenance Portal</title>
       </Head>
 
-      <div className="swift-main-layout-wrapper">
-        <div className="page-wrapper">
-          <div className="swift-dashboard-container">
-            
+      <div className="relative flex min-h-screen w-full flex-col justify-between overflow-x-hidden px-10 text-white max-[900px]:px-0">
+        <div className="relative z-1 mx-auto flex w-[calc(100%-160px)] max-w-[1280px] flex-1 flex-col max-[900px]:w-full max-[900px]:max-w-full max-[900px]:px-5 max-[900px]:pt-5 max-[600px]:px-4">
+          <div className="mt-[60px] mb-10 grid w-full shrink-0 grid-cols-[minmax(325px,4fr)_8fr] gap-5 max-[900px]:mt-0 max-[900px]:grid-cols-1 max-[600px]:mt-1.5">
+
             {/* Left Panel - Unit Details */}
-            <div className="detail-panel">
+            <div className="text-left max-[900px]:mb-5 max-[900px]:w-full max-[600px]:text-center">
               {logoProps && (
-                <div className="logo-section">
+                <div className="relative mb-10 h-10 w-[250px] max-[900px]:mx-auto max-[900px]:mb-[30px] max-[900px]:h-9 max-[900px]:w-[225px]">
                   <Image
                     src={logoProps.src}
                     alt={logoProps.alt}
                     fill
                     priority
                     sizes="250px"
+                    className="object-contain object-left max-[900px]:object-center"
                   />
                 </div>
               )}
 
-              <h1 className="portal-title">
-                <span className="title-line">{companyName}</span>
-                <span className="title-line">maintenance portal</span>
+              <h1 className="mt-0 mb-[34px] text-[30px] font-semibold leading-[38px] text-white max-[900px]:mb-6 max-[900px]:text-center max-[900px]:text-[22px] max-[900px]:leading-7">
+                <span className="block w-full">{companyName}</span>
+                <span className="block w-full">maintenance portal</span>
               </h1>
 
-              <div className="maintenance-details">
-                <div className="detail-item">
-                  <p className="detail-label">Serial number</p>
-                  <p className="detail-value">{serialNumber}</p>
-                </div>
-
-                <div className="detail-item">
-                  <p className="detail-label">Annual maintenance due</p>
-                  <p className="detail-value">{unit.annualDue}</p>
-                </div>
-
-                <div className="detail-item">
-                  <p className="detail-label">30-month depth maintenance due</p>
-                  <p className="detail-value">{unit.depthDue}</p>
-                </div>
+              <div className="mt-5 flex w-full max-w-[305px] flex-col gap-4 max-[900px]:max-w-none max-[900px]:flex-row max-[900px]:flex-wrap max-[900px]:justify-center max-[900px]:gap-5 max-[600px]:mx-auto max-[600px]:mt-5 max-[600px]:flex-col max-[600px]:gap-3">
+                {[
+                  { label: "Serial number", value: serialNumber },
+                  { label: "Annual maintenance due", value: unit.annualDue },
+                  { label: "30-month depth maintenance due", value: unit.depthDue },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="flex w-full flex-col gap-1 border-b border-ink-muted/20 pb-3 last:border-b-0 last:pb-0 max-[900px]:min-w-[100px] max-[900px]:flex-[0_1_calc(33.33%-14px)] max-[900px]:border-b-0 max-[900px]:pb-0 max-[900px]:text-center max-[600px]:w-full max-[600px]:flex-none max-[600px]:items-center max-[600px]:border-b max-[600px]:pb-3 max-[600px]:last:border-b-0"
+                  >
+                    <p className="m-0 text-sm font-medium leading-5 text-ink-muted">{item.label}</p>
+                    <p className="m-0 font-mono text-xl font-semibold leading-[26px] tracking-[0.1em] text-ink">{item.value}</p>
+                  </div>
+                ))}
               </div>
             </div>
 
             {/* Right Panel - Actions */}
-            <div className="action-panel">
-              
+            <div className="flex w-full flex-col gap-5 text-left max-[600px]:text-center">
+
               {/* Maintenance Cards */}
-              <div className="maintenance-group-wrapper">
+              <div className="flex w-full flex-wrap gap-5 rounded-[20px] bg-field p-5 max-[1200px]:flex-col">
                 {maintenanceTypes.map((maintenance, index) => (
-                  <div key={index} className="maintenance-card">
-                    <h3>
+                  <div
+                    key={index}
+                    className="flex w-[calc(50%-10px)] flex-col rounded-[10px] bg-[linear-gradient(39deg,rgba(74,98,104,0.20)_12.44%,rgba(74,98,104,0.00)_87.56%)] p-[25px_30px_30px] max-[1200px]:w-full"
+                  >
+                    <h3 className="mt-0 mb-3 font-mono text-xl font-normal leading-[26px] tracking-[0.1em] text-ink">
                       {maintenance.title.split('\n').map((line, i) => (
                         <span key={i}>
                           {line}
@@ -323,59 +325,56 @@ export default function SwiftUnitPage({
                         </span>
                       ))}
                     </h3>
-                    <p className="description">{maintenance.description}</p>
+                    <p className="mt-0 mb-5 text-sm font-light leading-5 tracking-[0.05em] text-ink-muted">{maintenance.description}</p>
                     <Link
                       href={
                         maintenance.hasDraft
                           ? `${maintenance.href}?draft=true`
                           : maintenance.href
                       }
-                      className="start-btn"
+                      className={clsx(arrowLinkClasses, "mt-auto max-w-full self-start max-[600px]:mx-auto max-[600px]:mt-0")}
                     >
-                      <span className="left">
+                      <span className="min-w-0 flex-1 whitespace-normal">
                         {maintenance.hasDraft
                           ? (maintenance.title.includes("Report a fault") ? 'Continue fault reporting' : 'Continue')
                           : (maintenance.title.includes("Report a fault") ? 'Report a fault' : 'Start maintenance')
                         }
                       </span>
-                      <span className="right">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                          <path d="M10.1458 7.5L0 7.5L0 5.83333L10.1458 5.83333L5.47917 1.16667L6.66667 0L13.3333 6.66667L6.66667 13.3333L5.47917 12.1667L10.1458 7.5Z" fill="#172F36"/>
-                        </svg>
-                      </span>
+                      <ArrowIcon />
                     </Link>
                   </div>
                 ))}
               </div>
 
               {/* Downloads */}
-              <div className="downloads-card">
-                <h3>Downloads</h3>
-                <p className="description">
+              <div className="w-full rounded-[20px] bg-field p-[24px_30px_30px] max-[600px]:p-[24px_20px_20px]">
+                <h3 className="mt-0 mb-3 font-mono text-xl font-normal leading-[26px] tracking-[0.1em] text-ink">Downloads</h3>
+                <p className="mt-0 mb-5 text-sm font-light leading-5 tracking-[0.05em] text-ink-muted">
                   {accessType === "operator"
                     ? "Operator maintenance documents for the Swift Rescue Conveyor."
                     : "Maintenance and installation documents for the Swift Rescue Conveyor."
                   }
                 </p>
 
-                <div className="download-list">
+                <div className="flex flex-row justify-start gap-[15px] max-[600px]:flex-col max-[600px]:items-center">
                   {downloads.map((download, index) => (
-                    <a                   
+                    <a
                       key={index}
                       href={download.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="download-link"
+                      className="flex max-w-[calc(50%-7.5px)] flex-1 cursor-pointer flex-row items-center gap-[15px] rounded-lg bg-card p-3 no-underline transition-colors duration-200 hover:bg-hover-light max-[600px]:w-full max-[600px]:max-w-none max-[600px]:text-left"
                     >
-                      <Image 
-                        src="/Icons/PDF_Icon.svg" 
-                        width={40} 
-                        height={40} 
-                        alt="PDF Icon" 
+                      <Image
+                        src="/Icons/PDF_Icon.svg"
+                        width={40}
+                        height={40}
+                        alt="PDF Icon"
+                        className="shrink-0"
                       />
                       <div>
-                        <p>{download.name}</p>
-                        <span>{download.size}</span>
+                        <p className="m-0 text-sm font-semibold leading-4 text-ink">{download.name}</p>
+                        <span className="block text-sm leading-[22px] text-ink-muted">{download.size}</span>
                       </div>
                     </a>
                   ))}
@@ -386,12 +385,12 @@ export default function SwiftUnitPage({
         </div>
 
         {/* Footer */}
-        <footer className="footer-section">
-          <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer">
-            <Image 
-              src="/logo/zelim-logo.svg" 
-              width={120} 
-              height={40} 
+        <footer className="flex w-full shrink-0 justify-center pt-5 pb-10">
+          <a href="https://www.zelim.com" target="_blank" rel="noopener noreferrer" className="block no-underline">
+            <Image
+              src="/logo/zelim-logo.svg"
+              width={120}
+              height={40}
               alt="Zelim logo"
             />
           </a>
