@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import type { RefObject } from 'react';
+import type { Unit, Engineer, Operator, FieldErrors, SetState } from './types';
 import clsx from 'clsx';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import DatePicker from '../date-picker';
@@ -9,7 +11,15 @@ import DatePicker from '../date-picker';
  * autocomplete dropdowns. setFieldErrors comes from the owning form so
  * selections clear validation errors the same way they always have.
  */
-export function useAdminFields({ unit, accessType, engineers, operators, setFieldErrors }) {
+type AdminFieldsArgs = {
+  unit: Unit;
+  accessType: string;
+  engineers: Engineer[];
+  operators: Operator[];
+  setFieldErrors: SetState<FieldErrors>;
+};
+
+export function useAdminFields({ unit, accessType, engineers, operators, setFieldErrors }: AdminFieldsArgs) {
   const companyFieldRef = useRef(null);
   const locationFieldRef = useRef(null);
   const engineerFieldRef = useRef(null);
@@ -64,7 +74,7 @@ export function useAdminFields({ unit, accessType, engineers, operators, setFiel
     return list;
   }, [unit?.operating_company_id, operatorName, operators]);
 
-  const selectCompany = useCallback((company) => {
+  const selectCompany = useCallback((company: string) => {
     setSelectedCompany(company);
     setEngName('Please select');
     setEngEmail('');
@@ -74,7 +84,7 @@ export function useAdminFields({ unit, accessType, engineers, operators, setFiel
     setFieldErrors(prev => ({ ...prev, company: false }));
   }, [setFieldErrors]);
 
-  const selectEngineer = useCallback((engineer) => {
+  const selectEngineer = useCallback((engineer: Engineer) => {
     setEngName(engineer.name);
     setEngEmail(engineer.email || '');
     setEngPhone(engineer.phone || '');
@@ -106,7 +116,7 @@ export function useAdminFields({ unit, accessType, engineers, operators, setFiel
     setShowEngineerDropdown(false);
   }, []);
 
-  const selectOperator = useCallback((operator) => {
+  const selectOperator = useCallback((operator: Operator) => {
     setOperatorName(operator.name);
     setOperatorEmail(operator.email || '');
     setOperatorPhone(operator.phone || '');
@@ -130,14 +140,14 @@ export function useAdminFields({ unit, accessType, engineers, operators, setFiel
 
   // Close dropdowns on outside click
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (companyDropdownRef.current && !companyDropdownRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (companyDropdownRef.current && !companyDropdownRef.current.contains(event.target as Node)) {
         setShowCompanyDropdown(false);
       }
-      if (engineerDropdownRef.current && !engineerDropdownRef.current.contains(event.target)) {
+      if (engineerDropdownRef.current && !engineerDropdownRef.current.contains(event.target as Node)) {
         setShowEngineerDropdown(false);
       }
-      if (operatorDropdownRef.current && !operatorDropdownRef.current.contains(event.target)) {
+      if (operatorDropdownRef.current && !operatorDropdownRef.current.contains(event.target as Node)) {
         setShowOperatorDropdown(false);
       }
     };
@@ -175,7 +185,18 @@ export function useAdminFields({ unit, accessType, engineers, operators, setFiel
 
 /** CARD 1: company or operator, location, date, and identity fields.
     cardRef lets a form scroll the whole card into view on validation errors. */
-export function AdminCard({ admin, accessType, companies, fieldErrors, setFieldErrors, cardRef = null }) {
+export type AdminFields = ReturnType<typeof useAdminFields>;
+
+type AdminCardProps = {
+  admin: AdminFields;
+  accessType: string;
+  companies: string[];
+  fieldErrors: FieldErrors;
+  setFieldErrors: SetState<FieldErrors>;
+  cardRef?: RefObject<HTMLDivElement | null> | null;
+};
+
+export function AdminCard({ admin, accessType, companies, fieldErrors, setFieldErrors, cardRef = null }: AdminCardProps) {
   const {
     companyFieldRef, locationFieldRef, engineerFieldRef,
     companyDropdownRef, engineerDropdownRef, operatorDropdownRef,

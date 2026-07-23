@@ -1,5 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { dlog } from './debug';
+import type { Unit, Answers, QuestionImages, SetState } from './types';
+import type { AdminFields } from './admin-card';
+
+type DraftBlob = Record<string, any>;
 
 /**
  * Load a saved draft once per page load: the Airtable draft wins, with the
@@ -7,7 +11,15 @@ import { dlog } from './debug';
  * applyLocalDraft callbacks push the values into the owning form's state
  * (multi-step forms also restore the current step there).
  */
-export function useDraftLoader({ unit, typeLabel, storageKey, applyAirtableDraft, applyLocalDraft }) {
+type DraftLoaderArgs = {
+  unit: Unit;
+  typeLabel: string;
+  storageKey: string;
+  applyAirtableDraft: (draft: DraftBlob) => void;
+  applyLocalDraft: (data: DraftBlob) => void;
+};
+
+export function useDraftLoader({ unit, typeLabel, storageKey, applyAirtableDraft, applyLocalDraft }: DraftLoaderArgs) {
   const hasLoadedDraftRef = useRef(false);
 
   useEffect(() => {
@@ -73,7 +85,19 @@ export function useDraftLoader({ unit, typeLabel, storageKey, applyAirtableDraft
  * refresh protection. Restore reads engineer_* and q* keys only, so the
  * engineer_record_id written here is informational.
  */
-export function useLocalDraftMirror({ storageKey, selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, engId, answers }) {
+type LocalDraftMirrorArgs = {
+  storageKey: string;
+  selectedCompany: string;
+  locationDisplay: string;
+  locationCountry: string;
+  engName: string;
+  engEmail: string;
+  engPhone: string;
+  engId: string;
+  answers: Answers;
+};
+
+export function useLocalDraftMirror({ storageKey, selectedCompany, locationDisplay, locationCountry, engName, engEmail, engPhone, engId, answers }: LocalDraftMirrorArgs) {
   useEffect(() => {
     const draftData = {
       maintained_by: selectedCompany,
@@ -93,7 +117,7 @@ export function useLocalDraftMirror({ storageKey, selectedCompany, locationDispl
  * The values every form restores from an Airtable draft. Step restoration
  * for multi-step forms happens in the caller before this runs.
  */
-export function applyCommonAirtableDraft(draft, admin, setAnswers, setQuestionImages) {
+export function applyCommonAirtableDraft(draft: DraftBlob, admin: AdminFields, setAnswers: SetState<Answers>, setQuestionImages: SetState<QuestionImages>) {
   if (draft.answers) setAnswers(draft.answers);
   if (draft.questionImages) setQuestionImages(draft.questionImages);
   if (draft.selectedCompany) admin.setSelectedCompany(draft.selectedCompany);
@@ -110,7 +134,7 @@ export function applyCommonAirtableDraft(draft, admin, setAnswers, setQuestionIm
 }
 
 /** The values every form restores from the localStorage mirror. */
-export function applyCommonLocalDraft(data, admin, setAnswers) {
+export function applyCommonLocalDraft(data: DraftBlob, admin: AdminFields, setAnswers: SetState<Answers>) {
   if (data.maintained_by) admin.setSelectedCompany(data.maintained_by);
   if (data.location_display && data.location_display.trim()) {
     admin.setLocationDisplay(data.location_display);
@@ -120,7 +144,7 @@ export function applyCommonLocalDraft(data, admin, setAnswers) {
   if (data.engineer_email) admin.setEngEmail(data.engineer_email);
   if (data.engineer_phone) admin.setEngPhone(data.engineer_phone);
 
-  const draftAnswers = {};
+  const draftAnswers: Answers = {};
   Object.keys(data).forEach((key) => {
     if (key.startsWith("q")) draftAnswers[key] = data[key];
   });

@@ -1,8 +1,13 @@
 import { getCompanyLogoUrl } from '@/utils/get-company-logo';
+import type { NextRouter } from 'next/router';
+import type { MaintenanceFormConfig } from './config';
+import type { Unit, ChecklistTemplate, Answers, QuestionImages, AdminValues } from './types';
+
+type EmailAnswer = { text: string; images: { url: string; thumbnail?: string; fileType: string }[] };
 
 /** Answers keyed by question title, as the report email template expects. */
-export function buildEmailAnswers(template, answers, questionImages) {
-  const emailFriendlyAnswers = {};
+export function buildEmailAnswers(template: ChecklistTemplate, answers: Answers, questionImages: QuestionImages) {
+  const emailFriendlyAnswers: Record<string, EmailAnswer> = {};
   (template?.questionsData || []).forEach((q, i) => {
     const questionKey = `q${i + 1}`;
     const textAnswer = answers[questionKey] || "Not answered";
@@ -17,7 +22,17 @@ export function buildEmailAnswers(template, answers, questionImages) {
 }
 
 /** The submit-maintenance API payload, identical across all form types. */
-export function buildSubmitPayload({ typeLabel, unit, template, admin, signatureData, answers, questionImages }) {
+type SubmitPayloadArgs = {
+  typeLabel: string;
+  unit: Unit;
+  template: ChecklistTemplate;
+  admin: AdminValues;
+  signatureData: string | null;
+  answers: Answers;
+  questionImages: QuestionImages;
+};
+
+export function buildSubmitPayload({ typeLabel, unit, template, admin, signatureData, answers, questionImages }: SubmitPayloadArgs) {
   return {
     maintained_by: admin.selectedCompany,
     location_display: admin.locationDisplay,
@@ -58,6 +73,20 @@ export function buildSubmitPayload({ typeLabel, unit, template, admin, signature
  * submission. The signature (base64 data URL) is uploaded server-side so
  * record_ref can be used as the filename.
  */
+type PerformSubmissionArgs = {
+  config: MaintenanceFormConfig;
+  unit: Unit;
+  template: ChecklistTemplate;
+  accessType: string;
+  admin: AdminValues;
+  answers: Answers;
+  questionImages: QuestionImages;
+  signatureData: string | null;
+  storageKey: string;
+  extraLocalKeys?: string[];
+  router: NextRouter;
+};
+
 export async function performSubmission({
   config,
   unit,
@@ -70,7 +99,7 @@ export async function performSubmission({
   storageKey,
   extraLocalKeys = [],
   router,
-}) {
+}: PerformSubmissionArgs) {
   const emailFriendlyAnswers = buildEmailAnswers(template, answers, questionImages);
   const payload = buildSubmitPayload({
     typeLabel: config.typeLabel,

@@ -10,6 +10,9 @@ import { useDraftLoader, useLocalDraftMirror, applyCommonAirtableDraft, applyCom
 import { performSubmission } from './submit';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { errorMessage } from '@/utils/errors';
+import type { FormEvent } from 'react';
+import type { MaintenanceFormConfig } from './config';
+import type { FormPageProps, Answers, QuestionImages, UploadedImage, FieldErrors } from './types';
 
 const singleStepSchema = z.object({
   company: z.string().min(1, 'Please select a maintenance company.'),
@@ -25,7 +28,7 @@ const singleStepSchema = z.object({
  * Single-card maintenance form: all questions on one page, validated
  * together at submit. Drives the unscheduled and fault reporting pages.
  */
-export default function SingleStepForm({ config, unit, template, companies = [], engineers = [], operators = [], accessType = 'maintenance' }) {
+export default function SingleStepForm({ config, unit, template, companies = [], engineers = [], operators = [], accessType = 'maintenance' }: FormPageProps & { config: MaintenanceFormConfig }) {
   const router = useRouter();
 
   const signatureRef = useRef(null);
@@ -34,8 +37,8 @@ export default function SingleStepForm({ config, unit, template, companies = [],
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [declarationChecked, setDeclarationChecked] = useState(false);
-  const [signatureData, setSignatureData] = useState(null);
-  const [fieldErrors, setFieldErrors] = useState({
+  const [signatureData, setSignatureData] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({
     company: false,
     location: false,
     engineerName: false,
@@ -45,9 +48,9 @@ export default function SingleStepForm({ config, unit, template, companies = [],
     signature: false,
   });
 
-  const [answers, setAnswers] = useState({});
-  const [questionImages, setQuestionImages] = useState({});
-  const [questionErrors, setQuestionErrors] = useState({});
+  const [answers, setAnswers] = useState<Answers>({});
+  const [questionImages, setQuestionImages] = useState<QuestionImages>({});
+  const [questionErrors, setQuestionErrors] = useState<Record<string, boolean>>({});
 
   const admin = useAdminFields({ unit, accessType, engineers, operators, setFieldErrors });
 
@@ -91,7 +94,7 @@ export default function SingleStepForm({ config, unit, template, companies = [],
     )
   );
 
-  const handleImagesChange = (questionKey, images) => {
+  const handleImagesChange = (questionKey: string, images: UploadedImage[]) => {
     setQuestionImages(prev => ({
       ...prev,
       [questionKey]: images
@@ -125,7 +128,7 @@ export default function SingleStepForm({ config, unit, template, companies = [],
     answers,
   });
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMsg("");
     if (submitting) return;
@@ -154,8 +157,8 @@ export default function SingleStepForm({ config, unit, template, companies = [],
       signature: signatureData || "",
     });
 
-    const errors = [];
-    let firstErrorField = null;
+    const errors: { field: PropertyKey; message: string }[] = [];
+    let firstErrorField: { current: any } | null = null;
 
     if (!result.success) {
       result.error.issues.forEach(issue => {

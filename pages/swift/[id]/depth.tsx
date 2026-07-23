@@ -9,6 +9,7 @@ import { errorMessage } from '@/utils/errors';
 import { fetchFormData } from '@/lib/data-fetching';
 import { getSession } from '@/lib/session';
 import FormShell from '@/components/maintenance-form/form-shell';
+import type { FieldErrors } from '@/components/maintenance-form/types';
 import ArrowButton from '@/components/ui/arrow-button';
 import { useAdminFields, AdminCard } from '@/components/maintenance-form/admin-card';
 import QuestionField from '@/components/maintenance-form/question-field';
@@ -97,7 +98,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
   const [errorMsg, setErrorMsg] = useState("");
   const [declarationChecked, setDeclarationChecked] = useState(false);
   const [signatureData, setSignatureData] = useState(null);
-  const [fieldErrors, setFieldErrors] = useState({
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({
     company: false,
     location: false,
     engineerName: false,
@@ -917,7 +918,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
                     onImagesChange={handleImagesChange}
                     serialNumber={unit?.serial_number}
                     uploadSlug="depth"
-                    uploaderHasError={q.id === 1 && fieldErrors.photographImages}
+                    uploaderHasError={q.id === 1 && !!fieldErrors.photographImages}
                   />
                 );
               })}

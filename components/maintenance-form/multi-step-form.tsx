@@ -11,6 +11,9 @@ import { useDraftLoader, useLocalDraftMirror, applyCommonAirtableDraft, applyCom
 import { performSubmission } from './submit';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { errorMessage } from '@/utils/errors';
+import type { FormEvent, ReactNode } from 'react';
+import type { MaintenanceFormConfig } from './config';
+import type { FormPageProps, Answers, QuestionImages, UploadedImage, FieldErrors } from './types';
 
 const adminSchema = z.object({
   company: z.string().min(1, 'Please select a maintenance company.'),
@@ -27,9 +30,14 @@ const adminSchema = z.object({
  * renderQuestion lets a page swap in a custom renderer for template
  * questions that need more than the standard textarea block.
  */
-export default function MultiStepForm({ config, unit, template, companies = [], engineers = [], operators = [], accessType = 'maintenance', renderQuestion }) {
+type MultiStepFormProps = FormPageProps & {
+  config: MaintenanceFormConfig;
+  renderQuestion?: (args: Record<string, any>) => ReactNode | undefined;
+};
+
+export default function MultiStepForm({ config, unit, template, companies = [], engineers = [], operators = [], accessType = 'maintenance', renderQuestion }: MultiStepFormProps) {
   const router = useRouter();
-  const sections = config.sections;
+  const sections = config.sections!;
 
   const signatureRef = useRef(null);
   const card2Ref = useRef(null);
@@ -38,8 +46,8 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [declarationChecked, setDeclarationChecked] = useState(false);
-  const [signatureData, setSignatureData] = useState(null);
-  const [fieldErrors, setFieldErrors] = useState({
+  const [signatureData, setSignatureData] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({
     company: false,
     location: false,
     engineerName: false,
@@ -51,9 +59,9 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
   });
 
   const [currentStep, setCurrentStep] = useState(1);
-  const [answers, setAnswers] = useState({});
-  const [questionImages, setQuestionImages] = useState({});
-  const [questionErrors, setQuestionErrors] = useState({});
+  const [answers, setAnswers] = useState<Answers>({});
+  const [questionImages, setQuestionImages] = useState<QuestionImages>({});
+  const [questionErrors, setQuestionErrors] = useState<Record<string, boolean>>({});
 
   const admin = useAdminFields({ unit, accessType, engineers, operators, setFieldErrors });
 
@@ -98,7 +106,7 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
     )
   );
 
-  const handleImagesChange = (questionKey, images) => {
+  const handleImagesChange = (questionKey: string, images: UploadedImage[]) => {
     setQuestionImages(prev => ({
       ...prev,
       [questionKey]: images
@@ -140,7 +148,7 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
 
   // Handle continue to next step
   const handleContinueToNextStep = () => {
-    const errors = [];
+    const errors: string[] = [];
     const newFieldErrors = {
       company: false,
       location: false,
@@ -254,7 +262,7 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
 
   // Handle browser back button
   useEffect(() => {
-    const handlePopState = (event) => {
+    const handlePopState = (event: PopStateEvent) => {
       if (event.state?.step) {
         setCurrentStep(event.state.step);
         scrollToQuestionsCard();
@@ -317,7 +325,7 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
     answers,
   });
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMsg("");
     if (submitting) return;
@@ -336,8 +344,8 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
       return;
     }
 
-    const errors = [];
-    let firstErrorField = null;
+    const errors: { field: string; message: string }[] = [];
+    let firstErrorField: { current: any } | null = null;
 
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
     setQuestionErrors({});
@@ -446,7 +454,7 @@ export default function MultiStepForm({ config, unit, template, companies = [], 
                 onImagesChange={handleImagesChange}
                 serialNumber={unit?.serial_number}
                 uploadSlug={config.uploadSlug}
-                uploaderHasError={q.id === 1 && fieldErrors.photographImages}
+                uploaderHasError={q.id === 1 && !!fieldErrors.photographImages}
               />
             );
           })}

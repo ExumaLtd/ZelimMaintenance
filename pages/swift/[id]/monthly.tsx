@@ -11,6 +11,7 @@ import { errorMessage } from '@/utils/errors';
 import { fetchFormData } from '@/lib/data-fetching';
 import { getSession } from '@/lib/session';
 import FormShell from '@/components/maintenance-form/form-shell';
+import type { FieldErrors } from '@/components/maintenance-form/types';
 import ArrowButton from '@/components/ui/arrow-button';
 import { useAdminFields, AdminCard } from '@/components/maintenance-form/admin-card';
 import DeclarationCard from '@/components/maintenance-form/declaration-card';
@@ -51,7 +52,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
   const [currentStep, setCurrentStep] = useState(1);
   const [photographImages, setPhotographImages] = useState([]);
   const [photographComments, setPhotographComments] = useState("");
-  const [fieldErrors, setFieldErrors] = useState({
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({
     company: false,
     location: false,
     engineerName: false,
@@ -706,7 +707,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
                         setErrorMsg("");
                       }
                     }}
-                    hasError={fieldErrors.photographImages}
+                    hasError={!!fieldErrors.photographImages}
                   />
                 </div>
               </div>

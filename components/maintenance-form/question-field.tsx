@@ -2,12 +2,30 @@ import clsx from 'clsx';
 import ImageUploader from '../image-uploader';
 import VoiceInput from '../voice-input';
 import { autoGrow } from '@/utils/form-utils';
+import type { TemplateQuestion, Answers, QuestionImages, UploadedImage, SetState } from './types';
 
 /**
  * One checklist question: label, optional instruction, auto-growing
  * textarea with voice input, and the image uploader when the template
  * allows uploads for the question.
  */
+type QuestionFieldProps = {
+  q: TemplateQuestion;
+  questionIndex: number;
+  isFirst: boolean;
+  answers: Answers;
+  setAnswers: SetState<Answers>;
+  questionErrors: Record<string, boolean>;
+  setQuestionErrors: SetState<Record<string, boolean>>;
+  setErrorMsg: SetState<string>;
+  questionImages: QuestionImages;
+  onImagesChange: (questionKey: string, images: UploadedImage[]) => void;
+  serialNumber: string;
+  uploadSlug: string;
+  uploaderHasError?: boolean;
+  compact?: boolean;
+};
+
 export default function QuestionField({
   q,
   questionIndex,
@@ -23,7 +41,7 @@ export default function QuestionField({
   uploadSlug,
   uploaderHasError = false,
   compact = false,
-}) {
+}: QuestionFieldProps) {
   const questionKey = `q${questionIndex}`;
 
   return (

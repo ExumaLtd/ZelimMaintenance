@@ -1,13 +1,15 @@
 import Head from 'next/head';
 import Image from 'next/image';
 import { getClientLogo } from '@/utils/get-company-logo';
+import type { ReactNode } from 'react';
+import type { Unit } from './types';
 
 /**
  * Page frame shared by every maintenance form: client logo, hero title with
  * the unit serial number, and the Zelim footer. Still styled by the legacy
  * form.css (form-scope) until the forms migrate to Tailwind.
  */
-export default function FormShell({ unit, headTitle, heroLabel, children }) {
+export default function FormShell({ unit, headTitle, heroLabel, children }: { unit: Unit; headTitle: string; heroLabel: string; children: ReactNode }) {
   const logo = getClientLogo(unit?.company, unit?.serial_number);
 
   return (

@@ -1,4 +1,6 @@
 import clsx from 'clsx';
+import type { CSSProperties, RefObject } from 'react';
+import type { ChecklistTemplate, FieldErrors, SetState } from './types';
 import SignaturePad from '../signature-pad';
 import ArrowButton from '../ui/arrow-button';
 
@@ -7,6 +9,20 @@ import ArrowButton from '../ui/arrow-button';
  * submit button. The owning form provides validation state and the
  * submit handling via its wrapping <form>.
  */
+type DeclarationCardProps = {
+  template: ChecklistTemplate;
+  declarationChecked: boolean;
+  setDeclarationChecked: SetState<boolean>;
+  fieldErrors: FieldErrors;
+  setFieldErrors: SetState<FieldErrors>;
+  setErrorMsg: SetState<string>;
+  signatureRef: RefObject<any>;
+  setSignatureData: SetState<string | null>;
+  errorMsg: string;
+  submitting: boolean;
+  style?: CSSProperties;
+};
+
 export default function DeclarationCard({
   template,
   declarationChecked,
@@ -19,7 +35,7 @@ export default function DeclarationCard({
   errorMsg,
   submitting,
   style,
-}) {
+}: DeclarationCardProps) {
   return (
     <div className="checklist-form-card" style={style}>
       <h3 className="checklist-section-title">Declaration</h3>
@@ -54,7 +70,7 @@ export default function DeclarationCard({
               setSignatureData(data);
               if (data) setFieldErrors(prev => ({ ...prev, signature: false }));
             }}
-            hasError={fieldErrors.signature}
+            hasError={!!fieldErrors.signature}
           />
         </div>
       </div>

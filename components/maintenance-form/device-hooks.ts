@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import type { SetState } from './types';
 import { dlog } from './debug';
 
 /**
@@ -7,7 +8,14 @@ import { dlog } from './debug';
  * page was opened from a draft link. Runs once on mount by design; the
  * exhaustive-deps warning is accepted tech debt shared by every form.
  */
-export function useGeolocation({ locationDisplay, setLocationDisplay, setLocationCountry, setLocationFailed }) {
+type GeolocationArgs = {
+  locationDisplay: string;
+  setLocationDisplay: SetState<string>;
+  setLocationCountry: SetState<string>;
+  setLocationFailed: SetState<boolean>;
+};
+
+export function useGeolocation({ locationDisplay, setLocationDisplay, setLocationCountry, setLocationFailed }: GeolocationArgs) {
   useEffect(() => {
     if (typeof window === "undefined" || !navigator.geolocation) return;
     if (locationDisplay && locationDisplay.trim() !== "") return;
