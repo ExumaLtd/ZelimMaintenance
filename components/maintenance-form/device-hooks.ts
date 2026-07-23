@@ -13,9 +13,10 @@ type GeolocationArgs = {
   setLocationDisplay: SetState<string>;
   setLocationCountry: SetState<string>;
   setLocationFailed: SetState<boolean>;
+  setWhat3words?: SetState<string>;
 };
 
-export function useGeolocation({ locationDisplay, setLocationDisplay, setLocationCountry, setLocationFailed }: GeolocationArgs) {
+export function useGeolocation({ locationDisplay, setLocationDisplay, setLocationCountry, setLocationFailed, setWhat3words }: GeolocationArgs) {
   useEffect(() => {
     if (typeof window === "undefined" || !navigator.geolocation) return;
     if (locationDisplay && locationDisplay.trim() !== "") return;
@@ -54,6 +55,10 @@ export function useGeolocation({ locationDisplay, setLocationDisplay, setLocatio
 
               setLocationDisplay((prev) => (!prev || prev.trim() === "") ? combinedDisplay : prev);
               setLocationCountry(formalCountry);
+            }
+
+            if (data?.what3words && setWhat3words) {
+              setWhat3words(data.what3words);
             }
           } catch (err) {
             console.error("Geocoding error:", err);

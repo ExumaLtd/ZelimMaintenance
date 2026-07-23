@@ -33,6 +33,7 @@ export function useAdminFields({ unit, accessType, engineers, operators, setFiel
   const [locationDisplay, setLocationDisplay] = useState('');
   const [locationCountry, setLocationCountry] = useState('');
   const [locationFailed, setLocationFailed] = useState(false);
+  const [what3words, setWhat3words] = useState('');
   const [selectedCompany, setSelectedCompany] = useState(accessType === 'operator' ? unit?.company || '' : '');
   const [engName, setEngName] = useState('');
   const [engEmail, setEngEmail] = useState('');
@@ -162,6 +163,7 @@ export function useAdminFields({ unit, accessType, engineers, operators, setFiel
     locationDisplay, setLocationDisplay,
     locationCountry, setLocationCountry,
     locationFailed, setLocationFailed,
+    what3words, setWhat3words,
     selectedCompany, setSelectedCompany,
     engName, setEngName, engEmail, setEngEmail, engPhone, setEngPhone, engId, setEngId,
     operatorName, setOperatorName, operatorEmail, setOperatorEmail,

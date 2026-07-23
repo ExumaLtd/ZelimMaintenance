@@ -30,6 +30,7 @@ const admin = {
   selectedCompany: 'Zelim Service Ltd',
   locationDisplay: 'Leith, UK',
   locationCountry: 'United Kingdom',
+  what3words: 'filled.count.soap',
   engName: 'Jo Bloggs',
   engEmail: 'jo@example.com',
   engPhone: '07000000000',

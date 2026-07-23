@@ -58,6 +58,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const data = await response.json();
+
+    // Optional what3words lookup, ideal at sea where street addresses fail.
+    // Guarded in-handler like ELEVENLABS_API_KEY so the portal degrades
+    // gracefully when the key is not configured.
+    if (process.env.W3W_API_KEY) {
+      try {
+        const w3wRes = await fetch(
+          `https://api.what3words.com/v3/convert-to-3wa?coordinates=${latNum}%2C${lonNum}&key=${process.env.W3W_API_KEY}`
+        );
+        if (w3wRes.ok) {
+          const w3w = await w3wRes.json();
+          if (w3w?.words) data.what3words = w3w.words;
+        }
+      } catch {
+        // Lookup failed; the address response is still useful on its own.
+      }
+    }
+
     return res.status(200).json(data);
   } catch (err: any) {
     console.error('Geocoding error:', err);

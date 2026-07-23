@@ -541,6 +541,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
       maintained_by: admin.selectedCompany,
       location_display: admin.locationDisplay,
       location_country: admin.locationCountry,
+      location_what3words: admin.what3words,
       maintenance_type: "Monthly",
       date_of_maintenance: new Date().toISOString(),
       engineer_name: admin.engName,

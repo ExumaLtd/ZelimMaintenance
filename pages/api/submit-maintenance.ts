@@ -104,6 +104,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     location_display,
     location_town,
     location_country,
+    location_what3words,
     answers,
     maintenance_checklist,
     serial_number,
@@ -362,6 +363,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (maintenance_checklist) {
       checkFields["maintenance_checklist"] = maintenance_checklist;
+    }
+
+    // maintenance_checks only; maintenance_logs has no what3words field.
+    if (location_what3words) {
+      checkFields["location_what3words"] = location_what3words;
     }
 
     // Submit to both tables simultaneously

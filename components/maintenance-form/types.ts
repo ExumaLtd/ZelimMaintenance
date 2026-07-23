@@ -69,6 +69,7 @@ export type AdminValues = {
   selectedCompany: string;
   locationDisplay: string;
   locationCountry: string;
+  what3words: string;
   engName: string;
   engEmail: string;
   engPhone: string;

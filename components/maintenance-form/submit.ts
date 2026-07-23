@@ -38,6 +38,7 @@ export function buildSubmitPayload({ typeLabel, unit, template, admin, signature
     maintained_by: admin.selectedCompany,
     location_display: admin.locationDisplay,
     location_country: admin.locationCountry,
+    location_what3words: admin.what3words,
     maintenance_type: typeLabel,
     date_of_maintenance: new Date().toISOString(),
     // Engineer fields (engineer logins)

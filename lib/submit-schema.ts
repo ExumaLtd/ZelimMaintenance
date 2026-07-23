@@ -37,6 +37,7 @@ export const submitMaintenanceSchema = z.looseObject({
   location_display: optionalString,
   location_town: optionalString,
   location_country: optionalString,
+  location_what3words: optionalString,
   engineer_name: optionalString,
   engineer_email: optionalString,
   engineer_phone: optionalString,
