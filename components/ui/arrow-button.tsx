@@ -38,6 +38,10 @@ type Props = {
   fullWidth?: boolean;
   /** Put the arrow on the left, pointing back. */
   direction?: "forward" | "back";
+  /** Invisible text that reserves label width, so swapping the visible
+      label (e.g. to "Verifying") does not resize the button. */
+  reserveLabel?: string;
+  className?: string;
 };
 
 /** The Zelim arrow button: yellow outline, mono uppercase label, arrow tile. */
@@ -49,17 +53,30 @@ export default function ArrowButton({
   onClick,
   fullWidth = false,
   direction = "forward",
+  reserveLabel,
+  className,
 }: Props) {
   const back = direction === "back";
   const classes = clsx(
     baseClasses,
     fullWidth ? "flex w-full" : "inline-flex",
     back ? "py-[7px] pr-6 pl-[7px]" : "py-[7px] pr-[7px] pl-6",
+    className,
+  );
+  const label = reserveLabel ? (
+    <span className="inline-grid min-w-0 flex-1">
+      <span aria-hidden="true" className="invisible h-0 overflow-hidden [grid-area:1/1]">
+        {reserveLabel}
+      </span>
+      <span className="[grid-area:1/1]">{children}</span>
+    </span>
+  ) : (
+    <span className={clsx("min-w-0 flex-1", fullWidth && "text-center")}>{children}</span>
   );
   const inner = (
     <>
       {back && <ArrowIcon back />}
-      <span className={clsx("min-w-0 flex-1", fullWidth && "text-center")}>{children}</span>
+      {label}
       {!back && <ArrowIcon />}
     </>
   );

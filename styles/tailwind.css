@@ -39,3 +39,6 @@
   --font-sans: var(--font-montserrat), "Montserrat", sans-serif;
   --font-mono: var(--font-roboto-mono), "Roboto Mono", monospace;
 }
+
+/* Phone held sideways, e.g. the QR scanner in landscape. */
+@custom-variant landscape-short (@media (orientation: landscape) and (max-height: 500px));

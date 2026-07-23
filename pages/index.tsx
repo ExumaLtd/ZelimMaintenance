@@ -2,6 +2,7 @@ import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import ArrowButton from '@/components/ui/arrow-button';
 
 export default function Home() {
   const [accessCode, setAccessCode] = useState('');
@@ -245,35 +246,28 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, [showScanner]);
 
+  const hasError = Boolean(error) || rateLimitCountdown > 0;
+
   return (
-    <div className="landing-scope">
+    <div>
       <Head>
         <title>Zelim Maintenance Portal</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-        <style>{`
-          #reader__status_span,
-          #reader__dashboard,
-          #reader__dashboard_section,
-          #reader__scan_region__dashboard_section_csr,
-          #reader__scan_region__dashboard_section_swaplink {
-            display: none !important;
-          }
-        `}</style>
       </Head>
 
-      <div className="landing-root">
-        <div className="landing-hero">
-          <div className="landing-hero-inner">
+      <div className="flex h-full min-h-screen items-stretch max-[900px]:flex-col">
+        <div className="flex min-h-screen flex-[1_1_50%] items-center justify-center p-6 max-[900px]:hidden">
+          <div className="relative h-full w-full overflow-hidden rounded-[20px] after:pointer-events-none after:absolute after:inset-0 after:bg-black/60 after:content-['']">
             <video
               src="/videos/zelim-hero-small.mp4"
               autoPlay
               muted
               loop
               playsInline
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              className="block h-full w-full object-cover"
             />
-            <div className="hero-tagline">
-              <h2 className="heading heading--one heading--beacon heroBanner__title">
+            <div className="absolute inset-0 z-1 flex items-center justify-start px-16 py-8">
+              <h2 className="m-0 flex flex-col font-sans text-[clamp(2.5rem,4.5vw,7.5rem)] font-light uppercase leading-normal tracking-[0.28em] text-warn">
                 <span>Find</span>
                 <span>Recover</span>
                 <span>Protect</span>
@@ -282,30 +276,30 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
           </div>
         </div>
 
-        <div className="landing-content">
+        <div className="relative flex flex-[50%] flex-col items-center justify-between overflow-hidden px-14 pt-8 pb-[60px] max-[1024px]:px-10 max-[900px]:px-6">
           <img
             src="/patterns/pattern-left.svg"
             alt=""
             aria-hidden="true"
-            className="landing-pattern"
+            className="pointer-events-none absolute top-[13px] -right-5 z-0 h-auto w-[max(10rem,20vw)] -scale-x-100"
           />
-          <div className="landing-main">
-            <div className="landing-header">
-              <h1 className="landing-title">
+          <div className="relative z-1 flex w-full flex-1 flex-col items-center justify-center">
+            <div className="mx-auto mb-8 w-full max-w-[380px] text-center">
+              <h1 className="m-0 flex flex-col items-center font-mono text-[2.2rem] font-normal leading-[2.6rem] tracking-[0.1em] text-ink">
                 <span>Maintenance</span>
                 <span>portal</span>
               </h1>
-              <p className="landing-subtitle">
+              <p className="mx-0 mt-6 mb-0 text-center font-sans text-[15px] font-light leading-[22px] tracking-[0.05em] text-white">
                 For authorised persons carrying out official inspections and maintenance.
               </p>
             </div>
 
-            <form onSubmit={handleFormSubmit} className="landing-form">
-              <div className="form-area">
-                <div className="form-stack">
-                  <div className={`input-wrapper ${error || rateLimitCountdown > 0 ? 'has-error' : ''}`}>
+            <form onSubmit={handleFormSubmit} className="w-full max-w-[380px]">
+              <div className="relative w-full">
+                <div className="flex w-full flex-row items-stretch gap-4 max-[900px]:flex-col">
+                  <div className="flex flex-1 max-[900px]:w-full">
                     <input
-                      className="input-field"
+                      className={`w-full rounded-lg border bg-card px-5 py-[7px] text-center font-mono text-sm font-normal uppercase leading-normal tracking-[0.1em] text-[#e9ebec] transition-[border-color] duration-500 placeholder:text-ink-dim placeholder:opacity-100 focus:border-accent focus:outline-none max-[900px]:h-11 ${hasError ? 'border-danger' : 'border-card'}`}
                       placeholder="Access code"
                       value={accessCode}
                       onChange={(e) => {
@@ -316,42 +310,43 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
                     />
                   </div>
 
-                  <button type="submit" className="arrowLink" disabled={isSubmitting}>
-                    <span className="left">
-                      <span aria-hidden="true" className="left-sizer">Enter portal</span>
-                      {isSubmitting ? 'Verifying' : 'Enter portal'}
-                    </span>
-                    <span className="right">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M10.1458 7.5L0 7.5L0 5.83333L10.1458 5.83333L5.47917 1.16667L6.66667 0L13.3333 6.66667L6.66667 13.3333L5.47917 12.1667L10.1458 7.5Z" fill="#172F36"/>
-                      </svg>
-                    </span>
-                  </button>
+                  <ArrowButton
+                    type="submit"
+                    disabled={isSubmitting}
+                    reserveLabel="Enter portal"
+                    className="max-[900px]:justify-center max-[900px]:self-stretch"
+                  >
+                    {isSubmitting ? 'Verifying' : 'Enter portal'}
+                  </ArrowButton>
                 </div>
 
-                <p className="error-text">
+                <p className="absolute top-full left-0 m-0 mt-2.5 text-left text-sm leading-5 text-danger max-[900px]:static max-[900px]:mt-2">
                   {rateLimitCountdown > 0
                     ? `Too many failed attempts. Try again in ${formatCountdown(rateLimitCountdown)}.`
                     : error || ''}
                 </p>
               </div>
 
-              <div className="qr-login-container">
-                <button type="button" className="qr-button" onClick={startScanner}>
+              <div className="mt-5 hidden text-center max-[900px]:block">
+                <button
+                  type="button"
+                  className="cursor-pointer border-none bg-transparent p-2 font-sans text-[15px] font-light leading-[22px] tracking-[0.05em] text-white"
+                  onClick={startScanner}
+                >
                   Log in with QR code
                 </button>
               </div>
             </form>
           </div>
 
-          <footer className="landing-footer">
-            <Link href="/erp" className="logo-link">
-              <Image 
-                src="/logo/zelim-logo.svg" 
-                alt="Zelim Logo" 
-                width={120} 
-                height={40} 
-                className="zelim-logo" 
+          <footer className="relative z-1">
+            <Link href="/erp" className="inline-flex items-center no-underline">
+              <Image
+                src="/logo/zelim-logo.svg"
+                alt="Zelim Logo"
+                width={120}
+                height={40}
+                className="h-10 w-[120px] object-contain"
               />
             </Link>
           </footer>
@@ -359,19 +354,22 @@ const handleQrCodeDetected = async (decodedText, html5QrCode) => {
       </div>
 
       {showScanner && (
-        <div className="scanner-overlay landing-scope">
-          <div className="scanner-container">
-            <div className="scanner-main">
-              <div id="reader" />
+        <div className="fixed inset-0 z-[9999] overflow-hidden bg-accent-ink">
+          <div className="relative flex h-dvh w-full flex-col">
+            <div className="relative flex min-h-0 flex-1 items-center justify-center p-5 max-[400px]:p-3 landscape-short:p-2.5">
+              <div
+                id="reader"
+                className="relative aspect-square w-full max-w-[min(90vw,500px)] overflow-hidden rounded-2xl bg-transparent min-[768px]:max-[1024px]:max-w-[min(70vw,450px)] max-[400px]:max-w-[95vw] landscape-short:max-h-[80vh] landscape-short:max-w-[min(40vh,400px)]"
+              />
             </div>
-            <footer className="scanner-footer">
-              <div className="logo-link">
-                <Image 
-                  src="/logo/zelim-logo.svg" 
-                  alt="Zelim Logo" 
-                  width={120} 
-                  height={40} 
-                  className="zelim-logo" 
+            <footer className="absolute inset-x-0 bottom-0 flex items-center justify-center bg-transparent pt-6 pb-[max(24px,env(safe-area-inset-bottom))] landscape-short:pt-3 landscape-short:pb-3">
+              <div className="flex items-center justify-center">
+                <Image
+                  src="/logo/zelim-logo.svg"
+                  alt="Zelim Logo"
+                  width={120}
+                  height={40}
+                  className="h-10 w-[120px] object-contain"
                 />
               </div>
             </footer>

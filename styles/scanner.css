@@ -1,0 +1,35 @@
+/* Overrides for DOM injected by the html5-qrcode library inside #reader.
+   These cannot be Tailwind utilities because the library renders these
+   elements, and !important is needed to beat its inline styles. */
+
+#reader video {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  border-radius: 16px;
+}
+
+#reader canvas {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Hide the library's own UI chrome. */
+#reader button,
+#reader__dashboard,
+#reader__dashboard_section,
+#reader__status_span,
+#reader__scan_region__dashboard_section,
+#reader__scan_region__dashboard_section_csr,
+#reader__scan_region__dashboard_section_swaplink {
+  display: none !important;
+}
