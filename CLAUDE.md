@@ -25,10 +25,9 @@ Standing conventions for the Zelim maintenance portal. Follow these in every ses
 
 - New and migrated UI uses Tailwind v4. Design tokens (brand colors, fonts) live in `styles/tailwind.css` and are the single source of truth; do not hardcode brand hex values in components.
 - Fonts are declared in `@theme inline` because next/font sets its variables on a wrapper div, not `:root`. Keep them there.
-- Tailwind preflight and cascade layers are deliberately not imported while the legacy stylesheets remain, so utilities cannot change unmigrated pages. Enable them only when the last legacy stylesheet is deleted.
-- Shared UI primitives live in `components/ui/` (PortalShell, MessageCard, ArrowButton). Reuse them instead of re-styling cards and buttons per page.
-- The legacy stylesheets (`form.css`, `dashboard.css`, `voice-input.css`, `globals.css`) are still imported globally and still style the unmigrated pages (the five form pages and the dashboard). Delete rules from them only when the last page using them migrates.
-- `scanner.css` is deliberate plain CSS: it styles DOM injected by html5-qrcode inside `#reader`, which utilities cannot reach. Keep it.
+- Tailwind preflight and cascade layers are deliberately not imported: the remaining plain CSS is unlayered, and unlayered rules always beat layered ones, which would disable every utility. globals.css provides the base reset instead.
+- Shared UI primitives live in `components/ui/` (PortalShell, MessageCard, ArrowButton). Reuse them instead of re-styling cards and buttons per page. All arrow buttons across the portal are ArrowButton or its exported classes.
+- Three plain CSS files remain by design, all referencing the theme tokens: `globals.css` (site-wide base), `scanner.css` (DOM injected by html5-qrcode inside `#reader`), and `form.css` (react-day-picker theming, pseudo-element mobile labels on the equipment tables, autofill and appearance hacks, and the imperative has-error states the form validation toggles via classList). Do not try to convert these to utilities; they cover things utilities cannot reach.
 
 ## Held major upgrades
 

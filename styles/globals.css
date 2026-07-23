@@ -1,39 +1,42 @@
-/* globals.css */
-/* Montserrat is loaded via next/font in _app.tsx; no CSS import needed. */
+/* globals.css
+   Site-wide base styles. Colors reference the Tailwind theme tokens in
+   styles/tailwind.css, with literal fallbacks because Tailwind only emits
+   variables that generated utilities use. Montserrat is loaded via
+   next/font in _app.tsx. */
 
 html {
   height: -webkit-fill-available;
-  font-family: 'Montserrat', sans-serif; 
+  font-family: 'Montserrat', sans-serif;
 }
 
 :root {
-  background-color: #172F36;
+  background-color: var(--color-page, #172f36);
 }
 
 ::selection {
-  background-color: #27454B;
-  color: #F7F7F7;
+  background-color: var(--color-card, #27454b);
+  color: var(--color-ink, #f7f7f7);
 }
 
 ::-moz-selection {
-  background-color: #27454B;
-  color: #F7F7F7;
+  background-color: var(--color-card, #27454b);
+  color: var(--color-ink, #f7f7f7);
 }
 
 body {
   padding: 0;
-  margin: 0; 
+  margin: 0;
   min-height: 100vh;
   min-height: -webkit-fill-available;
   padding-bottom: env(safe-area-inset-bottom);
   padding-top: env(safe-area-inset-top);
-  
+
   /* Global solid background for all pages */
-  background: #172F36 !important;
+  background: var(--color-page, #172f36) !important;
   background-size: cover;
   background-attachment: fixed;
-  
-  color: #bdc4c6;
+
+  color: var(--color-ink-soft, #bdc4c6);
   line-height: 1.6;
 }
 
@@ -44,15 +47,4 @@ a {
 
 * {
   box-sizing: border-box;
-}
-
-.fixed-zelim-logo {
-    position: fixed;
-    bottom: 50px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 50;
-    opacity: 1; 
-    top: auto;
-    right: auto;
 }
