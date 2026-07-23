@@ -10,7 +10,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "email:dev": "email dev"
+    "email:dev": "email dev",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
@@ -43,6 +45,7 @@
     "postcss": "^8.5.22",
     "react-email": "^6.0.0",
     "tailwindcss": "^4.3.3",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.10"
   }
 }
