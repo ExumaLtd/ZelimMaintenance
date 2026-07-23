@@ -22,6 +22,14 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      - name: Require the access pin secret
+        # Without this, a missing secret would skip every test and the run
+        # would report green having exercised nothing.
+        run: |
+          if [ -z "${{ secrets.E2E_ACCESS_PIN }}" ]; then
+            echo "E2E_ACCESS_PIN secret is not configured; refusing to report an untested deployment as green" >&2
+            exit 1
+          fi
       - run: npx playwright test
         env:
           E2E_BASE_URL: ${{ inputs.base_url }}
