@@ -1,0 +1,34 @@
+name: E2E
+
+# Runs the Playwright suite against a deployed URL, normally a Vercel
+# preview backed by the staging Airtable base. Manual trigger because it
+# needs a live deployment and the E2E_ACCESS_PIN repository secret.
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Deployment URL to test, e.g. a Vercel preview
+        required: true
+        type: string
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+        env:
+          E2E_BASE_URL: ${{ inputs.base_url }}
+          E2E_ACCESS_PIN: ${{ secrets.E2E_ACCESS_PIN }}
+          E2E_OPERATOR_PIN: ${{ secrets.E2E_OPERATOR_PIN }}
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: test-results/
