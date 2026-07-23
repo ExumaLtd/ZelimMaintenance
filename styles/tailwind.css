@@ -29,6 +29,13 @@
   --color-danger: #ff4d4d;
   --color-warn: #f6f65e;
 
+  /* Voice input waveform: subtle idle motion while waiting for speech. */
+  --animate-voice-idle: voice-idle 1.1s ease-in-out infinite;
+
+  @keyframes voice-idle {
+    0%, 100% { transform: scaleY(0.75); }
+    50% { transform: scaleY(1.05); }
+  }
 }
 
 /* Fonts are loaded via next/font in _app.tsx, which sets these variables on a

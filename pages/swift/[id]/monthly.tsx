@@ -666,10 +666,10 @@ export default function Monthly({ unit, template, companies = [], engineers = []
                 <label className="checklist-label">Photograph Swift</label>
                 <p className="question-instruction">Take clear photos of the Swift in situ and the surrounding installation area.</p>
                 <div className="question-with-upload">
-                  <div className="textarea-wrapper">
+                  <div className="textarea-wrapper relative">
                     <textarea
                       name="photograph_comments"
-                      className="checklist-textarea"
+                      className="checklist-textarea pr-12! max-[768px]:pr-14!"
                       value={photographComments}
                       onChange={(e) => {
                         setPhotographComments(e.target.value);
@@ -783,9 +783,9 @@ export default function Monthly({ unit, template, companies = [], engineers = []
                     <p className="question-instruction">Record any additional observations, defects, or actions.</p>
 
                     <div className="question-with-upload">
-                      <div className="textarea-wrapper">
+                      <div className="textarea-wrapper relative">
                         <textarea
-                          className={clsx("checklist-textarea", hasError && "has-error")}
+                          className={clsx("checklist-textarea pr-12! max-[768px]:pr-14!", hasError && "has-error")}
                           value={stepComments[groupIndex] || ""}
                           onChange={(e) => {
                             const val = e.target.value;

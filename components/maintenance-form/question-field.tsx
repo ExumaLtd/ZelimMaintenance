@@ -36,10 +36,10 @@ export default function QuestionField({
       )}
 
       <div className="question-with-upload">
-        <div className="textarea-wrapper">
+        <div className="textarea-wrapper relative">
           <textarea
             name={questionKey}
-            className={clsx("checklist-textarea", questionErrors[questionKey] && "has-error")}
+            className={clsx("checklist-textarea pr-12! max-[768px]:pr-14!", questionErrors[questionKey] && "has-error")}
             value={answers[questionKey] || ""}
             onChange={(e) => {
               setAnswers((prev) => ({ ...prev, [e.target.name]: e.target.value }));

@@ -2,7 +2,6 @@ import "../styles/tailwind.css";
 import "../styles/globals.css";
 import "../styles/scanner.css";
 import "../styles/form.css";
-import "../styles/voice-input.css";
 
 import Head from "next/head";
 import { Montserrat, Roboto_Mono } from "next/font/google";
