@@ -20,6 +20,7 @@
   --color-hover-light: #324e54;
   --color-ink: #f7f7f7;
   --color-ink-soft: #bdc4c6;
+  --color-ink-muted: #a0acaf;
   --color-ink-dim: #7d8f93;
   --color-accent: #00fff6;
   --color-accent-ink: #0d3037;
@@ -28,7 +29,13 @@
   --color-danger: #ff4d4d;
   --color-warn: #f6f65e;
 
-  /* Fonts are loaded via next/font in _app.tsx, which sets these variables. */
+}
+
+/* Fonts are loaded via next/font in _app.tsx, which sets these variables on a
+   wrapper div rather than :root. "inline" makes utilities reference the
+   variables directly at the element, where they resolve through inheritance;
+   a plain @theme would resolve them at :root, where they do not exist. */
+@theme inline {
   --font-sans: var(--font-montserrat), "Montserrat", sans-serif;
-  --font-mono: var(--font-roboto-mono), monospace;
+  --font-mono: var(--font-roboto-mono), "Roboto Mono", monospace;
 }
