@@ -21,6 +21,11 @@ Standing conventions for the Zelim maintenance portal. Follow these in every ses
 - The five maintenance forms are safety-critical. Their shared machinery lives in `components/maintenance-form/` (admin card, question field, declaration card, persistence, submit plumbing, single- and multi-step engines); annual, unscheduled and fault-reporting are thin config wrappers, while monthly and depth keep their unique checklist logic in the page. Behaviour changes need explicit instruction, and the persistence strings in the configs (draft slugs, upload slugs, Airtable type labels) must never change since live drafts depend on them.
 - The react-hooks v6 lint warnings (about 45) are accepted tech debt, deliberately set to warn. Do not silence them or refactor to clear them.
 
+## Tests and CI
+
+- `npm test` runs the vitest suite in `tests/`. The payload and form-config tests encode live contracts (Airtable payload shape, draft and upload slugs, type labels). A failure there means a breaking change for live drafts or the API; do not update the assertion without a migration plan.
+- CI (`.github/workflows/ci.yml`) runs lint, typecheck, tests and a production build on pushes to main and pull requests.
+
 ## Styling
 
 - New and migrated UI uses Tailwind v4. Design tokens (brand colors, fonts) live in `styles/tailwind.css` and are the single source of truth; do not hardcode brand hex values in components.
