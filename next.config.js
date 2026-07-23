@@ -96,15 +96,22 @@ const nextConfig = {
       // ========================================
       // ALLOW caching of static assets
       // ========================================
-      {
-        source: '/_next/static/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
+      // Production only: dev chunk filenames are stable rather than
+      // content-hashed, so an immutable header makes browsers keep stale
+      // chunks across code changes.
+      ...(process.env.NODE_ENV === 'production'
+        ? [
+            {
+              source: '/_next/static/:path*',
+              headers: [
+                {
+                  key: 'Cache-Control',
+                  value: 'public, max-age=31536000, immutable',
+                },
+              ],
+            },
+          ]
+        : []),
       {
         source: '/favicon/:path*',
         headers: [
