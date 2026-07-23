@@ -81,7 +81,7 @@ export const TechnicalAlertEmail = ({
 
   const airtableUrl = 'https://airtable.com/appOQXbopTwn0SdnL/tblAVxcIGNSWQTP9o/viweP5xYy6J5Nroal?blocks=hide';
 
-  const getCountryFromLocation = (locationStr) => {
+  const getCountryFromLocation = (locationStr: any) => {
     if (!locationStr || locationStr === 'N/A') return 'N/A';
     if (locationStr.includes(',')) {
       const parts = locationStr.split(',');
@@ -249,7 +249,7 @@ export const TechnicalAlertEmail = ({
                 <Heading as="h2" style={h2}>Pre-disassembly inspection</Heading>
                 
                 <Section>
-                  {parsedEquipmentChecklist.map((item, i) => (
+                  {parsedEquipmentChecklist.map((item: any, i: number) => (
                     <div key={i} style={checklistItemBlock}>
                       <Text style={checklistItemName}>{item.name}</Text>
                       <Row style={{ marginBottom: '12px' }}>
@@ -274,7 +274,7 @@ export const TechnicalAlertEmail = ({
                       
                       {item.images && item.images.length > 0 && (
                         <Section style={imageGallery}>
-                          {item.images.map((imageUrl, imgIndex) => (
+                          {item.images.map((imageUrl: any, imgIndex: number) => (
                             <Link 
                               key={imgIndex} 
                               href={imageUrl}
@@ -302,11 +302,11 @@ export const TechnicalAlertEmail = ({
                 <Heading as="h2" style={h2}>Monthly inspection checklist</Heading>
                 
                 <Section>
-                  {parsedMaintenanceChecklist.map((group, groupIndex) => (
+                  {parsedMaintenanceChecklist.map((group: any, groupIndex: number) => (
                     <div key={groupIndex} style={monthlyGroupBlock}>
                       <Text style={monthlyGroupTitle}>{group.title}</Text>
                       
-                      {group.questions && group.questions.map((question, qIndex) => (
+                      {group.questions && group.questions.map((question: any, qIndex: number) => (
                         <Row 
                           key={qIndex} 
                           style={{
@@ -363,7 +363,7 @@ export const TechnicalAlertEmail = ({
                         
                         {images.length > 0 && (
                           <Section style={{...imageGallery, marginTop: shouldSkipNotAnswered ? '8px' : '12px'}} className="image-gallery-mobile">
-                            {images.map((item, imgIndex) => {
+                            {images.map((item: any, imgIndex: number) => {
                               const imgUrl = typeof item === 'string' ? item : item.url;
                               const imgSrc = imgUrl?.includes('/upload/')
                                 ? imgUrl.replace('/upload/', '/upload/w_600,c_limit,q_auto/')

@@ -9,7 +9,17 @@ import { errorMessage } from '@/utils/errors';
 import { fetchFormData } from '@/lib/data-fetching';
 import { getSession } from '@/lib/session';
 import FormShell from '@/components/maintenance-form/form-shell';
-import type { FieldErrors } from '@/components/maintenance-form/types';
+import type { FieldErrors, FormPageProps, UploadedImage, Answers, QuestionImages } from '@/components/maintenance-form/types';
+import type { FormEvent } from 'react';
+import type { GetServerSidePropsContext } from 'next';
+
+type EquipmentItem = {
+  id: number;
+  name: string;
+  returned: boolean | null;
+  condition: 'good' | 'fair' | 'poor' | null;
+  [key: string]: any;
+};
 import ArrowButton from '@/components/ui/arrow-button';
 import { useAdminFields, AdminCard } from '@/components/maintenance-form/admin-card';
 import QuestionField from '@/components/maintenance-form/question-field';
@@ -88,7 +98,7 @@ const sections = [
   }
 ];
 
-export default function Depth({ unit, template, companies = [], engineers = [], operators = [], accessType = 'maintenance' }) {
+export default function Depth({ unit, template, companies = [], engineers = [], operators = [], accessType = 'maintenance' }: FormPageProps) {
   const router = useRouter();
 
   const card2Ref = useRef(null);
@@ -110,13 +120,13 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
   });
 
   const [currentStep, setCurrentStep] = useState(1);
-  const [checklistData, setChecklistData] = useState([]);
-  const [closingItems, setClosingItems] = useState(new Set());
+  const [checklistData, setChecklistData] = useState<EquipmentItem[]>([]);
+  const [closingItems, setClosingItems] = useState<Set<number>>(new Set());
 
-  const [answers, setAnswers] = useState({});
-  const [questionImages, setQuestionImages] = useState({});
-  const [checklistImages, setChecklistImages] = useState({});
-  const [questionErrors, setQuestionErrors] = useState({});
+  const [answers, setAnswers] = useState<Answers>({});
+  const [questionImages, setQuestionImages] = useState<QuestionImages>({});
+  const [checklistImages, setChecklistImages] = useState<QuestionImages>({});
+  const [questionErrors, setQuestionErrors] = useState<Record<string, boolean>>({});
 
   const admin = useAdminFields({ unit, accessType, engineers, operators, setFieldErrors });
 
@@ -187,7 +197,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
     if (template?.maintenanceChecklist && !checklistInitialisedRef.current) {
       checklistInitialisedRef.current = true;
       setChecklistData(
-        template.maintenanceChecklist.map(item => ({
+        template.maintenanceChecklist.map((item: any) => ({
           ...item,
           returned: null,
           condition: null,
@@ -196,7 +206,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
     }
   }, [template]);
 
-  const handleImagesChange = (questionKey, images) => {
+  const handleImagesChange = (questionKey: string, images: UploadedImage[]) => {
     setQuestionImages(prev => ({
       ...prev,
       [questionKey]: images
@@ -208,14 +218,14 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
     }
   };
 
-  const handleChecklistImagesChange = (itemId, images) => {
+  const handleChecklistImagesChange = (itemId: number, images: UploadedImage[]) => {
     setChecklistImages(prev => ({
       ...prev,
       [`item_${itemId}`]: images
     }));
   };
 
-  const updateChecklist = (index, field, value) => {
+  const updateChecklist = (index: number, field: 'returned' | 'condition', value: any) => {
     setChecklistData(prev => {
       const updated = [...prev];
       const item = updated[index];
@@ -276,8 +286,8 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
 
   // Handle continue to next step with winch skip logic
   const handleContinueToNextStep = () => {
-    const errors = [];
-    const newFieldErrors = {
+    const errors: string[] = [];
+    const newFieldErrors: FieldErrors = {
       company: false,
       location: false,
       engineerName: false,
@@ -332,7 +342,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
         });
       }
 
-      const incompleteItems = [];
+      const incompleteItems: { index: number; type: 'returned' | 'condition' }[] = [];
       checklistData.forEach((item, index) => {
         if (item.returned === null) {
           incompleteItems.push({ index, type: 'returned' });
@@ -435,7 +445,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
 
   // Handle browser back button
   useEffect(() => {
-    const handlePopState = (event) => {
+    const handlePopState = (event: PopStateEvent) => {
       if (event.state?.step) {
         setCurrentStep(event.state.step);
         setTimeout(() => {
@@ -481,7 +491,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
   // values but at default height, autoGrow only fires on user input otherwise)
   useEffect(() => {
     setTimeout(() => {
-      document.querySelectorAll('.checklist-textarea').forEach(el => autoGrow(el));
+      document.querySelectorAll('.checklist-textarea').forEach((el) => autoGrow(el));
     }, 0);
   }, [currentStep]);
 
@@ -509,7 +519,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
         setChecklistData(data.checklist_data);
       }
 
-      const draftAnswers = {};
+      const draftAnswers: Answers = {};
       Object.keys(data).forEach((key) => {
         if (key.startsWith("q")) draftAnswers[key] = data[key];
       });
@@ -597,7 +607,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
     localStorage.setItem(storageKey, JSON.stringify(draftData));
   }, [admin.selectedCompany, admin.locationDisplay, admin.locationCountry, admin.engName, admin.engEmail, admin.engPhone, checklistData, answers, storageKey]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     dlog('🔴 FORM SUBMITTED - Step:', currentStep);
 
@@ -618,8 +628,8 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
       return;
     }
 
-    const errors = [];
-    let firstErrorField = null;
+    const errors: { field: string; message: string }[] = [];
+    let firstErrorField: { current: any } | null = null;
 
     document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
     setQuestionErrors({});
@@ -659,7 +669,7 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
     setSubmitting(true);
     hasSubmittedRef.current = true;
 
-    const emailFriendlyAnswers = {};
+    const emailFriendlyAnswers: Record<string, any> = {};
     (template?.questionsData || []).forEach((q, i) => {
       // Skip winch questions (14-19) if winch not returned
       if (!isWinchReturned && q.id >= 14 && q.id <= 19) {
@@ -955,8 +965,8 @@ export default function Depth({ unit, template, companies = [], engineers = [], 
   );
 }
 
-export async function getServerSideProps({ params, req }) {
-  const token = params.id;
+export async function getServerSideProps({ params, req }: GetServerSidePropsContext) {
+  const token = String(params?.id ?? '');
   const session = getSession(req);
   // Enforce the session here rather than relying only on the proxy layer, and
   // confirm the URL token matches the session so one unit's session cannot load
@@ -985,7 +995,7 @@ export async function getServerSideProps({ params, req }) {
           declarationText: data.template?.declarationText || "",
           maintenanceChecklist: equipment_checklist,
           questionsData: questions,
-          questions: questions.map(q => q.title),
+          questions: questions.map((q: any) => q.title),
         },
         companies: data.companies,
         engineers: data.engineers,

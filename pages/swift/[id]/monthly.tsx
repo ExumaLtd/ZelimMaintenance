@@ -11,7 +11,15 @@ import { errorMessage } from '@/utils/errors';
 import { fetchFormData } from '@/lib/data-fetching';
 import { getSession } from '@/lib/session';
 import FormShell from '@/components/maintenance-form/form-shell';
-import type { FieldErrors } from '@/components/maintenance-form/types';
+import type { FieldErrors, FormPageProps, UploadedImage } from '@/components/maintenance-form/types';
+import type { FormEvent } from 'react';
+import type { GetServerSidePropsContext } from 'next';
+
+type ChecklistGroup = {
+  id: number;
+  title: string;
+  questions: { id: number; text: string; answer: boolean | null }[];
+};
 import ArrowButton from '@/components/ui/arrow-button';
 import { useAdminFields, AdminCard } from '@/components/maintenance-form/admin-card';
 import DeclarationCard from '@/components/maintenance-form/declaration-card';
@@ -37,7 +45,7 @@ const monthlySchema = z.object({
 });
 
 
-export default function Monthly({ unit, template, companies = [], engineers = [], operators = [], accessType = 'operator' }) {
+export default function Monthly({ unit, template, companies = [], engineers = [], operators = [], accessType = 'operator' }: FormPageProps) {
   const router = useRouter();
 
   const card1Ref = useRef(null);
@@ -50,7 +58,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
   const [declarationChecked, setDeclarationChecked] = useState(false);
   const [signatureData, setSignatureData] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
-  const [photographImages, setPhotographImages] = useState([]);
+  const [photographImages, setPhotographImages] = useState<UploadedImage[]>([]);
   const [photographComments, setPhotographComments] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({
     company: false,
@@ -65,7 +73,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
   });
 
   // Checklist data - initialize from template (grouped structure)
-  const [checklistData, setChecklistData] = useState([]);
+  const [checklistData, setChecklistData] = useState<ChecklistGroup[]>([]);
 
   // Further comments, one per checklist group, keyed by groupIndex
   const [stepComments, setStepComments] = useState<Record<string, string>>({});
@@ -132,10 +140,10 @@ export default function Monthly({ unit, template, companies = [], engineers = []
     if (template?.maintenanceChecklist && template.maintenanceChecklist.length > 0 && !hasLoadedDraftForInitRef.current) {
       setChecklistData(
         template.maintenanceChecklist
-          .filter(item => item.questions && item.questions.length > 0)
-          .map(group => ({
+          .filter((item: any) => item.questions && item.questions.length > 0)
+          .map((group: any) => ({
             ...group,
-            questions: group.questions.map(q => ({
+            questions: group.questions.map((q: any) => ({
               ...q,
               answer: null
             }))
@@ -145,7 +153,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
   }, [template]);
 
   // Checklist update function (for grouped structure)
-  const updateChecklist = (groupIndex, questionIndex, value) => {
+  const updateChecklist = (groupIndex: number, questionIndex: number, value: boolean) => {
     setChecklistData(prev => {
       const updated = [...prev];
       updated[groupIndex] = {
@@ -166,7 +174,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
   };
 
   // Handle comment images per step
-  const handleStepCommentImagesChange = (groupIndex, images) => {
+  const handleStepCommentImagesChange = (groupIndex: number, images: UploadedImage[]) => {
     setStepCommentImages(prev => ({ ...prev, [groupIndex]: images }));
   };
 
@@ -174,8 +182,8 @@ export default function Monthly({ unit, template, companies = [], engineers = []
   const handleContinue = () => {
     // On step 1 (admin + photo), validate both before advancing
     if (currentStep === 1) {
-      const errors = [];
-      const newFieldErrors = {
+      const errors: string[] = [];
+      const newFieldErrors: FieldErrors = {
         company: false,
         location: false,
         engineerName: false,
@@ -274,7 +282,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
 
   // Handle browser back/forward buttons
   useEffect(() => {
-    const handlePopState = (event) => {
+    const handlePopState = (event: PopStateEvent) => {
       const targetStep = event.state?.step ?? 1;
       setCurrentStep(targetStep);
       setTimeout(() => {
@@ -356,14 +364,14 @@ export default function Monthly({ unit, template, companies = [], engineers = []
     localStorage.setItem(storageKey, JSON.stringify(draftData));
   }, [admin.selectedCompany, admin.locationDisplay, admin.locationCountry, admin.engName, admin.engEmail, admin.engPhone, checklistData, stepComments, storageKey]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMsg("");
     if (submitting) return;
 
     hasSubmittedRef.current = true;
 
-    const newFieldErrors = {
+    const newFieldErrors: FieldErrors = {
       company: false,
       location: false,
       engineerName: false,
@@ -389,12 +397,12 @@ export default function Monthly({ unit, template, companies = [], engineers = []
       signature: signatureData || "",
     });
 
-    const errors = [];
-    let firstErrorField = null;
+    const errors: { field: string; message: string }[] = [];
+    let firstErrorField: { current: any } | null = null;
 
     if (!result.success) {
       result.error.issues.forEach(issue => {
-        const field = issue.path[0];
+        const field = String(issue.path[0]);
         errors.push({ field, message: issue.message });
         if (field === 'company') {
           newFieldErrors.company = true;
@@ -417,8 +425,8 @@ export default function Monthly({ unit, template, companies = [], engineers = []
       });
     }
 
-    const incompleteItems = [];
-    const groupsNeedingComments = [];
+    const incompleteItems: { groupIndex: number; questionIndex: number; text: string }[] = [];
+    const groupsNeedingComments: number[] = [];
 
     checklistData.forEach((group, groupIndex) => {
       group.questions.forEach((question, questionIndex) => {
@@ -459,7 +467,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
 
     if (groupsNeedingComments.length > 0) {
       errors.push({ field: 'comments', message: 'Please explain any item marked "No" before submitting.' });
-      const newStepCommentErrors = {};
+      const newStepCommentErrors: Record<string, boolean> = {};
       groupsNeedingComments.forEach(gi => { newStepCommentErrors[gi] = true; });
       newFieldErrors.stepComments = newStepCommentErrors;
       // Navigate to the earliest step missing a comment (if not already on incomplete step)
@@ -507,7 +515,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
 
     setSubmitting(true);
 
-    const answers = [];
+    const answers: { question: string; answer: string; images: { url: string; fileType: string }[] }[] = [];
     if (photographImages.length > 0 || photographComments) {
       answers.push({
         question: "Photograph Swift",
@@ -574,7 +582,7 @@ export default function Monthly({ unit, template, companies = [], engineers = []
 
       const companyLogoUrl = getCompanyLogoUrl(unit?.company, unit?.serial_number);
 
-      const answersForEmail = {};
+      const answersForEmail: Record<string, any> = {};
       if (photographImages.length > 0 || photographComments) {
         answersForEmail["Photograph Swift"] = {
           text: photographComments || "",
@@ -863,8 +871,8 @@ export default function Monthly({ unit, template, companies = [], engineers = []
   );
 }
 
-export async function getServerSideProps({ params, req }) {
-  const token = params.id;
+export async function getServerSideProps({ params, req }: GetServerSidePropsContext) {
+  const token = String(params?.id ?? '');
 
   const session = getSession(req);
   // Confirm the URL token matches the session so one unit's session cannot load
