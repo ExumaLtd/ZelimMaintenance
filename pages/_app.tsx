@@ -1,3 +1,4 @@
+import "../styles/tailwind.css";
 import "../styles/globals.css";
 import "../styles/landing.css";
 import "../styles/dashboard.css";
@@ -16,6 +17,7 @@ const montserrat = Montserrat({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   display: "swap",
+  variable: "--font-montserrat",
 });
 
 const robotoMono = Roboto_Mono({
@@ -36,7 +38,7 @@ export default function MyApp({ Component, pageProps }) {
   }, []);
 
   return (
-    <div className={`${montserrat.className} ${robotoMono.variable}`}>
+    <div className={`${montserrat.className} ${montserrat.variable} ${robotoMono.variable}`}>
       <Head>
         <title>Zelim Maintenance Portal</title>
         <link rel="icon" href="/favicon/ZelimFavicon_192x192.png" />
