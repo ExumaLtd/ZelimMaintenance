@@ -1,0 +1,27 @@
+name: Production health watch
+
+# Hourly probe of the live portal. A failed run makes GitHub email the
+# workflow author, so an outage is noticed without anyone logging in.
+# Hourly is a deliberate compromise: schedules bill Actions minutes on
+# private repos, and the primary fast-interval monitor should be an
+# external service (for example UptimeRobot pinging /api/health every
+# five minutes). This watch is the dependency-free safety net.
+on:
+  schedule:
+    - cron: "7 * * * *"
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the health endpoint
+        run: |
+          body=$(curl -s --max-time 20 https://maintenance.exuma.co.uk/api/health)
+          echo "health: $body"
+          echo "$body" | grep -q '"status":"ok"' || { echo "health endpoint unhealthy" >&2; exit 1; }
+      - name: Check the landing page
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 https://maintenance.exuma.co.uk/)
+          echo "landing: HTTP $code"
+          [ "$code" = "200" ] || { echo "landing page returned $code" >&2; exit 1; }
