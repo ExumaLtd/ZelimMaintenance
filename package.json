@@ -17,8 +17,8 @@
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
-    "@sentry/nextjs": "^10.74.0",
-    "@upstash/ratelimit": "^2.0.8",
+    "@sentry/nextjs": "^10.75.0",
+    "@upstash/ratelimit": "^2.1.0",
     "@upstash/redis": "^1.38.4",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
@@ -27,29 +27,29 @@
     "cookie": "^2.0.1",
     "date-fns": "^4.1.0",
     "html5-qrcode": "^2.3.8",
-    "lucide-react": "^1.45.0",
-    "next": "^16.3.4",
+    "lucide-react": "^1.47.0",
+    "next": "^16.3.5",
     "react": "^19.3.0",
     "react-day-picker": "^10.0.1",
     "react-dom": "^19.3.0",
-    "resend": "^6.27.0",
+    "resend": "^6.28.1",
     "signature_pad": "^5.1.4",
-    "zod": "^4.6.2"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.3.3",
-    "@types/node": "^24.13.4",
+    "@types/node": "^24.13.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "axios": "^1.20.0",
     "eslint": "^9.39.5",
-    "eslint-config-next": "^16.3.4",
+    "eslint-config-next": "^16.3.5",
     "postcss": "^8.5.28",
     "react-email": "^6.9.5",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.2",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.1"
   },
   "overrides": {
     "serialize-javascript": "^7.0.5",
