@@ -16,9 +16,15 @@ Sentry.init({
   replaysOnErrorSampleRate: 1.0,
   replaysSessionSampleRate: 0,
 
-  // Do not stream console logs or attach PII to error reports
-  enableLogs: false,
-  sendDefaultPii: false,
+  // Do not attach IP addresses, user identifiers, cookies or request and
+  // response bodies (which carry PINs and form data) to error reports.
+  // Sentry 11 replaced sendDefaultPii with dataCollection, whose defaults
+  // collect all of these.
+  dataCollection: {
+    userInfo: false,
+    cookies: false,
+    httpBodies: [],
+  },
 
   integrations: [
     Sentry.replayIntegration(),

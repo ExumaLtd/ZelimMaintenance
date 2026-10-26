@@ -10,9 +10,13 @@ Sentry.init({
   // Sample 10% of requests for performance monitoring in production; 100% in dev
   tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1,
 
-  // Do not stream console logs to Sentry
-  enableLogs: false,
-
-  // Do not attach IP addresses or user identifiers to error reports
-  sendDefaultPii: false,
+  // Do not attach IP addresses, user identifiers, cookies or request and
+  // response bodies (which carry PINs and form data) to error reports.
+  // Sentry 11 replaced sendDefaultPii with dataCollection, whose defaults
+  // collect all of these.
+  dataCollection: {
+    userInfo: false,
+    cookies: false,
+    httpBodies: [],
+  },
 });
