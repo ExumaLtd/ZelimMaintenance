@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { withSentryConfig } from "@sentry/nextjs";
+import { withSentryConfig } from "@sentry/nextjs/config";
 import withPWAInit from "@ducanh2912/next-pwa";
 
 const withPWA = withPWAInit({
